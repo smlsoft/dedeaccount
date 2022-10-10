@@ -1,0 +1,156 @@
+<script setup>
+import { useApp } from "@/stores/app.js";
+import { ref } from "vue";
+import { RouterLink } from "vue-router";
+import { menus } from "@/api/menu";
+const shopName = localStorage.shop_name;
+const userName = localStorage._usercode;
+const storeApp = useApp();
+</script>
+
+<template>
+  <div class="surface-overlay relative">
+    <div
+      class="flex align-items-center justify-content-between lg:static"
+      style="height: 65px"
+    >
+      <div
+        class="flex align-items-center bg-indigo-500 text-white h-full"
+        style="height: 65px"
+      >
+        <img src="@/assets/logo.jpg" alt="Image" height="40" class="mr-0 lg:mr-3 pl-3" />
+        <div class="ml-2" style="width: 270px">{{ shopName }}</div>
+      </div>
+      <div class="flex align-items-center px-4">
+        <a
+          v-ripple
+          class="cursor-pointer block lg:hidden text-700 p-ripple"
+          v-styleclass="{
+            selector: '#navbar-7',
+            enterClass: 'hidden',
+            leaveToClass: 'hidden',
+            hideOnOutsideClick: true,
+          }"
+        >
+          <i class="pi pi-bars text-4xl"></i>
+        </a>
+      </div>
+
+      <div
+        id="navbar-sub-7"
+        class="hidden lg:block absolute lg:static lg:w-auto w-full surface-overlay left-0 top-100 z-1 shadow-2 lg:shadow-none py-2 px-2"
+      >
+        <ul
+          class="list-none p-0 m-0 flex lg:align-items-center select-none flex-column lg:flex-row border-top-1 surface-border lg:border-top-none"
+        >
+          <li class="border-top-1 surface-border lg:border-top-none">
+            <a
+              v-ripple
+              class="flex px-6 p-3 lg:px-3 align-items-center hover:surface-100 font-medium border-round cursor-pointer transition-colors transition-duration-150 p-ripple"
+            >
+              <div class="block mr-1">
+                <div class="text-900 font-medium">ผู้ใช้งาน:{{ userName }}</div>
+              </div>
+              <img
+                src="@/assets/img/avatar-f-1.png"
+                class="mr-3 lg:mr-0"
+                style="width: 28px; height: 28px"
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div
+      id="navbar-7"
+      class="py-2 px-2 shadow-2 hidden lg:block absolute lg:static lg:w-auto w-full surface-overlay left-0 top-100 shadow-2"
+      style="z-index: 6799"
+    >
+      <ul class="list-none p-0 m-0 flex flex-column lg:flex-row select-none">
+        <li
+          v-for="menu in menus"
+          :key="menu.title"
+          :class="menu.children.length > 0 ? 'lg:relative' : ''"
+        >
+          <RouterLink
+            v-if="menu.children.length == 0"
+            :to="menu.to"
+            :class="storeApp.pageActive == menu.name ? '' : ''"
+            @click="
+              storeApp.setActivePage(menu.name);
+              storeApp.setActiveChild('');
+            "
+            v-ripple
+            class="flex align-items-center cursor-pointer p-3 text-700 border-round hover:text-900 hover:surface-100 transition-duration-150 transition-colors p-ripple"
+            style="border-radius: 12px"
+          >
+            <i :class="menu.icon" class="mr-2"></i>
+            <span class="font-medium">{{ menu.title }}</span>
+          </RouterLink>
+
+          <a
+            v-if="menu.children.length > 0"
+            v-ripple
+            class="flex align-items-center cursor-pointer p-3 text-700 border-round hover:text-900 hover:surface-100 transition-duration-150 transition-colors p-ripple"
+            style="border-radius: 12px"
+            v-styleclass="{
+              selector: '@next',
+              enterClass: 'hidden',
+              enterActiveClass: 'scalein',
+              leaveToClass: 'hidden',
+              leaveActiveClass: 'fadeout',
+              hideOnOutsideClick: true,
+            }"
+          >
+            <i :class="menu.icon" class="mr-2"></i>
+            <span class="font-medium">{{ menu.title }}</span>
+            <i class="pi pi-angle-down ml-auto lg:ml-3"></i>
+          </a>
+          <ul
+            v-if="menu.children.length > 0"
+            class="list-none py-0 pl-3 m-0 lg:px-0 lg:py-0 border-round shadow-0 lg:shadow-2 lg:border-1 border-50 lg:absolute surface-overlay hidden origin-top w-full lg:w-15rem cursor-pointer"
+            style="z-index: 9999"
+          >
+            <li v-for="child in menu.children" :key="child.title">
+              <RouterLink
+                :to="child.to"
+                @click="
+                  storeApp.setActivePage(menu.name);
+                  storeApp.setActiveChild(child.name);
+                "
+                :class="storeApp.childActive == child.name ? '' : ''"
+                v-ripple
+                class="flex p-3 align-items-center text-600 hover:text-900 hover:surface-100 transition-colors transition-duration-150 p-ripple"
+                style="border-radius: 12px"
+              >
+                <i :class="child.icon" class="mr-2"></i>
+                <span class="font-medium">{{ child.title }}</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </li>
+        <li
+          class="border-top-1 my-3 xl:my-0 xl:border-top-none border-indigo-400 xl:ml-auto"
+        >
+          <RouterLink
+            to="/logout"
+            v-ripple
+            class="flex align-items-center cursor-pointer p-3 text-700 border-round hover:text-900 hover:surface-100 transition-duration-150 transition-colors p-ripple"
+            style="border-radius: 12px"
+          >
+            <span class="font-medium">ออกจากระบบงาน</span>
+            <i class="pi pi-sign-out ml-2"></i>
+          </RouterLink>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <!-- <div
+    class="flex justify-content-start align-items-center px-3 surface-section shadow-2 relative lg:static border-bottom-1 surface-border animation-duration-200 animation-ease-in-out"
+    style="height: 6vh">
+    <a class="cursor-pointer block text-700 p-ripple" @click="storeApp.setActivedToggle();">
+      <i class="pi pi-bars"></i>
+    </a>
+    <span class="mb-1 ml-2"> {{ storeApp.PageTitle }}</span>
+  </div> -->
+</template>

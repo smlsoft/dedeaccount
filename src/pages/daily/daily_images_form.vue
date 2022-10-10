@@ -1,0 +1,1828 @@
+<script setup>
+import DialogForm from "@/components/form/DialogForm.vue";
+import AppLayout from "@/components/layout/AppLayout.vue";
+import MainContentWarp from "@/components/MainContentWarp.vue";
+import MasterdataService from "@/services/MasterdataService";
+import { useRouter, useRoute } from "vue-router";
+import { useToast } from "primevue/usetoast";
+import { ref, onMounted, computed, onUnmounted, watch } from "vue";
+import Utils from "@/utils/";
+import { useApp } from "@/stores/app.js";
+import $ from "jquery";
+import ImageBlock from "../images/components/ImagesBlock.vue";
+import JournalForm from "./components/journal_form.vue";
+import VatForm from "./components/vat_form.vue";
+import TaxForm from "./components/tax_form.vue";
+
+const storeApp = useApp();
+const content = ref();
+const router = useRouter();
+const route = useRoute();
+const toast = useToast();
+const tabview = ref();
+const confirmSaveDialog = ref(false);
+const confirmRejectDialog = ref(false);
+const onLoad = ref(false);
+const selectedImg = ref(true);
+const selectedImgUse = ref([]);
+const selectSort = ref(0);
+const isShowAll = ref(true);
+const isShowWait = ref(false);
+const isShowUnApprove = ref(false);
+const searchItem = ref("");
+const limitPage = ref(20);
+const activePage = ref(1);
+const showContent = ref("");
+const showSelectFrom = ref(false);
+const showImageList = ref(false);
+const totalItemsCount = ref(10);
+const data_gallery = ref([]);
+const data_list = ref([]);
+const selectedImgUrl = ref("");
+const selectedImgData = ref({ documentref: "", documentimages: [] });
+const rotate = ref(0);
+
+const scale = ref(1);
+const panning = ref(false);
+const pointX = ref(0);
+const pointY = ref(0);
+const start = ref({ x: 0, y: 0 });
+const zoomStyle = ref("");
+
+const doc_images = ref([]);
+const WsConnectImage = ref();
+const AllImageUsed = ref([]);
+const WsConnectAllImage = ref();
+const activeIndex = ref(0);
+const updateMode = ref(false);
+const accountChart_detail = ref([]);
+const accountBook_detail = ref([]);
+const groupAccount_detail = ref([]);
+const conreject = "ต้องการยกเลิกรูปภาพ";
+const conSave = "ต้องการบันทึกเอกสารรายวัน";
+const conchange = "ต้องการเปลี่ยนรูปภาพ";
+const connamechange = "";
+const activeIndexList = ref(0);
+const imagePreviewStyle = computed({
+  get() {
+    return {
+      transform: "rotate(" + rotate.value + "deg) scale(" + scale.value + ")",
+    };
+  },
+});
+
+const sortOption = ref([
+  {
+    value: 0,
+    name: "ตามชื่อ",
+  },
+  {
+    value: 1,
+    name: "ตามลำดับ",
+  },
+  {
+    value: 2,
+    name: "รายการล่าสุด",
+  },
+]);
+const firstPage = ref(0);
+const isGallery = ref(false);
+const showUploadImage = ref(false);
+const fileInput = ref(HTMLInputElement);
+
+const daily_form = ref({
+  accountdescription: "",
+  accountgroup: "",
+  accountperiod: "1",
+  accountyear: parseInt(Utils.getYear().toString()) + 543,
+  amount: "",
+  batchId: "",
+  docdate: Utils.getDateTime(),
+  docno: Utils.getDocNoDate("JO"),
+  journaltype: "0",
+  bookcode: "",
+  journaldetail: [
+    {
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    },
+  ],
+  parid: "0000000",
+});
+const daily_form_has = ref();
+
+const isChange = ref(false);
+const daily_form_valid = ref({
+  accountdescription: false,
+  accountgroup: false,
+  accountperiod: false,
+  accountyear: false,
+  amount: false,
+  batchId: false,
+  docdate: false,
+  docno: false,
+  bookcode: false,
+});
+const waitForImages = ref(true);
+const vats = ref([]);
+
+const vats_valid = ref([
+  {
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  },
+]);
+const taxes = ref([]);
+const connection = ref();
+const taxes_valid = ref([
+  {
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  },
+]);
+const confirmChangeImageDialog = ref(false);
+const confirmClearImageDialog = ref(false);
+const confirmBackImageDialog = ref(false);
+const newDocRefImage = ref("");
+const showThumbnails = ref(false);
+const modeEdit = ref(false);
+
+
+onUnmounted(() => {
+  console.log("unmounted--------------------------------------------------------");
+
+  WsConnectAllImage.value.close();
+  WsConnectImage.value.close();
+  connection.value.close();
+});
+
+watch(daily_form.value, (newValue, oldValue) => {
+  if (JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)) {
+    isChange.value = true;
+    sendChange(1);
+  } else {
+    isChange.value = false;
+    sendChange(0);
+  }
+});
+watch(vats.value, (newValue, oldValue) => {
+  if (vats.value.length > 0) {
+    isChange.value = true;
+    sendChange(1);
+  } else {
+    isChange.value = false;
+    sendChange(0);
+  }
+});
+
+watch(taxes.value, (newValue, oldValue) => {
+  if (taxes.value.length > 0) {
+    isChange.value = true;
+    sendChange(1);
+  } else {
+    isChange.value = false;
+    sendChange(0);
+  }
+});
+
+const confirmRemoveImgDialog = ref(false);
+function sendChange(data) {
+  connection.value.send(JSON.stringify({ event: "change", payload: { status: data } }));
+}
+onMounted(() => {
+  storeApp.setActivePage("daily");
+  storeApp.setActiveChild("daily_images_list");
+
+  disableAllinput(0);
+  storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
+  daily_form_has.value = {
+    accountdescription: daily_form.value.accountdescription,
+    accountgroup: daily_form.value.accountgroup,
+    accountperiod: daily_form.value.accountperiod,
+    accountyear: daily_form.value.accountyear,
+    amount: daily_form.value.amount,
+    batchId: daily_form.value.batchId,
+    docdate: daily_form.value.docdate,
+    docno: daily_form.value.docno,
+    journaltype: daily_form.value.journaltype,
+    bookcode: daily_form.value.bookcode,
+    journaldetail: [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ],
+    parid: daily_form.value.parid,
+  };
+  getAllSelectImage();
+  getDocImageList();
+  getAccountChart();
+  getJournalBook();
+  getAccountGroup();
+
+  websocketConnect();
+  WSImageConnect();
+  WsAllImageConnect();
+
+  // setTimeout(() => {
+  //   if (selectedImgUrl.value == "") {
+  //     reLoadImage();
+  //   }
+  // }, 1500);
+});
+
+function WSImageConnect() {
+  WsConnectImage.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
+    localStorage.getItem("_token")
+  );
+  WsConnectImage.value.onopen = function (event) {
+    // console.log(event);
+    // console.log(
+    //   "WsConnectImage Successfully connected to the echo websocket server..."
+    // );
+  };
+  WsConnectImage.value.onmessage = function (event) {
+    //console.log("WsConnectImage ", event);
+  };
+  WsConnectImage.value.onclose = function (e) {
+    // console.log(
+    //   "WsConnectImage Socket is closed. Reconnect will be attempted in 1 second.",
+    //   e.reason
+    // );
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "daily_images_form"
+      ) {
+        // console.log(
+        //   "Socket is closed. Reconnect will be attempted in 1 second.",
+        //   e.reason
+        // );
+        WSImageConnect();
+      }
+    }, 1000);
+  };
+}
+
+function checkActiveIndex() {
+  setTimeout(() => {
+    data_list.value.forEach((ele, index) => {
+      // console.log(doc_images.value.documentref + " - " + ele.documentref);
+      if (doc_images.value.documentref == ele.documentref) {
+        activeIndexList.value = index;
+      }
+    });
+  }, 30);
+}
+
+function WsAllImageConnect() {
+  WsConnectAllImage.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
+    localStorage.getItem("_token")
+  );
+  WsConnectAllImage.value.onopen = function (event) {
+    // console.log(event);
+    // console.log(
+    //   "WsAllImage Connect Successfully connected to the echo websocket server..."
+    // );
+  };
+  WsConnectAllImage.value.onmessage = function (event) {
+    var jsonData = JSON.parse(event.data);
+    console.log("jsonData ", jsonData);
+    if (jsonData.status == "selected") {
+      //console.log("selected");
+      var found = 0;
+      AllImageUsed.value.forEach((data) => {
+        if (data.docref == jsonData.docref) {
+          found += 1;
+        }
+      });
+      if (found == 0) {
+        AllImageUsed.value.push({
+          docref: jsonData.docref,
+          username: jsonData.username,
+        });
+      }
+    } else if (jsonData.status == "deselected") {
+      //  console.log("unselected");
+      if (jsonData.username == localStorage._usercode) {
+        waitForImages.value = true;
+        disableAllinput(0);
+        deSelectImg();
+      }
+      var rebuild = [];
+      AllImageUsed.value.forEach((data) => {
+        if (data.docref != jsonData.docref) {
+          rebuild.push(data);
+        }
+      });
+      AllImageUsed.value = rebuild;
+    }
+
+    //  console.log("AllImageUsed ", AllImageUsed.value);
+  };
+  WsConnectAllImage.value.onclose = function (e) {
+    // console.log(
+    //   "WsAllImageConnect Socket is closed. Reconnect will be attempted in 1 second.",
+    //   e.reason
+    // );
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "daily_images_form"
+      ) {
+        // console.log(
+        //   "Socket is closed. Reconnect will be attempted in 1 second.",
+        //   e.reason
+        // );
+        WsAllImageConnect();
+        //getAllSelectImage();
+      }
+    }, 1000);
+  };
+}
+
+function websocketConnect() {
+  connection.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
+    localStorage.getItem("_token")
+  );
+  connection.value.onopen = function (event) {
+    //console.log(event);
+    //console.log("Successfully connected to the echo websocket server...");
+  };
+  connection.value.onmessage = function (event) {
+    //console.log("onmessage ", event);
+    var jsonData = JSON.parse(event.data);
+    if (jsonData.docref != "") {
+      MasterdataService.getImagesByDocref(jsonData.docref)
+        .then((res) => {
+          if (res.success) {
+            console.log(res.data);
+            if (res.data.documentimages.length > 0) {
+              doc_images.value = res.data;
+
+              var check_dup = data_list.value.filter(
+                (val) => val.documentref == doc_images.value.documentref
+              );
+
+              if (check_dup.length == 0) {
+                data_list.value.splice(0, 0, doc_images.value);
+              }
+              if (res.data.documentimages.length > 1) {
+                showThumbnails.value = true;
+              } else {
+                showThumbnails.value = false;
+              }
+              selectedImgData.value = res.data;
+              selectedImgUrl.value = res.data.documentimages[0].imageuri;
+              // console.log(selectedImgUrl.value);
+              selectedImg.value = true;
+              waitForImages.value = false;
+
+              disableAllinput(res.data.documentimages[0].status);
+              //getGLJournalListByDocref();
+              setTimeout(() => {
+                checkActiveIndex();
+              }, 100);
+            }
+          }
+        })
+        .catch((err) => {
+          // console.log(err);
+        });
+    }
+  };
+
+  connection.value.onclose = function (e) {
+    console.log("Socket is closed. Reconnect will be attempted in 1 second.", e.reason);
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "daily_images_form"
+      ) {
+        // console.log(
+        //   "Socket is closed. Reconnect will be attempted in 1 second.",
+        //   e.reason
+        // );
+        websocketConnect();
+        //getAllSelectImage();
+      }
+    }, 1000);
+  };
+}
+
+function disableAllinput(data) {
+  //console.log(waitForImages.value);
+  setTimeout(() => {
+    if (waitForImages.value || data == 1) {
+      $("#panelForm3 :input").prop("disabled", true);
+      $("#panelForm3 .p-dropdown").prop("disabled", true);
+    } else {
+      $("#panelForm3 :input").prop("disabled", false);
+      $("#panelForm3 .p-dropdown").prop("disabled", false);
+    }
+  }, 500);
+}
+
+function getAllSelectImage() {
+  MasterdataService.getAllSelectImage()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        AllImageUsed.value = res.data;
+      }
+    })
+    .catch((err) => {
+      //console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ดึงข้อมูลล้มเหลว " + err,
+        life: 3000,
+      });
+    });
+}
+
+function goList() {
+  removeSelectImg();
+
+  setTimeout(() => {
+
+    router.push({ name: "daily_images_list" });
+  }, 100);
+}
+
+async function confirmSave() {
+  //console.log(daily_form.value);
+  //console.log(vats.value);
+  //console.log(taxes.value);
+
+  var sumDebit = 0;
+  await daily_form.value.journaldetail.forEach((ele) => {
+    var debit = 0;
+    if (ele.debitamount != "") {
+      debit = parseFloat(ele.debitamount);
+      sumDebit += debit;
+    }
+  });
+
+  vats.value.forEach((ele) => {
+    ele.vatperiod = parseInt(ele.vatperiod);
+    ele.vatyear = parseInt(ele.vatyear);
+  });
+  daily_form.value.amount = sumDebit;
+  //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
+  // console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  var from_input = {
+    accountdescription: daily_form.value.accountdescription,
+    accountgroup: daily_form.value.accountgroup,
+    accountperiod: daily_form.value.accountperiod,
+    accountyear: daily_form.value.accountyear,
+    documentref: selectedImgData.value.documentref,
+    amount: daily_form.value.amount,
+    batchId: daily_form.value.batchId,
+    docdate: Utils.getFormatDateTime(daily_form.value.docdate),
+    docno: daily_form.value.docno,
+    bookcode: daily_form.value.bookcode,
+    journaldetail: daily_form.value.journaldetail,
+    parid: daily_form.value.parid,
+    vats: vats.value,
+    taxes: taxes.value,
+  };
+  from_input.vats.forEach((vat) => {
+    vat.vatamount = parseFloat(vat.vatamount);
+    vat.vatdate = Utils.getFormatDateTime(vat.vatdate);
+  });
+  from_input.taxes.forEach((tax) => {
+    tax.taxdate = Utils.getFormatDateTime(tax.taxdate);
+  });
+
+  //console.log(from_input);
+
+  console.log(modeEdit.value);
+  var old_img = selectedImgData.value.documentref;
+  if (modeEdit.value) {
+    MasterdataService.putGLJournal(from_input, daily_form.value.guidfixed)
+      .then((res) => {
+        //console.log(res);
+        if (res.success) {
+          removeSelectImg();
+
+          confirmSaveDialog.value = false;
+          toast.add({
+            severity: "success",
+            summary: "ทำรายการสำเร็จ",
+            detail: "บันทึกรายการเดินบัญชีสำเร็จ",
+            life: 3000,
+          });
+          setTimeout(() => {
+            nextImageOnSave(old_img);
+            clearData();
+          }, 500);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    MasterdataService.postGLJournal(from_input)
+      .then((res) => {
+        //console.log(res);
+        if (res.success) {
+          removeSelectImg();
+          confirmSaveDialog.value = false;
+          toast.add({
+            severity: "success",
+            summary: "ทำรายการสำเร็จ",
+            detail: "บันทึกรายการเดินบัญชีสำเร็จ",
+            life: 3000,
+          });
+          setTimeout(() => {
+            nextImageOnSave(old_img);
+            clearData();
+          }, 500);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+}
+
+async function onSave() {
+  // console.log(daily_form.value);
+  // console.log(taxes.value);
+  // console.log(vats.value);
+  var isPass = await verifyData();
+  var isVaxPass = await verifyVat();
+  var isTatPass = await verifyTax();
+  if (isPass && isVaxPass && isTatPass) {
+    confirmSaveDialog.value = true;
+  }
+}
+
+function verifyData() {
+  var errorCount = 0;
+
+  if (daily_form.value.docdate == "") {
+    errorCount += 1;
+    daily_form_valid.value.docdate = true;
+  } else {
+    daily_form_valid.value.docdate = false;
+  }
+  if (daily_form.value.docno == "") {
+    errorCount += 1;
+    daily_form_valid.value.docno = true;
+  } else {
+    daily_form_valid.value.docno = false;
+  }
+  if (daily_form.value.accountperiod == "") {
+    errorCount += 1;
+    daily_form_valid.value.accountperiod = true;
+  } else {
+    daily_form_valid.value.accountperiod = false;
+  }
+  if (daily_form.value.accountyear == "") {
+    errorCount += 1;
+    daily_form_valid.value.accountyear = true;
+  } else {
+    daily_form_valid.value.accountyear = false;
+  }
+
+  if (daily_form.value.bookcode == "") {
+    errorCount += 1;
+    daily_form_valid.value.bookcode = true;
+  } else {
+    daily_form_valid.value.bookcode = false;
+  }
+
+  var sumCredit = 0;
+  var sumDebit = 0;
+  let deletIndex = [];
+  daily_form.value.journaldetail.forEach((ele, index) => {
+    // เก็บค่า index row ที่เป็นค่าว่าง
+    if (ele.accountcode == "") {
+      deletIndex.push(index);
+    }
+
+    // if (ele.accountcode == "") {
+    //   errorCount += 1;
+    //   toast.add({
+    //     severity: "error",
+    //     summary: "ไม่สามารถทำรายการได้",
+    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
+    //     life: 4000,
+    //   });
+    // }
+    // if (ele.accountname == "") {
+    //   errorCount += 1;
+    //   toast.add({
+    //     severity: "error",
+    //     summary: "ไม่สามารถทำรายการได้",
+    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
+    //     life: 4000,
+    //   });
+    // }
+
+    var debit = 0;
+    var credit = 0;
+    if (ele.creditamount == null) {
+      ele.creditamount = 0;
+    }
+    if (ele.creditamount.toString() != "") {
+      credit = parseFloat(ele.creditamount);
+      sumCredit += credit;
+    }
+    if (ele.debitamount == null) {
+      ele.debitamount = 0;
+    }
+    if (ele.debitamount.toString() != "") {
+      debit = parseFloat(ele.debitamount);
+      sumDebit += debit;
+      //console.log(sumDebit);
+    }
+  });
+
+  // ลบ row accountcode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    daily_form.value.journaldetail.splice(idx, 1);
+  });
+  // console.log(sumCredit);
+  // console.log(sumDebit);
+  if (parseFloat(sumCredit).toFixed(2) != parseFloat(sumDebit).toFixed(2)) {
+    errorCount += 1;
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "ยอดเดบิต และ เครดิต ไม่เท่ากัน",
+      life: 4000,
+    });
+  }
+
+  if (errorCount != 0) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาป้อนข้อมูลให้ครบ",
+      life: 4000,
+    });
+    return false;
+  } else {
+    var sumDebit;
+    daily_form.value.journaldetail.forEach((ele) => {
+      var debit = 0;
+      var credit = 0;
+      if (ele.creditamount != "") {
+        credit = parseFloat(ele.creditamount);
+      }
+      if (ele.debitamount != "") {
+        debit = parseFloat(ele.debitamount);
+      }
+      sumDebit += debit;
+      ele.accountcode = ele.accountcode.toString();
+      ele.accountname = ele.accountname.toString();
+      ele.debitamount = debit;
+      ele.creditamount = credit;
+    });
+
+    daily_form.value.amount = sumDebit;
+    //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
+    daily_form.value.accountperiod = parseInt(daily_form.value.accountperiod.toString());
+    daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
+    return true;
+  }
+}
+
+function verifyVat() {
+  var errorCount = 0;
+
+  vats.value.forEach((ele, index) => {
+    var errorDetail = 0;
+    var vat_error_detail = {
+      vatdate: false,
+      vatdocno: false,
+      vatperiod: false,
+      vatyear: false,
+      vatbase: false,
+      vatrate: false,
+      vatamount: false,
+      exceptvat: false,
+      custname: false,
+      custtaxid: false,
+      branchcode: false,
+    };
+
+    // console.log(ele);
+
+    if (ele.vatdocno != "") {
+      if (ele.vatdate == "") {
+        errorDetail += 1;
+        vat_error_detail.vatdate = true;
+      } else {
+        vat_error_detail.vatdate = false;
+      }
+      if (ele.vatdocno == "") {
+        errorDetail += 1;
+        vat_error_detail.vatdocno = true;
+      } else {
+        vat_error_detail.vatdocno = false;
+      }
+      if (ele.vatperiod == "") {
+        errorDetail += 1;
+        vat_error_detail.vatperiod = true;
+      } else {
+        vat_error_detail.vatperiod = false;
+      }
+      if (ele.vatyear.toString() == "") {
+        errorDetail += 1;
+        vat_error_detail.vatyear = true;
+      } else {
+        vat_error_detail.vatyear = false;
+      }
+
+      if (ele.vatbase.toString() == "") {
+        errorDetail += 1;
+        vat_error_detail.vatbase = true;
+      } else {
+        vat_error_detail.vatbase = false;
+      }
+      if (ele.vatrate.toString() == "") {
+        errorDetail += 1;
+        vat_error_detail.vatrate = true;
+      } else {
+        vat_error_detail.vatrate = false;
+      }
+
+      if (ele.custname == "") {
+        errorDetail += 1;
+        vat_error_detail.custname = true;
+      } else {
+        vat_error_detail.custname = false;
+      }
+      if (ele.custtaxid == "") {
+        errorDetail += 1;
+        vat_error_detail.custtaxid = true;
+      } else {
+        vat_error_detail.custtaxid = false;
+      }
+      if (ele.branchcode == "") {
+        errorDetail += 1;
+        vat_error_detail.branchcode = true;
+      } else {
+        vat_error_detail.branchcode = false;
+      }
+
+      if (errorDetail != 0) {
+        toast.add({
+          severity: "error",
+          summary: "ไม่สามารถทำรายการได้",
+          detail: "กรุณากรอกข้อมูลภาษีรายการที่ " + (index + 1) + " ให้ครบ",
+          life: 4000,
+        });
+      }
+      errorCount += errorDetail;
+    }
+    vats_valid.value[index] = vat_error_detail;
+  });
+  if (errorCount != 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function getDocImageList() {
+  MasterdataService.documentimagegroupnoreserve(
+    limitPage.value,
+    activePage.value,
+    searchItem.value
+  )
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        data_list.value = res.data;
+        totalItemsCount.value = res.pagination.total;
+        setTimeout(() => {
+          checkActiveIndex();
+        }, 500);
+        // console.log(totalItemsCount.value);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function resizeend(event) {
+  // console.log(event);
+}
+function deSelectImg() {
+  selectedImgData.value = { documentref: "", documentimages: [] };
+  selectedImg.value = false;
+  selectedImgUrl.value = "";
+}
+function removeSelectImg() {
+  var sendData = { docref: selectedImgData.value.documentref };
+  MasterdataService.postUnSelectImage(sendData)
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        selectedImgData.value = { documentref: "", documentimages: [] };
+        selectedImg.value = false;
+        selectedImgUrl.value = "";
+      }
+    })
+    .catch((err) => {
+      selectedImgData.value = { documentref: "", documentimages: [] };
+      selectedImg.value = false;
+      selectedImgUrl.value = "";
+    });
+}
+function removeMagnify() {
+  const elements = document.getElementsByClassName("img-magnifier-glass");
+  //console.log(elements);
+  while (elements.length > 0) {
+    elements[0].parentNode.removeChild(elements[0]);
+  }
+}
+function magnify(imgID, zoom) {
+  var img, glass, w, h, bw;
+
+  // if (elements.length > 0) {
+  //   elements[0].parentNode.removeChild(elements[0]);
+  // } else {
+  const elements = document.getElementsByClassName("img-magnifier-glass");
+  // console.log(elements);
+  while (elements.length > 0) {
+    elements[0].parentNode.removeChild(elements[0]);
+  }
+
+  img = document.getElementById(imgID);
+
+  /*create magnifier glass:*/
+  glass = document.createElement("DIV");
+
+  glass.setAttribute("class", "img-magnifier-glass");
+  /*insert magnifier glass:*/
+  img.parentElement.insertBefore(glass, img);
+  /*set background properties for the magnifier glass:*/
+  glass.style.backgroundImage = "url('" + img.src + "')";
+  glass.style.backgroundRepeat = "no-repeat";
+  glass.style.backgroundSize = img.width * zoom + "px " + img.height * zoom + "px";
+  glass.style.zIndex = 99999;
+  bw = 3;
+  w = glass.offsetWidth / 2;
+  h = glass.offsetHeight / 2;
+  /*execute a function when someone moves the magnifier glass over the image:*/
+  glass.addEventListener("mousemove", moveMagnifier);
+  img.addEventListener("mousemove", moveMagnifier);
+  /*and also for touch screens:*/
+  glass.addEventListener("touchmove", moveMagnifier);
+  img.addEventListener("touchmove", moveMagnifier);
+  function moveMagnifier(e) {
+    var pos, x, y;
+    /*prevent any other actions that may occur when moving over the image*/
+    e.preventDefault();
+    /*get the cursor's x and y positions:*/
+    pos = getCursorPos(e);
+    x = pos.x;
+    y = pos.y;
+    /*prevent the magnifier glass from being positioned outside the image:*/
+    if (x > img.width - w / zoom) {
+      x = img.width - w / zoom;
+    }
+    if (x < w / zoom) {
+      x = w / zoom;
+    }
+    if (y > img.height - h / zoom) {
+      y = img.height - h / zoom;
+    }
+    if (y < h / zoom) {
+      y = h / zoom;
+    }
+    /*set the position of the magnifier glass:*/
+    glass.style.left = x - w + "px";
+    glass.style.top = y - h + "px";
+    /*display what the magnifier glass "sees":*/
+    glass.style.backgroundPosition =
+      "-" + (x * zoom - w + bw) + "px -" + (y * zoom - h + bw) + "px";
+  }
+  function getCursorPos(e) {
+    var a,
+      x = 0,
+      y = 0;
+    e = e || window.event;
+    /*get the x and y positions of the image:*/
+    a = img.getBoundingClientRect();
+    /*calculate the cursor's x and y coordinates, relative to the image:*/
+    x = e.pageX - a.left;
+    y = e.pageY - a.top;
+    /*consider any page scrolling:*/
+    x = x - window.pageXOffset;
+    y = y - window.pageYOffset;
+    return { x: x, y: y };
+  }
+}
+
+function verifyTax() {
+  var errorCount = 0;
+
+  taxes.value.forEach((ele, index) => {
+    var errorDetail = 0;
+    var tax_error_detail = {
+      taxdate: false,
+      taxdocno: false,
+      custname: false,
+      custtaxid: false,
+      details: [
+        {
+          description: false,
+        },
+      ],
+    };
+
+    //console.log(ele);
+
+    if (ele.taxdocno != "") {
+      if (ele.taxdate == "") {
+        errorDetail += 1;
+        tax_error_detail.taxdate = true;
+      } else {
+        tax_error_detail.taxdate = false;
+      }
+      if (ele.taxdocno == "") {
+        errorDetail += 1;
+        tax_error_detail.taxdocno = true;
+      } else {
+        tax_error_detail.taxdocno = false;
+      }
+      if (ele.custname == "") {
+        errorDetail += 1;
+        tax_error_detail.custname = true;
+      } else {
+        tax_error_detail.custname = false;
+      }
+      if (ele.custtaxid.toString() == "") {
+        errorDetail += 1;
+        tax_error_detail.custtaxid = true;
+      } else {
+        tax_error_detail.custtaxid = false;
+      }
+      ele.details.forEach((detail, indexx) => {
+        if (detail.description == "" && indexx == 0) {
+          errorDetail += 1;
+        }
+      });
+
+      if (errorDetail != 0) {
+        toast.add({
+          severity: "error",
+          summary: "ไม่สามารถทำรายการได้",
+          detail:
+            "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " + (index + 1) + " ให้ครบ",
+          life: 4000,
+        });
+        // ele.details.forEach((detail, indexx) => {
+        //   if (detail.description == "" && indexx == 0) {
+        //     toast.add({
+        //       severity: "error",
+        //       summary: "ไม่สามารถทำรายการได้",
+        //       detail:
+        //         "กรุณากรอกข้อมูลรายละเอียดภาษีหัก​​ ณ ที่จ่าย รายการที่ " +
+        //         (indexx + 1),
+        //       life: 4000,
+        //     });
+        //   }
+        // });
+      }
+      errorCount += errorDetail;
+    }
+    taxes_valid.value[index] = tax_error_detail;
+  });
+  if (errorCount != 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function rejectImg() {
+  var post_data = { status: 1 };
+  console.log(selectedImgData.value.documentimages);
+  MasterdataService.putrejectimagestatusonlyGuiD(
+    post_data,
+    selectedImgData.value.documentimages[activeIndex.value].guidfixed
+  )
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        selectedImgData.value.documentimages[activeIndex.value].status = 1;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+  confirmRejectDialog.value = false;
+}
+
+function hidepanel() {
+  var panel = document.getElementById("panelForm3");
+  panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
+  var panel2 = document.getElementById("panelForm2");
+  panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
+}
+function showpanel() {
+  setTimeout(() => {
+    var panel3 = document.getElementById("panelForm3");
+    panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
+
+    var panel2 = document.getElementById("panelForm2");
+    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
+  }, 30);
+}
+
+function ImportDaliy(data) {
+  daily_form.value.journaldetail = data;
+}
+
+function deleteDetail(data) {
+  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
+    (val) => val.index !== data
+  );
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      index: 0,
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+  toast.add({
+    severity: "success",
+    summary: "Successful",
+    detail: "Detail Deleted",
+    life: 3000,
+  });
+}
+function addColumn(index) {
+  daily_form.value.journaldetail.splice(index + 1, 0, {
+    index: index + 1,
+    accountcode: "",
+    accountname: "",
+    debitamount: 0,
+    creditamount: 0,
+  });
+}
+
+function onRowReorder(data) {
+  daily_form.value.journaldetail = data;
+  toast.add({
+    severity: "success",
+    summary: "ทำรายการสำเร็จ",
+    detail: "ย้ายตำแหน่งสำเร็จ",
+    life: 3000,
+  });
+}
+
+function selectAccount(data, index) {
+  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
+  daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
+  daily_form.value.journaldetail[index].accountname = ele[0].accountname;
+}
+
+function getAccountChart() {
+  MasterdataService.getAccountChart()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        accountChart_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.accountcode - obj2.accountcode;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function getJournalBook() {
+  MasterdataService.getJournalBook()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        accountBook_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.code - obj2.code;
+        });
+        accountBook_detail.value.forEach((ele) => {
+          ele.label = ele.code + "~" + ele.name1;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+function getAccountGroup() {
+  MasterdataService.getAccountGroup()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        groupAccount_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.code - obj2.code;
+        });
+        groupAccount_detail.value.forEach((ele) => {
+          ele.label = ele.code + "~" + ele.name1;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function addBoxVat() {
+  vats.value.push({
+    vattype: 0,
+    vatdate: Utils.getDateTime(),
+    vatdocno: "",
+    vatperiod: "1",
+    vatyear: parseInt(Utils.getYear().toString()) + 543,
+    vatbase: 0,
+    vatrate: 0,
+    vatamount: 0,
+    exceptvat: 0,
+    vatmode: 0,
+    vatsubmit: false,
+    custname: "",
+    custtaxid: "",
+    organization: 0,
+    branchcode: "00000",
+    remark: "",
+  });
+
+  vats_valid.value.push({
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  });
+}
+
+function deleteDetailVat(index) {
+  vats.value.splice(index, 1);
+  vats_valid.value.splice(index, 1);
+}
+
+function calVatAmount(index) {
+  var vatbase = vats.value[index].vatbase;
+  var vatrate = vats.value[index].vatrate;
+  if (vatbase == "" || vatbase == null) {
+    vatbase = 0;
+  }
+  if (vatrate == "" || vatrate == null) {
+    vatrate = 0;
+  }
+  var vatAmount = (parseFloat(vatbase) * parseFloat(vatrate)) / 100;
+  vatAmount = vatAmount.toFixed(2);
+  vats.value[index].vatamount = parseFloat(vatAmount);
+}
+
+function checkDateFormat(index) {
+  if (vats.value[index].vatperiod > 12) {
+    vats.value[index].vatperiod = 12;
+  }
+  if (vats.value[index].vatperiod < 1) {
+    vats.value[index].vatperiod = 1;
+  }
+}
+function setBranch(index) {
+  if (vats.value[index].organization == 0) {
+    vats.value[index].branchcode = "00000";
+  } else {
+    vats.value[index].branchcode = "";
+  }
+}
+
+function addBoxTax() {
+  taxes.value.push({
+    taxdocno: "",
+    taxdate: Utils.getDateTime(),
+    custname: "",
+    custtype: 0,
+    custtaxid: "",
+    taxtype: 0,
+    details: [
+      {
+        description: "",
+        taxbase: 0,
+        taxrate: 0,
+        taxamount: 0,
+      },
+    ],
+  });
+
+  taxes_valid.value.push({
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  });
+}
+
+function deleteDetailTax(index) {
+  taxes.value.splice(index, 1);
+  taxes_valid.value.splice(index, 1);
+}
+function getSumTaxBase(data) {
+  var sum = 0;
+  if (data != null && data.length > 0) {
+    data.forEach((element) => {
+      sum += element.taxbase;
+    });
+  }
+  return sum.toFixed(2);
+}
+
+function nextImage(index) {
+  //console.log(index);
+  var docref = data_list.value[index].documentref;
+  var sendData = { docref: docref };
+  console.log(checkUseImgByUser(localStorage._usercode));
+  if (checkUseImgByUser(localStorage._usercode)) {
+    confirmChangeImageDialog.value = true;
+    newDocRefImage.value = docref;
+  } else {
+    MasterdataService.postSelectImage(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+            clearData();
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
+
+  if (index > data_list.value.length - 6) {
+    if (data_list.value.length - 6 < totalItemsCount.value - 6) {
+      MasterdataService.getDocImage(
+        limitPage.value,
+        activePage.value + 1,
+        searchItem.value
+      )
+        .then((res) => {
+          console.log(res);
+          if (res.success) {
+            console.log(res.data);
+            activePage.value = activePage.value + 1;
+            data_list.value.push(...res.data);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }
+}
+
+function clearData() {
+  resetZoomImage();
+
+  daily_form.value.accountdescription = "";
+  daily_form.value.accountgroup = "";
+  daily_form.value.accountperiod = "1";
+  daily_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
+  daily_form.value.amount = "";
+  daily_form.value.batchId = "";
+  daily_form.value.docdate = Utils.getDateTime();
+  daily_form.value.docno = Utils.getDocNoDate("JO");
+  daily_form.value.bookcode = "";
+  daily_form.value.journaldetail = [
+    {
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    },
+  ];
+  daily_form.value.parid = "0000000";
+
+  daily_form_has.value = {
+    accountdescription: daily_form.value.accountdescription,
+    accountgroup: daily_form.value.accountgroup,
+    accountperiod: daily_form.value.accountperiod,
+    accountyear: daily_form.value.accountyear,
+    amount: daily_form.value.amount,
+    batchId: daily_form.value.batchId,
+    docdate: daily_form.value.docdate,
+    docno: daily_form.value.docno,
+    journaltype: daily_form.value.journaltype,
+    bookcode: daily_form.value.bookcode,
+    journaldetail: [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ],
+    parid: daily_form.value.parid,
+  };
+  daily_form_valid.value = {
+    accountdescription: false,
+    accountgroup: false,
+    accountperiod: false,
+    accountyear: false,
+    amount: false,
+    batchId: false,
+    docdate: false,
+    docno: false,
+    bookcode: false,
+  };
+
+  vats.value.splice(0, vats.value.length);
+  vats_valid.value = [];
+
+  taxes.value.splice(0, taxes.value.length);
+  taxes_valid.value = [];
+}
+
+function nextImageOnSave(old_img) {
+  console.log(data_list.value.length);
+  console.log(old_img);
+  var rebuild = [];
+  data_list.value.forEach((ele) => {
+    if (ele.documentref != old_img) {
+      rebuild.push(ele);
+    }
+  });
+
+  data_list.value = rebuild;
+  activeIndexList.value = 0;
+  if (data_list.value.length > activeIndexList.value) {
+    console.log(data_list.value[activeIndexList.value].documentref);
+    useImage(data_list.value[activeIndexList.value].documentref);
+  }
+  removeImgFromList(old_img);
+}
+function removeImgFromList(data) {
+  console.log(data);
+
+  console.log(data_list.value);
+}
+function checkUseImgByUser(user) {
+  var found = 0;
+  AllImageUsed.value.forEach((element) => {
+    if (element.username == user) {
+      found += 1;
+    }
+  });
+
+  if (found == 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function checkUseImg(data) {
+  var found = 0;
+  AllImageUsed.value.forEach((element) => {
+    if (element.docref == data) {
+      found += 1;
+    }
+  });
+
+  if (found == 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function useImage(data) {
+  var sendData = { docref: data };
+  if (checkUseImgByUser(localStorage._usercode)) {
+    confirmChangeImageDialog.value = true;
+    newDocRefImage.value = data;
+  } else {
+    MasterdataService.postSelectImage(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+            clearData();
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
+}
+
+function changeImage(data) {
+  var sendData = { docref: data };
+  if (checkUseImgByUser(localStorage._usercode)) {
+    MasterdataService.postSelectImageForce(sendData)
+      .then((res) => {
+        //console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+            confirmChangeImageDialog.value = false;
+
+            clearData();
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  } else if (checkUseImg(data)) {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "ไม่สามารถเลือกรูปได้มีผู้ใช้กำลังใช้งานอยู่ ",
+      life: 3000,
+    });
+  } else {
+    MasterdataService.postSelectImage(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
+}
+
+function reLoadImage() {
+  clearData();
+  MasterdataService.postNextImage()
+    .then((res) => {
+      if (res.success) {
+        console.log(res.data);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+
+const setTransform = () => {
+  zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
+}
+
+function onmousedown(e) {
+  console.log(e);
+  e.preventDefault();
+  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
+  panning.value = true;
+}
+
+function onmouseup(e) {
+  console.log(e);
+  panning.value = false;
+}
+
+function onmousemove(e) {
+  console.log(e);
+  e.preventDefault();
+  if (!panning.value) {
+    return;
+  }
+  pointX.value = (e.clientX - start.value.x);
+  pointY.value = (e.clientY - start.value.y);
+  setTransform();
+}
+
+function onwheel(e) {
+  console.log(e);
+  e.preventDefault();
+  var xs = (e.clientX - pointX.value) / scale.value,
+    ys = (e.clientY - pointY.value) / scale.value,
+    delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+  (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
+  pointX.value = e.clientX - xs * scale.value;
+  pointY.value = e.clientY - ys * scale.value;
+
+  setTransform();
+}
+
+function resetZoomImage() {
+  scale.value = 1;
+  panning.value = false;
+  pointX.value = 0;
+  pointY.value = 0;
+  start.value = { x: 0, y: 0 };
+  zoomStyle.value = "";
+}
+</script>
+
+<template>
+  <AppLayout>
+    <MainContentWarp>
+      <div class="surface-ground px-2 py-0">
+        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info"
+          @click="(!isChange) ? goList() : confirmBackImageDialog = true" v-if="!onLoad" />
+        <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
+          <ProgressSpinner animationDuration="10s" />
+        </div>
+        <div class="surface-card p-4 shadow-2 border-round p-fluid" v-if="!onLoad">
+          <Splitter layout="horizontal">
+            <SplitterPanel :size="50" class="relative" id="panelForm2" @mouseleave="removeMagnify()">
+              <div>
+                <div class="flex justify-content-between align-items-right">
+                  <div>
+                    <Button v-if="selectedImg == false" icon="pi pi-angle-double-right" class="p-button-text" @click="
+                      selectedImg = true;
+                      showpanel();
+                    " />
+                    <Button v-if="selectedImg == true" icon="pi pi-angle-double-left" class="p-button-text" @click="
+                      selectedImg = false;
+                      hidepanel();
+                    " />
+                  </div>
+                  <div>
+                    <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
+                      class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
+                    <Button v-if="waitForImages" icon="pi pi-refresh" class="p-button-text text-blue-500"
+                      @click="reLoadImage" />
+                    <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-refresh" class="p-button-text"
+                      @click="
+                        confirmRemoveImgDialog = true;
+
+                        removeMagnify();
+                      " />
+                  </div>
+                </div>
+                <div v-if="waitForImages" class="flex justify-content-center">
+                  <ProgressSpinner />
+                </div>
+                <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
+                  <Message severity="error" :closable="false" v-if="
+                    selectedImgData.documentref != '' &&
+                    selectedImgData.documentimages[activeIndex].status == 1
+                  ">
+                    <span class="flex align-items-center justify-content-center">
+                      *Warning Message รูปโดนยกเลิก
+                      <Button icon="pi pi-refresh" class="p-button-text w-auto" label="เปลี่ยนรูป" @click="
+                        confirmRemoveImgDialog = true;
+                      
+                        removeMagnify();
+                      " /></span>
+                  </Message>
+                  <Message severity="warn" :closable="false" v-if="
+                    selectedImgData.documentref != '' &&
+                    selectedImgData.documentimages[activeIndex].status == 2
+                  ">
+                    *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
+                </div>
+                <KeepAlive>
+                  <Galleria v-if="selectedImg && !waitForImages" :value="doc_images.documentimages"
+                    :thumbnailsPosition="'top'" :showThumbnails="showThumbnails" v-model:activeIndex="activeIndex"
+                    :numVisible="10">
+                    <template #item="slotProps">
+                      <div class="p-3 img-magnifier-container mt-3">
+                        <div class="zoom_outer">
+                          <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)"
+                            @mouseup="onmouseup($event)" @mousemove="onmousemove($event)" @wheel="onwheel($event)">
+                            <img :src="slotProps.item.imageuri" class="p-image-preview zoom"
+                              :style="imagePreviewStyle" />
+                          </div>
+                        </div>
+
+                        <!-- <img
+                          :src="slotProps.item.imageuri"
+                          @click="magnify('myimage', 2)"
+                          class="w-full"
+                          :style="imagePreviewStyle"
+                          id="myimage"
+                        /> -->
+                      </div>
+                    </template>
+                    <template #thumbnail="slotProps">
+                      <img :src="slotProps.item.imageuri" style="width: 40px; height: 40px" />
+                    </template>
+                    <template #footer> </template>
+                  </Galleria>
+                </KeepAlive>
+              </div>
+            </SplitterPanel>
+            <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
+              <TabView class="tabview-custom" ref="tabview">
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-book mr-1"></i>
+                    <span> ข้อมูลรายวัน</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
+                      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
+                      :groupAccount_detail="groupAccount_detail" v-on:ImportDaliy="ImportDaliy"
+                      v-on:deleteDetail="deleteDetail" v-on:addColumn="addColumn" v-on:onRowReorder="onRowReorder"
+                      v-on:selectAccount="selectAccount">
+                    </JournalForm>
+                  </div>
+                </TabPanel>
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-wallet mr-1"></i>
+                    <span> ข้อมูลภาษี</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
+                      v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
+                      v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
+                  </div>
+                </TabPanel>
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-wallet mr-1"></i>
+                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
+                      v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
+                  </div>
+                </TabPanel>
+              </TabView>
+            </SplitterPanel>
+          </Splitter>
+          <div class="flex justify-content-between">
+            <div class="mt-4 ml-0">
+              <Button :disabled="!isChange" @click="confirmClearImageDialog = true" :label="'ยกเลิกอัพเดท'"
+                icon="pi pi-refresh" class="w-auto p-button-danger"></Button>
+            </div>
+            <div class="mt-4 ml-0">
+              <Button @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
+            </div>
+          </div>
+        </div>
+        <div class="flex mt-4 align-items-center justify-content-between">
+          <div class="flex-grow-1 flex align-items-center justify-content-center">
+            <Galleria :value="data_list" :thumbnailsPosition="'top'" :showThumbnails="true" :numVisible="10"
+              v-model:activeIndex="activeIndexList" @update:activeIndex="nextImage">
+              <template #thumbnail="slotProps">
+                <img v-if="slotProps.item.documentimages.length > 0" :src="slotProps.item.documentimages[0].imageuri"
+                  style="width: 100%; display: block; padding: 5px; height: 80px" />
+              </template>
+            </Galleria>
+          </div>
+        </div>
+      </div>
+      <DialogForm :confirmDialog="confirmRejectDialog" :textContent="conreject" v-on:close="confirmRejectDialog = false"
+        v-on:confirm="rejectImg()"></DialogForm>
+      <DialogForm :confirmDialog="confirmRemoveImgDialog" :textContent="'ต้องการเปลี่ยนรูปใช่หรือไม่'"
+        v-on:close="confirmRemoveImgDialog = false" v-on:confirm="
+          reLoadImage();
+          confirmRemoveImgDialog = false;
+        "></DialogForm>
+      <DialogForm :confirmDialog="confirmBackImageDialog" :textContent="'ต้องการยกเลิกข้อมูลใช่หรือไม่'"
+        v-on:close="confirmBackImageDialog = false" v-on:confirm="
+          clearData();
+          goList();
+          confirmBackImageDialog = false;
+        "></DialogForm>
+      <DialogForm :confirmDialog="confirmClearImageDialog" :textContent="'ต้องการล้างข้อมูลใช่หรือไม่'"
+        v-on:close="confirmClearImageDialog = false" v-on:confirm="
+          clearData();
+          confirmClearImageDialog = false;
+        "></DialogForm>
+
+      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false"
+        v-on:confirm="confirmSave"></DialogForm>
+      <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="conchange" :textContent2="connamechange"
+        v-on:close="
+          confirmChangeImageDialog = false;
+          checkActiveIndex();
+        " v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
+    </MainContentWarp>
+  </AppLayout>
+</template>
+
+<style>
+.img-magnifier-container {
+  position: relative;
+}
+
+.img-magnifier-glass {
+  position: absolute;
+  border: 1px solid #000;
+  border-radius: 50%;
+  cursor: none;
+  /*Set the size of the magnifier glass:*/
+  width: 200px;
+  height: 200px;
+}
+
+.selectimgDialog .p-dialog-header {
+  padding: 10px 15px 10px 15px;
+}
+
+.p-galleria-thumbnails-top {
+  width: 100% !important;
+}
+
+
+.zoom_outer {
+  padding: 0;
+  outline: 0;
+  overflow: hidden;
+  position: relative;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto
+}
+
+#zoom {
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0px 0px;
+  transform: scale(1) translate(0px, 0px);
+  cursor: grab;
+
+
+}
+
+div#zoom>img {
+  width: 100%;
+  height: auto;
+
+}
+</style>
