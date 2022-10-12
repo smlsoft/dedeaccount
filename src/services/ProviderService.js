@@ -29,6 +29,7 @@ const instanceApi = (authentication = true) =>{
             // console.log(error);
             if (!error.response) {
                 console.log("network error")
+                return Promise.reject(error);
             }
             else {
                 if (error.response.status) {

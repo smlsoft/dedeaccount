@@ -70,6 +70,10 @@ export default {
     importChart(data) {
         return instanceApi(true).post(`/gl/chartofaccount/bulk`, data).then(res => res.data);
     },
+    // postDocumentImage
+    postDocumentImage(data) {
+        return instanceApi(true).post(`/documentimage`, data).then(res => res.data);
+    },
     getDocImage(limitPage, page, search, sortField, sortOrder, status) {
         let s = "";
         let q = "";
@@ -189,11 +193,22 @@ export default {
     deleteAccountGroup(data) {
         return instanceApi(true).delete(`/gl/accountgroup/` + data).then(res => res.data);
     },
-    upLoadImages(file) {
+    async upLoadImages(file) {
         let fd = new FormData()
 
         fd.append('file', file)
-        return instanceApi(true).post(`/upload/images`, fd).then(res => res.data);
+        return await instanceApi(true,true).post(`/upload/images`, fd,{
+            headers: { "Content-Type": "multipart/form-data" }
+          }).then(res => res.data).catch(function (error) {
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            }else{
+                console.log(error)
+            }
+          })
+      
     },
     postSelectImage(data) {
         return instanceApi(true).post(`/gl/journal/docref/select`, data).then(res => res.data);

@@ -290,6 +290,7 @@ function onClose() {
   confirmSaveDialog.value = false;
   updateRefDialog.value = false;
 }
+
 function editRef(data) {
   console.log(data);
   MasterdataService.updateDocRef(data)
@@ -1099,6 +1100,10 @@ function onScroll() {
     }
   }
 }
+
+function closeDialogUpload(){
+  uploadmodel.value = false;
+}
 </script>
 
 <template>
@@ -1166,7 +1171,7 @@ function onScroll() {
             </Paginator>
           </div>
         </template>
-        <template #content class="p-0" >
+        <template #content class="p-0">
           <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
             <div class="flex align-content-center justify-content-center flex-wrap card-container"
               style="min-height: 56vh">
@@ -1288,8 +1293,8 @@ function onScroll() {
         v-on:confirm="postGroupDocRef()"
       ></DialogForm> -->
       <Dialog header="Upload รูปภาพ" v-model:visible="uploadmodel" :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-        :style="{ width: '80vw' }" :modal="true">
-        <ImageUpload v-on:success="uploadSuccess()"></ImageUpload>
+        :style="{ width: '80vw' }" :modal="true" :closable="false">
+        <ImageUpload v-on:success="uploadSuccess()" v-on:closeDialogUpload="closeDialogUpload()"></ImageUpload>
       </Dialog>
       <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
         v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
@@ -1305,6 +1310,4 @@ function onScroll() {
 .p-card-body {
   padding: 0px !important;
 }
-
-
 </style>
