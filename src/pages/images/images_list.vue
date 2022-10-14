@@ -870,7 +870,7 @@ function uploadSuccess() {
   activePage.value = 1;
   searchItem.value = "";
   selectSort.value = "uploadedat";
-  sortOrder.value = 1;
+  sortOrder.value = -1;
   showImageBy.value = "";
   firstPage.value = 0;
   getDocImageList();

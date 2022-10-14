@@ -154,34 +154,23 @@
     </div>
   </div> -->
 
-  <div
-    class="p-1 cursor-pointer card-container blue-container"
-    :class="borderImage()"
-    @click="selectModeImage()"
-    @mouseenter="hoveredItem = props.images_data.imageuri"
-    @mouseleave="hoveredItem = null"
-  >
+  <div class="p-1 cursor-pointer card-container blue-container" :class="borderImage()" @click="selectModeImage()"
+    @mouseenter="hoveredItem = props.images_data.imageuri" @mouseleave="hoveredItem = null">
     <div class="p-2 surface-card border-round cardimage">
-      <div
-        class="
+      <div class="
           surface-section
           z-1
           relative
           transition-all transition-duration-300
-        "
-      >
+        ">
         <div class="relative mb-1">
           <!-- <div
             class="fadein absolute left-0 top-0 w-full h-full"
             v-if="hoveredItem === props.images_data.imageuri"
           ></div> -->
-          <img
-            :src="props.images_data.imageuri"
-            class="w-full"
-            style="object-fit: cover; height: 12rem"
+          <img :src="props.images_data.imageuri" class="w-full" style="object-fit: cover; height: 12rem"
             :style="props.mode != 4 ? 'cursor: zoom-in' : ''"
-            @click="props.mode != 4 ? zoomImg(props.images_data) : ''"
-          />
+            @click="props.mode != 4 ? zoomImg(props.images_data) : ''" />
           <!-- <button
             v-if="hoveredItem == props.images_data.imageuri"
             @click="zoomImg(props.images_data)"
@@ -192,42 +181,29 @@
           >
             <i class="pi pi-info text-white"></i>
           </button> -->
-          <div
-            class="absolute"
-            style="bottom: 0.5rem; right: 0.3rem"
-            v-if="checkUseImg(props.images_data.documentref)"
-          >
-            <Avatar
-              style="background-color: #2196f3; color: #ffffff"
-              :label="
-                getUseData(props.images_data.documentref)
-                  .charAt(0)
-                  .toUpperCase()
-              "
-              shape="circle"
-            />
+          <div class="absolute" style="bottom: 0.5rem; right: 0.3rem" v-if="checkUseImg(props.images_data.documentref)">
+            <Avatar style="background-color: #2196f3; color: #ffffff" :label="
+              getUseData(props.images_data.documentref)
+                .charAt(0)
+                .toUpperCase()
+            " shape="circle" />
           </div>
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
           <span class="text-900 font-medium titletext">{{
-            props.images_data.guidfixed
+          (props.images_data.name != "") ? props.images_data.name : props.images_data.guidfixed
           }}</span>
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
           <span class="text-900 font-medium titletext">กลุ่มเอกสาร : {{
-            props.images_data.documentref
+          props.images_data.documentref
           }}</span>
         </div>
-
         <div class="mt-0 mb-2 flex text-600 justify-content-between">
           <div class="font-medium text-sm relative">
             <span v-if="props.mode != 4">
-              <Button
-                class="p-button-text text-yellow-500 mr-1"
-                icon="pi pi-print"
-                @click="printImg(props.images_data.imageuri)"
-                style="z-index: 200"
-              />
+              <Button class="p-button-text text-yellow-500 mr-1" icon="pi pi-print"
+                @click="printImg(props.images_data.imageuri)" style="z-index: 200" />
             </span>
           </div>
           <div class="font-medium text-sm">
@@ -253,80 +229,40 @@
         </div> -->
         <ul class="list-none m-0 p-0">
           <li class="py-1">
-            <div
-              class="align-items-center justify-content-center"
-              v-if="props.mode == 1 && props.images_data.status == 1"
-            >
-              <Button
-                v-if="props.images_data.status == 1"
-                icon="pi pi-upload"
-                :class="'p-button-secondary text-white mr-1'"
-                class="w-full"
-                label="เลือกรูปใหม่"
-                @click="chooseFile()"
-              />
-              <input
-                id="chooseFile"
-                ref="fileInput"
-                type="file"
-                @change="onFileSelect"
-                :multiple="false"
-                accept="image/*"
-                style="display: none"
-              />
-              <Button
-                v-if="props.images_data.status == 1"
-                icon="pi pi-refresh"
-                :class="'p-button-green text-white mr-1'"
-                class="w-full mt-1"
-                :label="'นำกลับมาใช้'"
-                @click="removeReject()"
-              />
+            <div class="align-items-center justify-content-center"
+              v-if="props.mode == 1 && props.images_data.status == 1">
+              <Button v-if="props.images_data.status == 1" icon="pi pi-upload"
+                :class="'p-button-secondary text-white mr-1'" class="w-full" label="เลือกรูปใหม่"
+                @click="chooseFile()" />
+              <input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect" :multiple="false"
+                accept="image/*" style="display: none" />
+              <Button v-if="props.images_data.status == 1" icon="pi pi-refresh"
+                :class="'p-button-green text-white mr-1'" class="w-full mt-1" :label="'นำกลับมาใช้'"
+                @click="removeReject()" />
             </div>
           </li>
         </ul>
       </div>
     </div>
   </div>
-  <Dialog
-    :dismissableMask="false"
-    :close-on-escape="false"
-    v-model:visible="showImgDialog"
-    header="รายละเอียด"
-    style="min-width: 600px; max-width: 1080px"
-    :modal="true"
-  >
+  <Dialog :dismissableMask="false" :close-on-escape="false" v-model:visible="showImgDialog" header="รายละเอียด"
+    style="min-width: 600px; max-width: 1080px" :modal="true">
     <div class="confirmation-content" id="boxconfirm">
       <div class="flex justify-content-between mb-2">
         <div class="flex">{{ showImgHeader }}</div>
         <div class="flex">{{ showContent }}</div>
       </div>
       <img :src="showImgSrc" class="mb-1 w-full" v-if="!showRotateEdit" />
-      <Cropper
-        v-if="showRotateEdit"
-        ref="cropper"
-        class="cropper"
-        :src="showImgSrc"
-        :transitions="true"
-        image-restriction="fit-area"
-        @change="change"
-      />
+      <Cropper v-if="showRotateEdit" ref="cropper" class="cropper" :src="showImgSrc" :transitions="true"
+        image-restriction="fit-area" @change="change" />
 
-      <div
-        class="flex align-items-center justify-content-center"
-        v-if="
-          props.mode == 1 &&
-          !checkUseImg(showImageDocRef) &&
-          props.images_data.status == 0 &&
-          !showRotateEdit
-        "
-      >
-        <Button
-          label="แก้ไข"
-          icon="pi pi-pencil"
-          class="p-button-primary w-full mr-1"
-          @click="editimage()"
-        />
+      <div class="flex align-items-center justify-content-center" v-if="
+        props.mode == 1 &&
+        !checkUseImg(showImageDocRef) &&
+        props.images_data.status == 0 &&
+        !showRotateEdit
+      ">
+        <Button label="แก้ไข" icon="pi pi-pencil" class="p-button-primary w-full mr-1" @click="editimage()" />
         <!-- <Button
           label="สร้างเอกสาร"
           icon="pi pi-pencil"
@@ -334,49 +270,17 @@
           class="p-button-primary w-full mr-1"
         /> -->
 
-        <Button
-          v-if="props.images_data.status == 0"
-          icon="pi pi-trash"
-          label="ยกเลิกรูปภาพ"
-          class="p-button-danger w-full mr-1 text-white"
-          @click="rejectImg()"
-        />
+        <Button v-if="props.images_data.status == 0" icon="pi pi-trash" label="ยกเลิกรูปภาพ"
+          class="p-button-danger w-full mr-1 text-white" @click="rejectImg()" />
       </div>
-      <div
-        class="flex align-items-center justify-content-center mb-2 mt-2"
-        v-if="showRotateEdit"
-      >
-        <Button
-          icon="pi pi-arrow-left"
-          class="p-button-info mr-1"
-          @click="flip(true, false)"
-        />
-        <Button
-          icon="pi pi-arrow-right"
-          class="p-button-info mr-1"
-          @click="flip(false, true)"
-        />
-        <Button
-          icon="pi pi-refresh"
-          class="p-button-info mr-1"
-          @click="rotate(90)"
-        />
-        <Button
-          icon="pi pi-replay"
-          class="p-button-info ml-1"
-          @click="rotate(-90)"
-        />
+      <div class="flex align-items-center justify-content-center mb-2 mt-2" v-if="showRotateEdit">
+        <Button icon="pi pi-arrow-left" class="p-button-info mr-1" @click="flip(true, false)" />
+        <Button icon="pi pi-arrow-right" class="p-button-info mr-1" @click="flip(false, true)" />
+        <Button icon="pi pi-refresh" class="p-button-info mr-1" @click="rotate(90)" />
+        <Button icon="pi pi-replay" class="p-button-info ml-1" @click="rotate(-90)" />
       </div>
-      <div
-        class="flex align-items-center justify-content-center"
-        v-if="showRotateEdit"
-      >
-        <Button
-          label="บันทึก"
-          icon="pi pi-save"
-          class="p-button-success w-full mr-1"
-          @click="confirmSaveImg = true"
-        />
+      <div class="flex align-items-center justify-content-center" v-if="showRotateEdit">
+        <Button label="บันทึก" icon="pi pi-save" class="p-button-success w-full mr-1" @click="confirmSaveImg = true" />
         <!-- <Button
           label="สร้างเอกสาร"
           icon="pi pi-pencil"
@@ -384,22 +288,13 @@
           class="p-button-primary w-full mr-1"
         /> -->
 
-        <Button
-          v-if="props.images_data.status == 0"
-          icon="pi pi-angle-left"
-          label="ยกเลิก"
-          class="p-button-danger w-full mr-1 text-white"
-          @click="showRotateEdit = false"
-        />
+        <Button v-if="props.images_data.status == 0" icon="pi pi-angle-left" label="ยกเลิก"
+          class="p-button-danger w-full mr-1 text-white" @click="showRotateEdit = false" />
       </div>
     </div>
   </Dialog>
-  <DialogForm
-    :confirmDialog="confirmSaveImg"
-    :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
-    v-on:close="confirmSaveImg = false"
-    v-on:confirm="saveUpdateImg()"
-  ></DialogForm>
+  <DialogForm :confirmDialog="confirmSaveImg" :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
+    v-on:close="confirmSaveImg = false" v-on:confirm="saveUpdateImg()"></DialogForm>
 </template>
 
 <script setup>
@@ -452,15 +347,15 @@ onMounted(async () => {
   $(".titletext").attr(
     "style",
     "width:" +
-      (width - 20) +
-      "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
+    (width - 20) +
+    "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
   );
 });
 
 function chooseFile() {
   document.getElementById("chooseFile").click();
 }
-function rotateImg(val) {}
+function rotateImg(val) { }
 
 function editimage() {
   showRotateEdit.value = true;
@@ -495,7 +390,7 @@ function rotate(angle) {
   cropper.value.rotate(angle);
 }
 
-function change({ coordinates, image }) {}
+function change({ coordinates, image }) { }
 
 function saveUpdateImg() {
   const { canvas } = cropper.value.getResult();

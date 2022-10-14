@@ -537,7 +537,7 @@ function saveDocumentImage() {
   console.log(data_import_success.value);
 
   loadingSaveDocumentImage.value = true;
-  var interval = 1000;
+  var interval = 800;
 
   data_import_success.value.forEach((ele, index) => {
     ele.documentref = Utils.newGuid("");
@@ -561,7 +561,7 @@ function saveDocumentImage() {
                 toast.add({
                   severity: "success",
                   summary: "Success",
-                  detail: "File Uploaded",
+                  detail: data_import_success.value.length + "  Image Uploaded",
                   life: 10000,
                 });
 
