@@ -49,6 +49,7 @@ import { Cropper,Preview } from 'vue-advanced-cropper'
 import AutoComplete from 'primevue/autocomplete';
 import Tag from 'primevue/tag';
 import SpeedDial from 'primevue/speeddial';
+import Chip from 'primevue/chip';
 
 
 
@@ -64,6 +65,7 @@ app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 
+app.component('Chip', Chip);
 app.component('SpeedDial', SpeedDial);
 app.component('Tag', Tag);
 app.component('AutoComplete', AutoComplete);

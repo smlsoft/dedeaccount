@@ -438,7 +438,9 @@ function onPage(event) {
   limitPage.value = event.rows;
   console.log(activePage.value);
   loading.value = true;
-  getDocImageList();
+  setTimeout(() => {
+    getDocImageList();
+  }, 100);
 }
 
 function onDragEnter(event) {
@@ -1101,7 +1103,7 @@ function onScroll() {
   }
 }
 
-function closeDialogUpload(){
+function closeDialogUpload() {
   uploadmodel.value = false;
 }
 </script>

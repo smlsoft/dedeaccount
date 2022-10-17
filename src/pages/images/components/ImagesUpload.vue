@@ -426,7 +426,7 @@ function myUploader() {
 
     var ele = data_import.value[upLoadQue.value];
     var index = upLoadQue.value;
-
+ 
     console.log(ele);
     console.log(index);
 
@@ -506,7 +506,7 @@ function myUploader() {
               if (err == "network error") {
                 setTimeout(() => {
                   console.log(err)
-                  myUploader();
+                  myUploader(); 
                 }, 5000);
               } else {
                 data_import_false.value.push(data_import.value[index]);

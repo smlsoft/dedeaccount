@@ -168,7 +168,7 @@
             class="fadein absolute left-0 top-0 w-full h-full"
             v-if="hoveredItem === props.images_data.imageuri"
           ></div> -->
-          <img :src="props.images_data.imageuri" class="w-full" style="object-fit: cover; height: 12rem"
+          <img :src="props.images_data.imageuri" class="w-full " style="object-fit: cover; height: 12rem"
             :style="props.mode != 4 ? 'cursor: zoom-in' : ''"
             @click="props.mode != 4 ? zoomImg(props.images_data) : ''" />
           <!-- <button
@@ -182,11 +182,13 @@
             <i class="pi pi-info text-white"></i>
           </button> -->
           <div class="absolute" style="bottom: 0.5rem; right: 0.3rem" v-if="checkUseImg(props.images_data.documentref)">
-            <Avatar style="background-color: #2196f3; color: #ffffff" :label="
+            <Chip :label="getUseData(props.images_data.documentref)" style="background-color: #2196f3; color: #ffffff"
+              icon="pi pi-user" class="mr-2 mb-2 " />
+            <!-- <Avatar style="background-color: #2196f3; color: #ffffff" :label="
               getUseData(props.images_data.documentref)
                 .charAt(0)
                 .toUpperCase()
-            " shape="circle" />
+            " shape="circle" v-tooltip.top="'Enter your usernamesssssss'" /> -->
           </div>
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
@@ -262,7 +264,7 @@
         props.images_data.status == 0 &&
         !showRotateEdit
       ">
-        <Button label="แก้ไข" icon="pi pi-pencil" class="p-button-primary w-full mr-1" @click="editimage()" />
+        <!-- <Button label="แก้ไข" icon="pi pi-pencil" class="p-button-primary w-full mr-1" @click="editimage()" /> -->
         <!-- <Button
           label="สร้างเอกสาร"
           icon="pi pi-pencil"

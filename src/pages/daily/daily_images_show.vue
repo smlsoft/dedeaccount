@@ -40,13 +40,11 @@ onUnmounted(() => {
 const imagePreviewStyle = computed({
   get() {
     return {
-      transform: "rotate(" + rotate.value + "deg) scale(" + scale.value + ")",
-      "margin-top": margintop.value + "rem",
+      transform: "rotate(" + rotate.value + "deg) ",
     };
   },
 });
 
-const croppa = ref();
 
 onMounted(() => {
   storeApp.setActivePage("daily");
@@ -59,13 +57,6 @@ onMounted(() => {
   websocketConnect();
 });
 
-function moveUp() {
-  margintop.value -= 10;
-}
-
-function moveDown() {
-  margintop.value += 10;
-}
 
 function rotateRight() {
   rotate.value += 90;
@@ -73,12 +64,7 @@ function rotateRight() {
 function rotateLeft() {
   rotate.value -= 90;
 }
-function zoomIn() {
-  scale.value = scale.value + 0.1;
-}
-function zoomOut() {
-  scale.value = scale.value - 0.1;
-}
+
 
 function printImg() {
   console.log();
@@ -269,15 +255,6 @@ function onNext() {
   }
 }
 
-function zoomWheel(e) {
-  console.log(e);
-  if (e.deltaY > 0) {
-    scale.value = scale.value + 0.1;
-  } else {
-    scale.value = scale.value - 0.1;
-  }
-}
-
 
 const setTransform = () => {
   zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
@@ -337,18 +314,6 @@ function onwheel(e) {
         <button class="p-image-action p-link text-blue-600" type="button" @click="rotateLeft">
           <i class="pi pi-undo"></i>
         </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="zoomOut">
-          <i class="pi pi-search-minus"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="zoomIn">
-          <i class="pi pi-search-plus"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="moveUp">
-          <i class="pi pi-arrow-up"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="moveDown">
-          <i class="pi pi-arrow-down"></i>
-        </button>
         <button class="p-image-action p-link text-blue-600" type="button" @click="goList">
           <i class="pi pi-times"></i>
         </button>
@@ -366,9 +331,9 @@ function onwheel(e) {
             <div>
               <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
                 @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                <img v-if="selectedImgUrl != ''" :src="selectedImgUrl" class="p-image-preview zoom"
-                  :style="imagePreviewStyle" />
+                <img v-if="selectedImgUrl != ''" :src="selectedImgUrl" :style="imagePreviewStyle" />
               </div>
+
               <!-- <img
                 @wheel="zoomWheel"
                 v-if="selectedImgUrl != ''"
@@ -611,5 +576,4 @@ div#zoom>img {
   height: auto;
 
 }
-
 </style>

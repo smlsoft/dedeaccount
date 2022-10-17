@@ -1661,8 +1661,7 @@ function resetZoomImage() {
                         <div class="zoom_outer">
                           <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)"
                             @mouseup="onmouseup($event)" @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                            <img :src="slotProps.item.imageuri" class="p-image-preview zoom"
-                              :style="imagePreviewStyle" />
+                            <img :src="slotProps.item.imageuri"  />
                           </div>
                         </div>
 
