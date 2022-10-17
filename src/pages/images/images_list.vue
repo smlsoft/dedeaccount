@@ -383,7 +383,7 @@ function getDocImageListDefualt() {
 
 function getDocImageList() {
   loading.value = true;
-  selectedImg.value = [];
+  //selectedImg.value = [];
   MasterdataService.getDocImage(
     limitPage.value,
     activePage.value,

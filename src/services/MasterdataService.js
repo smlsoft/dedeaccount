@@ -75,6 +75,7 @@ export default {
         return instanceApi(true).post(`/documentimage`, data).then(res => res.data);
     },
     getDocImage(limitPage, page, search, sortField, sortOrder, status) {
+        let byguid = "guidfixed:1";
         let s = "";
         let q = "";
         if (search != "" && search != undefined && search != null) {
@@ -83,8 +84,8 @@ export default {
         if (status != "" && status != undefined && status != null) {
             s = "&status=" + status
         }
-        console.log(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${s}`);
-        return instanceApi(true).get(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${s}`).then(res => res.data);
+        console.log(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`);
+        return instanceApi(true).get(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`).then(res => res.data);
     },
     getDocImageGroup(limitPage, page, search, sortField, sortOrder, status) {
         let s = "";
