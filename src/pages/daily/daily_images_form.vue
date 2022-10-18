@@ -99,6 +99,8 @@ const daily_form = ref({
   batchId: "",
   docdate: Utils.getDateTime(),
   docno: Utils.getDocNoDate("JO"),
+  exdocrefdate: Utils.getDateTime(),
+  exdocrefno: "",
   journaltype: "0",
   bookcode: "",
   journaldetail: [
@@ -219,6 +221,8 @@ onMounted(() => {
     docno: daily_form.value.docno,
     journaltype: daily_form.value.journaltype,
     bookcode: daily_form.value.bookcode,
+    exdocrefdate: daily_form.value.exdocrefdate,
+    exdocrefno: daily_form.value.exdocrefno,
     journaldetail: [
       {
         accountcode: "",
@@ -503,6 +507,8 @@ async function confirmSave() {
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
     docno: daily_form.value.docno,
+    exdocrefdate: Utils.getFormatDateTime(daily_form.value.exdocrefdate),
+    exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
     journaldetail: daily_form.value.journaldetail,
     parid: daily_form.value.parid,
@@ -1344,6 +1350,8 @@ function clearData() {
   daily_form.value.batchId = "";
   daily_form.value.docdate = Utils.getDateTime();
   daily_form.value.docno = Utils.getDocNoDate("JO");
+  daily_form.value.exdocrefdate = Utils.getDateTime();
+  daily_form.value.exdocrefno = "";
   daily_form.value.bookcode = "";
   daily_form.value.journaldetail = [
     {
@@ -1364,6 +1372,8 @@ function clearData() {
     batchId: daily_form.value.batchId,
     docdate: daily_form.value.docdate,
     docno: daily_form.value.docno,
+    exdocrefdate: daily_form.value.exdocrefdate,
+    exdocrefno: daily_form.value.exdocrefno,
     journaltype: daily_form.value.journaltype,
     bookcode: daily_form.value.bookcode,
     journaldetail: [

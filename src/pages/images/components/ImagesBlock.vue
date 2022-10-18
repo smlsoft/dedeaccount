@@ -201,6 +201,11 @@
           props.images_data.documentref
           }}</span>
         </div>
+        <div class="flex justify-content-between align-items-center mb-2" v-if="props.images_data.status == 2">
+          <span class="text-900 font-medium titletext">เอกสาร : {{
+          props.images_data.docguidref
+          }}</span>
+        </div>
         <div class="mt-0 mb-2 flex text-600 justify-content-between">
           <div class="font-medium text-sm relative">
             <span v-if="props.mode != 4">

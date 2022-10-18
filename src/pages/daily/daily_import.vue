@@ -165,6 +165,8 @@ async function confirmSave() {
       batchId: ele.import_daily.batchId,
       docdate: Utils.getFormatDateTime(ele.import_daily.docdate),
       docno: ele.import_daily.docno,
+      exdocrefdate: Utils.getFormatDateTime(ele.import_daily.exdocrefdate),
+      exdocrefno: ele.import_daily.exdocrefno,
       bookcode: ele.import_daily.bookcode,
       journaldetail: ele.import_daily.journaldetail,
       parid: ele.import_daily.parid,
@@ -248,6 +250,8 @@ function ImportFile() {
         batchId: "",
         docdate: "",
         docno: "",
+        exdocrefdate: "",
+        exdocrefno: "",
         bookcode: "",
         journaldetail: [],
         parid: "0000000",
@@ -346,6 +350,13 @@ function ImportFile() {
         }
         if (key == "DATE") {
           import_daily_json.docdate = Utils.getDateTimeFromDate(value);
+        }
+        if (key == "NOREF") {
+          console.log(value);
+          import_daily_json.exdocrefno = value;
+        }
+        if (key == "DATEREF") {
+          import_daily_json.exdocrefdate = Utils.getDateTimeFromDate(value);
         }
         if (key == "EXCEPTVAT") {
           import_vats_json.exceptvat = parseFloat(value);

@@ -103,6 +103,8 @@ const daily_form = ref({
   docno: "",
   bookcode: "",
   journaltype: "0",
+  exdocrefdate: new Date(),
+  exdocrefno: "",
   journaldetail: [
     {
       accountcode: "",
@@ -271,6 +273,8 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
+        daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
+        daily_form.value.exdocrefno = res.data.exdocrefno;
 
         if (res.data.vats.length > 0) {
           vats.value = [];
@@ -450,6 +454,8 @@ async function confirmSave() {
     parid: daily_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
+    exdocrefdate: Utils.getFormatDateTime(daily_form.value.exdocrefdate),
+    exdocrefno: daily_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
     vat.vatamount = parseFloat(vat.vatamount);
