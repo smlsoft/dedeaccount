@@ -71,11 +71,11 @@ workflows:
           filters:  # using regex filters requires the entire branch to match
             branches:
               only:  # only branches matching the below regex filters will run
-                - releases
+                - release
       - deploy-releases:
           requires:
             - build-releases-and-push
           filters:  # using regex filters requires the entire branch to match
             branches:
               only:  # only branches matching the below regex filters will run
-                - releases
+                - release
