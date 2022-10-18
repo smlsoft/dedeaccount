@@ -206,11 +206,16 @@
           props.images_data.docguidref
           }}</span>
         </div>
-        <div class="mt-0 mb-2 flex text-600 justify-content-between">
+        <div class=" mb-0 flex text-600 justify-content-between">
           <div class="font-medium text-sm relative">
             <span v-if="props.mode != 4">
               <Button class="p-button-text text-yellow-500 mr-1" icon="pi pi-print"
                 @click="printImg(props.images_data.imageuri)" style="z-index: 200" />
+            </span>
+            <span v-if="props.mode != 4 && props.images_data.status == 2">
+              <Button class="p-button-text text-color-secondary mr-1" icon="pi pi-eye"
+                @click="showDetailGlImage(props.images_data.docguidref)" style="z-index: 200"
+                :disabled="props.images_data.docguidref == ''" />
             </span>
           </div>
           <div class="font-medium text-sm">
@@ -302,6 +307,12 @@
   </Dialog>
   <DialogForm :confirmDialog="confirmSaveImg" :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
     v-on:close="confirmSaveImg = false" v-on:confirm="saveUpdateImg()"></DialogForm>
+
+  <Dialog header="Header" v-model:visible="showGLImage" :breakpoints="{'960px': '75vw', '640px': '90vw'}"
+    :style="{width: '60vw'}" :maximizable="true" :modal="true" >
+
+
+  </Dialog>
 </template>
 
 <script setup>
@@ -328,6 +339,7 @@ const imageStatus = {
   Reject: 1,
   Saved: 2,
 };
+const showGLImage = ref(false);
 
 const props = defineProps({
   images_data: Object,
@@ -651,7 +663,7 @@ function printImg(data) {
   var w = window.open("", "");
   w.document.write("<html><head>");
   w.document.write("</head><body >");
-  w.document.write('<img id="print-image-element" src="' + url + '"/>');
+  w.document.write('<img id="print-image-element" src="' + url + '" width="100%"/>');
   w.document.write(
     '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
   );
@@ -684,11 +696,10 @@ function borderImage() {
   return userImageStyle;
 }
 
-function test1() {
-  console.log("Relative");
-}
-function test2() {
-  console.log("Absolute");
+function showDetailGlImage(docno) {
+  console.log(docno);
+  showGLImage.value = true;
+
 }
 </script>
 <style scoped>

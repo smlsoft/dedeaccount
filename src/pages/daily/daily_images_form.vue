@@ -99,7 +99,7 @@ const daily_form = ref({
   batchId: "",
   docdate: Utils.getDateTime(),
   docno: Utils.getDocNoDate("JO"),
-  exdocrefdate: Utils.getDateTime(),
+  exdocrefdate: "",
   exdocrefno: "",
   journaltype: "0",
   bookcode: "",
@@ -1350,7 +1350,7 @@ function clearData() {
   daily_form.value.batchId = "";
   daily_form.value.docdate = Utils.getDateTime();
   daily_form.value.docno = Utils.getDocNoDate("JO");
-  daily_form.value.exdocrefdate = Utils.getDateTime();
+  daily_form.value.exdocrefdate = "";
   daily_form.value.exdocrefno = "";
   daily_form.value.bookcode = "";
   daily_form.value.journaldetail = [

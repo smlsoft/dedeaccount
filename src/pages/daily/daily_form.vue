@@ -103,7 +103,7 @@ const daily_form = ref({
   docno: "",
   bookcode: "",
   journaltype: "0",
-  exdocrefdate: new Date(),
+  exdocrefdate: "",
   exdocrefno: "",
   journaldetail: [
     {
@@ -273,7 +273,11 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
-        daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
+        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+          daily_form.value.exdocrefdate = "";
+        } else {
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
+        }
         daily_form.value.exdocrefno = res.data.exdocrefno;
 
         if (res.data.vats.length > 0) {

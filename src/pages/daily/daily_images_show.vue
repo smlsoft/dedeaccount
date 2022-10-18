@@ -9,6 +9,8 @@ import { DomHandler } from "primevue/utils";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 
+
+
 const storeApp = useApp();
 const router = useRouter();
 const route = useRoute();
@@ -246,7 +248,14 @@ function onNext() {
     MasterdataService.postNextImage()
       .then((res) => {
         if (res.success) {
+
           console.log(res.data);
+          scale.value = 1;
+          panning.value = false;
+          pointX.value = 0;
+          pointY.value = 0;
+          start.value = { x: 0, y: 0 };
+          zoomStyle.value = "";
         }
       })
       .catch((err) => {
@@ -273,18 +282,17 @@ function onmouseup(e) {
 }
 
 function onmousemove(e) {
-  console.log(e);
   e.preventDefault();
   if (!panning.value) {
     return;
   }
   pointX.value = (e.clientX - start.value.x);
   pointY.value = (e.clientY - start.value.y);
+
   setTransform();
 }
 
 function onwheel(e) {
-  console.log(e);
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
@@ -292,6 +300,9 @@ function onwheel(e) {
   (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
   pointX.value = e.clientX - xs * scale.value;
   pointY.value = e.clientY - ys * scale.value;
+
+  console.log(pointX.value);
+  console.log(pointY.value);
 
   setTransform();
 }
@@ -320,20 +331,19 @@ function onwheel(e) {
       </div>
       <transition name="p-image-preview" style="z-index: 150">
         <div class="p-galleria-item-container">
-          <button class="p-image-action p-link text-blue-600" type="button" style="
+          <!-- <button class="p-image-action p-link text-blue-600" type="button" style="
               position: absolute !important;
               top: 45vh !important;
               left: 0px !important;
-            ">
+            " @click="onNext()">
             <i class="pi pi-chevron-left"></i>
-          </button>
+          </button> -->
           <div class="p-galleria-item">
             <div>
               <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
                 @mousemove="onmousemove($event)" @wheel="onwheel($event)">
                 <img v-if="selectedImgUrl != ''" :src="selectedImgUrl" :style="imagePreviewStyle" />
               </div>
-
               <!-- <img
                 @wheel="zoomWheel"
                 v-if="selectedImgUrl != ''"
@@ -345,13 +355,13 @@ function onwheel(e) {
             </div>
           </div>
 
-          <button class="p-image-action p-link text-blue-600" type="button" @click="onNext()" style="
+          <!-- <button class="p-image-action p-link text-blue-600" type="button" @click="onNext()" style="
               position: absolute !important;
               top: 45vh !important;
               right: 0px !important;
             ">
             <i class="pi pi-chevron-right"></i>
-          </button>
+          </button> -->
         </div>
       </transition>
     </div>
