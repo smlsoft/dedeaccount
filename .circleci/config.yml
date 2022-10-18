@@ -11,11 +11,11 @@ jobs:
       - docker/build:
           # deploy: false
           dockerfile: Dockerfile-K8S
-          image: smlsoft/dedeaccount
+          image: smlsoft/accountdede-web
           #use-docker-credentials-store: true
           tag: dev
       - docker/push:
-          image: smlsoft/dedeaccount
+          image: smlsoft/accountdede-web
           tag: dev
           
   deploy-dev:
@@ -25,7 +25,7 @@ jobs:
       - k8s/install
       - k8s/initialize:
           cluster: 916a438e-9629-4798-8a7e-c5e31acb5b99
-      - run: kubectl rollout restart deployment/dedeaccount-dev-webapp -n dedepos-dev
+      - run: kubectl rollout restart deployment/accountdede-dev-webapp -n dedepos-dev
   build-releases-and-push:
     executor: docker/machine
     steps:
@@ -34,11 +34,11 @@ jobs:
       - docker/build:
           # deploy: false
           dockerfile: Dockerfile-K8S
-          image: smlsoft/dedeaccount
+          image: smlsoft/accountdede-web
           #use-docker-credentials-store: true
           tag: releases
       - docker/push:
-          image: smlsoft/dedeaccount
+          image: smlsoft/accountdede-web
           tag: releases
           
   deploy-releases:
@@ -48,8 +48,8 @@ jobs:
       - k8s/install
       - k8s/initialize:
           cluster: 916a438e-9629-4798-8a7e-c5e31acb5b99
-      - run: kubectl rollout restart deployment/dedeaccount-prd-webapp -n dedepos-prd
-  
+      - run: kubectl rollout restart deployment/accountdede-prd-webapp -n dedepos-prd
+
 workflows:
   build-dev-only:
     jobs:
