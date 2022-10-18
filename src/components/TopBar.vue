@@ -83,7 +83,7 @@ function checkShop() {
   <div class="surface-overlay relative">
     <div class="flex align-items-center justify-content-between lg:static" style="height: 65px">
       <div class="flex align-items-center bg-indigo-500 text-white h-full" style="height: 65px;width: 270px">
-        <img src="@/assets/logo.jpg" alt="Image" height="40" class="mr-0 lg:mr-3 pl-3" />
+        <img src="@/assets/dedepos.png" alt="Image" height="40" class="mr-0 lg:mr-3 pl-3" />
         <div class="ml-2 cursor-pointer" @click="openSelectShop()">{{ shopName }} <i class="pi pi-sync ml-2"></i></div>
       </div>
       <div class="flex align-items-center px-4">
