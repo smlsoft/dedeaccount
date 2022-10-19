@@ -77,6 +77,10 @@
                         : 'pi pi-check-circle'
                     " :class=" file.cmd == 'error'
                     ? 'p-button-danger'
+                    : file.cmd == 'wait'
+                    ? 'p-button-danger'
+                    : file.cmd == 'progress'
+                    ? 'p-button-info'
                     : ' p-button-success'"
                       @click="file.cmd == 'error' || file.cmd == 'wait'  ? remove(file.cmd, index) : ''" />
                   </div>
@@ -106,6 +110,16 @@
   <DialogForm :confirmDialog="showCloseDialogUpload" :textContent="'ต้องการยกเลิกรูปภาพทั้งหมด'"
     v-on:close="showCloseDialogUpload = false" v-on:confirm="cancelUploadImage()"></DialogForm>
 
+  <Dialog header="ยืนยันการอัพโหลด" v-model:visible="openConfirmationDocRef"
+    :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '350px'}" :modal="true" :closable="false">
+    <div class="confirmation-content">
+      <i class="pi pi pi-check-circle mr-3" style="font-size: 2rem" />
+      <span>{{data_import_success.length}} Image Upload Complete </span>
+    </div>
+    <template #footer>
+      <Button label="ยืนยัน" icon="pi pi-check" @click="emitImagesList()" autofocus />
+    </template>
+  </Dialog>
   <Toast position="top-right" />
 </template>
 
@@ -148,6 +162,9 @@ const showCloseDialogUpload = ref(false);
 const upLoadQue = ref(0);
 const queProcess = ref(false);
 const queSuccess = ref(false);
+
+const upLoadQueDocRef = ref(0);
+const openConfirmationDocRef = ref(false);
 
 
 
@@ -503,7 +520,7 @@ function myUploader() {
             .catch((err) => {
               console.log(err);
               loading.value = true;
-              if (err == "network error") {
+              if (err == "Network Error") {
                 setTimeout(() => {
                   console.log(err)
                   myUploader();
@@ -531,66 +548,86 @@ function myUploader() {
 
 }
 
+function emitImagesList() {
+  openConfirmationDocRef.value = false;
+  loadingSaveDocumentImage.value = false;
+  onUploadProgressDocumentImage.value = 0;
+  data_import_success.value = [];
+  data_import_false.value = [];
+  data_import.value = [];
+  queProcess.value = false;
+  upLoadQue.value = 0;
+  queSuccess.value = false;
+  upLoadQueDocRef.value = 0;
+
+
+  emit("success");
+}
+
 
 function saveDocumentImage() {
 
   console.log(data_import_success.value);
 
+  queSuccess.value = false;
   loadingSaveDocumentImage.value = true;
-  var interval = 800;
+  var interval = 1000;
 
-  data_import_success.value.forEach((ele, index) => {
+  if (data_import_success.value.length > 0) {
+
+    var ele = data_import_success.value[upLoadQueDocRef.value];
+    var index = upLoadQueDocRef.value;
+
     ele.documentref = Utils.newGuid("");
     ele.module = "GL";
     ele.uploadedby = localStorage._usercode;
     ele.uploadedat = Utils.getFormatDateTime(new Date());
 
-
     console.log(ele);
 
     setTimeout(function () {
+
+
       MasterdataService.postDocumentImage(ele)
         .then((res) => {
           console.log(res);
           if (res.success) {
+            upLoadQueDocRef.value++;
             loadImgDocumentImage.value = index + 1;
             onUploadProgressDocumentImage.value = ((index + 1) / data_import_success.value.length) * 100;
             onUploadProgressDocumentImage.value = parseFloat(onUploadProgressDocumentImage.value.toFixed(2));
-            setTimeout(() => {
-              if (onUploadProgressDocumentImage.value == 100) {
-                toast.add({
-                  severity: "success",
-                  summary: "Success",
-                  detail: data_import_success.value.length + "  Image Uploaded",
-                  life: 10000,
-                });
 
-                loadingSaveDocumentImage.value = false;
-                onUploadProgressDocumentImage.value = 0;
-                data_import_success.value = [];
-                data_import_false.value = [];
-                data_import.value = [];
-                queProcess.value = false;
-                upLoadQue.value = 0;
-                queSuccess.value = false;
-
-                emit("success");
-              }
-            }, 2000);
+            if (upLoadQueDocRef.value < data_import_success.value.length) {
+              saveDocumentImage();
+            } else {
+              //console.log(data_import_success.value);
+              setTimeout(() => {
+                openConfirmationDocRef.value = true;
+              }, 1000);
+            }
           }
         })
         .catch((err) => {
-          loadingSaveDocumentImage.value = false;
           console.log(err);
+          if (err == "Network Error") {
+            setTimeout(() => {
+              console.log(err)
+              saveDocumentImage();
+            }, 5000);
+          }
           toast.add({
             severity: "error",
             summary: "Error",
             detail: err,
-            life: 3000,
+            life: 6000,
           });
+
         });
-    }, index * interval);
-  });
+
+    }, interval);
+
+  }
+
 };
 
 </script>

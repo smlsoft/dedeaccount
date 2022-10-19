@@ -308,9 +308,44 @@
   <DialogForm :confirmDialog="confirmSaveImg" :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
     v-on:close="confirmSaveImg = false" v-on:confirm="saveUpdateImg()"></DialogForm>
 
-  <Dialog header="Header" v-model:visible="showGLImage" :breakpoints="{'960px': '75vw', '640px': '90vw'}"
-    :style="{width: '60vw'}" :maximizable="true" :modal="true" >
+  <Dialog :header="props.images_data.docguidref" v-model:visible="showGLImage"
+    :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '60vw'}" :modal="true" :draggable="false"
+    position="top">
 
+    <!-- <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
+      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
+      :groupAccount_detail="groupAccount_detail">
+    </JournalForm> -->
+
+    <!-- <TabView class="tabview-custom" ref="tabview">
+      <TabPanel>
+        <template #header>
+          <i class="pi pi-book mr-1"></i>
+          <span> ข้อมูลรายวัน</span>
+        </template>
+        <div>
+          <JournalForm :daily_form="daily_form"></JournalForm>
+        </div>
+      </TabPanel> -->
+    <!-- <TabPanel>
+        <template #header>
+          <i class="pi pi-wallet mr-1"></i>
+          <span> ข้อมูลภาษี</span>
+        </template>
+        <div>
+          <VatForm :vats="vats"></VatForm>
+        </div>
+      </TabPanel>
+      <TabPanel>
+        <template #header>
+          <i class="pi pi-wallet mr-1"></i>
+          <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+        </template>
+        <div>
+          <TaxForm :taxes="taxes"></TaxForm>
+        </div>
+      </TabPanel> -->
+    <!-- </TabView> -->
 
   </Dialog>
 </template>
@@ -340,6 +375,10 @@ const imageStatus = {
   Saved: 2,
 };
 const showGLImage = ref(false);
+const daily_form = ref({});
+const taxes = ref([]);
+const vats = ref([]);
+const loadDetailGlImage = ref(false);
 
 const props = defineProps({
   images_data: Object,
@@ -699,6 +738,117 @@ function borderImage() {
 function showDetailGlImage(docno) {
   console.log(docno);
   showGLImage.value = true;
+
+  loadDetailGlImage.value = true;
+  MasterdataService.getGLledger(docno)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (res.success) {
+          const vat = res.data.vats;
+          const tax = res.data.taxes;
+
+          console.log(res.data);
+
+          daily_form.value.accountdescription = res.data.accountdescription;
+          daily_form.value.accountgroup = res.data.accountgroup;
+          daily_form.value.accountperiod = res.data.accountperiod;
+          daily_form.value.accountyear = res.data.accountyear;
+          daily_form.value.amount = res.data.amount;
+          daily_form.value.batchId = res.data.batchId;
+          daily_form.value.journaltype = res.data.journaltype.toString();
+          daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
+          daily_form.value.docno = res.data.docno;
+          daily_form.value.bookcode = res.data.bookcode;
+          daily_form.value.journaldetail = res.data.journaldetail;
+          if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+            daily_form.value.exdocrefdate = "";
+          } else {
+            daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
+          }
+          daily_form.value.exdocrefno = res.data.exdocrefno;
+
+          if (res.data.vats.length > 0) {
+            vats.value = [];
+
+            for (var i = 0; i < res.data.vats.length; i++) {
+              var vattemp = {
+                vattype: vat[i].vattype,
+                vatdate: Utils.getDateTimeFromDate(vat[i].vatdate),
+                vatdocno: vat[i].vatdocno,
+                vatperiod: vat[i].vatperiod,
+                vatyear: vat[i].vatyear,
+                vatbase: vat[i].vatbase,
+                vatrate: vat[i].vatrate,
+                vatamount: vat[i].vatamount,
+                exceptvat: vat[i].exceptvat,
+                vatmode: vat[i].vatmode,
+                vatsubmit: vat[i].vatsubmit,
+                custname: vat[i].custname,
+                custtaxid: vat[i].custtaxid,
+                organization: vat[i].organization,
+                branchcode: vat[i].branchcode,
+                remark: vat[i].remark,
+              };
+              vats.value.push(vattemp);
+            }
+          }
+
+          if (res.data.taxes.length > 0) {
+            taxes.value = [];
+            for (var i = 0; i < res.data.taxes.length; i++) {
+              var taxes_temp = {
+                taxdocno: res.data.taxes[i].taxdocno,
+                taxdate: Utils.getDateTimeFromDate(res.data.taxes[i].taxdate),
+                custname: res.data.taxes[i].custname,
+                custtype: res.data.taxes[i].custtype,
+                custtaxid: res.data.taxes[i].custtaxid,
+                taxtype: res.data.taxes[i].taxtype,
+                address: res.data.taxes[i].address,
+                details: [],
+              };
+
+              if (
+                res.data.taxes[i].details != null &&
+                res.data.taxes[i].details.length > 0
+              ) {
+                var sumamount = 0;
+                var sumbase = 0;
+                res.data.taxes[i].details.forEach((data) => {
+                  var details_temp = {
+                    description: data.description,
+                    taxbase: data.taxbase,
+                    taxrate: data.taxrate,
+                    taxamount: data.taxamount,
+                  };
+
+                  taxes_temp.details.push(details_temp);
+                });
+              } else {
+                taxes_temp.details = [
+                  {
+                    description: "",
+                    taxbase: 0,
+                    taxrate: 0,
+                    taxamount: 0,
+                  },
+                ];
+              }
+
+              taxes.value.push(taxes_temp);
+            }
+            console.log();
+          }
+
+
+          console.log(vats.value);
+          console.log(taxes.value);
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 
 }
 </script>

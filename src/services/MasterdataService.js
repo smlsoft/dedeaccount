@@ -194,23 +194,13 @@ export default {
     deleteAccountGroup(data) {
         return instanceApi(true).delete(`/gl/accountgroup/` + data).then(res => res.data);
     },
-    async upLoadImages(file) {
+      upLoadImages(file) {
         let fd = new FormData()
 
         fd.append('file', file)
-        return await instanceApi(true,true).post(`/upload/images`, fd,{
-            headers: { "Content-Type": "multipart/form-data" }
-          }).then(res => res.data).catch(function (error) {
-            if (error.response) {
-              console.log(error.response.data);
-              console.log(error.response.status);
-              console.log(error.response.headers);
-            }else{
-                console.log(error)
-            }
-          })
-      
+        return instanceApi(true).post(`/upload/images`, fd).then(res => res.data);
     },
+
     postSelectImage(data) {
         return instanceApi(true).post(`/gl/journal/docref/select`, data).then(res => res.data);
     },
