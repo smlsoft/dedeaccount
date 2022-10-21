@@ -78,11 +78,7 @@
               icon="pi pi-book"
               iconPos="left"
               @click="exportPDF()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
+              :disabled="endDate === null || accountGroup.length == 0"
             />
             <!-- <Button
               label="จัดทำรายงาน"

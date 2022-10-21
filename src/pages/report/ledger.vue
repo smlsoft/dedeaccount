@@ -59,7 +59,19 @@
                   optionLabel="accountcode"
                   optionValue="accountcode"
                   placeholder="เลือกทั้งหมด"
-                />
+                >
+                  <template #footer>
+                    <div class="align-right">
+                      <Button
+                        style="font-size: 0.9rem"
+                        label="เคลียร์ข้อความ"
+                        icon="pi pi-times"
+                        class="p-button-danger-sm"
+                        @click="cleartext($event)"
+                      />
+                    </div>
+                  </template>
+                </Dropdown>
               </div>
               <div class="field mb-4 col-6 md:col-3">
                 <label
@@ -84,89 +96,70 @@
               </div>
             </div>
           </div>
-          <div class="field mb-4 col-6 md:col-3 ml-3">
+
+          <div class="field mb-4 col-6 md:col-3 ml-4">
             <label for="startDate" class="font-medium text-900"
-              >จากวันที่</label
+              >ช่วงระหว่างวันที่ :</label
             >
             <DatePicker
+              class="field mb-12 col-12 md:col-12"
               dateFormat="d/m/yy"
               v-model="startDate"
-              :modelValue1="startDate"
+              :modelValue="startDate"
               :showIcon="true"
               :buddhist="buddhistYear"
               :hideOnDateTimeSelect="true"
               :hiddenTime="true"
             />
           </div>
-          <div class="field mb-4 col-6 md:col-3">
-            <label for="endDate" class="font-medium text-900">ถึงวันที่</label>
+          <div class="field mb-4 col-6 md:col-3 ml-4">
+            <label for="endDate" class="font-medium text-900"
+              >ถึงวันที่ :</label
+            >
             <DatePicker
+              class="field mb-10 col-12 md:col-12"
               dateFormat="d/m/yy"
               v-model="endDate"
-              :modelValu1e="endDate"
+              :modelValue="endDate"
               :showIcon="true"
               :buddhist="buddhistYear"
               :hideOnDateTimeSelect="true"
               :hiddenTime="true"
             />
           </div>
+          <div class="field-checkbox mb-12 col-12 md:col-3">
+            <Checkbox :binary="true" v-model="result" @change="addall()" />
+
+            <label>แสดงผังที่ไม่เคลื่อนไหว</label>
+          </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
-            <Button
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exreport2()"
-              :disabled="startDate === null || endDate === null"
-            />
-            <!-- <Button
+            <a href="#section">
+              <Button
+                class="field mb-12 col-12 md:col-2"
+                label="จัดทำรายงาน"
+                icon="pi pi-book"
+                iconPos="left"
+                @click="exreport2()"
+            /></a>
+          </div>
+          <!-- <Button
               label="จัดทำรายงาน"
               class="p-button-raised p-button-text"
               icon="pi pi-book"
             
             /> -->
-          </div>
         </div>
-        <div class="col-12">
-          <div class="overflow-auto surface-overlay">
-            <div class="flex">
-              <div class="flex">
-                <Button
-                  label="ส่งออก Excel"
-                  class="p-button-primary"
-                  icon="pi pi-file-excel"
-                  @click="DownloadExampleExcel()"
-                  :disabled="isvisible === false"
-                />
-              </div>
-              <div class="flex ml-2">
-                <Button
-                  label="ส่งออก PDF"
-                  icon="pi pi-file-pdf"
-                  class="p-button-primary"
-                  @click="exportdowloadPDF()"
-                  :disabled="isvisible === false"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- <iframe
-          v-if="isvisible"
-          style="height: 90vh"
-          class="w-full"
-          frameborder="0"
-          scrolling="no"
-          id="iframeContainer"
-          type="application/pdf"
-        /> -->
-        <!-- <div>
+      </div>
+      <div class="col-12">
+        <div class="overflow-auto surface-overlay">
           <div class="flex">
             <div class="flex">
               <Button
                 label="ส่งออก Excel"
                 class="p-button-primary"
                 icon="pi pi-file-excel"
-                @click="DownloadExampleExcel()"
+                @click="checkadExceldll()"
+                :disabled="isvisible === false"
               />
             </div>
             <div class="flex ml-2">
@@ -174,127 +167,23 @@
                 label="ส่งออก PDF"
                 icon="pi pi-file-pdf"
                 class="p-button-primary"
-                @click="exportPDF()"
+                @click="exportdowloadPDF()"
+                :disabled="isvisible === false"
               />
             </div>
-          </div>
-        </div> -->
-        <div class="grid">
-          <div class="col-12" v-if="isvisible">
-            <div class="flex justify-content-between">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  v-model="filters"
-                  placeholder="ค้นหา...."
-                  @keyup="keyup()"
-                  @keydown="keydown()"
-                />
-              </span>
-            </div>
-
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <DataTable>
-                <Column header="วันที่" style="width: 8%"> </Column>
-                <Column header="เลขที่เอกสาร" style="width: 10%"> </Column>
-                <Column header="รายละเอียด" style="width: 10%"> </Column>
-                <Column header="เดบิต" style="width: 10%"> </Column>
-                <Column header="เครดิต" style="width: 10%"> </Column>
-                <Column header="มูลค่าคงเหลือ" style="width: 10%"> </Column>
-              </DataTable>
-              <Column field="accountcode" header="รหัสบัญชี" style="width: 10%">
-              </Column>
-              <Column field="accountname" header="ชื่อบัญชี" style="width: 10%">
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column
-                :expander="true"
-                headerStyle="width: 3rem"
-                style="width: 10%"
-              />
-            </DataTable>
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <Column style="width: 15%"></Column>
-              <Column style="width: 10%">
-                <template #body>ยกมา</template>
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 30%"></Column>
-              <Column field="balance" style="width: 8%"> </Column>
-
-              <Column> </Column>
-
-              <template #expansion="mainProps">
-                <div class="orders-subtable">
-                  <DataTable
-                    :value="mainProps.data.details"
-                    responsiveLayout="scroll"
-                    dataKey="accountcode"
-                  >
-                    <template #empty> รหัสบัญชีนี้ไม่มีข้อมูล </template>
-                    <template #loading>
-                      กำลังประมวลผล กรุณารอซักครู่..</template
-                    >
-                    <Column field="docdate" style="width: 15%">
-                      <template #body="slotProps">
-                        {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
-                      </template>
-                    </Column>
-                    <Column field="docno" style="width: 18%"> </Column>
-                    <Column field="accountdescription" style="width: 17%">
-                    </Column>
-                    <Column field="debit" style="width: 17%"> </Column>
-                    <Column field="credit" style="width: 18%">
-                      <template #body="{ data, field }">
-                        {{ checkzero(data[field]) }}
-                      </template>
-                    </Column>
-                    <Column field="amount"> </Column>
-                  </DataTable>
-                </div>
-              </template>
-            </DataTable>
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <Column style="width: 15%"></Column>
-              <Column style="width: 10%">
-                <template #body>ยกมา</template>
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 30%"></Column>
-              <Column field="balance" style="width: 5%"> </Column>
-
-              <Column> </Column
-            ></DataTable>
           </div>
         </div>
+      </div>
+      <div id="section">
+        <iframe
+          v-if="isvisible"
+          style="height: 90vh"
+          class="w-full"
+          frameborder="0"
+          scrolling="no"
+          id="iframeContainer"
+          type="application/pdf"
+        />
       </div>
     </MainContentWarp>
   </AppLayout>
@@ -309,10 +198,14 @@ import MasterdataService from "@/services/MasterdataService";
 import { ref, onMounted } from "vue";
 import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
+
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import XLSX from "xlsx";
+import router from "../../router";
+import { useToast } from "primevue/usetoast";
+import utils from "../../utils";
 const detail = ref();
 const textContent = ref("ต้องการลบข้อมูลรายวัน เลขที่เอกสาร");
 const dailynum = ref("");
@@ -320,7 +213,7 @@ const head_example = ref([]);
 const detail_example = ref([]);
 const detail_examplenumbertwo = ref([]);
 const textChart = ref("");
-
+const toast = useToast();
 const deleteDetailDialog = ref(false);
 const totalItemsCount = ref(0);
 const filters = ref(null);
@@ -346,12 +239,17 @@ const endDate = ref();
 const accountGroup = ref("");
 const accountcode = ref([]);
 const accountcode1 = ref([]);
+const accountgroup = ref("");
+const consolidateaccountcode = ref("");
 const accountcode2 = ref([]);
-const dataaccountcode = ref([]);
+const dataaccountcode = ref("");
 const state = ref(false);
-const data_list = ref([]);
+const data_list = ref([{}]);
 const data_list2 = ref([]);
 const docno = ref();
+const balance = ref();
+const balancenext = ref();
+const result = ref(false);
 const accountmaintypeList = ref([{ name: "0", code: 1 }]);
 3;
 const props = defineProps({
@@ -431,7 +329,20 @@ function searchCountry(event) {
     }
   }, 250);
 }
-
+function checkadExceldll() {
+  result.value == false;
+  console.log(result.value);
+  if (result.value == false) {
+    result.value == false;
+    DownloadExampleExcel();
+  } else if (result.value == true) {
+    DownloadExampleExcelAll();
+  }
+}
+function addall() {
+  // result.value = true;
+  console.log(result.value);
+}
 function switchOn() {
   if (state.value == true) {
     dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
@@ -445,19 +356,34 @@ function switchOn() {
 }
 
 function selectAccount(event) {
+  // if ((event.value = "")) {
+  //   console.log("emty");
+  // }
+  console.log(event);
   state.value == false;
   accountcode1.value = event.value;
+
   console.log(state.value);
+
   console.log(event.value);
-  console.log(event.value);
+
   accountcode1.value = event.value;
   dataaccountcode.value = accountcode1.value + ":" + accountcode1.value;
+
   // else if ((state.value = true)) {
   //   dataaccountcode.value = event.value + ":" + event.value;
   // }
 
   console.log(dataaccountcode.value);
 }
+
+function cleartext(event) {
+  console.log(event);
+  event.value = "";
+  console.log(event);
+  dataaccountcode.value = "";
+}
+
 function selectAccount2(event) {
   if ((state.value = false)) {
     accountcode2.value = event.value;
@@ -474,38 +400,47 @@ function selectAccount2(event) {
 function exreport2() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
-  // for (let i = 0; i < dataaccountcode.value.length; i++) {
-  //   const element = dataaccountcode.value[i];
-  //   console.log(dataaccountcode.value[i]);
-
-  //   // accountcode.value.accountcode = [
-  //   //   dataaccountcode.value[i] + ":" + dataaccountcode.value[i],
-  //   // ];
-  // }
-  // dataaccountcode.value =
-  //   data_list.value.accountcode + ":" + data_list.value.accountcode;
-
-  // data_list.value.forEach((data) => {
-  //   console.log(data_list.value.accountcode.length);
-  //   if (data_list.value.accountcode.length > 5) {
-  //     console.log(data_list.value.accountcode.length);
-  //     dataaccountcode.value =
-  //       "," + data_list.value.accountcode + ":" + data_list.value.accountcode;
-  //   }
-  // });
-  // console.log(data_list.value.accountcode + ":" + data_list.value.accountcode);
 
   loading.value = true;
-  MasterdataService.getAccountledger(startdate, enddate, dataaccountcode.value)
+  if (dataaccountcode.value == ":") {
+    dataaccountcode.value = "";
+  }
+  MasterdataService.getAccountledger(
+    startdate,
+    enddate,
+    dataaccountcode.value,
+    (accountgroup.value = ""),
+    (consolidateaccountcode.value = "")
+  )
     .then((res) => {
       if (res.success) {
         data_list.value = res.data;
-        exportPDF();
+        console.log(res);
+        toast.add({
+          severity: "success",
+          summary: "จัดทำรายงานสำเร็จ",
+          life: 1000,
+        });
+        if (result.value == false) {
+          exportPDF();
+          result.value = false;
+        } else if (result.value == true) {
+          exportPDFAll();
+          result.value == true;
+        }
+
         // console.log(totalItemsCount.value);
       }
       loading.value = false;
     })
     .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "จัดทำรายงานไม่สำเร็จ",
+        detail: "โปรดตรวจสอบวันที่และผังบัญชี",
+        life: 3000,
+      });
+      isvisible.value = false;
       loading.value = false;
       console.log(err);
     });
@@ -514,28 +449,17 @@ function exreport2() {
   // expandAll();
 }
 
-// const searchCountry = (event) => {
-//   setTimeout(() => {
-//     if (!event.query.trim().length) {
-//       filteredCountries.value = [...data_list.value];
-//     } else {
-//       filteredCountries.value = data_list.value.filter((account) => {
-//         return data_list.name
-//           .toLowerCase()
-//           .startsWith(event.query.toLowerCase());
-//       });
-//     }
-//   }, 250);
-// };
 async function exportPDF() {
   isvisible.value = true;
   var body = [];
   var enddate = "";
+  var startdate = "";
   body = await buildFromJson();
 
+  startdate = Utils.getYearBuddhist(startDate.value);
   enddate = Utils.getYearBuddhist(endDate.value);
 
-  var docDefinition = pageSetup(body, enddate);
+  var docDefinition = pageSetup(body, startdate, enddate);
 
   const pdfDocGenerator = pdfMake.createPdf(docDefinition);
   pdfDocGenerator.getDataUrl((dataUrl) => {
@@ -543,32 +467,102 @@ async function exportPDF() {
     targetElement.src = dataUrl;
   });
 }
+async function exportPDFAll() {
+  isvisible.value = true;
+  var body = [];
+  var enddate = "";
+  var startdate = "";
+  body = await buildFromJson2();
 
-// function newResultdocno(data) {
-//   var result = [];
-//   loading.value = true;
-//   console.log(data_list.value);
-//   MasterdataService.getGLledger((docno.value = "JO-202209069972C3"))
-//     .then((res) => {
-//       console.log(res);
-//       if (res.success) {
-//         console.log(res);
-//         data_list.value = res.data;
-//         console.log(data.docno);
-//         docno.value = data_list.value.accountdescription;
-//         console.log(data_list.value.accountdescription);
-//         // totalItemsCount.value = res.pagination.total;
+  startdate = Utils.getYearBuddhist(startDate.value);
+  enddate = Utils.getYearBuddhist(endDate.value);
 
-//         // result = docno.value.filter((val) => val.code == data);
-//         // return result.length > 0 ? result[0].name : "ไม่พบข้อมูล";
-//       }
-//       loading.value = false;
-//     })
-//     .catch((err) => {
-//       loading.value = false;
-//       console.log(err);
-//     });
-// }
+  var docDefinition = pageSetup(body, startdate, enddate);
+
+  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+  pdfDocGenerator.getDataUrl((dataUrl) => {
+    const targetElement = document.querySelector("#iframeContainer");
+    targetElement.src = dataUrl;
+  });
+}
+function buildFromJson2() {
+  var body = [];
+
+  body.push([
+    { text: "รหัสบัญชี", style: "header" },
+    { text: "ชื่อบัญชี", style: "header" },
+    { colSpan: 5, text: "" },
+    { text: "" },
+    { text: "" },
+    { text: "" },
+    { text: "" },
+  ]);
+  body.push([
+    { text: "วันที่", style: "header" },
+    { text: "เลขที่เอกสาร", style: "header" },
+    { colSpan: 2, text: "รายละเอียด", style: "header" },
+    { text: "" },
+    { text: "เดบิต ", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "ยอดรวม", style: "header" },
+  ]);
+  console.log(data_list.value);
+  data_list.value.forEach((data) => {
+    body.push([
+      { text: data.accountcode, fillColor: "#d8eaf2" },
+
+      { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+    ]);
+
+    body.push([
+      { text: "" },
+
+      { text: "ยกมา" },
+      { colSpan: 2, text: "" },
+      { text: "" },
+      { text: "" },
+      { text: "" },
+      { text: Utils.formatNumber(data.balance), alignment: "right" },
+    ]);
+    data.details.forEach((details) => {
+      // console.log(details);
+      body.push([
+        { text: Utils.getDateFormatDMY(details.docdate) },
+        { text: details.docno },
+        { colSpan: 2, text: details.accountdescription },
+        { text: "" },
+        { text: checkzero(Utils.formatNumber(details.debit)) },
+        { text: checkzero(Utils.formatNumber(details.credit)) },
+        { text: Utils.formatNumber(details.amount), alignment: "right" },
+      ]);
+    });
+
+    body.push([
+      { text: "" },
+      { text: "ยกไป" },
+
+      { colSpan: 2, text: "", style: ["header", "textdecoration"] },
+      {
+        text: "",
+      },
+
+      { text: "" },
+      { text: "" },
+      {
+        text: Utils.formatNumber(data.nextbalance),
+        alignment: "right",
+      },
+    ]);
+  });
+
+  return body;
+}
+
 function getGLJournalList() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
@@ -623,34 +617,58 @@ function getAccountChartList() {
 //output------
 async function exportdowloadPDF() {
   var body = [];
+  var enddate = "";
+  var startdate = "";
   body = await buildFromJson();
-  var docDefinition = pageSetup(body);
+
+  startdate = Utils.getYearBuddhist(startDate.value);
+  enddate = Utils.getYearBuddhist(endDate.value);
+
+  var docDefinition = pageSetup(body, startdate, enddate);
   pdfMake.createPdf(docDefinition).download("บัญชีแยกประเภท.pdf");
 }
-function pageSetup(data) {
+function pageSetup(data, startdate, enddate) {
   var docDefinition = {
     content: [
-      // {
-      //   style: "tableExample",
-      //   table: {
-      //     widths: ["46%", "10%", "22%", "22%"],
-      //     body: data,
-      //   },
-      //   layout: "lightHorizontalLines",
-      // },
+      {
+        text:
+          "รายงานบัญชีแยกประเภท" +
+          "\n" +
+          localStorage.shop_name +
+          "\n" +
+          "สิ้นสุด ณ  วันที่" +
+          Utils.getDateShowText(enddate) +
+          "\n" +
+          "\n ",
+
+        style: "header",
+        bold: true,
+        alignment: "center",
+      },
+
       {
         style: "tableExample",
+
         table: {
-          widths: ["15%", "25%", "15%", "10%", "10%", "10%", "15%"],
+          widths: ["15%", "25%", "13%", "10%", "10%", "10%", "17%"],
           body: data,
         },
-        layout: "lightHorizontalLines",
+        layout: "noBorders",
       },
     ],
-    pageOrientation: "portrait",
-    pageMargins: [8, 8, 8, 8],
+    pageOrientation: "lightHorizontalLines",
+    pageMargins: [15, 15, 15, 15],
     defaultStyle: {
       font: "Sarabun",
+      fontSize: 12,
+      columnGap: 20,
+      color: "#0A065D",
+    },
+    styles: {
+      header: {
+        bold: true,
+        alignment: "center",
+      },
     },
   };
   return docDefinition;
@@ -659,33 +677,41 @@ function buildFromJson() {
   var body = [];
 
   body.push([
-    { text: "รหัสบัญชี", fillColor: "#81d4fa" },
-    { text: "ชื่อบัญชี", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
+    { text: "รหัสบัญชี", style: ["header", "textdecoration"] },
+    { text: "ชื่อบัญชี", style: ["header", "textdecoration"] },
+    { colSpan: 5, text: "" },
+    { text: "" },
+    { text: "" },
+    { text: "" },
+    { text: "" },
   ]);
   body.push([
-    { text: "วันที่", fillColor: "#81d4fa" },
-    { text: "เลขที่เอกสาร", fillColor: "#81d4fa" },
-    { colSpan: 2, text: "รายละเอียด", fillColor: "#81d4fa" },
-    { text: "", fillColor: "#81d4fa" },
-    { text: "เดบิต", fillColor: "#81d4fa" },
-    { text: "เครดิต", fillColor: "#81d4fa" },
-    { text: "ยอดรวม", fillColor: "#81d4fa" },
+    { text: "วันที่", style: "header" },
+    { text: "เลขที่เอกสาร", style: "header" },
+    { colSpan: 2, text: "รายละเอียด", style: "header" },
+    { text: "" },
+    { text: "เดบิต ", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "ยอดรวม", style: "header" },
   ]);
-
+  console.log(data_list.value);
   data_list.value.forEach((data) => {
+    if (
+      data.balance == data.nextbalance &&
+      data.balance == 0 &&
+      data.nextbalance == 0
+    ) {
+      return console.log("true");
+    }
     body.push([
-      { text: data.accountcode, fillColor: "#d8eaf2" },
-
-      { text: data.accountname, fillColor: "#d8eaf2" },
       {
-        text: "",
+        text: data.accountcode,
         fillColor: "#d8eaf2",
+        style: ["header", "textdecoration"],
       },
+
+      { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
       { text: "", fillColor: "#d8eaf2" },
       { text: "", fillColor: "#d8eaf2" },
       { text: "", fillColor: "#d8eaf2" },
@@ -695,35 +721,31 @@ function buildFromJson() {
     body.push([
       { text: "" },
 
-      { text: "ยกมา" },
-      {
-        text: "",
-      },
+      { text: checkbalanceWord(data.balance) },
+      { colSpan: 2, text: "" },
       { text: "" },
       { text: "" },
       { text: "" },
-      { text: Utils.formatNumber(data.balance) },
+      { text: checkbalance(data.balance), alignment: "right" },
     ]);
     data.details.forEach((details) => {
-      console.log(details);
+      // console.log(details);
       body.push([
         { text: Utils.getDateFormatDMY(details.docdate) },
         { text: details.docno },
         { colSpan: 2, text: details.accountdescription },
         { text: "" },
-        { text: newResultmain(Utils.formatNumber(details.debit)) },
-        { text: newResultmain(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount) },
+        { text: checkzero(Utils.formatNumber(details.debit)) },
+        { text: checkzero(Utils.formatNumber(details.credit)) },
+        { text: Utils.formatNumber(details.amount), alignment: "right" },
       ]);
     });
 
     body.push([
       { text: "" },
       { text: "ยกไป" },
-      {
-        text: "",
-        style: ["header", "textdecoration"],
-      },
+
+      { colSpan: 2, text: "", style: ["header", "textdecoration"] },
       {
         text: "",
       },
@@ -731,30 +753,27 @@ function buildFromJson() {
       { text: "" },
       { text: "" },
       {
-        text: Utils.formatNumber(data.nextbalance),
-
-        // Utils.formatCurrency(
-        //   getSumDebitAmount(data.journaldetail.debitamount)
-        // ),
+        text: checkbalance(data.nextbalance),
+        alignment: "right",
       },
     ]);
-    // body.push([
-    //   { text: "รหัสบัญชี", fillColor: "#81d4fa" },
-    //   { text: "ชื่อบัญชี", fillColor: "#81d4fa" },
-    //   { text: "", fillColor: "#81d4fa" },
-    //   { text: "", fillColor: "#81d4fa" },
-    //   { text: "", fillColor: "#81d4fa" },
-    //   { text: "", fillColor: "#81d4fa" },
-    //   { text: "", fillColor: "#81d4fa" },
-    // ]);
   });
 
   return body;
 }
 function DownloadExampleExcel() {
+  result.value == false;
   console.log("DownloadExampleExcel");
 
   data_list.value.forEach((data) => {
+    if (
+      data.balance == data.nextbalance &&
+      data.balance == 0 &&
+      data.nextbalance == 0
+    ) {
+      result.value == false;
+      return console.log("true");
+    }
     detail_example.value.push(
       {
         1: "รหัสบัญชี",
@@ -789,40 +808,18 @@ function DownloadExampleExcel() {
         7: "",
         8: "",
       }
-      // {
-      //   "": "",
-      //   "": "",
-      //   วันที่: "",
-      //   เลขที่เอกสาร: "",
-      //   รายละเอียด: "",
-      //   เดบิต: "เดบิต",
-      //   เครดิต: "เครดิต",
-      //   ยอดรวม: "",
-      // },
     );
-    detail_example.value.push(
-      {
-        1: "",
+    detail_example.value.push({
+      1: "",
 
-        2: "ยกมา",
-        3: "",
-        4: "",
-        5: "",
-        6: Utils.formatNumberforExcel(data.balance),
-        7: "",
-        8: "",
-      }
-      // {
-      //   "": "",
-      //   "": "",
-      //   วันที่: "",
-      //   เลขที่เอกสาร: "",
-      //   รายละเอียด: "",
-      //   เดบิต: "เดบิต",
-      //   เครดิต: "เครดิต",
-      //   ยอดรวม: "",
-      // },
-    );
+      2: checkbalanceWord(data.balance),
+      3: "",
+      4: "",
+      5: "",
+      6: checkbalance(data.balance),
+      7: "",
+      8: "",
+    });
     data.details.forEach((details) => {
       // console.log(details);
 
@@ -831,8 +828,8 @@ function DownloadExampleExcel() {
 
         2: details.docno,
         3: details.accountdescription,
-        4: newResultmain(Utils.formatNumberforExcel(details.debit)),
-        5: newResultmain(Utils.formatNumberforExcel(details.credit)),
+        4: checkzero(Utils.formatNumberforExcel(details.debit)),
+        5: checkzero(Utils.formatNumberforExcel(details.credit)),
         6: Utils.formatNumberforExcel(details.amount),
         7: "",
         8: "",
@@ -846,7 +843,7 @@ function DownloadExampleExcel() {
         3: "",
         4: "",
         5: "",
-        6: Utils.formatNumberforExcel(data.nextbalance),
+        6: data.nextbalance,
         7: "",
         8: "",
       }
@@ -886,7 +883,119 @@ function DownloadExampleExcel() {
   XLSX.utils.book_append_sheet(wb, Example, "รายงานข้อมูลผังบัญชี");
   XLSX.writeFile(wb, "รายงานข้อมูลผังบัญชี.xlsx");
 }
+function DownloadExampleExcelAll() {
+  console.log("DownloadExampleExcelAll");
 
+  data_list.value.forEach((data) => {
+    detail_examplenumbertwo.value.push(
+      {
+        1: "รหัสบัญชี",
+
+        2: "ชื่อบัญชี",
+        3: "",
+        4: "",
+        5: "",
+        6: "",
+        7: "",
+        8: "",
+      },
+      {
+        1: "วันที่",
+
+        2: "เลขที่เอกสาร",
+        3: "รายละเอียด",
+        4: "เดบิต",
+        5: "เครดิต",
+        6: "ยอดรวม",
+        7: "",
+        8: "",
+      },
+      {
+        1: data.accountcode,
+
+        2: data.accountname,
+        3: "",
+        4: "",
+        5: "",
+        6: "",
+        7: "",
+        8: "",
+      }
+    );
+    detail_examplenumbertwo.value.push({
+      1: "",
+
+      2: "ยกมา",
+      3: "",
+      4: "",
+      5: "",
+      6: data.balance,
+      7: "",
+      8: "",
+    });
+    data.details.forEach((details) => {
+      // console.log(details);
+
+      detail_examplenumbertwo.value.push({
+        1: Utils.getDateFormatDMY(details.docdate),
+
+        2: details.docno,
+        3: details.accountdescription,
+        4: checkzero(Utils.formatNumberforExcel(details.debit)),
+        5: checkzero(Utils.formatNumberforExcel(details.credit)),
+        6: Utils.formatNumberforExcel(details.amount),
+        7: "",
+        8: "",
+      });
+    });
+    detail_examplenumbertwo.value.push(
+      {
+        1: "",
+
+        2: "ยกไป",
+        3: "",
+        4: "",
+        5: "",
+        6: data.nextbalance,
+        7: "",
+        8: "",
+      }
+      // {
+      //   "": "",
+      //   "": "",
+      //   วันที่: "",
+      //   เลขที่เอกสาร: "",
+      //   รายละเอียด: "",
+      //   เดบิต: "เดบิต",
+      //   เครดิต: "เครดิต",
+      //   ยอดรวม: "",
+      // },
+    );
+    // detail_example.value.push({
+    //   รหัสบัญชี: "รหัสบัญชี",
+
+    //   วันที่: "วันที่",
+    //   ชื่อบัญชี: "ชื่อบัญชี",
+    //   เลขที่เอกสาร: "เลขที่เอกสาร",
+    //   รายละเอียด: "รายละเอียด",
+    //   เดบิต: "เดบิต",
+    //   เครดิต: "เครดิต",
+    //   ยอดรวม: "ยอดรวม",
+    // });
+  });
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+    detail_examplenumbertwo.value,
+    head_example.value,
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานข้อมูลผังบัญชี");
+  XLSX.writeFile(wb, "รายงานข้อมูลผังบัญชี.xlsx");
+}
 function getDate() {
   var date = new Date();
   startDate.value = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -920,12 +1029,12 @@ function getGLledger() {
       console.log(err);
     });
 }
-
+//resulstCheck start
 function newResultmain(data) {
   console.log(data);
   var result = [];
-  result = accountmaintypeList.value.filter((val) => val.code == data);
-  return result == 0 ? "" : data;
+  result = accountmaintypeList.value.filter((val) => (val.code = data));
+  return (result = 0 ? "" : data);
 }
 
 function checkzero(data) {
@@ -933,6 +1042,52 @@ function checkzero(data) {
     return "";
   } else {
     return data;
+  }
+}
+function checkbalance(data) {
+  balance.value = data;
+  if (balance.value == 0) {
+    return;
+  } else {
+    // console.log(data);
+    return Utils.formatNumber(data);
+  }
+}
+// function checkbalancenext(data) {
+//   balancenext.value = data;
+//   if (balancenext.value == 0 && balancenext.value == balance.value) {
+//     result.value = true;
+//     console.log(result.value);
+//     console.log(balancenext.value);
+//     return;
+//   } else {
+//     return Utils.formatNumber(data);
+//   }
+// }
+// function checkword(data) {
+//   balancenext.value = data;
+//   if (balancenext.value == 0 && balancenext.value == balance.value) {
+//     console.log(true);
+//     return;
+//   } else {
+//     console.log(false);
+//     return data;
+//   }
+// }
+// function checkbalancenextWord(data) {
+//   balancenext.value = data;
+//   if (balancenext.value == 0 && balancenext.value == balance.value) {
+//     console.log(balancenext.value);
+//     return;
+//   } else {
+//     return "ยกไป";
+//   }
+// }
+function checkbalanceWord(data) {
+  if (data == 0) {
+    return;
+  } else {
+    return "ยกมา";
   }
 }
 function docnoCheck(data) {
@@ -954,6 +1109,7 @@ function docnoCheck(data) {
       console.log(err);
     });
 }
+//resulstCheckEnd
 function getAccountledger() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
