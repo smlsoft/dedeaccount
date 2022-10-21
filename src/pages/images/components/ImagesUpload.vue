@@ -30,8 +30,7 @@
 
       <div class="flex flex-row flex-wrap " v-if="data_import.length > 0">
         <div class="flex align-items-center justify-content-center ">
-          <Tag icon="pi pi-info-circle" severity="info" class="mr-2" :value="'จำนวน ' +  data_import.length +' รูป'"
-            rounded>
+          <Tag icon="pi pi-image" severity="info" class="mr-2" :value="'จำนวน ' +  data_import.length +' รูป'" rounded>
           </Tag>
         </div>
         <div class="flex align-items-center justify-content-center ">
@@ -98,7 +97,7 @@
     </div>
     <div class="flex justify-content-end  pt-5">
       <Button class="p-button-success" icon="pi pi-save" label="บันทึก" :disabled="!queSuccess"
-        @click="saveDocumentImage()" />
+        :loading="queDocRefSuccess" @click="saveDocumentImage()" />
     </div>
     <div class="pt-3">
       <ProgressBar class="" v-if="loadingSaveDocumentImage" :value="onUploadProgressDocumentImage"
@@ -162,7 +161,7 @@ const showCloseDialogUpload = ref(false);
 const upLoadQue = ref(0);
 const queProcess = ref(false);
 const queSuccess = ref(false);
-
+const queDocRefSuccess = ref(false);
 const upLoadQueDocRef = ref(0);
 const openConfirmationDocRef = ref(false);
 
@@ -271,6 +270,12 @@ function checkDulicate(array) {
     for (var j = i + 1; j < a.length; j++) {
       if (a[i].name === a[j].name) {
         a.splice(j--, 1);
+        toast.add({
+          severity: "warn",
+          summary: "แจ้งเตือน",
+          detail: "รูป " + a[i].name + " ซ้ำ",
+          life: 6000,
+        });
       }
     }
   }
@@ -529,9 +534,9 @@ function myUploader() {
                 data_import_false.value.push(data_import.value[index]);
               }
               toast.add({
-                severity: "error",
-                summary: "Error",
-                detail: err,
+                severity: "warn",
+                summary: "แจ้งเตือน",
+                detail: err + " กรุณารอสักครู่",
                 life: 6000,
               });
 
@@ -571,6 +576,7 @@ function saveDocumentImage() {
 
   queSuccess.value = false;
   loadingSaveDocumentImage.value = true;
+  queDocRefSuccess.value = true;
   var interval = 1000;
 
   if (data_import_success.value.length > 0) {
@@ -601,6 +607,7 @@ function saveDocumentImage() {
               saveDocumentImage();
             } else {
               //console.log(data_import_success.value);
+              queDocRefSuccess.value = false;
               setTimeout(() => {
                 openConfirmationDocRef.value = true;
               }, 1000);
@@ -616,9 +623,9 @@ function saveDocumentImage() {
             }, 5000);
           }
           toast.add({
-            severity: "error",
-            summary: "Error",
-            detail: err,
+            severity: "warn",
+            summary: "แจ้งเตือน",
+            detail: err + " กรุณารอสักครู่",
             life: 6000,
           });
 
