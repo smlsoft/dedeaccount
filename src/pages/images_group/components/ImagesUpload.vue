@@ -496,7 +496,7 @@ function myUploader() {
                 upLoadQue.value++;
                 data_import_success.value.push({
                   name: ele.name,
-                  metafileat: ele.lastModifiedDate,
+                  metafileat: Utils.getFormatDateTime(ele.lastModifiedDate),
                   imageuri: res.data.uri,
                   uploadedby: localStorage._usercode,
                   uploadedat: Utils.getFormatDateTime(new Date()),
@@ -569,92 +569,33 @@ function saveDocumentImage() {
 
   console.log(data_import_success.value);
 
-  // loadingSaveDocumentImage.value = true;
-  // queDocRefSuccess.value = true;
+  loadingSaveDocumentImage.value = true;
+  queDocRefSuccess.value = true;
 
-  // ImageDataService.postDocumentImageBulk(data_import_success.value)
-  //   .then((res) => {
-  //     console.log(res);
-  //     if (res.success) {
+  ImageDataService.postDocumentImageBulk(data_import_success.value)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
 
-  //       setTimeout(() => {
-  //         queDocRefSuccess.value = false;
-  //         loadingSaveDocumentImage.value = false;
-  //         openConfirmationDocRef.value = true;
-  //       }, 2000);
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //     toast.add({
-  //       severity: "error",
-  //       summary: "Error",
-  //       detail: err,
-  //       life: 6000,
-  //     });
+        setTimeout(() => {
+          queDocRefSuccess.value = false;
+          loadingSaveDocumentImage.value = false;
+          openConfirmationDocRef.value = true;
+        }, 2000);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 6000,
+      });
 
-  //   });
+    });
 
-  // queSuccess.value = false;
-  // loadingSaveDocumentImage.value = true;
-  // queDocRefSuccess.value = true;
-  // var interval = 1000;
-
-  //   if (data_import_success.value.length > 0) {
-
-  //     var ele = data_import_success.value[upLoadQueDocRef.value];
-  //     var index = upLoadQueDocRef.value;
-
-  //     ele.documentref = Utils.newGuid("");
-  //     ele.module = "GL";
-  //     ele.uploadedby = localStorage._usercode;
-  //     ele.uploadedat = Utils.getFormatDateTime(new Date());
-
-  //     console.log(ele);
-
-  //     setTimeout(function () {
-
-
-  //       ImageDataService.postDocumentImageBulk(ele)
-  //         .then((res) => {
-  //           console.log(res);
-  //           if (res.success) {
-  //             upLoadQueDocRef.value++;
-  //             loadImgDocumentImage.value = index + 1;
-  //             onUploadProgressDocumentImage.value = ((index + 1) / data_import_success.value.length) * 100;
-  //             onUploadProgressDocumentImage.value = parseFloat(onUploadProgressDocumentImage.value.toFixed(2));
-
-  //             if (upLoadQueDocRef.value < data_import_success.value.length) {
-  //               saveDocumentImage();
-  //             } else {
-  //               //console.log(data_import_success.value);
-  //               queDocRefSuccess.value = false;
-  //               setTimeout(() => {
-  //                 openConfirmationDocRef.value = true;
-  //               }, 1000);
-  //             }
-  //           }
-  //         })
-  //         .catch((err) => {
-  //           console.log(err);
-  //           if (err == "Network Error") {
-  //             setTimeout(() => {
-  //               console.log(err)
-  //               saveDocumentImage();
-  //             }, 5000);
-  //           }
-  //           toast.add({
-  //             severity: "warn",
-  //             summary: "แจ้งเตือน",
-  //             detail: err + " กรุณารอสักครู่",
-  //             life: 6000,
-  //           });
-
-  //         });
-
-  //     }, interval);
-
-  //   }
+  
 
 };
 
