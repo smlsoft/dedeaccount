@@ -50,6 +50,7 @@ import AutoComplete from 'primevue/autocomplete';
 import Tag from 'primevue/tag';
 import SpeedDial from 'primevue/speeddial';
 import Chip from 'primevue/chip';
+import Badge from 'primevue/badge';
 
 
 
@@ -65,6 +66,7 @@ app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 
+app.component('Badge', Badge);
 app.component('Chip', Chip);
 app.component('SpeedDial', SpeedDial);
 app.component('Tag', Tag);

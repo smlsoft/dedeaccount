@@ -194,7 +194,7 @@ export default {
     deleteAccountGroup(data) {
         return instanceApi(true).delete(`/gl/accountgroup/` + data).then(res => res.data);
     },
-      upLoadImages(file) {
+    upLoadImages(file) {
         let fd = new FormData()
 
         fd.append('file', file)

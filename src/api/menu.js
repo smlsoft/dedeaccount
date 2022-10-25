@@ -81,28 +81,38 @@ export const menus = [
     children: [],
   },
   */
+
+  
+  // {
+  //   title: "รูปภาพเอกสาร",
+  //   icon: "pi pi-image",
+  //   to: "/images/list",
+  //   name: "pic_group",
+  //   children: [
+  //     // {
+  //     //   title: "อัพโหลดรูปเอกสาร",
+  //     //   icon: "pi pi-images",
+  //     //   to: "/images/gallery",
+  //     //   name: "images_upload",
+  //     // },
+  //     // {
+  //     //   title: "รูปภาพเอกสาร",
+  //     //   icon: "pi pi-folder-open",
+  //     //   to: "/images/list",
+  //     //   name: "images_list",
+  //     // },
+
+
+  //   ],
+  // },
   {
-    title: "รูปภาพเอกสาร",
+    title: "คลังรูปภาพ",
     icon: "pi pi-image",
-    to: "/images/list",
-    name: "pic_group",
-    children: [
-      // {
-      //   title: "อัพโหลดรูปเอกสาร",
-      //   icon: "pi pi-images",
-      //   to: "/images/gallery",
-      //   name: "images_upload",
-      // },
-      // {
-      //   title: "รูปภาพเอกสาร",
-      //   icon: "pi pi-folder-open",
-      //   to: "/images/list",
-      //   name: "images_list",
-      // },
-
-
-    ],
+    to: "/images_group/list",
+    name: "pic_group_docref",
+    children: [],
   },
+
   {
     title: "รายงานทางการเงิน",
     icon: "pi pi-chart-bar",

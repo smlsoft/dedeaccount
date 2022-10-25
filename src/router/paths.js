@@ -250,6 +250,14 @@ export default [
     component: () => import("../pages/images/images_list.vue"),
   },
   {
+    path: "/images_group/list",
+    name: "pic_group_docref",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images_group/images_list.vue"),
+  },
+  {
     path: "/images/list/:id",
     name: "list_images_param",
     meta: {
