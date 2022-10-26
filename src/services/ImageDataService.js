@@ -12,13 +12,18 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search) {
-        var q = "";
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, status) {
+        let byguid = "guidfixed:1";
+        let s = "";
+        let q = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        //console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}`).then(res => res.data);
+        if (status != "" && status != undefined && status != null) {
+            s = "&status=" + status
+        }
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`).then(res => res.data);
     },
 
     getDocumentImageById(data) {

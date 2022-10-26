@@ -499,13 +499,17 @@ function myUploader() {
 
                 upLoadQue.value++;
 
+                let datex = file.lastModified.toString().slice(0, -3);
+                let timex = new Date(datex * 1000);
+
                 data_import_success.value.push({
                   name: ele.name,
-                  metafileat: Utils.getFormatDateTime(ele.lastModified),
+                  metafileat: Utils.getFormatDateTime(timex),
                   imageuri: res.data.uri,
                   uploadedby: localStorage._usercode,
                   uploadedat: Utils.getFormatDateTime(new Date()),
                 });
+
 
                 loadImg.value = index + 1;
                 onUploadProgress.value = ((index + 1) / data_import.value.length) * 100;

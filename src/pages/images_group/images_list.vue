@@ -64,14 +64,6 @@ const gallery_form = ref({
 const selectSort = ref("uploadedat");
 const sortField = ref([
     {
-        code: "status",
-        name: "สถานะ",
-    },
-    {
-        code: "documentref",
-        name: "กลุ่มเอกสาร",
-    },
-    {
         code: "uploadedat",
         name: "วันที่ Upload",
     },
@@ -351,6 +343,9 @@ function getDocumentImageGroup() {
         limitPage.value,
         activePage.value,
         searchItem.value,
+        selectSort.value,
+        sortOrder.value,
+        showImageBy.value
     )
         .then((res) => {
             console.log(res);
@@ -914,7 +909,15 @@ async function documentImageUnGroup(data) {
 
 
 
-
+function getDocImageListDefualt() {
+    loading.value = true;
+    selectedImg.value = [];
+    limitPage.value = 50;
+    activePage.value = 1;
+    searchItem.value = "";
+    showImageBy.value;
+    getDocumentImageGroup();
+}
 
 function onFileNewSelect(imageData, data) {
     //console.log(data);
@@ -1028,10 +1031,29 @@ function closeDialogUpload() {
                         <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
                         <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
                     </div>
-                    <div class=" mt-2">
-                        <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage"
-                            :totalRecords="totalItemsCount" @page="onPage($event)">
-                        </Paginator>
+                    <div class="flex justify-content-between">
+                        <div class="grid mt-3 ml-1">
+
+                        </div>
+                        <div class="grid mt-3 mr-1">
+                            <div class="flex align-items-center ml-2">
+                                <span class="mr-2 text-900">การเรียงข้อมูล</span>
+                                <Dropdown v-model="selectSort" :options="sortField" optionLabel="name"
+                                    optionValue="code" @change="selectSortUse($event)">
+                                </Dropdown>
+                                <i v-if="sortOrder == -1" class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                                    style="font-size: 1.5rem" @click="selectSortOrder(1)"></i>
+                                <i v-if="sortOrder == 1" class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                                    style="font-size: 1.5rem" @click="selectSortOrder(-1)"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <div class=" mt-2">
+                            <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage"
+                                :totalRecords="totalItemsCount" @page="onPage($event)">
+                            </Paginator>
+                        </div>
                     </div>
                 </template>
                 <template #content class="p-0">

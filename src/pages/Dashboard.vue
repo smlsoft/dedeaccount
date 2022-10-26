@@ -133,7 +133,7 @@ function goTo(path,) {
               <Skeleton width="4rem" height="1.5rem" v-if="showSkeletonJourna"></Skeleton>
               <span class="block text-900 font-medium text-xl" v-if="!showSkeletonJourna">{{ dataJournal}} </span>
             </div>
-            <div @click="goTo('list_images')"
+            <div @click="goTo('pic_group_docref')"
               class="cursor-pointer  border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-image text-cyan-500 text-xl mr-2"></i>

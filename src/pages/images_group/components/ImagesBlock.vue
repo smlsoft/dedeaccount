@@ -28,7 +28,7 @@
 
         <div class="flex justify-content-between align-items-center mb-2" v-if="props.images_data.title == ''">
           <span class="text-900 font-medium titletext">{{
-          (props.images_data.title != "") ? props.images_data.title : props.images_data.guidfixed
+          (props.images_data.title != "") ? props.images_data.title : props.images_data.imagereferences[0].name
           }}</span>
         </div>
         <div class="flex justify-content-between align-items-center mb-2" v-if="props.images_data.title != ''">
@@ -36,14 +36,13 @@
           props.images_data.title
           }}</span>
         </div>
-
-
         <div class=" mb-0 flex text-600 justify-content-between">
           <div class="font-medium text-sm ">
-
+            <!-- {{ Utils.getDateTimeFormat(props.images_data.imagereferences[0].metafileat) }} -->
           </div>
           <div class="font-medium text-sm">
-            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
+            {{ (props.images_data.title != "") ? Utils.getDateTimeFormat(
+            props.images_data.imagereferences[0].uploadedat) : Utils.getDateTimeFormat(props.images_data.uploadedat) }}
           </div>
         </div>
 
@@ -186,7 +185,6 @@ import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
 import { useToast } from "primevue/usetoast";
 import DialogForm from "@/components/form/DialogForm.vue";
-import { e } from "../../../../dist/vendor66890";
 const toast = useToast();
 const confirmSaveImg = ref(false);
 const confirmUnGroup = ref(false);
