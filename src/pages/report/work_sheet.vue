@@ -31,7 +31,7 @@
               <h3 class="field mb-4 col-4 md:col-3">กระดาษทำการ</h3>
               <h4 class="field mb-4 col-4 md:col-1">สำหรับชุดบัญชี:</h4>
               <div class="field mb-4 col-4 md:col-3">
-                <Dropdown
+                <!-- <Dropdown
                   class="field mb-12 col-12 md:col-12"
                   v-model="accountGroup"
                   :options="groups"
@@ -39,7 +39,7 @@
                   optionLabel="name1"
                   @change="selectAccount($event)"
                   placeholder="Select a City"
-                />
+                /> -->
                 <!-- <RadioButton
                     :id="group.code"
                     name="group"
