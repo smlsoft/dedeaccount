@@ -68,21 +68,6 @@ function rotateLeft() {
 }
 
 
-function printImg() {
-  console.log();
-  var url = selectedImgUrl.value;
-  var w = window.open("", "");
-  w.document.write("<html><head>");
-  w.document.write("</head><body >");
-  w.document.write('<img id="print-image-element" src="' + url + '"/>');
-  w.document.write("<script><\/script>");
-  w.document.write(
-    '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
-  );
-  w.document.write("</body></html>");
-  w.window.print();
-  w.window.close();
-}
 
 function websocketConnect() {
   connection.value = new WebSocket(
@@ -315,9 +300,6 @@ function onwheel(e) {
       <div class="p-image-toolbar" style="z-index: 160">
         <button class="p-image-action p-link text-blue-600" type="button" @click="goForm">
           <i class="pi pi-file"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="printImg">
-          <i class="pi pi-print"></i>
         </button>
         <button class="p-image-action p-link text-blue-600" type="button" @click="rotateRight">
           <i class="pi pi-refresh"></i>

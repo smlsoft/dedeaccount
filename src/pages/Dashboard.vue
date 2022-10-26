@@ -1,6 +1,7 @@
 <script setup>
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MasterdataService from "@/services/MasterdataService";
+import ImageDataService from "@/services/ImageDataService";
 import UsersDataService from "@/services/UsersDataService";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import { onMounted, ref } from "vue";
@@ -66,9 +67,10 @@ function getGLJournalList() {
     });
 }
 
+
 function getDocImageList() {
   showSkeletonImage.value = true;
-  MasterdataService.getDocImage()
+  ImageDataService.getDocumentImageGroup()
     .then((res) => {
       // console.log(res);
       if (res.success) {
