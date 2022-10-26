@@ -165,10 +165,14 @@ const openConfirmationDocRef = ref(false);
 const emit = defineEmits(["success", "closeDialogUpload"]);
 
 onMounted(() => {
+
   console.log(data_import.value);
   storeApp.setPageTitle("อัพโหลดรูปภาพเอกสาร");
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_upload");
+
+
+
 });
 
 // function upLoadQue() {
@@ -494,9 +498,10 @@ function myUploader() {
                 file.cmd = "success";
 
                 upLoadQue.value++;
+
                 data_import_success.value.push({
                   name: ele.name,
-                  metafileat: Utils.getFormatDateTime(ele.lastModifiedDate),
+                  metafileat: Utils.getFormatDateTime(ele.lastModified),
                   imageuri: res.data.uri,
                   uploadedby: localStorage._usercode,
                   uploadedat: Utils.getFormatDateTime(new Date()),
@@ -595,7 +600,7 @@ function saveDocumentImage() {
 
     });
 
-  
+
 
 };
 

@@ -56,11 +56,17 @@ export const menus = [
         to: "/daily/import",
         name: "daily_import",
       },
+      // {
+      //   title: "บันทึกรายวันจากรูป",
+      //   icon: "pi pi-images",
+      //   to: "/daily/images_landing",
+      //   name: "daily_images_list",
+      // },
       {
         title: "บันทึกรายวันจากรูป",
         icon: "pi pi-images",
         to: "/daily/images_landing",
-        name: "daily_images_list",
+        name: "daily_images_group_list",
       }
     ],
   },
@@ -82,7 +88,7 @@ export const menus = [
   },
   */
 
-  
+
   // {
   //   title: "รูปภาพเอกสาร",
   //   icon: "pi pi-image",

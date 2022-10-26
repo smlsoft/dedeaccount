@@ -66,7 +66,7 @@
     </div>
   </div>
   <Dialog :dismissableMask="true" :close-on-escape="false" v-model:visible="showImgDialog" header="รายละเอียด"
-    style="min-width: 600px; max-width: 1080px" :modal="true">
+    :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '60vw'}" :modal="true">
     <div class="confirmation-content" id="boxconfirm">
 
       <div class="flex justify-content-between mb-2">
@@ -186,6 +186,7 @@ import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
 import { useToast } from "primevue/usetoast";
 import DialogForm from "@/components/form/DialogForm.vue";
+import { e } from "../../../../dist/vendor66890";
 const toast = useToast();
 const confirmSaveImg = ref(false);
 const confirmUnGroup = ref(false);
@@ -535,20 +536,24 @@ function selectModeImage() {
 
   console.log("selectModeImage");
 
+  // mode 1 page : images_list                   เมนู: รูปภาพเอกสาร
+  // mode 4 page : daily_images_group_list       เมนู: บันทึกรายวันจากรูป
+
   if (showImgDialog.value) {
     return;
   }
 
-  if (props.images_data.imagereferences.length > 1) {
-    console.log("group");
-  } else {
-    console.log("sigle");
-    selectImg(props.images_data.guidfixed, props.images_data.imagereferences[0]);
+  if (props.mode == 1) {
+    if (props.images_data.imagereferences.length > 1) {
+      console.log("group");
+    } else {
+      console.log("sigle");
+      selectImg(props.images_data.guidfixed, props.images_data.imagereferences[0]);
+    }
+  } else if (props.mode == 4) {
+    selectImg(props.images_data.guidfixed);
   }
 
-  // mode 1 page : images_list      เมนู: รูปภาพเอกสาร
-  // mode 2 page : dail_images_list เมนู: บันทึกรายวันจากรูป
-  // mode 3 page : daily_form       เมนู: เพิ่มข้อมูลรายวัน
 
   let modeMenu = props.mode;
   let statusImage = props.images_data.status;

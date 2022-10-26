@@ -167,7 +167,7 @@ export default [
     },
     component: () => import("../pages/daily/daily_images_form.vue"),
   },
-    {
+  {
     path: "/daily/images_landing",
     name: "daily_images_landing",
     meta: {
@@ -183,7 +183,7 @@ export default [
     },
     component: () => import("../pages/daily/daily_images_list.vue"),
   },
-  
+
   {
     path: "/daily/import",
     name: "dailyImport",

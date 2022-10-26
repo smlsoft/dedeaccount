@@ -72,7 +72,7 @@ const getFormatDateTime = (format) => {
     if (process.env.VUE_APP_DATE == "th") {
         d.setFullYear(d.getFullYear());
     }
-    console.log(d.toISOString())
+    //console.log(d.toISOString())
 
 
     return d.toISOString();

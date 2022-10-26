@@ -333,7 +333,7 @@ function getDocumentImageGroupScroll() {
                     getAllSelectImage();
                     firstPage.value = activePage.value;
 
-                   // console.log("firstPage" + firstPage.value);
+                    // console.log("firstPage" + firstPage.value);
                     showSkeleton.value = false;
                 }, 500);
             }
@@ -353,7 +353,7 @@ function getDocumentImageGroup() {
         searchItem.value,
     )
         .then((res) => {
-            //console.log(res);
+            console.log(res);
             if (res.success) {
                 data_list.value = res.data;
                 loading.value = false;
@@ -846,7 +846,8 @@ async function postDocumentImageGroup() {
     console.log(selectedImg.value);
     let imagereferences = [];
 
-    selectedImg.value.forEach((element) => {
+    selectedImg.value.forEach((element, index) => {
+        element.documentimageguid.xorder = index;
         imagereferences.push(element.documentimageguid)
     });
 
