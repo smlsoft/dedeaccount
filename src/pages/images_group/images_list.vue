@@ -67,6 +67,10 @@ const sortField = ref([
         code: "uploadedat",
         name: "วันที่ Upload",
     },
+    {
+        code: "title",
+        name: "ชื่อรูป",
+    },
 ]);
 const sortOrder = ref(-1);
 
@@ -92,9 +96,9 @@ onUnmounted(() => {
         "unmounted--------------------------------------------------------"
     );
 
-    //   WsConnectAllImage.value.close();
-    //   WsConnectImage.value.close();
-    //   connection.value.close();
+    WsConnectAllImage.value.close();
+    WsConnectImage.value.close();
+    connection.value.close();
 });
 
 onMounted(() => {
@@ -125,13 +129,13 @@ onMounted(() => {
         storeApp.setPageTitle("รูปภาพเอกสาร Gallery" + route.params.id);
         data_gallery.value = [];
     } else {
-        storeApp.setPageTitle("คลังรูปภาพ");
+        storeApp.setPageTitle("รูปภาพเอกสาร ");
     }
     //console.log(localStorage.getItem("_token"));
 
-    // WSImageConnect();
-    // WsAllImageConnect();
-    // websocketConnect();
+    WSImageConnect();
+    WsAllImageConnect();
+    websocketConnect();
 });
 function websocketConnect() {
     connection.value = new WebSocket(
@@ -143,22 +147,22 @@ function websocketConnect() {
         //console.log("Successfully connected to the echo websocket server...");
     };
     connection.value.onmessage = function (event) {
-        console.log("onmessage ", event);
-        var jsonData = JSON.parse(event.data);
-        if (jsonData.docref != "") {
-            MasterdataService.getImagesByDocref(jsonData.docref)
-                .then((res) => {
-                    if (res.success) {
-                        console.log(res.data);
-                        if (res.data.documentimages.length > 0) {
-                            //router.push({ name: "daily_images_show" });
-                        }
-                    }
-                })
-                .catch((err) => {
-                    // console.log(err);
-                });
-        }
+        // console.log("websocketConnect ", event);
+        // var jsonData = JSON.parse(event.data);
+        // if (jsonData.docref != "") {
+        //     MasterdataService.getImagesByDocref(jsonData.docref)
+        //         .then((res) => {
+        //             if (res.success) {
+        //                 //console.log(res.data);
+        //                 if (res.data.imagereferences.length > 0) {
+        //                     //router.push({ name: "daily_images_show" });
+        //                 }
+        //             }
+        //         })
+        //         .catch((err) => {
+        //             // console.log(err);
+        //         });
+        // }
     };
 
     connection.value.onclose = function (e) {
@@ -188,6 +192,7 @@ function WSImageConnect() {
         "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
         localStorage.getItem("_token")
     );
+
     WsConnectImage.value.onopen = function (event) {
         // console.log(event);
         // console.log(
@@ -195,7 +200,7 @@ function WSImageConnect() {
         // );
     };
     WsConnectImage.value.onmessage = function (event) {
-        console.log("WsConnectImage ", event);
+        //console.log("WSImageConnect ", event);
     };
     WsConnectImage.value.onclose = function (e) {
         setTimeout(function () {
@@ -215,17 +220,19 @@ function WSImageConnect() {
     };
 }
 function WsAllImageConnect() {
+    console.log("Starting connection to WebSocket Server")
     WsConnectAllImage.value = new WebSocket(
         "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
         localStorage.getItem("_token")
     );
     WsConnectAllImage.value.onopen = function (event) {
-        // console.log(event);
+        // console.log("onopen", event);
         // console.log(
-        //   "WsAllImage Connect Successfully connected to the echo websocket server..."
+        //     "WsAllImage Connect Successfully connected to the echo websocket server..."
         // );
     };
     WsConnectAllImage.value.onmessage = function (event) {
+        console.log("WsAllImageConnect", event);
         var jsonData = JSON.parse(event.data);
         console.log("jsonData ", jsonData);
         if (jsonData.status == "selected") {
@@ -256,24 +263,24 @@ function WsAllImageConnect() {
         console.log("AllImageUsed ", AllImageUsed.value);
     };
     WsConnectAllImage.value.onclose = function (e) {
-        // console.log(
-        //   "WsAllImageConnect Socket is closed. Reconnect will be attempted in 1 second.",
-        //   e.reason
-        // );
-        setTimeout(function () {
-            if (
-                localStorage._token != "" &&
-                localStorage._token != undefined &&
-                route.name == "list_images"
-            ) {
-                console.log(
-                    "Socket is closed. Reconnect will be attempted in 1 second.",
-                    e.reason
-                );
-                WsAllImageConnect();
-                getAllSelectImage();
-            }
-        }, 1000);
+        console.log(
+            "WsAllImageConnect Socket is closed. Reconnect will be attempted in 1 second.",
+            e.reason
+        );
+        // setTimeout(function () {
+        //     if (
+        //         localStorage._token != "" &&
+        //         localStorage._token != undefined &&
+        //         route.name == "list_images"
+        //     ) {
+        //         console.log(
+        //             "Socket is closed. Reconnect will be attempted in 1 second.",
+        //             e.reason
+        //         );
+        //         WsAllImageConnect();
+        //         getAllSelectImage();
+        //     }
+        // }, 1000);
     };
 }
 function onClose() {
@@ -350,10 +357,12 @@ function getDocumentImageGroup() {
         .then((res) => {
             console.log(res);
             if (res.success) {
+
                 data_list.value = res.data;
                 loading.value = false;
                 totalPage.value = res.pagination.totalPage;
                 totalItemsCount.value = res.pagination.total;
+                getAllSelectImage();
             }
         })
         .catch((err) => {
@@ -504,7 +513,7 @@ async function uploadProgress() {
                                 });
                                 onUploadProgress.value = 0;
                                 data_import.value = [];
-                                getDocImageList();
+                                getDocumentImageGroup();
                             }
                         }, 2000);
                     }
@@ -876,31 +885,34 @@ async function postDocumentImageGroup() {
 }
 
 async function documentImageUnGroup(data) {
-
     console.log(data);
 
-    try {
-        const res = await ImageDataService.putDocumentImageUnGroup(data);
-        if (res.success) {
+    await ImageDataService.putDocumentImageUnGroup(data)
+        .then((res) => {
+            console.log(res);
+            if (res.success) {
+                toast.add({
+                    severity: "success",
+                    summary: "success",
+                    detail: "บันทึกข้อมูลสำเร็จ",
+                    life: 3000,
+                });
+                setTimeout(() => {
+                    activePage.value = 1;
+                    getDocumentImageGroup();
+                }, 100);
+            }
+        })
+        .catch((err) => {
+            console.log(err);
             toast.add({
-                severity: "success",
-                summary: "success",
-                detail: "บันทึกข้อมูลสำเร็จ",
+                severity: "error",
+                summary: "Error",
+                detail: "ไม่สามารถเลือกรูปได้ " + err,
                 life: 3000,
             });
-            setTimeout(() => {
-                activePage.value = 1;
-                getDocumentImageGroup();
-            }, 100);
-        }
-    } catch (err) {
-        toast.add({
-            severity: "error",
-            summary: "error",
-            detail: "บันทึกไม่สำเร็จ " + err,
-            life: 3000,
         });
-    }
+
 }
 
 
@@ -915,6 +927,7 @@ function getDocImageListDefualt() {
     getDocumentImageGroup();
 }
 
+
 function onFileNewSelect(imageData, data) {
     //console.log(data);
     var data_import = [];
@@ -927,42 +940,162 @@ function onFileNewSelect(imageData, data) {
             file.objectURL = window.URL.createObjectURL(file);
             data_import.push(file);
         }
-        //console.log(data_import);
+
         uploadNewProgress(data_import, data);
     }
+
 }
 
 async function uploadNewProgress(data_import, data) {
-    //console.log(data);
-    var interval = 1000;
-    await data_import.forEach((ele) => {
-        console.log(ele);
-        MasterdataService.upLoadImages(ele, "GL")
-            .then((res) => {
-                //console.log(res);
-                if (res.success) {
-                    console.log(res.data.uri);
-                    removeRejectwithImg(res.data.uri, data);
-                    toast.add({
-                        severity: "success",
-                        summary: "Success",
-                        detail: ele.name + " Uploaded",
-                        life: 10000,
-                    });
+
+    var ele = data_import[0];
+
+    setTimeout(() => {
+        var file = ele;
+        var reader = new FileReader();
+        var returnimgblob;
+        reader.onload = function (readerEvent) {
+            var image = new Image();
+            image.onload = function (imageEvent) {
+                // Resize the image
+                var canvas = document.createElement("canvas"),
+                    max_size = 1280, // TODO : pull max size from a site config
+                    width = image.width,
+                    height = image.height;
+                if (width > height) {
+                    if (width > max_size) {
+                        height *= max_size / width;
+                        width = max_size;
+                    }
+                } else {
+                    if (height > max_size) {
+                        width *= max_size / height;
+                        height = max_size;
+                    }
                 }
-            })
-            .catch((err) => {
-                console.log(err);
-                toast.add({
-                    severity: "error",
-                    summary: "Error",
-                    detail: err,
-                    life: 3000,
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext("2d").drawImage(image, 0, 0, width, height);
+                var dataUrl = canvas.toDataURL("image/jpeg");
+                var resizedImage = dataURLToBlob(dataUrl);
+                $.event.trigger({
+                    type: "imageResized",
+                    blob: resizedImage,
+                    url: dataUrl,
                 });
-            });
-    });
+
+                var newfile = createFile(resizedImage, ele);
+                // console.log(ele);
+                // console.log(newfile);
+                ele = newfile;
+
+                MasterdataService.upLoadImages(ele, "GL")
+                    .then((res) => {
+                        //console.log(res);
+                        if (res.success) {
+
+                            let datex = data_import[0].lastModified.toString().slice(0, -3);
+                            let timex = new Date(datex * 1000);
+
+
+                            let newData = {
+                                name: data_import[0].name,
+                                metafileat: Utils.getFormatDateTime(timex),
+                                imageuri: res.data.uri,
+                                uploadedby: localStorage._usercode,
+                                uploadedat: Utils.getFormatDateTime(new Date()),
+                            }
+
+
+                            updateDocmentImage(newData, data.documentimageguid);
+                            toast.add({
+                                severity: "success",
+                                summary: "Success",
+                                detail: ele.name + " Uploaded",
+                                life: 10000,
+                            });
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        toast.add({
+                            severity: "error",
+                            summary: "Error",
+                            detail: err,
+                            life: 3000,
+                        });
+                    });
+
+            };
+            image.src = readerEvent.target.result;
+        };
+        reader.readAsDataURL(file);
+    }, 100);
+
+
     return data_import;
 }
+
+async function updateDocmentImage(newData, documentimageguid) {
+    console.log(newData);
+    console.log(documentimageguid);
+
+    try {
+        const res = await MasterdataService.putrejectimage(
+            newData,
+            documentimageguid
+        );
+        console.log(res);
+        if (res.success) {
+            getDocumentImageGroup();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+function dataURLToBlob(dataURL) {
+    var BASE64_MARKER = ";base64,";
+    if (dataURL.indexOf(BASE64_MARKER) == -1) {
+        var parts = dataURL.split(",");
+        var contentType = parts[0].split(":")[1];
+        var raw = parts[1];
+
+        return new Blob([raw], { type: contentType });
+    }
+
+    var parts = dataURL.split(BASE64_MARKER);
+    var contentType = parts[0].split(":")[1];
+    var raw = window.atob(parts[1]);
+    var rawLength = raw.length;
+
+    var uInt8Array = new Uint8Array(rawLength);
+
+    for (var i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], { type: contentType });
+}
+
+function createFile(image, file) {
+    // let newFile = {
+    //   cmd: file.cmd,
+    //   name: file.name,
+    //   objectURL: URL.createObjectURL(image),
+    //   size: image.size,
+    //   type: file.type,
+    //   lastModifiedDate: file.lastModifiedDate,
+    //   lastModified: file.lastModified,
+    // };
+    let newFile = new File([image], file.name, {
+        type: "image/png",
+    });
+    newFile.cmd = file.cmd;
+    newFile.objectURL = URL.createObjectURL(image);
+    return newFile;
+}
+
 
 
 
@@ -987,6 +1120,46 @@ function onScroll() {
 
 function closeDialogUpload() {
     uploadmodel.value = false;
+}
+
+async function rejectImage(documentimageguid, isReject) {
+    console.log("documentimageguid :" + documentimageguid)
+    console.log("isReject :" + isReject)
+    let data = {
+        isreject: true
+    }
+
+    if (!isReject) {
+        data.isreject = false;
+    }
+
+    await ImageDataService.putRejectImage(documentimageguid, data)
+        .then((res) => {
+            console.log(res);
+            if (res.success) {
+                toast.add({
+                    severity: "success",
+                    summary: "success",
+                    detail: "บันทึกข้อมูลสำเร็จ",
+                    life: 3000,
+                });
+                setTimeout(() => {
+                    activePage.value = 1;
+                    getDocumentImageGroup();
+                }, 100);
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+            toast.add({
+                severity: "error",
+                summary: "Error",
+                detail: "ไม่สามารถเลือกรูปได้ " + err,
+                life: 3000,
+            });
+        });
+
+
 }
 
 
@@ -1017,15 +1190,15 @@ function closeDialogUpload() {
                                 <Button :disabled="selectedImg.length == 0" class="p-button-info text-white"
                                     icon="pi pi-pencil" label="กำหนดกลุ่มเอกสาร" @click="updateRefDialog = true" />
                             </div>
-                            <div class="flex ml-2">
+                            <!-- <div class="flex ml-2">
                                 <Button :disabled="selectedImg.length == 0" class="p-button-danger text-white"
                                     icon="pi pi-pencil" label="ยกเลิกรูปเอกสาร" @click="confirmRejectDialog = true" />
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                     <div class="p-inputgroup mt-2">
                         <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                        <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
+                        <Button icon="pi pi-search" @click="getDocumentImageGroup()" class="p-button-primary" />
                     </div>
                     <div class="flex justify-content-between">
                         <div class="grid mt-3 ml-1">
@@ -1075,7 +1248,7 @@ function closeDialogUpload() {
                                 :mode="1" v-on:selectImg="selectImg" v-on:useImage="useImage"
                                 v-on:createform="createform" v-on:onFileSelect="onFileNewSelect"
                                 v-on:onReloadData="getDocumentImageGroup"
-                                v-on:documentImageUnGroup="documentImageUnGroup">
+                                v-on:documentImageUnGroup="documentImageUnGroup" v-on:rejectImage="rejectImage">
                             </ImageBlock>
                         </div>
                         <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
@@ -1181,10 +1354,7 @@ function closeDialogUpload() {
             <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
                 v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
 
-            <DialogForm :confirmDialog="confirmSaveDialog" :textContent="textContent" v-on:close="onClose"
-                v-on:confirm="rejectImgUse()"></DialogForm>
-            <DialogForm :confirmDialog="confirmRejectDialog" :textContent="textContent" v-on:close="onClose"
-                v-on:confirm="rejectSelectimg()"></DialogForm>
+
         </MainContentWarp>
     </AppLayout>
 </template>

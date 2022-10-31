@@ -42,7 +42,7 @@ const isShowWait = ref(false);
 const isShowUnApprove = ref(false);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(20);
+const limitPage = ref(50);
 const showContent = ref("");
 const createDialog = ref(false);
 const data_gallery = ref([]);
@@ -62,12 +62,12 @@ const gallery_form = ref({
 const selectSort = ref("uploadedat");
 const sortField = ref([
   {
-    code: "guidfixed",
-    name: "รหัสรูปภาพ",
-  },
-  {
     code: "uploadedat",
     name: "วันที่ Upload",
+  },
+  {
+    code: "title",
+    name: "ชื่อรูป",
   },
 ]);
 const sortOrder = ref(-1);
@@ -76,9 +76,10 @@ const selectedImg = ref([]);
 const groupDocRef = ref("");
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref("");
-const showImageBy = ref("0");
 const showImageGallery = ref(false);
 const connection = ref();
+const sortRef = ref("0");
+const sortReject = ref("0");
 onUnmounted(() => {
   console.log("unmounted--------------------------------------------------------");
   connection.value.close();
@@ -138,7 +139,7 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               router.push({ name: "daily_images_show" });
             }
           }
@@ -271,14 +272,19 @@ function getDocumentImageGroup() {
     limitPage.value,
     activePage.value,
     searchItem.value,
+    selectSort.value,
+    sortOrder.value,
+    sortRef.value,
+    sortReject.value,
   )
     .then((res) => {
-      //console.log(res);
+      console.log(res);
       if (res.success) {
         data_list.value = res.data;
         loading.value = false;
         totalPage.value = res.pagination.totalPage;
         totalItemsCount.value = res.pagination.total;
+        getAllSelectImage();
       }
     })
     .catch((err) => {
@@ -311,26 +317,27 @@ function onPage(event) {
   limitPage.value = event.rows;
   console.log(activePage.value);
   loading.value = true;
-  getDocImageList();
+  getDocumentImageGroup();
 }
 
 function nextPage() {
   activePage.value += 1;
 
   if (activePage.value <= totalPage.value) {
-    getDocImageListScroll();
+    getDocumentImageGroupScroll();
   }
 }
 
-function getDocImageListScroll() {
+function getDocumentImageGroupScroll() {
   showSkeleton.value = true;
-  MasterdataService.getDocImage(
+  ImageDataService.getDocumentImageGroup(
     limitPage.value,
     activePage.value,
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value
+    sortRef.value,
+    sortReject.value,
   )
     .then((res) => {
       console.log(res);
@@ -361,36 +368,11 @@ function getDocImageListScroll() {
 
 function getDocImageListDefualt() {
   loading.value = true;
-  limitPage.value = 50,
-    activePage.value = 1,
-    searchItem.value = "",
-    showImageBy.value;
-  MasterdataService.getDocImage(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    selectSort.value,
-    sortOrder.value,
-    showImageBy.value
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        data_list.value.forEach((ele) => {
-          ele.isUpdate = false;
-        });
-        totalPage.value = res.pagination.totalPage;
-        totalItemsCount.value = res.pagination.total;
-        //onsole.log(totalItemsCount.value);
-        getAllSelectImage();
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
+  selectedImg.value = [];
+  limitPage.value = 50;
+  activePage.value = 1;
+  searchItem.value = "";
+  getDocumentImageGroup();
 }
 
 function getAllSelectImage() {
@@ -413,34 +395,33 @@ function getAllSelectImage() {
 }
 
 function selectImg(data) {
+  console.log(data);
 
-router.push({ name: "daily_images_show" });
-
-// var sendData = { docref: data };
-// if (checkUseImgByUser(localStorage._usercode)) {
-//   confirmChangeImageDialog.value = true;
-//   newDocRefImage.value = data;
-// } else {
-//   MasterdataService.postSelectImage(sendData)
-//     .then((res) => {
-//       console.log(res);
-//       if (res.success) {
-//         if (res.data) {
-//           WsConnectImage.value.send(JSON.stringify(sendData));
-//         }
-//         router.push({ name: "daily_images_show" });
-//       }
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//       toast.add({
-//         severity: "error",
-//         summary: "Error",
-//         detail: "ไม่สามารถเลือกรูปได้ " + err,
-//         life: 3000,
-//       });
-//     });
-// }
+  var sendData = { docref: data };
+  if (checkUseImgByUser(localStorage._usercode)) {
+    confirmChangeImageDialog.value = true;
+    newDocRefImage.value = data;
+  } else {
+    MasterdataService.postSelectImage(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+          }
+          router.push({ name: "daily_images_show" });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
 }
 
 
@@ -526,41 +507,7 @@ function checkUseImgByUser(user) {
   }
 }
 
-function openModal() {
-  uploadmodel.value = true;
-}
 
-function uploadSuccess() {
-  uploadmodel.value = false;
-  getDocImageList();
-}
-
-async function postGroupDocRef() {
-  var docref = {
-    documentref: groupDocRef.value,
-    documentimages: selectedImg.value,
-  };
-
-  try {
-    const res = await MasterdataService.postGroupDocRef(docref);
-    if (res.success) {
-      updateRefDialog.value = false;
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
-    }
-  } catch (err) {
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
-  }
-}
 
 function selectSortUse(event) {
   selectSort.value = event.value;
@@ -590,7 +537,7 @@ function onScroll() {
         <template #header>
           <div class="p-inputgroup mt-2">
             <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-            <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
+            <Button icon="pi pi-search" @click="getDocumentImageGroup()" class="p-button-primary" />
           </div>
           <div class="flex justify-content-between">
             <div class="grid mt-3 ml-1">

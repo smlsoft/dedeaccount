@@ -3,12 +3,13 @@ import DialogForm from "@/components/form/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
+import ImageDataService from "@/services/ImageDataService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
-import ImageBlock from "../images/components/ImagesBlock.vue";
+import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
@@ -29,7 +30,7 @@ const confirmRejectDialog = ref(false);
 const onLoad = ref(false);
 const selectedImg = ref(false);
 const selectedImgUse = ref([]);
-
+const loading = ref(true);
 const isShowAll = ref(true);
 const isShowWait = ref(false);
 const isShowUnApprove = ref(false);
@@ -43,7 +44,14 @@ const totalItemsCount = ref(10);
 const data_gallery = ref([]);
 const data_list = ref([]);
 const selectedImgUrl = ref("");
-const selectedImgData = ref({ documentref: "", documentimages: [] });
+const selectedImgData = ref({
+  guidfixed: "",
+  imagereferences: [],
+  references: []
+});
+const totalPage = ref(0);
+const sortReject = ref("0");
+const sortRef = ref("0");
 const rotate = ref(0);
 const scale = ref(1);
 const panning = ref(false);
@@ -69,20 +77,15 @@ const imagePreviewStyle = computed({
     };
   },
 });
-const selectSort = ref("documentref");
+const selectSort = ref("uploadedat");
 const sortField = ref([
-  {
-    code: "documentref",
-    name: "เอกสารอ้างอิง",
-  },
-  {
-    code: "name",
-    name: "ตามชื่อ",
-  },
-
   {
     code: "uploadedat",
     name: "วันที่ Upload",
+  },
+  {
+    code: "title",
+    name: "ชื่อรูป",
   },
 ]);
 const showImageBy = ref("0");
@@ -91,6 +94,7 @@ const firstPage = ref(0);
 const isGallery = ref(false);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
+const showSkeleton = ref(false);
 
 const daily_form = ref({
   accountdescription: "",
@@ -172,7 +176,6 @@ onMounted(() => {
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
-  getAllSelectImage();
   if (
     route.params.id != "" &&
     route.params.id != "" &&
@@ -198,11 +201,13 @@ function getImagesByDocref(data) {
   MasterdataService.getImagesByDocref(data).then((res) => {
     if (res.success) {
       console.log(res.data);
-      if (res.data.documentimages.length > 0) {
-        doc_images.value = res.data.documentimages;
+      if (res.data.imagereferences.length > 0) {
+        doc_images.value = res.data.imagereferences;
 
-        console.log(doc_images.value);
         selectedImgData.value = res.data;
+
+        console.log(selectedImgData.value);
+
         selectedImgUrl.value = doc_images.value[0].imageuri;
 
         selectedImg.value = true;
@@ -257,10 +262,13 @@ function getGLDetail(id) {
   MasterdataService.getGLDetail(id)
     .then((res) => {
       if (res.success) {
+
+        console.log(res);
+
+
         const vat = res.data.vats;
         const tax = res.data.taxes;
 
-        console.log(res.data);
 
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
@@ -273,12 +281,14 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
-        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+        if (daily_form.value.exdocrefdate = "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
           daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
         }
         daily_form.value.exdocrefno = res.data.exdocrefno;
+
+        // console.log(daily_form.value);
 
         if (res.data.vats.length > 0) {
           vats.value = [];
@@ -356,14 +366,15 @@ function getGLDetail(id) {
           console.log();
         }
         if (res.data.documentref != "") {
+          console.log("222")
           MasterdataService.getImagesByDocref(res.data.documentref)
             .then((res) => {
               if (res.success) {
                 console.log(res.data);
-                if (res.data.documentimages.length > 0) {
-                  doc_images.value = res.data.documentimages;
+                if (res.data.imagereferences.length > 0) {
+                  doc_images.value = res.data.imagereferences;
                   selectedImgData.value = res.data;
-                  selectedImgUrl.value = res.data.documentimages[0].imageuri;
+                  selectedImgUrl.value = res.data.imagereferences[0].imageuri;
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
@@ -377,8 +388,8 @@ function getGLDetail(id) {
           removeSelectImg();
         }
 
-        console.log(vats.value);
-        console.log(taxes.value);
+        // console.log(vats.value);
+        // console.log(taxes.value);
         onLoad.value = false;
       }
     })
@@ -441,13 +452,13 @@ async function confirmSave() {
   });
   daily_form.value.amount = sumDebit;
   //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-  console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  //console.log(Utils.getFormatDateTime(daily_form.value.docdate));
   var from_input = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
     accountyear: daily_form.value.accountyear,
-    documentref: selectedImgData.value.documentref,
+    documentref: selectedImgData.value.guidfixed,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
@@ -458,7 +469,7 @@ async function confirmSave() {
     parid: daily_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
-    exdocrefdate: Utils.getFormatDateTime(daily_form.value.exdocrefdate),
+    exdocrefdate: (daily_form.value.exdocrefdate != "") ? Utils.getFormatDateTime(daily_form.value.exdocrefdate) : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
@@ -545,7 +556,7 @@ function onPage(event) {
   limitPage.value = event.rows;
   console.log(activePage.value);
 
-  getDocImageList();
+  getDocumentImageGroup();
 }
 function verifyData() {
   var errorCount = 0;
@@ -776,60 +787,52 @@ function verifyVat() {
   }
 }
 
-function getDocImageList() {
-  MasterdataService.getDocImage(
+function getDocumentImageGroup() {
+  loading.value = true;
+  ImageDataService.getDocumentImageGroup(
     limitPage.value,
     activePage.value,
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value
+    sortRef.value,
+    sortReject.value,
   )
     .then((res) => {
       console.log(res);
       if (res.success) {
         data_list.value = res.data;
-        data_list.value.forEach((ele) => {
-          ele.isUpdate = false;
-        });
+        loading.value = false;
+        totalPage.value = res.pagination.totalPage;
         totalItemsCount.value = res.pagination.total;
-        console.log(totalItemsCount.value);
+        getAllSelectImage();
       }
     })
     .catch((err) => {
-      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
     });
 }
+
 
 function resizeend(event) {
   console.log(event);
 }
 function removeSelectImg() {
-  selectedImgData.value = { documentref: "", documentimages: [] };
+  selectedImgData.value = {
+    guidfixed: "",
+    imagereferences: [],
+    references: []
+  };
   selectedImg.value = false;
   selectedImgUrl.value = "";
   doc_images.value = [];
   hidepanel();
-  // var sendData = { docref: selectedImgData.value.documentref };
 
-  // MasterdataService.postUnSelectImage(sendData)
-  //   .then((res) => {
-  //     console.log(res);
-  //     if (res.success) {
-  //       selectedImgData.value = { documentref: "", documentimages: [] };
-  //       selectedImg.value = false;
-  //       selectedImgUrl.value = "";
-  //       doc_images.value = [];
-  //       hidepanel();
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     selectedImgData.value = { documentref: "", documentimages: [] };
-  //     selectedImg.value = false;
-  //     selectedImgUrl.value = "";
-  //     doc_images.value = [];
-  //     hidepanel();
-  //   });
 }
 function removeMagnify() {
   const elements = document.getElementsByClassName("img-magnifier-glass");
@@ -1122,22 +1125,53 @@ async function uploadProgress(data_import) {
         console.log(newfile);
         ele = newfile;
 
-        MasterdataService.upLoadDocImages(newfile, "GL")
+
+        ImageDataService.upLoadImages(ele, "GL")
           .then((res) => {
-            console.log(res);
+            //console.log(res);
             if (res.success) {
-              selectImg(res.data.documentref);
-              toast.add({
-                severity: "success",
-                summary: "Success",
-                detail: ele.name + " Uploaded",
-                life: 10000,
-              });
+
+              let datex = ele.lastModified.toString().slice(0, -3);
+              let timex = new Date(datex * 1000);
+
+
+              let newData = {
+                name: ele.name,
+                metafileat: Utils.getFormatDateTime(timex),
+                imageuri: res.data.uri,
+                uploadedby: localStorage._usercode,
+                uploadedat: Utils.getFormatDateTime(new Date()),
+              }
+              setTimeout(() => {
+                ImageDataService.postDocumentImage(newData)
+                  .then((res) => {
+                    console.log(res);
+                    if (res.success) {
+                      selectImg(res.groupid);
+                      toast.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: ele.name + " Uploaded",
+                        life: 10000,
+                      });
+                    }
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    toast.add({
+                      severity: "error",
+                      summary: "Error",
+                      detail: err,
+                      life: 3000,
+                    });
+
+                  });
+              }, 100);
+
             }
           })
           .catch((err) => {
             console.log(err);
-
             toast.add({
               severity: "error",
               summary: "Error",
@@ -1145,6 +1179,34 @@ async function uploadProgress(data_import) {
               life: 3000,
             });
           });
+
+
+        // MasterdataService.upLoadDocImages(newfile, "GL")
+        //   .then((res) => {
+        //     console.log(res);
+        //     if (res.success) {
+        //       selectImg(res.data.documentref);
+        //       toast.add({
+        //         severity: "success",
+        //         summary: "Success",
+        //         detail: ele.name + " Uploaded",
+        //         life: 10000,
+        //       });
+        //     }
+        //   })
+        //   .catch((err) => {
+        //     console.log(err);
+
+        //     toast.add({
+        //       severity: "error",
+        //       summary: "Error",
+        //       detail: err,
+        //       life: 3000,
+        //     });
+        //   });
+
+
+
       };
       image.src = readerEvent.target.result;
     };
@@ -1392,7 +1454,7 @@ function setBranch(index) {
 function selectSortUse(event) {
   // console.log(event);
   selectSort.value = event.value;
-  getDocImageList();
+  getDocumentImageGroup();
 }
 function addBoxTax() {
   taxes.value.push({
@@ -1439,19 +1501,19 @@ const setTransform = () => {
 }
 
 function onmousedown(e) {
-  console.log(e);
+  //console.log(e);
   e.preventDefault();
   start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
   panning.value = true;
 }
 
 function onmouseup(e) {
-  console.log(e);
+  //console.log(e);
   panning.value = false;
 }
 
 function onmousemove(e) {
-  console.log(e);
+  //console.log(e);
   e.preventDefault();
   if (!panning.value) {
     return;
@@ -1462,7 +1524,7 @@ function onmousemove(e) {
 }
 
 function onwheel(e) {
-  console.log(e);
+  //console.log(e);
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
@@ -1477,18 +1539,18 @@ function onwheel(e) {
 function selectSortOrder(data) {
   console.log(data);
   sortOrder.value = data;
-  getDocImageListDefualt();
+  getDocumentImageGroupDefualt();
 }
 
-function getDocImageListDefualt() {
+function getDocumentImageGroupDefualt() {
   loading.value = true;
   selectedImg.value = [];
-  limitPage.value = 50,
-    activePage.value = 1,
-    searchItem.value = "",
-    showImageBy.value;
-  getDocImageList();
+  limitPage.value = 50;
+  activePage.value = 1;
+  searchItem.value = "";
+  getDocumentImageGroup();
 }
+
 
 </script>
 
@@ -1540,7 +1602,7 @@ function getDocImageListDefualt() {
               <template #header>
                 <div class="p-inputgroup mt-2">
                   <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
+                  <Button icon="pi pi-search" @click="getDocumentImageGroup()" class="p-button-primary" />
                 </div>
                 <div class="flex justify-content-between">
                   <div class="grid mt-3 ml-1">
@@ -1567,37 +1629,66 @@ function getDocImageListDefualt() {
                   <div class="flex align-content-center justify-content-center flex-wrap card-container"
                     style="min-height: 56vh">
                     <div class="p-0">
-                      <div class="text-xl text-300">
-                        <h3>ไม่พบรายการรูปภาพ</h3>
-                      </div>
+                      <ProgressSpinner />
                     </div>
                   </div>
                 </div>
-                <div class="grid pt-0 mt-0">
-                  <div class="col-12 md:col-6 xl:col-3 pt-0" v-for="(data, index) in data_gallery" :key="index">
-                    <div class="shadow-1 p-3 surface-card" style="cursor: pointer" @click="selectGallery(data.code)">
-                      <div class="flex justify-content-center align-items-center">
-                        <div class="p-0">
-                          <img src="@/assets/img/foldericon.svg" class="" />
+                <div class="grid">
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3" v-for="data in data_list" :key="data.guidfixed">
 
-                          <!-- <div class="text-sm text-text-600">วันที่ {{ data.create_date }}</div>
-                  <div class="text-sm text-text-600">โดย {{ data.creator }}</div> -->
+                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :allimage_used="AllImageUsed"
+                      :mode="3" v-on:selectImg="selectImg"></ImageBlock>
+                    <!-- 
+                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
+                      :allimage_used="AllImageUsed"></ImageBlock> -->
+                  </div>
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
                         </div>
                       </div>
-                      <div class="flex justify-content-start align-items-center">
-                        <div class="p-1">
-                          <div class="text-md text-900 font-medium mb-2">
-                            {{ data.name }}
-                          </div>
-                          <!-- <div class="text-sm text-text-600">วันที่ {{ data.create_date }}</div>
-                  <div class="text-sm text-text-600">โดย {{ data.creator }}</div> -->
-                        </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-6 xl:col-3 pt-0" v-for="data in data_list" :key="data.guidfixed">
-                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
-                      :allimage_used="AllImageUsed"></ImageBlock>
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -1630,23 +1721,19 @@ function getDocImageListDefualt() {
               <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
                 class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
                   showSelectFrom = true;
-                  getDocImageList();
+                  getDocumentImageGroup();
                   removeMagnify();
                 " />
               <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
                 <Message severity="error" :closable="false" v-if="
-                  selectedImgData.documentref != '' &&
-                  selectedImgData.documentimages[activeIndex].status == 1
+                  selectedImgData.isreject == true
                 ">
                   <span class="flex align-items-center justify-content-center">
                     *Warning Message รูปโดนยกเลิก
                   </span>
                 </Message>
-                <Message severity="warn" :closable="false" v-if="
-                  selectedImgData.documentref != '' &&
-                  selectedImgData.documentimages[activeIndex].status == 2
-                ">
-                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
+                <Message severity="warn" :closable="false" v-if="selectedImgData.references.length > 0">
+                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว </Message>
               </div>
               <KeepAlive>
                 <Galleria v-if="doc_images.length > 0 && selectedImg" :value="doc_images" :thumbnailsPosition="'top'"
@@ -1674,7 +1761,7 @@ function getDocImageListDefualt() {
               <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
                 class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
                   showSelectFrom = true;
-                  getDocImageList();
+                  getDocumentImageGroup();
                   removeMagnify();
                 " />
             </SplitterPanel>

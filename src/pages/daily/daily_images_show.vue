@@ -10,7 +10,6 @@ import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 
 
-
 const storeApp = useApp();
 const router = useRouter();
 const route = useRoute();
@@ -20,9 +19,11 @@ const WsConnectAllImage = ref();
 const connection = ref();
 const doc_images = ref([]);
 const selectedImgUrl = ref("");
-const showThumbnails = ref(false);
+
 const rotate = ref(0);
 const isChange = ref(false);
+const showNewImage = ref(false);
+const activeIndex = ref(0);
 // zoom image
 const scale = ref(1);
 const panning = ref(false);
@@ -86,16 +87,16 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
               //console.log(doc_images.value.documentref);
-              if (res.data.documentimages.length > 1) {
-                showThumbnails.value = true;
+              if (res.data.imagereferences.length > 1) {
+                showNewImage.value = true;
               } else {
-                showThumbnails.value = false;
+                showNewImage.value = false;
               }
 
-              selectedImgUrl.value = res.data.documentimages[0].imageuri;
+              selectedImgUrl.value = res.data.imagereferences[activeIndex.value].imageuri;
             }
           }
         })
@@ -292,9 +293,37 @@ function onwheel(e) {
   setTransform();
 }
 
+function nextImage() {
+  console.log("nextImage");
+  console.log("activeIndex " + activeIndex.value);
+  console.log("length " + (doc_images.value.imagereferences.length - 1));
+  console.log("=========");
+
+  if (activeIndex.value < (doc_images.value.imagereferences.length - 1)) {
+    activeIndex.value = activeIndex.value + 1
+    console.log(activeIndex.value)
+  } else {
+    return
+  }
+
+}
+function backImage() {
+  console.log("backImage");
+  console.log("activeIndex " + activeIndex.value);
+  console.log("length " + (doc_images.value.imagereferences.length - 1));
+  console.log("=========");
+
+  if (activeIndex.value > 0) {
+    activeIndex.value = activeIndex.value - 1
+    console.log(activeIndex.value)
+  } else {
+    return
+  }
+}
 </script>
 
 <template>
+
   <div class="min-h-screen flex relative lg:static surface-ground">
     <div class="min-h-screen flex flex-column relative flex-auto bg-dark bg-center surface-900">
       <div class="p-image-toolbar" style="z-index: 160">
@@ -313,37 +342,34 @@ function onwheel(e) {
       </div>
       <transition name="p-image-preview" style="z-index: 150">
         <div class="p-galleria-item-container">
-          <!-- <button class="p-image-action p-link text-blue-600" type="button" style="
-              position: absolute !important;
-              top: 45vh !important;
-              left: 0px !important;
-            " @click="onNext()">
+
+          <button v-if="showNewImage" class="p-image-action p-link text-blue-600 " type="button"
+            style="position: absolute !important; top: 45vh !important;left: 0px !important;" @click="backImage()">
             <i class="pi pi-chevron-left"></i>
-          </button> -->
+          </button>
+
+
           <div class="p-galleria-item">
             <div>
-              <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
-                @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                <img v-if="selectedImgUrl != ''" :src="selectedImgUrl" :style="imagePreviewStyle" />
+              <div class="zoom_outer">
+                <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
+                  @mousemove="onmousemove($event)" @wheel="onwheel($event)">
+                  <img v-if="selectedImgUrl != ''" :src="doc_images.imagereferences[activeIndex].imageuri"
+                    :style="imagePreviewStyle" />
+                </div>
               </div>
-              <!-- <img
-                @wheel="zoomWheel"
-                v-if="selectedImgUrl != ''"
-                :src="selectedImgUrl"
-                class="p-image-preview zoom"
-                :style="imagePreviewStyle"
-              /> -->
               <ProgressSpinner v-if="selectedImgUrl == ''" animationDuration="10s" />
             </div>
           </div>
 
-          <!-- <button class="p-image-action p-link text-blue-600" type="button" @click="onNext()" style="
-              position: absolute !important;
+          <button v-if="showNewImage" class="p-image-action p-link text-blue-600" type="button" @click="nextImage()"
+            style="position: absolute !important;
               top: 45vh !important;
               right: 0px !important;
             ">
             <i class="pi pi-chevron-right"></i>
-          </button> -->
+          </button>
+
         </div>
       </transition>
     </div>
@@ -550,16 +576,23 @@ function onwheel(e) {
   visibility: visible;
 }
 
-
+/* .zoom_outer {
+  padding: 0;
+  outline: 0;
+  overflow: hidden; 
+  position: relative;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto
+} */
 
 #zoom {
   padding: 20px;
   width: 100%;
-  height: 100%;
+  height: auto;
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
   cursor: grab;
-
 
 }
 

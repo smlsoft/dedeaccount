@@ -9,7 +9,7 @@ import { ref, onMounted, computed, onUnmounted, watch } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
 import $ from "jquery";
-import ImageBlock from "../images/components/ImagesBlock.vue";
+import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
@@ -39,7 +39,7 @@ const totalItemsCount = ref(10);
 const data_gallery = ref([]);
 const data_list = ref([]);
 const selectedImgUrl = ref("");
-const selectedImgData = ref({ documentref: "", documentimages: [] });
+const selectedImgData = ref({ guidfixed: "", imagereferences: [] });
 const rotate = ref(0);
 
 const scale = ref(1);
@@ -288,8 +288,8 @@ function WSImageConnect() {
 function checkActiveIndex() {
   setTimeout(() => {
     data_list.value.forEach((ele, index) => {
-      // console.log(doc_images.value.documentref + " - " + ele.documentref);
-      if (doc_images.value.documentref == ele.documentref) {
+      // console.log(doc_images.value.guidfixed + " - " + ele.guidfixed);
+      if (doc_images.value.guidfixed == ele.guidfixed) {
         activeIndexList.value = index;
       }
     });
@@ -381,28 +381,28 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
 
               var check_dup = data_list.value.filter(
-                (val) => val.documentref == doc_images.value.documentref
+                (val) => val.guidfixed == doc_images.value.guidfixed
               );
 
               if (check_dup.length == 0) {
                 data_list.value.splice(0, 0, doc_images.value);
               }
-              if (res.data.documentimages.length > 1) {
+              if (res.data.imagereferences.length > 1) {
                 showThumbnails.value = true;
               } else {
                 showThumbnails.value = false;
               }
               selectedImgData.value = res.data;
-              selectedImgUrl.value = res.data.documentimages[0].imageuri;
+              selectedImgUrl.value = res.data.imagereferences[0].imageuri;
               // console.log(selectedImgUrl.value);
               selectedImg.value = true;
               waitForImages.value = false;
 
-              disableAllinput(res.data.documentimages[0].status);
+              disableAllinput(res.data.imagereferences[0].status);
               //getGLJournalListByDocref();
               setTimeout(() => {
                 checkActiveIndex();
@@ -497,17 +497,18 @@ async function confirmSave() {
   daily_form.value.amount = sumDebit;
   //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
   // console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  console.log(selectedImgData.value.guidfixed);
   var from_input = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
     accountyear: daily_form.value.accountyear,
-    documentref: selectedImgData.value.documentref,
+    documentref: selectedImgData.value.guidfixed,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
     docno: daily_form.value.docno,
-    exdocrefdate: Utils.getFormatDateTime(daily_form.value.exdocrefdate),
+    exdocrefdate: (daily_form.value.exdocrefdate != "") ? Utils.getFormatDateTime(daily_form.value.exdocrefdate) : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
     journaldetail: daily_form.value.journaldetail,
@@ -523,17 +524,16 @@ async function confirmSave() {
     tax.taxdate = Utils.getFormatDateTime(tax.taxdate);
   });
 
-  //console.log(from_input);
+  console.log(from_input);
 
   console.log(modeEdit.value);
-  var old_img = selectedImgData.value.documentref;
+  var old_img = selectedImgData.value.guidfixed;
   if (modeEdit.value) {
     MasterdataService.putGLJournal(from_input, daily_form.value.guidfixed)
       .then((res) => {
-        //console.log(res);
+        console.log(res);
         if (res.success) {
           removeSelectImg();
-
           confirmSaveDialog.value = false;
           toast.add({
             severity: "success",
@@ -553,7 +553,7 @@ async function confirmSave() {
   } else {
     MasterdataService.postGLJournal(from_input)
       .then((res) => {
-        //console.log(res);
+        console.log(res);
         if (res.success) {
           removeSelectImg();
           confirmSaveDialog.value = false;
@@ -844,23 +844,23 @@ function resizeend(event) {
   // console.log(event);
 }
 function deSelectImg() {
-  selectedImgData.value = { documentref: "", documentimages: [] };
+  selectedImgData.value = { guidfixed: "", imagereferences: [] };
   selectedImg.value = false;
   selectedImgUrl.value = "";
 }
 function removeSelectImg() {
-  var sendData = { docref: selectedImgData.value.documentref };
+  var sendData = { docref: selectedImgData.value.guidfixed };
   MasterdataService.postUnSelectImage(sendData)
     .then((res) => {
       // console.log(res);
       if (res.success) {
-        selectedImgData.value = { documentref: "", documentimages: [] };
+        selectedImgData.value = { guidfixed: "", imagereferences: [] };
         selectedImg.value = false;
         selectedImgUrl.value = "";
       }
     })
     .catch((err) => {
-      selectedImgData.value = { documentref: "", documentimages: [] };
+      selectedImgData.value = { guidfixed: "", imagereferences: [] };
       selectedImg.value = false;
       selectedImgUrl.value = "";
     });
@@ -1035,15 +1035,15 @@ function verifyTax() {
 
 function rejectImg() {
   var post_data = { status: 1 };
-  console.log(selectedImgData.value.documentimages);
+  console.log(selectedImgData.value.imagereferences);
   MasterdataService.putrejectimagestatusonlyGuiD(
     post_data,
-    selectedImgData.value.documentimages[activeIndex.value].guidfixed
+    selectedImgData.value.imagereferences[activeIndex.value].guidfixed
   )
     .then((res) => {
       console.log(res);
       if (res.success) {
-        selectedImgData.value.documentimages[activeIndex.value].status = 1;
+        selectedImgData.value.imagereferences[activeIndex.value].status = 1;
       }
     })
     .catch((err) => {
@@ -1287,8 +1287,9 @@ function getSumTaxBase(data) {
 }
 
 function nextImage(index) {
+  resetZoomImage();
   //console.log(index);
-  var docref = data_list.value[index].documentref;
+  var docref = data_list.value[index].guidfixed;
   var sendData = { docref: docref };
   console.log(checkUseImgByUser(localStorage._usercode));
   if (checkUseImgByUser(localStorage._usercode)) {
@@ -1410,7 +1411,7 @@ function nextImageOnSave(old_img) {
   console.log(old_img);
   var rebuild = [];
   data_list.value.forEach((ele) => {
-    if (ele.documentref != old_img) {
+    if (ele.guidfixed != old_img) {
       rebuild.push(ele);
     }
   });
@@ -1418,8 +1419,8 @@ function nextImageOnSave(old_img) {
   data_list.value = rebuild;
   activeIndexList.value = 0;
   if (data_list.value.length > activeIndexList.value) {
-    console.log(data_list.value[activeIndexList.value].documentref);
-    useImage(data_list.value[activeIndexList.value].documentref);
+    console.log(data_list.value[activeIndexList.value].guidfixed);
+    useImage(data_list.value[activeIndexList.value].guidfixed);
   }
   removeImgFromList(old_img);
 }
@@ -1558,19 +1559,19 @@ const setTransform = () => {
 }
 
 function onmousedown(e) {
-  console.log(e);
+  //console.log(e);
   e.preventDefault();
   start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
   panning.value = true;
 }
 
 function onmouseup(e) {
-  console.log(e);
+  // console.log(e);
   panning.value = false;
 }
 
 function onmousemove(e) {
-  console.log(e);
+  // console.log(e);
   e.preventDefault();
   if (!panning.value) {
     return;
@@ -1581,7 +1582,7 @@ function onmousemove(e) {
 }
 
 function onwheel(e) {
-  console.log(e);
+  // console.log(e);
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
@@ -1627,7 +1628,7 @@ function resetZoomImage() {
                       hidepanel();
                     " />
                   </div>
-                  <div>
+                  <!-- <div>
                     <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
                       class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
                     <Button v-if="waitForImages" icon="pi pi-refresh" class="p-button-text text-blue-500"
@@ -1638,15 +1639,15 @@ function resetZoomImage() {
 
                         removeMagnify();
                       " />
-                  </div>
+                  </div> -->
                 </div>
                 <div v-if="waitForImages" class="flex justify-content-center">
                   <ProgressSpinner />
                 </div>
                 <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
                   <Message severity="error" :closable="false" v-if="
-                    selectedImgData.documentref != '' &&
-                    selectedImgData.documentimages[activeIndex].status == 1
+                    selectedImgData.guidfixed != '' &&
+                    selectedImgData.imagereferences[activeIndex].status == 1
                   ">
                     <span class="flex align-items-center justify-content-center">
                       *Warning Message รูปโดนยกเลิก
@@ -1657,21 +1658,21 @@ function resetZoomImage() {
                       " /></span>
                   </Message>
                   <Message severity="warn" :closable="false" v-if="
-                    selectedImgData.documentref != '' &&
-                    selectedImgData.documentimages[activeIndex].status == 2
+                    selectedImgData.guidfixed != '' &&
+                    selectedImgData.imagereferences[activeIndex].status == 2
                   ">
                     *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
                 </div>
                 <KeepAlive>
-                  <Galleria v-if="selectedImg && !waitForImages" :value="doc_images.documentimages"
+                  <Galleria v-if="selectedImg && !waitForImages" :value="doc_images.imagereferences"
                     :thumbnailsPosition="'top'" :showThumbnails="showThumbnails" v-model:activeIndex="activeIndex"
-                    :numVisible="10">
+                    :numVisible="10" @update:activeIndex="resetZoomImage">
                     <template #item="slotProps">
                       <div class="p-3 img-magnifier-container mt-3">
                         <div class="zoom_outer">
                           <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)"
                             @mouseup="onmouseup($event)" @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                            <img :src="slotProps.item.imageuri"  />
+                            <img :src="slotProps.item.imageuri" />
                           </div>
                         </div>
 
@@ -1747,8 +1748,23 @@ function resetZoomImage() {
             <Galleria :value="data_list" :thumbnailsPosition="'top'" :showThumbnails="true" :numVisible="10"
               v-model:activeIndex="activeIndexList" @update:activeIndex="nextImage">
               <template #thumbnail="slotProps">
-                <img v-if="slotProps.item.documentimages.length > 0" :src="slotProps.item.documentimages[0].imageuri"
-                  style="width: 100%; display: block; padding: 5px; height: 80px" />
+
+                <div class="p-1 cursor-pointer ">
+                  <div class="p-1 surface-card border-round ">
+                    <div class="relative mb-1 ">
+                      <img v-if="slotProps.item.imagereferences.length > 0"
+                        :src="slotProps.item.imagereferences[0].imageuri" class="w-full "
+                        style="object-fit: cover; height: 100px" />
+
+                      <button v-if="slotProps.item.imagereferences.length > 1" type="text" v-ripple
+                        class="fadein p-link w-2rem h-2rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
+                        style="top: 0rem; right: 0rem">
+                        <span class="font-bold text-white">{{slotProps.item.imagereferences.length}}</span>
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
               </template>
             </Galleria>
           </div>
@@ -1792,7 +1808,7 @@ function resetZoomImage() {
 .img-magnifier-glass {
   position: absolute;
   border: 1px solid #000;
-  border-radius: 50%;
+  border-radius: 40%;
   cursor: none;
   /*Set the size of the magnifier glass:*/
   width: 200px;
@@ -1814,6 +1830,7 @@ function resetZoomImage() {
   overflow: hidden;
   position: relative;
   max-width: 100%;
+  min-height: 100%;
   height: auto;
   margin: 0 auto
 }

@@ -8,22 +8,33 @@ export default {
         return instanceApi(true).post(`/upload/images`, fd).then(res => res.data);
     },
 
+    // postDocumentImage
+    postDocumentImage(data) {
+        return instanceApi(true).post(`/documentimage`, data).then(res => res.data);
+    },
+
     postDocumentImageBulk(data) {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, status) {
-        let byguid = "guidfixed:1";
-        let s = "";
-        let q = "";
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, sortRef, sortReject) {
+
+        let q = "";     // search
+        let r = "";     // reject
+        let ref = "";   // references
+
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        if (status != "" && status != undefined && status != null) {
-            s = "&status=" + status
+        if (sortRef != "" && sortRef != undefined && sortRef != null) {
+            ref = "&ref=" + sortRef
         }
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`).then(res => res.data);
+        if (sortReject != "" && sortReject != undefined && sortReject != null) {
+            r = "&reject=" + sortReject
+        }
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${ref}${r}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${ref}${r}`).then(res => res.data);
     },
 
     getDocumentImageById(data) {
@@ -39,4 +50,14 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/ungroup`).then(res => res.data);
     },
 
+    //rejectImage
+    putRejectImage(id, data) {
+        return instanceApi(true).put(`/documentimage/` + id + `/reject`, data).then(res => res.data);
+    },
+    //replaceImage
+    upLoadDocImages(file, module) {
+        let fd = new FormData()
+        fd.append('file', file)
+        return instanceApi(true).post(`/documentimage/upload?module=${module}`, fd).then(res => res.data);
+    },
 }

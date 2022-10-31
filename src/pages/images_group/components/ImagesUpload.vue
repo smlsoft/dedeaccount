@@ -549,7 +549,6 @@ function myUploader() {
             });
 
 
-
         };
         image.src = readerEvent.target.result;
       };

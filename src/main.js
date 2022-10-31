@@ -51,6 +51,7 @@ import Tag from 'primevue/tag';
 import SpeedDial from 'primevue/speeddial';
 import Chip from 'primevue/chip';
 import Badge from 'primevue/badge';
+import SplitButton from 'primevue/splitbutton';
 
 
 
@@ -66,6 +67,7 @@ app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 
+app.component('SplitButton', SplitButton);
 app.component('Badge', Badge);
 app.component('Chip', Chip);
 app.component('SpeedDial', SpeedDial);
