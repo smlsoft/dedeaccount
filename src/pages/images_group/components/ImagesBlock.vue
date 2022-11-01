@@ -30,9 +30,7 @@
               v-if="props.images_data.references.length > 0" />
           </div>
           <div class="font-medium text-sm">
-            {{ (props.images_data.title != "") ? Utils.getDateTimeFormat(
-                props.images_data.imagereferences[0].uploadedat) : Utils.getDateTimeFormat(props.images_data.uploadedat)
-            }}
+            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
           </div>
         </div>
 
@@ -52,7 +50,8 @@
       <div class="flex justify-content-between pt-2 pb-2">
         <div class="flex">
           <Button class="p-button-danger text-white" icon="pi pi-file-excel" label="ยกเลิกกลุ่มเอกสาร"
-            @click="confirmUnGroup = true" v-if="showImgData.length > 1 && !checkUseImg(props.images_data.guidfixed)" />
+            @click="confirmUnGroup = true"
+            v-if="showImgData.length > 1 && !checkUseImg(props.images_data.guidfixed) && props.images_data.references.length == 0" />
           <Button v-if="props.mode != 4" class="p-button-warning  ml-1" icon="pi pi-print"
             @click="printImg(showImgData)" label="ปริ้นเอกสาร" />
         </div>
@@ -423,25 +422,7 @@ function rejectImage(documentimageguid, isReject) {
 }
 
 function showDetailGlImage(docno) {
-  emit("showDetailGlImage",docno);
-  
-  // console.log(docno)
-
-  // MasterdataService.getGLledger(docno)
-  //   .then((res) => {
-  //     console.log(res);
-  //     if (res.success) {
-        
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     toast.add({
-  //       severity: "error",
-  //       summary: "Error",
-  //       detail: err,
-  //       life: 3000,
-  //     });
-  //   });
+  emit("showDetailGlImage", docno);
 
 }
 
