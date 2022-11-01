@@ -324,8 +324,18 @@ function getDocumentImageGroupScroll() {
                 setTimeout(() => {
                     res.data.forEach((ele) => {
                         ele.isUpdate = false;
+
+                        ele = ele.map((element) => {
+
+                            let references = element.references ?? [];
+                            element.references = references;
+
+                            return element
+                        });
+
                         data_list.value.push(ele);
                     });
+
                     //console.log(data_list.value);
 
                     //onsole.log(totalItemsCount.value);
@@ -359,11 +369,14 @@ function getDocumentImageGroup() {
             console.log(res);
             if (res.success) {
                 data_list.value = res.data;
-                // data_list.value.forEach((element, index) => {
-                //     if (element.references == undefined) {
-                //         data_list.value[index].references = [];
-                //     }
-                // });
+
+                data_list.value = data_list.value.map((element) => {
+
+                    let references = element.references ?? [];
+                    element.references = references;
+
+                    return element
+                });
 
                 loading.value = false;
                 totalPage.value = res.pagination.totalPage;
@@ -492,7 +505,9 @@ function checkDulicate(array) {
     });
     data_import.value = a;
 
-    uploadProgress();
+    openModal()
+
+    // uploadProgress();
 }
 
 async function uploadProgress() {
@@ -1168,6 +1183,9 @@ async function rejectImage(documentimageguid, isReject) {
 }
 
 
+function showDetailGlImage(docno) {
+    console.log(docno)
+}
 </script>
 
 <template>
@@ -1261,7 +1279,8 @@ async function rejectImage(documentimageguid, isReject) {
                                 :mode="1" v-on:selectImg="selectImg" v-on:useImage="useImage"
                                 v-on:createform="createform" v-on:onFileSelect="onFileNewSelect"
                                 v-on:onReloadData="getDocumentImageGroup"
-                                v-on:documentImageUnGroup="documentImageUnGroup" v-on:rejectImage="rejectImage">
+                                v-on:documentImageUnGroup="documentImageUnGroup" v-on:rejectImage="rejectImage"
+                                v-on:showDetailGlImage="showDetailGlImage">
                             </ImageBlock>
                         </div>
                         <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
@@ -1362,7 +1381,8 @@ async function rejectImage(documentimageguid, isReject) {
             <Dialog header="Upload รูปภาพ" v-model:visible="uploadmodel"
                 :breakpoints="{ '960px': '75vw', '640px': '90vw' }" :style="{ width: '80vw' }" :modal="true"
                 :closable="false">
-                <ImageUpload v-on:success="uploadSuccess()" v-on:closeDialogUpload="closeDialogUpload()"></ImageUpload>
+                <ImageUpload v-on:success="uploadSuccess()" :data_import="data_import"
+                    v-on:closeDialogUpload="closeDialogUpload()"></ImageUpload>
             </Dialog>
             <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
                 v-on:confirm="changeImage(newDocRefImage)"></DialogForm>

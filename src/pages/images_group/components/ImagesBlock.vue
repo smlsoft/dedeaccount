@@ -26,7 +26,8 @@
         <div class="flex text-600 justify-content-between align-items-center">
           <div class="font-medium text-sm ">
             <Button class="p-button-text text-color-secondary " icon="pi pi-eye"
-              @click="showDetailGlImage(props.images_data.references[0].docno)" v-if="props.images_data.references.length > 0" />
+              @click="showDetailGlImage(props.images_data.references[0].docno)"
+              v-if="props.images_data.references.length > 0" />
           </div>
           <div class="font-medium text-sm">
             {{ (props.images_data.title != "") ? Utils.getDateTimeFormat(
@@ -139,8 +140,8 @@ const emit = defineEmits([
   "onFileSelect",
   "onReloadData",
   "documentImageUnGroup",
-  "rejectImage"
-
+  "rejectImage",
+  "showDetailGlImage"
 ]);
 
 onMounted(async () => {
@@ -421,6 +422,29 @@ function rejectImage(documentimageguid, isReject) {
   emit("rejectImage", documentimageguid, isReject);
 }
 
+function showDetailGlImage(docno) {
+  emit("showDetailGlImage",docno);
+  
+  // console.log(docno)
+
+  // MasterdataService.getGLledger(docno)
+  //   .then((res) => {
+  //     console.log(res);
+  //     if (res.success) {
+        
+  //     }
+  //   })
+  //   .catch((err) => {
+  //     toast.add({
+  //       severity: "error",
+  //       summary: "Error",
+  //       detail: err,
+  //       life: 3000,
+  //     });
+  //   });
+
+}
+
 function selectRejectImage(reject) {
   if (reject) {
     contentOnfirmRejectDialog.value = "ต้องการยกเลิกรูปภาพ " + props.images_data.imagereferences[activeIndexList.value].name;
@@ -525,9 +549,7 @@ function borderImage() {
   return userImageStyle;
 }
 
-function showDetailGlImage(docno){
-  console.log(docno)
-}
+
 
 
 
