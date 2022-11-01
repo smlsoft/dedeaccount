@@ -359,11 +359,11 @@ function getDocumentImageGroup() {
             console.log(res);
             if (res.success) {
                 data_list.value = res.data;
-                data_list.value.forEach((element, index) => {
-                    if (element.references == undefined) {
-                        data_list.value[index].references = [];
-                    }
-                });
+                // data_list.value.forEach((element, index) => {
+                //     if (element.references == undefined) {
+                //         data_list.value[index].references = [];
+                //     }
+                // });
 
                 loading.value = false;
                 totalPage.value = res.pagination.totalPage;

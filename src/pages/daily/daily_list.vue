@@ -116,15 +116,7 @@ function deleteDetail() {
     .then((res) => {
       console.log(res);
       if (res.success) {
-        if (detail.value.documentref != "") {
-          console.log("images");
-          var post_data = { status: 0 };
-          updateStatusImage(post_data, detail.value.documentref);
-        } else {
-          setTimeout(() => {
-            getGLJournalList();
-          }, 500);
-        }
+        getGLJournalList();
         toast.add({
           severity: "success",
           summary: "ทำรายการสำเร็จ",
@@ -139,19 +131,7 @@ function deleteDetail() {
     });
 }
 
-async function updateStatusImage(status, documentref) {
-  try {
-    const res = await MasterdataService.putrejectimagestatusonly(
-      status,
-      documentref
-    );
-    setTimeout(() => {
-      getGLJournalList();
-    }, 500);
-  } catch (err) {
-    console.log(err);
-  }
-}
+
 
 function getAccountGroup() {
   MasterdataService.getAccountGroup()
@@ -248,160 +228,83 @@ function getSumCreditAmount(data) {
     <MainContentWarp>
       <div class="grid">
         <div class="col-12">
-          <Button
-            label="เพิ่มข้อมูลรายวัน"
-            icon="pi pi-plus"
-            class="w-auto"
-            @click="goForm()"
-          ></Button>
+          <Button label="เพิ่มข้อมูลรายวัน" icon="pi pi-plus" class="w-auto" @click="goForm()"></Button>
         </div>
       </div>
       <div class="grid">
         <div class="col-12">
-          <DataTable
-            :value="data_list"
-            dataKey="docno"
-            class="p-datatable-sm"
-            :loading="loading"
-            stripedRows
-            responsiveLayout="scroll"
-            @sort="sortBy"
-            scrollHeight="69vh"
-            v-model:expandedRows="expandedRows"
-          >
+          <DataTable :value="data_list" dataKey="docno" class="p-datatable-sm" :loading="loading" stripedRows
+            responsiveLayout="scroll" @sort="sortBy" scrollHeight="69vh" v-model:expandedRows="expandedRows">
             <template #header>
               <div class="flex justify-content-between">
                 <div></div>
                 <span class="p-input-icon-left">
                   <i class="pi pi-search" />
-                  <InputText
-                    v-model="filters"
-                    placeholder="ค้นหา...."
-                    @keyup="keyup()"
-                    @keydown="keydown()"
-                  />
+                  <InputText v-model="filters" placeholder="ค้นหา...." @keyup="keyup()" @keydown="keydown()" />
                 </span>
               </div>
             </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
             <Column :expander="true" headerStyle="width: 3rem" />
-            <Column
-              field="docno"
-              header="เลชที่เอกสาร"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="docdate"
-              header="วันที่"
-              dataType="date"
-              :sortable="true"
-            >
+            <Column field="docno" header="เลชที่เอกสาร" :sortable="true"></Column>
+            <Column field="docdate" header="วันที่" dataType="date" :sortable="true">
               <template #body="slotProps">
                 {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
               </template>
             </Column>
-            <Column
-              field="accountyear"
-              header="ปีบัญชี"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="accountperiod"
-              header="งวดบัญชี"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="accountgroup"
-              header="กลุ่มบัญชี"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="accountdescription"
-              header="รายละเอียด"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="amount"
-              header="มูลค่า"
-              class="text-header-right"
-              headerStyle="text-align: right;"
-              bodyStyle="text-align: right;"
-              :sortable="true"
-            >
+            <Column field="accountyear" header="ปีบัญชี" :sortable="true"></Column>
+            <Column field="accountperiod" header="งวดบัญชี" :sortable="true"></Column>
+            <Column field="accountgroup" header="กลุ่มบัญชี" :sortable="true"></Column>
+            <Column field="accountdescription" header="รายละเอียด" :sortable="true"></Column>
+            <Column field="amount" header="มูลค่า" class="text-header-right" headerStyle="text-align: right;"
+              bodyStyle="text-align: right;" :sortable="true">
               <template #body="{ data, field }">
                 {{ Utils.formatCurrency(data[field]) }}
               </template>
             </Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
-                <Button
-                  icon="pi pi-pencil"
-                  class="p-button-rounded p-button-warning p-button-text"
-                  @click="goDetail(slotProps.data)"
-                />
+                <Button icon="pi pi-pencil" class="p-button-rounded p-button-warning p-button-text"
+                  @click="goDetail(slotProps.data)" />
               </template>
             </Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
-                <Button
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-danger p-button-text"
-                  @click="confirmDeleteDetail(slotProps.data)"
-                />
+                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text"
+                  @click="confirmDeleteDetail(slotProps.data)" />
               </template>
             </Column>
             <template #expansion="mainProps">
               <h5 class="my-1" v-if="mainProps.data.journaldetail.length == 0">
                 ไม่พบรายการตัวเลือก
               </h5>
-              <div
-                class="orders-subtable"
-                v-if="mainProps.data.journaldetail.length > 0"
-              >
+              <div class="orders-subtable" v-if="mainProps.data.journaldetail.length > 0">
                 <h5 class="my-1">เลขที่: {{ mainProps.data.docno }}</h5>
-                <DataTable
-                  :value="mainProps.data.journaldetail"
-                  responsiveLayout="scroll"
-                  dataKey="guidfixed"
-                >
+                <DataTable :value="mainProps.data.journaldetail" responsiveLayout="scroll" dataKey="guidfixed">
                   <Column field="accountcode" header="รหัสบัญชี"></Column>
-                  <Column
-                    field="accountname"
-                    header="ชื่อบัญชี"
-                    footerStyle="text-align: right !important"
-                    footer="รวม"
-                  ></Column>
-                  <Column
-                    field="debitamount"
-                    header="เดบิต"
-                    footerStyle="text-align: right !important"
-                    style="text-align: right !important"
-                    headerStyle="text-align:center;width: 10%"
-                  >
+                  <Column field="accountname" header="ชื่อบัญชี" footerStyle="text-align: right !important"
+                    footer="รวม"></Column>
+                  <Column field="debitamount" header="เดบิต" footerStyle="text-align: right !important"
+                    style="text-align: right !important" headerStyle="text-align:center;width: 10%">
                     <template #footer>
                       {{
-                        Utils.formatCurrency(
-                          getSumDebitAmount(mainProps.data.journaldetail)
-                        )
+                          Utils.formatCurrency(
+                            getSumDebitAmount(mainProps.data.journaldetail)
+                          )
                       }}
                     </template>
                     <template #body="{ data, field }">
                       {{ Utils.formatCurrency(data[field]) }}
                     </template>
                   </Column>
-                  <Column
-                    field="creditamount"
-                    header="เครดิต"
-                    footerStyle="text-align: right !important"
-                    style="text-align: right !important"
-                    headerStyle="text-align:center;width: 10%"
-                  >
+                  <Column field="creditamount" header="เครดิต" footerStyle="text-align: right !important"
+                    style="text-align: right !important" headerStyle="text-align:center;width: 10%">
                     <template #footer>
                       {{
-                        Utils.formatCurrency(
-                          getSumCreditAmount(mainProps.data.journaldetail)
-                        )
+                          Utils.formatCurrency(
+                            getSumCreditAmount(mainProps.data.journaldetail)
+                          )
                       }}
                     </template>
                     <template #body="{ data, field }">
@@ -412,24 +315,14 @@ function getSumCreditAmount(data) {
               </div>
             </template>
           </DataTable>
-          <Paginator
-            :rows="20"
-            v-model:first="firstPage"
-            :totalRecords="totalItemsCount"
-            @page="onPage($event)"
-            :rowsPerPageOptions="[20, 50, 100]"
-          >
+          <Paginator :rows="20" v-model:first="firstPage" :totalRecords="totalItemsCount" @page="onPage($event)"
+            :rowsPerPageOptions="[20, 50, 100]">
           </Paginator>
         </div>
       </div>
 
-      <DialogForm
-        :confirmDialog="confirmDeleteDialog"
-        :textContent="textContent"
-        :textContent2="dailynum"
-        v-on:close="onClose"
-        v-on:confirm="deleteDetail"
-      ></DialogForm>
+      <DialogForm :confirmDialog="confirmDeleteDialog" :textContent="textContent" :textContent2="dailynum"
+        v-on:close="onClose" v-on:confirm="deleteDetail"></DialogForm>
     </MainContentWarp>
   </AppLayout>
 </template>

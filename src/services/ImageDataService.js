@@ -30,11 +30,11 @@ export default {
  
 
         if (showBy == "save") {
-            sortShowBy = "&ref:1"
+            sortShowBy = "&ref=2"
         } else if (showBy == "unsave") {
-            sortShowBy = "&ref:0"
+            sortShowBy = "&ref=1&reject=0"
         } else if (showBy == "reject") {
-            sortShowBy = "&reject:1"
+            sortShowBy = "&reject=1"
         }
 
 

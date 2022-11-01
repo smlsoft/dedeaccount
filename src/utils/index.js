@@ -8,10 +8,10 @@ import Numeral from "numeral";
 const checkSpecialString = (string) => {
     var format = /[`!@#$%^&_+\=\[\]{};':"\\|,.<>?]/;
 
-    if(format.test(string)){
-      return true;
+    if (format.test(string)) {
+        return true;
     } else {
-      return false;
+        return false;
     }
 };
 
@@ -134,13 +134,13 @@ const getDateFormatDMY = (date) => {
         day = "" + d.getDate(),
         year = d.getFullYear();
 
-        if (process.env.VUE_APP_DATE == "th") {
-            year += 543;
-        }
-        if (month.length < 2) month = "0" + month;
-        if (day.length < 2) day = "0" + day;
-        return [day, month, year].join("/");
-   // return dayjs(d).format("DD/MM/BBBB");
+    if (process.env.VUE_APP_DATE == "th") {
+        year += 543;
+    }
+    if (month.length < 2) month = "0" + month;
+    if (day.length < 2) day = "0" + day;
+    return [day, month, year].join("/");
+    // return dayjs(d).format("DD/MM/BBBB");
 }
 
 const getDateTimeFormatStandard = (date) => {
@@ -163,9 +163,10 @@ const getDateTimeFormat = (date) => {
         "/" +
         date.getFullYear() +
         " " +
-        date.getHours() +
+        (date.getHours() < 10 ? '0' : '') + date.getHours() +
         ":" +
-        date.getMinutes();
+        (date.getMinutes() < 10 ? '0' : '') + date.getMinutes()
+
     return showDate;
 }
 const getDateTimeFromDate = (date) => {
@@ -179,15 +180,15 @@ const getDateTimeFromDate = (date) => {
 
 const getDateShowText = (date) => {
     var datesplit = date.split("/")
-    var month= ""
-    var en = ["January",'February','March','April','May','June','July','August','September','October','November','December']
-    var th = ["มกราคม",'กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฏาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม']
+    var month = ""
+    var en = ["January", 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    var th = ["มกราคม", 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฏาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']
     if (process.env.VUE_APP_DATE == "th") {
-        month = th[parseInt(datesplit[1])-1]
-    }else{
-        month = en[parseInt(datesplit[1])-1]
+        month = th[parseInt(datesplit[1]) - 1]
+    } else {
+        month = en[parseInt(datesplit[1]) - 1]
     }
-    return datesplit[0]+' '+month+' '+datesplit[2]
+    return datesplit[0] + ' ' + month + ' ' + datesplit[2]
 }
 
 const getYearBuddhist = (date) => {

@@ -23,9 +23,10 @@
           <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length > 1"> กลุ่ม:
             {{ props.images_data.title }}</span>
         </div>
-        <div class=" mb-0 flex text-600 justify-content-between">
+        <div class="flex text-600 justify-content-between align-items-center">
           <div class="font-medium text-sm ">
-            <!-- {{ Utils.getDateTimeFormat(props.images_data.imagereferences[0].metafileat) }} -->
+            <Button class="p-button-text text-color-secondary " icon="pi pi-eye"
+              @click="showDetailGlImage(props.images_data.references[0].docno)" v-if="props.images_data.references.length > 0" />
           </div>
           <div class="font-medium text-sm">
             {{ (props.images_data.title != "") ? Utils.getDateTimeFormat(
@@ -33,6 +34,7 @@
             }}
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -451,7 +453,7 @@ function selectModeImage() {
   if (!checkUseImg(props.images_data.guidfixed)) {
 
     if (props.images_data.references.length > 0) {
-      zoomImg(props.images_data);
+      return false;
     } else {
       if (modeMenu == 1 && statusImage == false) {
         if (props.images_data.imagereferences.length > 1) {
@@ -469,30 +471,6 @@ function selectModeImage() {
     }
   }
 
-
-
-
-  // console.log(checkUseImg(props.images_data.documentref));
-  // console.log("menu", modeMenu);
-  // console.log("status", statusImage);
-  // console.log("--------------");
-
-  // if (showImgDialog.value) {
-  //   return;
-  // }
-  // if (!checkUseImg(props.images_data.documentref)) {
-  //   if (modeMenu == 1 && statusImage == 0) {
-  //     console.log("xxx");
-  //     selectImg(props.images_data.guidfixed);
-  //   } else if (modeMenu == 2 && statusImage == 0) {
-  //     selectImg(props.images_data.documentref);
-  //   } else if (modeMenu == 3 && statusImage == 0) {
-  //     selectImg(props.images_data.documentref);
-  //   }
-  // }
-  // if (modeMenu == 4 && statusImage == 0) {
-  //   selectImg(props.images_data.documentref);
-  // }
 }
 
 function printImg(data) {
@@ -514,6 +492,7 @@ function printImg(data) {
   w.window.close();
   selectModeImage();
 }
+
 function borderImage() {
 
   let userImageStyle = "";
@@ -524,7 +503,7 @@ function borderImage() {
 
 
 
-  if (referencesImage.length == 0 ) {
+  if (referencesImage.length == 0) {
     if (statusImage == false) {
       if (isUseImage) {
         userImageStyle = "bg-blue-100";
@@ -543,24 +522,11 @@ function borderImage() {
   }
 
 
-
-
-  // if (statusImage == imageStatus.Normal) {
-  //   if (isUseImage) {
-  //     userImageStyle = "bg-blue-100";
-  //   } else {
-  //     if (selectedImage) {
-  //       userImageStyle = "bg-blue-500 ";
-  //     } else {
-  //       userImageStyle = "bg-blue-while hover:shadow-1 ";
-  //     }
-  //   }
-  // } else if (statusImage == imageStatus.Reject) {
-  //   userImageStyle = "bg-yellow-200";
-  // } else if (statusImage == imageStatus.Saved) {
-  //   userImageStyle = "bg-green-100";
-  // }
   return userImageStyle;
+}
+
+function showDetailGlImage(docno){
+  console.log(docno)
 }
 
 
