@@ -13,6 +13,7 @@ import Utils from "@/utils/";
 import ImageUpload from "./components/ImagesUpload.vue";
 import ImageBlock from "./components/ImagesBlock.vue";
 import ImagesGallery from "./components/ImagesGallery.vue";
+import JournalForm from "../daily/components/journal_form.vue";
 import $ from "jquery";
 
 const textContent = ref("ต้องการยกเลิกรูปภาพ ");
@@ -90,6 +91,19 @@ const listShowImageBys = ref([
 ]);
 const showImageBy = ref("");
 const createFormStatus = ref(false);
+const showGLImage = ref(false);
+const dataGlDetail = ref({});
+const daily_form_valid = ref({
+  accountdescription: false,
+  accountgroup: false,
+  accountperiod: false,
+  accountyear: false,
+  amount: false,
+  batchId: false,
+  docdate: false,
+  docno: false,
+  bookcode: false,
+});
 
 onUnmounted(() => {
     console.log(
@@ -333,7 +347,7 @@ function getDocumentImageGroupScroll() {
                         ele.imagereferences.sort(function (a, b) {
                             return a.xorder - b.xorder;
                         });
-                        
+
                         data_list.value.push(ele);
                     });
 
@@ -1191,6 +1205,28 @@ async function rejectImage(documentimageguid, isReject) {
 
 function showDetailGlImage(docno) {
     console.log(docno)
+
+    showGLImage.value = true;
+
+    MasterdataService.getGLledger(docno)
+        .then((res) => {
+            //console.log(res);
+            if (res.success) {
+                setTimeout(() => {
+                 dataGlDetail.value = res.data
+                 console.log(dataGlDetail.value)
+                }, 200);
+               
+            }
+        })
+        .catch((err) => {
+            toast.add({
+                severity: "error",
+                summary: "Error",
+                detail: err,
+                life: 3000,
+            });
+        });
 }
 </script>
 
@@ -1338,32 +1374,7 @@ function showDetailGlImage(docno) {
                             </div>
                         </div>
                     </div>
-                    <!-- <VirtualScroller
-            class="custom-loading"
-            :items="basicItems"
-            :itemSize="15"
-            showLoader
-            :delay="250"
-            style="height: 500px"
-            @scroll="scrollchange"
-          >
-            <template v-slot:item="{ item, options }">
-              <div
-                :class="['scroll-item p-2', { odd: options.odd }]"
-                style="height: 50px"
-              >
-                {{ item }}
-              </div>
-            </template>
-            <template v-slot:loader="{ options }">
-              <div
-                :class="['scroll-item p-2', { odd: options.odd }]"
-                style="height: 50px"
-              >
-                <Skeleton :width="options.even ? '60%' : '50%'" height="1.3rem" />
-              </div>
-            </template>
-          </VirtualScroller> -->
+
                 </template>
             </Card>
 
@@ -1393,7 +1404,46 @@ function showDetailGlImage(docno) {
             <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
                 v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
 
+            <Dialog :header="dataGlDetail.docno" v-model:visible="showGLImage"
+                :breakpoints="{ '960px': '75vw', '640px': '90vw' }" :style="{ width: '80vw' }" :modal="true"
+                :draggable="false" position="top">
 
+
+                <TabView class="tabview-custom" ref="tabview">
+                    <TabPanel>
+                        <template #header>
+                            <i class="pi pi-book mr-1"></i>
+                            <span> ข้อมูลรายวัน</span>
+                        </template>
+                        <div >
+                            <JournalForm :daily_form="dataGlDetail"  :daily_form_valid="daily_form_valid">
+                            </JournalForm>
+                        </div>
+                    </TabPanel>
+                    <!-- <TabPanel>
+                        <template #header>
+                            <i class="pi pi-wallet mr-1"></i>
+                            <span> ข้อมูลภาษี</span>
+                        </template>
+                        <div v-if="!onLoad">
+                            <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
+                                v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
+                                v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <template #header>
+                            <i class="pi pi-wallet mr-1"></i>
+                            <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                        </template>
+                        <div v-if="!onLoad">
+                            <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
+                                v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
+                        </div>
+                    </TabPanel> -->
+                </TabView>
+
+            </Dialog>
         </MainContentWarp>
     </AppLayout>
 </template>
