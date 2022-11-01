@@ -65,4 +65,14 @@ export default {
         fd.append('file', file)
         return instanceApi(true).post(`/documentimage/upload?module=${module}`, fd).then(res => res.data);
     },
+
+    //noreserve
+    documentimagegroupnoreserve(limitPage, page, search) {
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1,ref=1&reject=0`).then(res => res.data);
+    },
+
 }

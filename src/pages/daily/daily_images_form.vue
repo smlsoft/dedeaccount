@@ -13,6 +13,7 @@ import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import ImageDataService from "../../services/ImageDataService";
 
 const storeApp = useApp();
 const content = ref();
@@ -374,7 +375,7 @@ function websocketConnect() {
     //console.log("Successfully connected to the echo websocket server...");
   };
   connection.value.onmessage = function (event) {
-    //console.log("onmessage ", event);
+    console.log("onmessage ", event);
     var jsonData = JSON.parse(event.data);
     if (jsonData.docref != "") {
       MasterdataService.getImagesByDocref(jsonData.docref)
@@ -383,6 +384,8 @@ function websocketConnect() {
             console.log(res.data);
             if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
+
+              //console.log(doc_images.value);
 
               var check_dup = data_list.value.filter(
                 (val) => val.guidfixed == doc_images.value.guidfixed
@@ -396,14 +399,16 @@ function websocketConnect() {
               } else {
                 showThumbnails.value = false;
               }
+
               selectedImgData.value = res.data;
               selectedImgUrl.value = res.data.imagereferences[0].imageuri;
-              // console.log(selectedImgUrl.value);
+
+              //console.log(selectedImgUrl.value);
+
               selectedImg.value = true;
               waitForImages.value = false;
 
-              disableAllinput(res.data.imagereferences[0].status);
-              //getGLJournalListByDocref();
+              disableAllinput(res.data.imagereferences[0].isreject);
               setTimeout(() => {
                 checkActiveIndex();
               }, 100);
@@ -438,7 +443,7 @@ function websocketConnect() {
 function disableAllinput(data) {
   //console.log(waitForImages.value);
   setTimeout(() => {
-    if (waitForImages.value || data == 1) {
+    if (waitForImages.value || data == true) {
       $("#panelForm3 :input").prop("disabled", true);
       $("#panelForm3 .p-dropdown").prop("disabled", true);
     } else {
@@ -819,7 +824,7 @@ function verifyVat() {
 }
 
 function getDocImageList() {
-  MasterdataService.documentimagegroupnoreserve(
+  ImageDataService.documentimagegroupnoreserve(
     limitPage.value,
     activePage.value,
     searchItem.value
@@ -849,10 +854,11 @@ function deSelectImg() {
   selectedImgUrl.value = "";
 }
 function removeSelectImg() {
+  console.log(selectedImgData.value.guidfixed );
   var sendData = { docref: selectedImgData.value.guidfixed };
   MasterdataService.postUnSelectImage(sendData)
     .then((res) => {
-      // console.log(res);
+       console.log(res);
       if (res.success) {
         selectedImgData.value = { guidfixed: "", imagereferences: [] };
         selectedImg.value = false;
@@ -1407,6 +1413,7 @@ function clearData() {
 }
 
 function nextImageOnSave(old_img) {
+  console.log(data_list.value);
   console.log(data_list.value.length);
   console.log(old_img);
   var rebuild = [];
@@ -1418,10 +1425,13 @@ function nextImageOnSave(old_img) {
 
   data_list.value = rebuild;
   activeIndexList.value = 0;
+  activeIndex.value = 0;
+
   if (data_list.value.length > activeIndexList.value) {
     console.log(data_list.value[activeIndexList.value].guidfixed);
     useImage(data_list.value[activeIndexList.value].guidfixed);
   }
+
   removeImgFromList(old_img);
 }
 function removeImgFromList(data) {
@@ -1470,8 +1480,8 @@ function useImage(data) {
         console.log(res);
         if (res.success) {
           if (res.data) {
-            WsConnectImage.value.send(JSON.stringify(sendData));
-            clearData();
+           WsConnectImage.value.send(JSON.stringify(sendData));
+           clearData();
           }
         }
       })
@@ -1642,27 +1652,10 @@ function resetZoomImage() {
                   </div> -->
                 </div>
                 <div v-if="waitForImages" class="flex justify-content-center">
+
                   <ProgressSpinner />
                 </div>
-                <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
-                  <Message severity="error" :closable="false" v-if="
-                    selectedImgData.guidfixed != '' &&
-                    selectedImgData.imagereferences[activeIndex].status == 1
-                  ">
-                    <span class="flex align-items-center justify-content-center">
-                      *Warning Message รูปโดนยกเลิก
-                      <Button icon="pi pi-refresh" class="p-button-text w-auto" label="เปลี่ยนรูป" @click="
-                        confirmRemoveImgDialog = true;
-                      
-                        removeMagnify();
-                      " /></span>
-                  </Message>
-                  <Message severity="warn" :closable="false" v-if="
-                    selectedImgData.guidfixed != '' &&
-                    selectedImgData.imagereferences[activeIndex].status == 2
-                  ">
-                    *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
-                </div>
+               
                 <KeepAlive>
                   <Galleria v-if="selectedImg && !waitForImages" :value="doc_images.imagereferences"
                     :thumbnailsPosition="'top'" :showThumbnails="showThumbnails" v-model:activeIndex="activeIndex"
