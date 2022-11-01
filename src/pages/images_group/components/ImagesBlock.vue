@@ -11,7 +11,7 @@
             v-ripple
             class="fadein p-link w-3rem h-3rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
             style="top: 0rem; right: 1rem">
-            <span class="font-bold text-white">{{props.images_data.imagereferences.length}}</span>
+            <span class="font-bold text-white">{{ props.images_data.imagereferences.length }}</span>
           </button>
           <div class="absolute" style="bottom: 0.5rem; right: 0.3rem" v-if="checkUseImg(props.images_data.guidfixed)">
             <Chip :label="getUseData(props.images_data.guidfixed)" icon="pi pi-user" class="mr-2 mb-2 " />
@@ -19,9 +19,9 @@
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
           <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length == 1"> ชื่อ:
-            {{props.images_data.title}}</span>
+            {{ props.images_data.title }}</span>
           <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length > 1"> กลุ่ม:
-            {{props.images_data.title}}</span>
+            {{ props.images_data.title }}</span>
         </div>
         <div class=" mb-0 flex text-600 justify-content-between">
           <div class="font-medium text-sm ">
@@ -29,20 +29,21 @@
           </div>
           <div class="font-medium text-sm">
             {{ (props.images_data.title != "") ? Utils.getDateTimeFormat(
-            props.images_data.imagereferences[0].uploadedat) : Utils.getDateTimeFormat(props.images_data.uploadedat) }}
+                props.images_data.imagereferences[0].uploadedat) : Utils.getDateTimeFormat(props.images_data.uploadedat)
+            }}
           </div>
         </div>
       </div>
     </div>
   </div>
   <Dialog :dismissableMask="true" :close-on-escape="false" v-model:visible="showImgDialog"
-    :header="'รายละเอียด ' + props.images_data.title" :breakpoints="{'960px': '75vw', '640px': '90vw'}"
-    :style="{width: '60vw'}" :modal="true">
+    :header="'รายละเอียด ' + props.images_data.title" :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    :style="{ width: '60vw' }" :modal="true">
     <div class="confirmation-content" id="boxconfirm">
       <div class="flex justify-content-between mb-2">
         <div class="flex">ชื่อรูป : {{ showImgData[activeIndexList].name }}</div>
         <div class="flex">
-          วันที่ :{{Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat)}}
+          วันที่ :{{ Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat) }}
           โดย {{ showImgData[activeIndexList].uploadedby }}</div>
       </div>
       <div class="flex justify-content-between pt-2 pb-2">
@@ -73,7 +74,7 @@
         <template #item="slotProps">
           <div class="grid">
             <div class="col-12">
-              <Message severity="warn" v-if="slotProps.item.isreject">รูป {{slotProps.item.name}} โดนยกเลิก</Message>
+              <Message severity="warn" v-if="slotProps.item.isreject">รูป {{ slotProps.item.name }} โดนยกเลิก</Message>
             </div>
             <div class="col-12">
               <img :src="slotProps.item.imageuri" style="width: 100%; display: block;" />
@@ -95,7 +96,7 @@
     v-on:close="confirmUnGroup = false" v-on:confirm="documentImageUnGroup()"></DialogForm>
   <DialogForm :confirmDialog="onfirmRejectDialog" v-on:close="onfirmRejectDialog = false"
     :textContent="contentOnfirmRejectDialog"
-    v-on:confirm="rejectImage(props.images_data.imagereferences[activeIndexList].documentimageguid , isReject)">
+    v-on:confirm="rejectImage(props.images_data.imagereferences[activeIndexList].documentimageguid, isReject)">
   </DialogForm>
 
 
@@ -514,28 +515,35 @@ function printImg(data) {
   selectModeImage();
 }
 function borderImage() {
+
   let userImageStyle = "";
   let isUseImage = checkUseImg(props.images_data.guidfixed);
   let selectedImage = checkSelect(props.images_data.guidfixed);
   let statusImage = props.images_data.isreject;
-  // let referencesImage = props.images_data.references;
+  let referencesImage = props.images_data.references;
 
 
-  if (statusImage == false) {
-    if (isUseImage) {
-      userImageStyle = "bg-blue-100";
-    } else {
-      if (selectedImage) {
-        userImageStyle = "bg-blue-500 ";
-      } else if (props.images_data.references.length > 0) {
-        userImageStyle = "bg-green-100 ";
+
+  if (referencesImage.length == 0 ) {
+    if (statusImage == false) {
+      if (isUseImage) {
+        userImageStyle = "bg-blue-100";
       } else {
-        userImageStyle = "bg-blue-while hover:shadow-1 ";
+        if (selectedImage) {
+          userImageStyle = "bg-blue-500 ";
+        } else {
+          userImageStyle = "bg-blue-while hover:shadow-1 ";
+        }
       }
+    } else if (statusImage == true) {
+      userImageStyle = "bg-red-400";
     }
-  } else if (statusImage == true) {
-    userImageStyle = "bg-red-400";
+  } else {
+    userImageStyle = "bg-green-100";
   }
+
+
+
 
   // if (statusImage == imageStatus.Normal) {
   //   if (isUseImage) {
@@ -554,6 +562,8 @@ function borderImage() {
   // }
   return userImageStyle;
 }
+
+
 
 </script>
 <style scoped>

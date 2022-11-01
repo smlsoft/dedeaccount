@@ -17,24 +17,29 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, sortRef, sortReject) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy) {
+
+        console.log(showBy);
 
         let q = "";     // search
-        let r = "";     // reject
-        let ref = "";   // references
 
+        let sortShowBy = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        if (sortRef != "" && sortRef != undefined && sortRef != null) {
-            ref = "&ref=" + sortRef
-        }
-        if (sortReject != "" && sortReject != undefined && sortReject != null) {
-            r = "&reject=" + sortReject
+ 
+
+        if (showBy == "save") {
+            sortShowBy = "&ref:1"
+        } else if (showBy == "unsave") {
+            sortShowBy = "&ref:0"
+        } else if (showBy == "reject") {
+            sortShowBy = "&reject:1"
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${ref}${r}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${ref}${r}`).then(res => res.data);
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`).then(res => res.data);
     },
 
     getDocumentImageById(data) {

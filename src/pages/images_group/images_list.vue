@@ -84,9 +84,9 @@ const rejectDocref = ref("");
 const connection = ref();
 const listShowImageBys = ref([
     { name: "แสดงทั้งหมด", code: "" },
-    { name: "รูปที่ยังไม่ได้บันทึก", code: "0" },
-    { name: "รูปที่บันทึกแล้ว", code: "2" },
-    { name: "รูปที่โดนยกเลิก", code: "1" },
+    { name: "รูปที่ยังไม่ได้บันทึก", code: "unsave" },
+    { name: "รูปที่บันทึกแล้ว", code: "save" },
+    { name: "รูปที่โดนยกเลิก", code: "reject" },
 ]);
 const showImageBy = ref("");
 const createFormStatus = ref(false);
@@ -346,6 +346,7 @@ function getDocumentImageGroupScroll() {
 
 function getDocumentImageGroup() {
     loading.value = true;
+
     ImageDataService.getDocumentImageGroup(
         limitPage.value,
         activePage.value,
@@ -357,8 +358,13 @@ function getDocumentImageGroup() {
         .then((res) => {
             console.log(res);
             if (res.success) {
-
                 data_list.value = res.data;
+                data_list.value.forEach((element, index) => {
+                    if (element.references == undefined) {
+                        data_list.value[index].references = [];
+                    }
+                });
+
                 loading.value = false;
                 totalPage.value = res.pagination.totalPage;
                 totalItemsCount.value = res.pagination.total;
@@ -923,7 +929,6 @@ function getDocImageListDefualt() {
     limitPage.value = 50;
     activePage.value = 1;
     searchItem.value = "";
-    showImageBy.value;
     getDocumentImageGroup();
 }
 
@@ -1202,7 +1207,15 @@ async function rejectImage(documentimageguid, isReject) {
                     </div>
                     <div class="flex justify-content-between">
                         <div class="grid mt-3 ml-1">
-
+                            <div v-for="listShowImageBy of listShowImageBys" :key="listShowImageBy.code"
+                                class="field-radiobutton m-3">
+                                <RadioButton :id="listShowImageBy.code" name="listShowImageBy"
+                                    :value="listShowImageBy.code" v-model="showImageBy"
+                                    @change="getDocImageListDefualt()" />
+                                <label :for="listShowImageBy.code">{{
+                                        listShowImageBy.name
+                                }}</label>
+                            </div>
                         </div>
                         <div class="grid mt-3 mr-1">
                             <div class="flex align-items-center ml-2">
