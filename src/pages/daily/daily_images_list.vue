@@ -80,6 +80,7 @@ const showImageGallery = ref(false);
 const connection = ref();
 const sortRef = ref("0");
 const sortReject = ref("0");
+const showImageBy = ref("unsave");
 onUnmounted(() => {
   console.log("unmounted--------------------------------------------------------");
   connection.value.close();
@@ -266,36 +267,6 @@ function WsAllImageConnect() {
   };
 }
 
-function getDocumentImageGroup() {
-  loading.value = true;
-  ImageDataService.getDocumentImageGroup(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    selectSort.value,
-    sortOrder.value,
-    sortRef.value,
-    sortReject.value,
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        loading.value = false;
-        totalPage.value = res.pagination.totalPage;
-        totalItemsCount.value = res.pagination.total;
-        getAllSelectImage();
-      }
-    })
-    .catch((err) => {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: err,
-        life: 3000,
-      });
-    });
-}
 
 
 function selectGallery(data) {
@@ -328,43 +299,98 @@ function nextPage() {
   }
 }
 
+
 function getDocumentImageGroupScroll() {
-  showSkeleton.value = true;
-  ImageDataService.getDocumentImageGroup(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    selectSort.value,
-    sortOrder.value,
-    sortRef.value,
-    sortReject.value,
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        setTimeout(() => {
-          res.data.forEach((ele) => {
-            ele.isUpdate = false;
-            data_list.value.push(ele);
-          });
-          console.log(data_list.value);
+    showSkeleton.value = true;
+    ImageDataService.getDocumentImageGroup(
+        limitPage.value,
+        activePage.value,
+        searchItem.value,
+        selectSort.value,
+        sortOrder.value,
+        showImageBy.value
+    )
+        .then((res) => {
+            console.log(res);
+            if (res.success) {
+                setTimeout(() => {
+                    res.data.forEach((ele) => {
+                        ele.isUpdate = false;
 
-          //onsole.log(totalItemsCount.value);
-          getAllSelectImage();
-          totalPage.value = res.pagination.totalPage;
-          totalItemsCount.value = res.pagination.total;
-          firstPage.value = activePage.value;
+                        let references = ele.references ?? [];
+                        if (ele.references == undefined) {
+                            ele.references = references;
+                        }
 
-          console.log("firstPage" + firstPage.value);
-          showSkeleton.value = false;
-        }, 500);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      showSkeleton.value = false;
-    });
+                        ele.imagereferences.sort(function (a, b) {
+                            return a.xorder - b.xorder;
+                        });
+                        
+                        data_list.value.push(ele);
+                    });
+
+                    //console.log(data_list.value);
+
+                    //onsole.log(totalItemsCount.value);
+                    getAllSelectImage();
+                    firstPage.value = activePage.value;
+
+                    // console.log("firstPage" + firstPage.value);
+                    showSkeleton.value = false;
+                }, 500);
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+            showSkeleton.value = false;
+        });
 }
+
+
+function getDocumentImageGroup() {
+    loading.value = true;
+
+    ImageDataService.getDocumentImageGroup(
+        limitPage.value,
+        activePage.value,
+        searchItem.value,
+        selectSort.value,
+        sortOrder.value,
+        showImageBy.value
+    )
+        .then((res) => {
+            console.log(res);
+            if (res.success) {
+                data_list.value = res.data;
+
+                data_list.value = data_list.value.map((element) => {
+                    let references = element.references ?? [];
+                    element.references = references;
+                    return element
+                });
+
+                data_list.value.forEach((element, index) => {
+                    element.imagereferences.sort(function (a, b) {
+                        return a.xorder - b.xorder;
+                    });
+                });
+
+                loading.value = false;
+                totalPage.value = res.pagination.totalPage;
+                totalItemsCount.value = res.pagination.total;
+                getAllSelectImage();
+            }
+        })
+        .catch((err) => {
+            toast.add({
+                severity: "error",
+                summary: "Error",
+                detail: err,
+                life: 3000,
+            });
+        });
+}
+
 
 function getDocImageListDefualt() {
   loading.value = true;

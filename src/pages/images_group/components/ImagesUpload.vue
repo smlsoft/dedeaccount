@@ -164,9 +164,13 @@ const openConfirmationDocRef = ref(false);
 
 const emit = defineEmits(["success", "closeDialogUpload"]);
 
+
+const props = defineProps({
+  data_ondrop: Array,
+});
 onMounted(() => {
 
-  console.log(data_import.value);
+  console.log(props.data_ondrop.value);
   storeApp.setPageTitle("อัพโหลดรูปภาพเอกสาร");
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_upload");
@@ -442,7 +446,7 @@ function uploadClick() {
 function myUploader() {
 
   loading.value = true;
-  var interval = 800;
+  var interval = 300;
   if (data_import.value.length > 0) {
 
     var ele = data_import.value[upLoadQue.value];

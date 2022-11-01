@@ -43,7 +43,7 @@ const showImgHeader = ref("");
 const showImgSrc = ref(null);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(50);
+const limitPage = ref(20);
 const showContent = ref("");
 const createDialog = ref(false);
 const data_gallery = ref([]);
@@ -325,14 +325,15 @@ function getDocumentImageGroupScroll() {
                     res.data.forEach((ele) => {
                         ele.isUpdate = false;
 
-                        ele = ele.map((element) => {
+                        let references = ele.references ?? [];
+                        if (ele.references == undefined) {
+                            ele.references = references;
+                        }
 
-                            let references = element.references ?? [];
-                            element.references = references;
-
-                            return element
+                        ele.imagereferences.sort(function (a, b) {
+                            return a.xorder - b.xorder;
                         });
-
+                        
                         data_list.value.push(ele);
                     });
 
@@ -371,11 +372,15 @@ function getDocumentImageGroup() {
                 data_list.value = res.data;
 
                 data_list.value = data_list.value.map((element) => {
-
                     let references = element.references ?? [];
                     element.references = references;
-
                     return element
+                });
+
+                data_list.value.forEach((element, index) => {
+                    element.imagereferences.sort(function (a, b) {
+                        return a.xorder - b.xorder;
+                    });
                 });
 
                 loading.value = false;
@@ -505,7 +510,8 @@ function checkDulicate(array) {
     });
     data_import.value = a;
 
-    openModal()
+    console.log(data_import.value);
+    uploadmodel.value = true;
 
     // uploadProgress();
 }
@@ -1381,7 +1387,7 @@ function showDetailGlImage(docno) {
             <Dialog header="Upload รูปภาพ" v-model:visible="uploadmodel"
                 :breakpoints="{ '960px': '75vw', '640px': '90vw' }" :style="{ width: '80vw' }" :modal="true"
                 :closable="false">
-                <ImageUpload v-on:success="uploadSuccess()" :data_import="data_import"
+                <ImageUpload v-on:success="uploadSuccess()" :data_ondrop="data_import"
                     v-on:closeDialogUpload="closeDialogUpload()"></ImageUpload>
             </Dialog>
             <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
