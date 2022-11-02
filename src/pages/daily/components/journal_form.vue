@@ -7,7 +7,6 @@ import MasterdataService from "@/services/MasterdataService";
 import TextInputNumber from "@/components/widget/TextInputNumber.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
-import { captureRejectionSymbol } from "events";
 
 const myFiles = ref();
 const deleteDetailDialog = ref(false);

@@ -91,18 +91,17 @@ const listShowImageBys = ref([
 ]);
 const showImageBy = ref("");
 const createFormStatus = ref(false);
-const showGLImage = ref(false);
 const dataGlDetail = ref({});
 const daily_form_valid = ref({
-  accountdescription: false,
-  accountgroup: false,
-  accountperiod: false,
-  accountyear: false,
-  amount: false,
-  batchId: false,
-  docdate: false,
-  docno: false,
-  bookcode: false,
+    accountdescription: false,
+    accountgroup: false,
+    accountperiod: false,
+    accountyear: false,
+    amount: false,
+    batchId: false,
+    docdate: false,
+    docno: false,
+    bookcode: false,
 });
 
 onUnmounted(() => {
@@ -1204,19 +1203,13 @@ async function rejectImage(documentimageguid, isReject) {
 
 
 function showDetailGlImage(docno) {
-    console.log(docno)
-
-    showGLImage.value = true;
-
     MasterdataService.getGLledger(docno)
         .then((res) => {
             //console.log(res);
             if (res.success) {
                 setTimeout(() => {
-                 dataGlDetail.value = res.data
-                 console.log(dataGlDetail.value)
+                    router.push({ name: "dailyUpdate", params: { id: res.data.guidfixed ,mode: "read"} });
                 }, 200);
-               
             }
         })
         .catch((err) => {
@@ -1404,46 +1397,7 @@ function showDetailGlImage(docno) {
             <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="confirmChangeImage" v-on:close="onClose"
                 v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
 
-            <Dialog :header="dataGlDetail.docno" v-model:visible="showGLImage"
-                :breakpoints="{ '960px': '75vw', '640px': '90vw' }" :style="{ width: '80vw' }" :modal="true"
-                :draggable="false" position="top">
 
-
-                <TabView class="tabview-custom" ref="tabview">
-                    <TabPanel>
-                        <template #header>
-                            <i class="pi pi-book mr-1"></i>
-                            <span> ข้อมูลรายวัน</span>
-                        </template>
-                        <div >
-                            <JournalForm :daily_form="dataGlDetail"  :daily_form_valid="daily_form_valid">
-                            </JournalForm>
-                        </div>
-                    </TabPanel>
-                    <!-- <TabPanel>
-                        <template #header>
-                            <i class="pi pi-wallet mr-1"></i>
-                            <span> ข้อมูลภาษี</span>
-                        </template>
-                        <div v-if="!onLoad">
-                            <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
-                                v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
-                                v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <template #header>
-                            <i class="pi pi-wallet mr-1"></i>
-                            <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                        </template>
-                        <div v-if="!onLoad">
-                            <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
-                                v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
-                        </div>
-                    </TabPanel> -->
-                </TabView>
-
-            </Dialog>
         </MainContentWarp>
     </AppLayout>
 </template>

@@ -201,7 +201,7 @@ export default [
     component: () => import("../pages/daily/daily_form.vue"),
   },
   {
-    path: "/daily/form/:id",
+    path: "/daily/form/:id/:mode",
     name: "dailyUpdate",
     meta: {
       auth: true,

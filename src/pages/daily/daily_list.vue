@@ -68,7 +68,7 @@ function goForm() {
   router.push({ name: "dailyForm" });
 }
 function goDetail(data) {
-  router.push({ name: "dailyUpdate", params: { id: data.guidfixed } });
+  router.push({ name: "dailyUpdate", params: { id: data.guidfixed ,mode: "edit"} });
 }
 
 function confirmDeleteDetail(data) {

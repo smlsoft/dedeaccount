@@ -47,7 +47,7 @@ const selectedImgUrl = ref("");
 const selectedImgData = ref({
   guidfixed: "",
   imagereferences: [],
-  references: []
+  references: [],
 });
 const totalPage = ref(0);
 const sortReject = ref("0");
@@ -159,8 +159,7 @@ const taxes_valid = ref([
     custtaxid: false,
   },
 ]);
-
-
+const readMode = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -175,6 +174,14 @@ onUnmounted(() => {
 onMounted(() => {
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
+
+  if (route.params.mode == "read") {
+    readMode.value = true;
+  } else {
+    readMode.value = false;
+  }
+
+  console.log(readMode.value);
 
   if (
     route.params.id != "" &&
@@ -262,13 +269,10 @@ function getGLDetail(id) {
   MasterdataService.getGLDetail(id)
     .then((res) => {
       if (res.success) {
-
         console.log(res);
-
 
         const vat = res.data.vats;
         const tax = res.data.taxes;
-
 
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
@@ -281,10 +285,12 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
-        if (daily_form.value.exdocrefdate = "0001-01-01T00:00:00Z") {
+        if ((daily_form.value.exdocrefdate = "0001-01-01T00:00:00Z")) {
           daily_form.value.exdocrefdate = "";
         } else {
-          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
+            res.data.exdocrefdate
+          );
         }
         daily_form.value.exdocrefno = res.data.exdocrefno;
 
@@ -366,7 +372,7 @@ function getGLDetail(id) {
           console.log();
         }
         if (res.data.documentref != "") {
-          console.log("222")
+          console.log("222");
           MasterdataService.getImagesByDocref(res.data.documentref)
             .then((res) => {
               if (res.success) {
@@ -428,7 +434,12 @@ function goList() {
   //removeSelectImg();
   removeMagnify();
   setTimeout(() => {
-    router.push({ name: "dailyList" });
+    console.log(readMode.value);
+    if (readMode.value) {
+      router.push({ name: "pic_group_docref" });
+    } else {
+      router.push({ name: "dailyList" });
+    }
   }, 100);
 }
 
@@ -469,7 +480,10 @@ async function confirmSave() {
     parid: daily_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
-    exdocrefdate: (daily_form.value.exdocrefdate != "") ? Utils.getFormatDateTime(daily_form.value.exdocrefdate) : "0001-01-01T00:00:00Z",
+    exdocrefdate:
+      daily_form.value.exdocrefdate != ""
+        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
+        : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
@@ -796,7 +810,7 @@ function getDocumentImageGroup() {
     selectSort.value,
     sortOrder.value,
     sortRef.value,
-    sortReject.value,
+    sortReject.value
   )
     .then((res) => {
       console.log(res);
@@ -818,7 +832,6 @@ function getDocumentImageGroup() {
     });
 }
 
-
 function resizeend(event) {
   console.log(event);
 }
@@ -826,13 +839,12 @@ function removeSelectImg() {
   selectedImgData.value = {
     guidfixed: "",
     imagereferences: [],
-    references: []
+    references: [],
   };
   selectedImg.value = false;
   selectedImgUrl.value = "";
   doc_images.value = [];
   hidepanel();
-
 }
 function removeMagnify() {
   const elements = document.getElementsByClassName("img-magnifier-glass");
@@ -1125,15 +1137,12 @@ async function uploadProgress(data_import) {
         console.log(newfile);
         ele = newfile;
 
-
         ImageDataService.upLoadImages(ele, "GL")
           .then((res) => {
             //console.log(res);
             if (res.success) {
-
               let datex = ele.lastModified.toString().slice(0, -3);
               let timex = new Date(datex * 1000);
-
 
               let newData = {
                 name: ele.name,
@@ -1141,7 +1150,7 @@ async function uploadProgress(data_import) {
                 imageuri: res.data.uri,
                 uploadedby: localStorage._usercode,
                 uploadedat: Utils.getFormatDateTime(new Date()),
-              }
+              };
               setTimeout(() => {
                 ImageDataService.postDocumentImage(newData)
                   .then((res) => {
@@ -1164,10 +1173,8 @@ async function uploadProgress(data_import) {
                       detail: err,
                       life: 3000,
                     });
-
                   });
               }, 100);
-
             }
           })
           .catch((err) => {
@@ -1179,7 +1186,6 @@ async function uploadProgress(data_import) {
               life: 3000,
             });
           });
-
 
         // MasterdataService.upLoadDocImages(newfile, "GL")
         //   .then((res) => {
@@ -1204,9 +1210,6 @@ async function uploadProgress(data_import) {
         //       life: 3000,
         //     });
         //   });
-
-
-
       };
       image.src = readerEvent.target.result;
     };
@@ -1327,7 +1330,9 @@ function onRowReorder(data) {
 }
 
 function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
+  var ele = accountChart_detail.value.filter(
+    (val) => val.accountcode == data.accountcode
+  );
   daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
   daily_form.value.journaldetail[index].accountname = ele[0].accountname;
 }
@@ -1497,8 +1502,15 @@ function getSumTaxBase(data) {
 }
 
 const setTransform = () => {
-  zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
-}
+  zoomStyle.value =
+    "transform:translate(" +
+    pointX.value +
+    "px, " +
+    pointY.value +
+    "px) scale(" +
+    scale.value +
+    ")";
+};
 
 function onmousedown(e) {
   //console.log(e);
@@ -1518,8 +1530,8 @@ function onmousemove(e) {
   if (!panning.value) {
     return;
   }
-  pointX.value = (e.clientX - start.value.x);
-  pointY.value = (e.clientY - start.value.y);
+  pointX.value = e.clientX - start.value.x;
+  pointY.value = e.clientY - start.value.y;
   setTransform();
 }
 
@@ -1528,8 +1540,8 @@ function onwheel(e) {
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
-    delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-  (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
+    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
   pointX.value = e.clientX - xs * scale.value;
   pointY.value = e.clientY - ys * scale.value;
 
@@ -1550,35 +1562,57 @@ function getDocumentImageGroupDefualt() {
   searchItem.value = "";
   getDocumentImageGroup();
 }
-
-
 </script>
 
 <template>
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-0">
-        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info"
-          @click="goList()" v-if="!onLoad" />
-        <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
+        <Button
+          label="กลับหน้ารายการ"
+          icon="pi pi-arrow-left"
+          class="p-button-text p-button-sm p-button-info"
+          @click="goList()"
+          v-if="!onLoad"
+        />
+        <div
+          class="flex align-items-center justify-content-center"
+          style="min-height: 60vh"
+          v-if="onLoad"
+        >
           <ProgressSpinner />
         </div>
-        <Dialog v-model:visible="showSelectFrom" :hide="((showImageList = false), (showUploadImage = false))"
-          class="p-dialog-maximized selectimgDialog" style="z-index: 800" :modal="true" :closeOnEscape="true"
-          :dismissableMask="true" :showHeader="true" :draggable="false">
+        <Dialog
+          v-model:visible="showSelectFrom"
+          :hide="((showImageList = false), (showUploadImage = false))"
+          class="p-dialog-maximized selectimgDialog"
+          style="z-index: 800"
+          :modal="true"
+          :closeOnEscape="true"
+          :dismissableMask="true"
+          :showHeader="true"
+          :draggable="false"
+        >
           <template #header>
             <h3 class="p-1 mt-2 mb-2">รูปภาพเอกสาร</h3>
           </template>
-          <div class="flex align-items-center justify-content-center mt-5" v-if="!showImageList && !showUploadImage">
+          <div
+            class="flex align-items-center justify-content-center mt-5"
+            v-if="!showImageList && !showUploadImage"
+          >
             <div class="flex mr-2">
               <Card
                 class="shadow-2 border-round pl-3 pr-3 pb-0 align-items-center justify-content-center cursor-pointer hover:border-green-700 border-2 border-300"
                 @click="
                   showImageList = true;
                   showUploadImage = false;
-                ">
+                "
+              >
                 <template #header>
-                  <img src="@/assets/img/galleryimg.png" style="height: 200px" />
+                  <img
+                    src="@/assets/img/galleryimg.png"
+                    style="height: 200px"
+                  />
                 </template>
                 <template #title>เลือกจากคลังรูป</template>
               </Card>
@@ -1586,63 +1620,113 @@ function getDocumentImageGroupDefualt() {
             <div class="flex ml-2">
               <Card
                 class="shadow-2 border-round pl-3 pr-3 pb-0 align-items-center justify-content-center cursor-pointer hover:border-green-700 border-2 border-300"
-                @click="chooseFile()">
+                @click="chooseFile()"
+              >
                 <template #header>
                   <img src="@/assets/img/folderimg.png" style="height: 200px" />
                 </template>
                 <template #title>อัพโหลดรูปภาพ</template>
-                <template #content><input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect"
-                    :multiple="false" accept="image/*" style="display: none" /></template>
+                <template #content
+                  ><input
+                    id="chooseFile"
+                    ref="fileInput"
+                    type="file"
+                    @change="onFileSelect"
+                    :multiple="false"
+                    accept="image/*"
+                    style="display: none"
+                /></template>
               </Card>
             </div>
           </div>
 
-          <div class="flex align-items-center justify-content-center mt-0" v-if="showImageList && !showUploadImage">
+          <div
+            class="flex align-items-center justify-content-center mt-0"
+            v-if="showImageList && !showUploadImage"
+          >
             <Card class="p-3 w-screen">
               <template #header>
                 <div class="p-inputgroup mt-2">
                   <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button icon="pi pi-search" @click="getDocumentImageGroup()" class="p-button-primary" />
+                  <Button
+                    icon="pi pi-search"
+                    @click="getDocumentImageGroup()"
+                    class="p-button-primary"
+                  />
                 </div>
                 <div class="flex justify-content-between">
                   <div class="grid mt-3 ml-1">
-                    <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage"
-                      :totalRecords="totalItemsCount" @page="onPage($event)">
+                    <Paginator
+                      class="justify-content-start"
+                      :rows="limitPage"
+                      v-model:first="firstPage"
+                      :totalRecords="totalItemsCount"
+                      @page="onPage($event)"
+                    >
                     </Paginator>
                   </div>
                   <div class="grid mt-3 mr-1">
                     <div class="flex align-items-center ml-2">
                       <span class="mr-2 text-900">การเรียงข้อมูล</span>
-                      <Dropdown v-model="selectSort" :options="sortField" optionLabel="name" optionValue="code"
-                        @change="selectSortUse($event)">
+                      <Dropdown
+                        v-model="selectSort"
+                        :options="sortField"
+                        optionLabel="name"
+                        optionValue="code"
+                        @change="selectSortUse($event)"
+                      >
                       </Dropdown>
-                      <i v-if="sortOrder == -1" class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem" @click="selectSortOrder(1)"></i>
-                      <i v-if="sortOrder == 1" class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem" @click="selectSortOrder(-1)"></i>
+                      <i
+                        v-if="sortOrder == -1"
+                        class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(1)"
+                      ></i>
+                      <i
+                        v-if="sortOrder == 1"
+                        class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(-1)"
+                      ></i>
                     </div>
                   </div>
                 </div>
               </template>
               <template #content class="p-0">
-                <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
-                  <div class="flex align-content-center justify-content-center flex-wrap card-container"
-                    style="min-height: 56vh">
+                <div
+                  class="p-3 card"
+                  v-if="data_gallery.length == 0 && data_list.length == 0"
+                >
+                  <div
+                    class="flex align-content-center justify-content-center flex-wrap card-container"
+                    style="min-height: 56vh"
+                  >
                     <div class="p-0">
                       <ProgressSpinner />
                     </div>
                   </div>
                 </div>
                 <div class="grid">
-                  <div class="col-12 md:col-6 lg:col-4 xl:col-3" v-for="data in data_list" :key="data.guidfixed">
-
-                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :allimage_used="AllImageUsed"
-                      :mode="3" v-on:selectImg="selectImg"></ImageBlock>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
+                  >
+                    <ImageBlock
+                      :images_data="data"
+                      :images_selete="selectedImgUse"
+                      :allimage_used="AllImageUsed"
+                      :mode="3"
+                      v-on:selectImg="selectImg"
+                    ></ImageBlock>
                     <!-- 
                     <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
                       :allimage_used="AllImageUsed"></ImageBlock> -->
                   </div>
-                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1658,7 +1742,10 @@ function getDocumentImageGroupDefualt() {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1674,7 +1761,10 @@ function getDocumentImageGroupDefualt() {
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1695,56 +1785,108 @@ function getDocumentImageGroupDefualt() {
             </Card>
           </div>
         </Dialog>
-        <div class="surface-card p-4 shadow-2 border-round p-fluid" v-if="!onLoad">
+        <div
+          class="surface-card p-4 shadow-2 border-round p-fluid"
+          v-if="!onLoad"
+        >
           <Splitter layout="horizontal">
-            <SplitterPanel :size="1" class="relative" id="panelForm2" @mouseleave="removeMagnify()">
+            <SplitterPanel
+              :size="1"
+              class="relative"
+              id="panelForm2"
+              @mouseleave="removeMagnify()"
+            >
               <div class="flex justify-content-between align-items-right">
                 <div>
-                  <Button v-if="selectedImg == false" icon="pi pi-angle-double-right" class="p-button-text" @click="
-                    selectedImg = true;
-                    showpanel();
-                  " />
-                  <Button v-if="selectedImg == true" icon="pi pi-angle-double-left" class="p-button-text" @click="
-                    selectedImg = false;
-                    hidepanel();
-                  " />
+                  <Button
+                    v-if="selectedImg == false"
+                    icon="pi pi-angle-double-right"
+                    class="p-button-text"
+                    @click="
+                      selectedImg = true;
+                      showpanel();
+                    "
+                  />
+                  <Button
+                    v-if="selectedImg == true"
+                    icon="pi pi-angle-double-left"
+                    class="p-button-text"
+                    @click="
+                      selectedImg = false;
+                      hidepanel();
+                    "
+                  />
                 </div>
-                <div>
-                  <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
-                    class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
-                  <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-times" class="p-button-text" @click="
-                    removeSelectImg();
-                    removeMagnify();
-                  " />
+                <div v-if="!readMode">
+                  <Button
+                    v-if="selectedImg && selectedImgUrl != ''"
+                    icon="pi pi-trash"
+                    class="p-button-text text-red-500"
+                    @click="confirmRejectDialog = true"
+                  />
+                  <Button
+                    v-if="selectedImg && selectedImgUrl != ''"
+                    icon="pi pi-times"
+                    class="p-button-text"
+                    @click="
+                      removeSelectImg();
+                      removeMagnify();
+                    "
+                  />
                 </div>
               </div>
-              <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
+              <Button
+                v-if="selectedImgUrl == ''"
+                icon="pi pi-image"
+                class="p-button-raised p-button-rounded absolute bottom-0 left-0"
+                @click="
                   showSelectFrom = true;
                   getDocumentImageGroup();
                   removeMagnify();
-                " />
-              <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
-                <Message severity="error" :closable="false" v-if="
-                  selectedImgData.isreject == true
-                ">
+                "
+              />
+              <div class="p-0" v-if="selectedImg">
+                <Message
+                  severity="error"
+                  :closable="false"
+                  v-if="selectedImgData.isreject == true"
+                >
                   <span class="flex align-items-center justify-content-center">
                     *Warning Message รูปโดนยกเลิก
                   </span>
                 </Message>
-                <Message severity="warn" :closable="false" v-if="selectedImgData.references.length > 0">
-                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว </Message>
+                <Message
+                  severity="warn"
+                  :closable="false"
+                  v-if="selectedImgData.references.length > 0"
+                >
+                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว
+                </Message>
               </div>
               <KeepAlive>
-                <Galleria v-if="doc_images.length > 0 && selectedImg" :value="doc_images" :thumbnailsPosition="'top'"
-                  :showThumbnails="doc_images.length > 1" v-model:activeIndex="activeIndex">
+                <Galleria
+                  v-if="doc_images.length > 0 && selectedImg"
+                  :value="doc_images"
+                  :thumbnailsPosition="'top'"
+                  :showThumbnails="doc_images.length > 1"
+                  v-model:activeIndex="activeIndex"
+                >
                   <template #item="slotProps">
-                    <div class="p-3 img-magnifier-container mt-3">
+                    <div class="p-0 img-magnifier-container mt-0">
                       <div class="zoom_outer">
-                        <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
-                          @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                          <img v-if="slotProps.item != null" :src="slotProps.item.imageuri"
-                            class="p-image-preview zoom" />
+                        <div
+                          id="zoom"
+                          :style="zoomStyle"
+                          @mousedown="onmousedown($event)"
+                          @mouseup="onmouseup($event)"
+                          @mousemove="onmousemove($event)"
+                          @wheel="onwheel($event)"
+                        >
+                          <img
+                            v-if="slotProps.item != null"
+                            :src="slotProps.item.imageuri"
+                            class="p-image-preview zoom"
+                          />
                         </div>
                       </div>
                       <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
@@ -1752,18 +1894,25 @@ function getDocumentImageGroupDefualt() {
                     </div>
                   </template>
                   <template #thumbnail="slotProps">
-                    <img :src="slotProps.item.imageuri" style="width: 40px; height: 40px" />
+                    <img
+                      :src="slotProps.item.imageuri"
+                      style="width: 40px; height: 40px"
+                    />
                   </template>
                   <template #footer></template>
                 </Galleria>
               </KeepAlive>
 
-              <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
+              <Button
+                v-if="selectedImgUrl == ''"
+                icon="pi pi-image"
+                class="p-button-raised p-button-rounded absolute bottom-0 left-0"
+                @click="
                   showSelectFrom = true;
                   getDocumentImageGroup();
                   removeMagnify();
-                " />
+                "
+              />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
               <TabView class="tabview-custom" ref="tabview">
@@ -1773,11 +1922,20 @@ function getDocumentImageGroupDefualt() {
                     <span> ข้อมูลรายวัน</span>
                   </template>
                   <div v-if="!onLoad">
-                    <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail" v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail" v-on:reload="reload" v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder" v-on:selectAccount="selectAccount">
+                    <JournalForm
+                      :isUpdate="readMode"
+                      :daily_form="daily_form"
+                      :daily_form_valid="daily_form_valid"
+                      :accountChart_detail="accountChart_detail"
+                      :accountBook_detail="accountBook_detail"
+                      :groupAccount_detail="groupAccount_detail"
+                      v-on:ImportDaliy="ImportDaliy"
+                      v-on:deleteDetail="deleteDetail"
+                      v-on:reload="reload"
+                      v-on:addColumn="addColumn"
+                      v-on:onRowReorder="onRowReorder"
+                      v-on:selectAccount="selectAccount"
+                    >
                     </JournalForm>
                   </div>
                 </TabPanel>
@@ -1787,9 +1945,16 @@ function getDocumentImageGroupDefualt() {
                     <span> ข้อมูลภาษี</span>
                   </template>
                   <div v-if="!onLoad">
-                    <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
+                    <VatForm
+                      :isUpdate="readMode"
+                      :vats="vats"
+                      :vats_valid="vats_valid"
+                      v-on:addBoxVat="addBoxVat"
+                      v-on:deleteDetailVat="deleteDetailVat"
+                      v-on:calVatAmount="calVatAmount"
+                      v-on:checkDateFormat="checkDateFormat"
+                      v-on:setBranch="setBranch"
+                    ></VatForm>
                   </div>
                 </TabPanel>
                 <TabPanel>
@@ -1798,8 +1963,14 @@ function getDocumentImageGroupDefualt() {
                     <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
                   </template>
                   <div v-if="!onLoad">
-                    <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
+                    <TaxForm
+                      :isUpdate="readMode"
+                      :taxes="taxes"
+                      :taxes_valid="taxes_valid"
+                      v-on:addBoxTax="addBoxTax"
+                      v-on:deleteDetailTax="deleteDetailTax"
+                      v-on:getSumTaxBase="getSumTaxBase"
+                    ></TaxForm>
                   </div>
                 </TabPanel>
               </TabView>
@@ -1807,16 +1978,34 @@ function getDocumentImageGroupDefualt() {
           </Splitter>
 
           <div class="mt-4 ml-0">
-            <Button @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
+            <Button
+              :disabled="readMode"
+              @click="onSave"
+              label="บันทึกรายวัน"
+              icon="pi pi-save"
+              class="w-auto p-button-success"
+            ></Button>
           </div>
         </div>
       </div>
-      <DialogForm :confirmDialog="confirmRejectDialog" :textContent="conreject" v-on:close="confirmRejectDialog = false"
-        v-on:confirm="rejectImg()"></DialogForm>
-      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false"
-        v-on:confirm="confirmSave"></DialogForm>
-      <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="conchange"
-        v-on:close="confirmChangeImageDialog = false" v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmRejectDialog"
+        :textContent="conreject"
+        v-on:close="confirmRejectDialog = false"
+        v-on:confirm="rejectImg()"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmSaveDialog"
+        :textContent="conSave"
+        v-on:close="confirmSaveDialog = false"
+        v-on:confirm="confirmSave"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmChangeImageDialog"
+        :textContent="conchange"
+        v-on:close="confirmChangeImageDialog = false"
+        v-on:confirm="changeImage(newDocRefImage)"
+      ></DialogForm>
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -1840,30 +2029,26 @@ function getDocumentImageGroupDefualt() {
   padding: 10px 15px 10px 15px;
 }
 
-
 .zoom_outer {
   padding: 0;
   outline: 0;
   overflow: hidden;
   width: auto;
   height: auto;
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 #zoom {
-  padding: 20px;
+  padding: 0px;
   width: 100%;
   height: 100%;
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
   cursor: grab;
-
-
 }
 
-div#zoom>img {
+div#zoom > img {
   width: 100%;
   height: auto;
-
 }
 </style>
