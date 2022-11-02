@@ -72,7 +72,7 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1,ref=1&reject=0`).then(res => res.data);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1&ref=1&reject=0`).then(res => res.data);
     },
 
 }

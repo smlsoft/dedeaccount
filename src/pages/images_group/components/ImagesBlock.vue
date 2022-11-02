@@ -23,15 +23,15 @@
           <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length > 1"> กลุ่ม:
             {{ props.images_data.title }}</span>
         </div>
-        <div class="flex text-600 justify-content-between align-items-center">
-          <div class="font-medium text-sm ">
-            <Button class="p-button-text text-color-secondary " icon="pi pi-eye"
+        <div class="flex justify-content-between flex-wrap h-3rem">
+            <div class="flex align-items-center justify-content-center ">
+              <Button class="p-button-text text-color-secondary " icon="pi pi-eye"
               @click="showDetailGlImage(props.images_data.references[0].docno)"
               v-if="props.images_data.references.length > 0" />
-          </div>
-          <div class="font-medium text-sm">
-            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
-          </div>
+            </div>
+            <div class="flex align-items-center justify-content-center font-medium text-sm ">
+              {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
+            </div>
         </div>
 
       </div>
