@@ -50,24 +50,21 @@
 
                 <Dropdown
                   v-model="accountcode"
-                  field="accountcode"
                   :options="groups"
-                  :filter="true"
                   :editable="true"
-                  filterPlaceholder="ค้นหา"
                   @change="selectAccount($event)"
                   optionLabel="accountcode"
                   optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
                 >
                   <template #footer>
                     <div class="align-right">
                       <Button
+                        v-model="accountcode"
                         style="font-size: 0.9rem"
-                        label="เคลียร์ข้อความ"
+                        label="เคลียร์ค่า"
                         icon="pi pi-times"
                         class="p-button-danger-sm"
-                        @click="cleartext($event)"
+                        @click="cleartext(accountcode)"
                       />
                     </div>
                   </template>
@@ -83,15 +80,11 @@
                 <Dropdown
                   v-if="state == true"
                   v-model="accountcode2"
-                  field="accountcode"
                   :options="groups"
-                  :filter="true"
                   :editable="true"
-                  filterPlaceholder="ค้นหา"
                   @change="selectAccount2($event)"
                   optionLabel="accountcode"
                   optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
                 />
               </div>
             </div>
@@ -251,7 +244,7 @@ const balance = ref();
 const balancenext = ref();
 const result = ref(false);
 const accountmaintypeList = ref([{ name: "0", code: 1 }]);
-3;
+const number = ref();
 const props = defineProps({
   daily_form: Object,
   daily_form_valid: Object,
@@ -360,6 +353,7 @@ function selectAccount(event) {
   //   console.log("emty");
   // }
   console.log(event);
+
   state.value == false;
   accountcode1.value = event.value;
 
@@ -369,6 +363,11 @@ function selectAccount(event) {
 
   accountcode1.value = event.value;
   dataaccountcode.value = accountcode1.value + ":" + accountcode1.value;
+  if (event.value == " ") {
+    console.log(true);
+  } else {
+    console.log(false);
+  }
 
   // else if ((state.value = true)) {
   //   dataaccountcode.value = event.value + ":" + event.value;
@@ -378,12 +377,10 @@ function selectAccount(event) {
 }
 
 function cleartext(event) {
-  console.log(event);
-  event.value = "";
-  console.log(event);
+  accountcode.value = null;
+
   dataaccountcode.value = "";
 }
-
 function selectAccount2(event) {
   if ((state.value = false)) {
     accountcode2.value = event.value;
