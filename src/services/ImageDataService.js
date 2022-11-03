@@ -18,9 +18,6 @@ export default {
     },
 
     getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy) {
-
-        console.log(showBy);
-
         let q = "";     // search
 
         let sortShowBy = "";
@@ -28,7 +25,6 @@ export default {
             q = "&q=" + search
         }
  
-
         if (showBy == "save") {
             sortShowBy = "&ref=2"
         } else if (showBy == "unsave") {
@@ -36,7 +32,6 @@ export default {
         } else if (showBy == "reject") {
             sortShowBy = "&reject=1"
         }
-
 
         console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},imagereferences.xorder:1${sortShowBy}`);
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},imagereferences.xorder:1${sortShowBy}`).then(res => res.data);
@@ -75,4 +70,8 @@ export default {
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1&ref=1&reject=0`).then(res => res.data);
     },
 
+    // เพิ่มรูปใน Group Image
+    putAddImageInGroup(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/documentimages`, data).then(res => res.data);
+    },
 }

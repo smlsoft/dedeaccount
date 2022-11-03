@@ -1562,6 +1562,15 @@ function getDocumentImageGroupDefualt() {
   searchItem.value = "";
   getDocumentImageGroup();
 }
+
+function resetZoomImage() {
+  scale.value = 1;
+  panning.value = false;
+  pointX.value = 0;
+  pointY.value = 0;
+  start.value = { x: 0, y: 0 };
+  zoomStyle.value = "";
+}
 </script>
 
 <template>
@@ -1870,6 +1879,7 @@ function getDocumentImageGroupDefualt() {
                   :thumbnailsPosition="'top'"
                   :showThumbnails="doc_images.length > 1"
                   v-model:activeIndex="activeIndex"
+                  @update:activeIndex="resetZoomImage()"
                 >
                   <template #item="slotProps">
                     <div class="p-0 img-magnifier-container mt-0">

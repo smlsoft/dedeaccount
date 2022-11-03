@@ -1,107 +1,240 @@
 <template>
-  <div class="p-1 cursor-pointer card-container blue-container bg-blue-while hover:shadow-2" :class="borderImage()"
-    @click="selectModeImage()" @mouseenter="hoveredItem = props.images_data.imageuri" @mouseleave="hoveredItem = null">
+  <div
+    class="p-1 cursor-pointer card-container blue-container bg-blue-while hover:shadow-2"
+    :class="borderImage()"
+    @click="selectModeImage()"
+    @mouseenter="hoveredItem = props.images_data.imageuri"
+    @mouseleave="hoveredItem = null"
+  >
     <div class="p-2 surface-card border-round cardimage">
-      <div class="surface-section z-1 relative transition-all transition-duration-300 p-1">
-        <div class="relative mb-1 ">
-          <img :src="props.images_data.imagereferences[0].imageuri" class="w-full "
-            style="object-fit: cover; height: 12rem" :style="props.mode != 4 ? 'cursor: zoom-in' : ''"
-            @click="props.mode != 4 ? zoomImg(props.images_data) : ''" />
-          <button v-if="props.images_data.imagereferences.length > 1" @click="zoomImg(props.images_data)" type="text"
+      <div
+        class="surface-section z-1 relative transition-all transition-duration-300 p-1"
+      >
+        <div class="relative mb-1">
+          <img
+            :src="props.images_data.imagereferences[0].imageuri"
+            class="w-full"
+            style="object-fit: cover; height: 12rem"
+            :style="props.mode != 4 ? 'cursor: zoom-in' : ''"
+            @click="props.mode != 4 ? zoomImg(props.images_data) : ''"
+          />
+          <button
+            v-if="props.images_data.imagereferences.length > 1"
+            @click="zoomImg(props.images_data)"
+            type="text"
             v-ripple
             class="fadein p-link w-3rem h-3rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
-            style="top: 0rem; right: 1rem">
-            <span class="font-bold text-white">{{ props.images_data.imagereferences.length }}</span>
+            style="top: 0rem; right: 1rem"
+          >
+            <span class="font-bold text-white">{{
+              props.images_data.imagereferences.length
+            }}</span>
           </button>
-          <div class="absolute" style="bottom: 0.5rem; right: 0.3rem" v-if="checkUseImg(props.images_data.guidfixed)">
-            <Chip :label="getUseData(props.images_data.guidfixed)" icon="pi pi-user" class="mr-2 mb-2 " />
+          <div
+            class="absolute"
+            style="bottom: 0.5rem; right: 0.3rem"
+            v-if="checkUseImg(props.images_data.guidfixed)"
+          >
+            <Chip
+              :label="getUseData(props.images_data.guidfixed)"
+              icon="pi pi-user"
+              class="mr-2 mb-2"
+            />
           </div>
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
-          <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length == 1"> ชื่อ:
-            {{ props.images_data.title }}</span>
-          <span class="text-900 font-medium titletext" v-if="props.images_data.imagereferences.length > 1"> กลุ่ม:
-            {{ props.images_data.title }}</span>
+          <span
+            class="text-900 font-medium titletext"
+            v-if="props.images_data.imagereferences.length == 1"
+          >
+            ชื่อ: {{ props.images_data.title }}</span
+          >
+          <span
+            class="text-900 font-medium titletext"
+            v-if="props.images_data.imagereferences.length > 1"
+          >
+            กลุ่ม: {{ props.images_data.title }}</span
+          >
         </div>
         <div class="flex justify-content-between flex-wrap h-3rem">
-            <div class="flex align-items-center justify-content-center ">
-              <Button class="p-button-text text-color-secondary " icon="pi pi-eye"
+          <div class="flex align-items-center justify-content-center">
+            <Button
+              class="p-button-text text-color-secondary"
+              icon="pi pi-eye"
               @click="showDetailGlImage(props.images_data.references[0].docno)"
-              v-if="props.images_data.references.length > 0" />
-            </div>
-            <div class="flex align-items-center justify-content-center font-medium text-sm ">
-              {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
-            </div>
+              v-if="props.images_data.references.length > 0"
+            />
+          </div>
+          <div
+            class="flex align-items-center justify-content-center font-medium text-sm"
+          >
+            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
+          </div>
         </div>
-
       </div>
     </div>
   </div>
-  <Dialog :dismissableMask="true" :close-on-escape="false" v-model:visible="showImgDialog"
-    :header="'รายละเอียด ' + props.images_data.title" :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{ width: '60vw' }" :modal="true">
+  <Dialog
+    :dismissableMask="true"
+    :close-on-escape="false"
+    :closeOnEscape="true"
+    v-model:visible="showImgDialog"
+    :header="'รายละเอียด ' + props.images_data.title"
+    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    :style="{ width: '60vw' }"
+    :modal="true"
+    @update:visible="resetZoomImage()"
+  >
     <div class="confirmation-content" id="boxconfirm">
       <div class="flex justify-content-between mb-2">
-        <div class="flex">ชื่อรูป : {{ showImgData[activeIndexList].name }}</div>
         <div class="flex">
-          วันที่ :{{ Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat) }}
-          โดย {{ showImgData[activeIndexList].uploadedby }}</div>
+          ชื่อรูป : {{ showImgData[activeIndexList].name }}
+        </div>
+        <div class="flex">
+          วันที่ :{{
+            Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat)
+          }}
+          โดย {{ showImgData[activeIndexList].uploadedby }}
+        </div>
       </div>
       <div class="flex justify-content-between pt-2 pb-2">
         <div class="flex">
-          <Button class="p-button-danger text-white" icon="pi pi-file-excel" label="ยกเลิกกลุ่มเอกสาร"
+          <Button
+            class="p-button-danger text-white"
+            icon="pi pi-file-excel"
+            label="ยกเลิกกลุ่มเอกสาร"
             @click="confirmUnGroup = true"
-            v-if="showImgData.length > 1 && !checkUseImg(props.images_data.guidfixed) && props.images_data.references.length == 0" />
-          <Button v-if="props.mode != 4" class="p-button-warning  ml-1" icon="pi pi-print"
-            @click="printImg(showImgData)" label="ปริ้นเอกสาร" />
+            v-if="
+              showImgData.length > 1 &&
+              !checkUseImg(props.images_data.guidfixed) &&
+              props.images_data.references.length == 0
+            "
+          />
+          <Button
+            v-if="props.mode != 4"
+            class="p-button-warning ml-1"
+            icon="pi pi-print"
+            @click="printImg(showImgData)"
+            label="ปริ้นเอกสาร"
+          />
         </div>
-        <div class="flex"
-          v-if="props.mode == 1 && !checkUseImg(props.images_data.guidfixed) && props.images_data.references.length == 0">
-          <Button class="p-button-outlined p-button-danger " icon="pi pi-trash" label="ยกเลิกรูปเอกสาร"
-            @click="selectRejectImage(true)" v-if="!showImgData[activeIndexList].isreject" />
-          <Button class="p-button-outlined p-button-success mr-1 " icon="pi pi-refresh" label="นำรูปกลับมาใช้"
-            @click="selectRejectImage(false)" v-if="showImgData[activeIndexList].isreject" />
-          <Button class="p-button-outlined  " icon="pi pi-upload" label="อัพโหลดรูปใหม่" @click="chooseFile()"
-            v-if="showImgData[activeIndexList].isreject" />
-          <input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect" :multiple="false" accept="image/*"
-            style="display: none" />
+        <div
+          class="flex"
+          v-if="
+            props.mode == 1 &&
+            !checkUseImg(props.images_data.guidfixed) &&
+            props.images_data.references.length == 0
+          "
+        >
+          <Button
+            class="p-button-outlined p-button-danger"
+            icon="pi pi-trash"
+            label="ยกเลิกรูปเอกสาร"
+            @click="selectRejectImage(true)"
+            v-if="!showImgData[activeIndexList].isreject"
+          />
+          <Button
+            class="p-button-outlined p-button-success mr-1"
+            icon="pi pi-refresh"
+            label="นำรูปกลับมาใช้"
+            @click="selectRejectImage(false)"
+            v-if="showImgData[activeIndexList].isreject"
+          />
+          <Button
+            class="p-button-outlined"
+            icon="pi pi-upload"
+            label="อัพโหลดรูปใหม่"
+            @click="chooseFile()"
+            v-if="showImgData[activeIndexList].isreject"
+          />
+          <input
+            id="chooseFile"
+            ref="fileInput"
+            type="file"
+            @change="onFileSelect"
+            :multiple="false"
+            accept="image/*"
+            style="display: none"
+          />
         </div>
       </div>
 
-      <Galleria :value="showImgData" thumbnailsPosition="top" :circular="true" :show-thumbnails="showImgData.length > 1"
-        v-model:activeIndex="activeIndexList">
-        <template #header="slotProps">
-
-        </template>
+      <Galleria
+        :value="showImgData"
+        thumbnailsPosition="top"
+        :circular="true"
+        :show-thumbnails="showImgData.length > 1"
+        v-model:activeIndex="activeIndexList"
+        @update:activeIndex="resetZoomImage()"
+        :numVisible="5"
+      >
+        <template #header="slotProps"> </template>
         <template #item="slotProps">
           <div class="grid">
             <div class="col-12">
-              <Message severity="warn" v-if="slotProps.item.isreject">รูป {{ slotProps.item.name }} โดนยกเลิก</Message>
+              <Message severity="warn" v-if="slotProps.item.isreject"
+                >รูป {{ slotProps.item.name }} โดนยกเลิก</Message
+              >
             </div>
             <div class="col-12">
-              <img :src="slotProps.item.imageuri" style="width: 100%; display: block;" />
+              <div class="p-0 img-magnifier-container mt-0">
+                <div class="zoom_outer">
+                  <div
+                    id="zoom"
+                    :style="zoomStyle"
+                    @mousedown="onmousedown($event)"
+                    @mouseup="onmouseup($event)"
+                    @mousemove="onmousemove($event)"
+                    @wheel="onwheel($event)"
+                  >
+                    <img
+                      v-if="slotProps.item != null"
+                      :src="slotProps.item.imageuri"
+                      
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- <img
+                :src="slotProps.item.imageuri"
+                style="width: 100%; display: block"
+              /> -->
             </div>
           </div>
-
         </template>
         <template #thumbnail="slotProps">
-          <img :src="slotProps.item.imageuri" style="width: 50px; height: 50px;" />
+          <img
+            :src="slotProps.item.imageuri"
+            style="width: 50px; height: 50px"
+          />
         </template>
       </Galleria>
-
     </div>
-
   </Dialog>
-  <DialogForm :confirmDialog="confirmSaveImg" :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
-    v-on:close="confirmSaveImg = false" v-on:confirm="saveUpdateImg()"></DialogForm>
-  <DialogForm :confirmDialog="confirmUnGroup" :textContent="'ต้องการยกเลิกกลุ่มรูปภาพใช่หรือไม่'"
-    v-on:close="confirmUnGroup = false" v-on:confirm="documentImageUnGroup()"></DialogForm>
-  <DialogForm :confirmDialog="onfirmRejectDialog" v-on:close="onfirmRejectDialog = false"
+  <DialogForm
+    :confirmDialog="confirmSaveImg"
+    :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
+    v-on:close="confirmSaveImg = false"
+    v-on:confirm="saveUpdateImg()"
+  ></DialogForm>
+  <DialogForm
+    :confirmDialog="confirmUnGroup"
+    :textContent="'ต้องการยกเลิกกลุ่มรูปภาพใช่หรือไม่'"
+    v-on:close="confirmUnGroup = false"
+    v-on:confirm="documentImageUnGroup()"
+  ></DialogForm>
+  <DialogForm
+    :confirmDialog="onfirmRejectDialog"
+    v-on:close="onfirmRejectDialog = false"
     :textContent="contentOnfirmRejectDialog"
-    v-on:confirm="rejectImage(props.images_data.imagereferences[activeIndexList].documentimageguid, isReject)">
+    v-on:confirm="
+      rejectImage(
+        props.images_data.imagereferences[activeIndexList].documentimageguid,
+        isReject
+      )
+    "
+  >
   </DialogForm>
-
-
 </template>
 
 <script setup>
@@ -125,6 +258,13 @@ const onfirmRejectDialog = ref(false);
 const isReject = ref(true);
 const contentOnfirmRejectDialog = ref("");
 
+const scale = ref(1);
+const panning = ref(false);
+const pointX = ref(0);
+const pointY = ref(0);
+const start = ref({ x: 0, y: 0 });
+const zoomStyle = ref("");
+
 const props = defineProps({
   images_data: Object,
   images_selete: Array,
@@ -140,7 +280,7 @@ const emit = defineEmits([
   "onReloadData",
   "documentImageUnGroup",
   "rejectImage",
-  "showDetailGlImage"
+  "showDetailGlImage",
 ]);
 
 onMounted(async () => {
@@ -152,15 +292,14 @@ onMounted(async () => {
   $(".titletext").attr(
     "style",
     "width:" +
-    (width - 20) +
-    "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
+      (width - 20) +
+      "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
   );
 });
 
 function chooseFile() {
   document.getElementById("chooseFile").click();
 }
-
 
 function checkSelect(data) {
   var found = 0;
@@ -185,8 +324,6 @@ function flip(x, y) {
 function rotate(angle) {
   cropper.value.rotate(angle);
 }
-
-
 
 function saveUpdateImg() {
   const { canvas } = cropper.value.getResult();
@@ -364,19 +501,15 @@ function getUseData(data) {
 }
 
 function selectImg(data, documentimageguid) {
-
   if (props.mode == 1) {
     let dataSelet = {
       guidfixed: data,
       documentimageguid: documentimageguid,
-    }
+    };
     emit("selectImg", dataSelet);
-
   } else if (props.mode == 3 || props.mode == 4) {
     emit("selectImg", data);
   }
-
-
 }
 
 function zoomImg(data) {
@@ -400,7 +533,11 @@ function rejectImg() {
   emit("rejectImg", props.images_data.documentref);
 }
 function onFileSelect(event) {
-  emit("onFileSelect", event, props.images_data.imagereferences[activeIndexList.value]);
+  emit(
+    "onFileSelect",
+    event,
+    props.images_data.imagereferences[activeIndexList.value]
+  );
   showImgDialog.value = false;
 }
 
@@ -423,25 +560,26 @@ function rejectImage(documentimageguid, isReject) {
 
 function showDetailGlImage(docno) {
   emit("showDetailGlImage", docno);
-
 }
 
 function selectRejectImage(reject) {
   if (reject) {
-    contentOnfirmRejectDialog.value = "ต้องการยกเลิกรูปภาพ " + props.images_data.imagereferences[activeIndexList.value].name;
+    contentOnfirmRejectDialog.value =
+      "ต้องการยกเลิกรูปภาพ " +
+      props.images_data.imagereferences[activeIndexList.value].name;
     isReject.value = true;
     onfirmRejectDialog.value = true;
   } else {
-    contentOnfirmRejectDialog.value = "ต้องการนำรูปภาพ " + props.images_data.imagereferences[activeIndexList.value].name + " กลับมาใช้";
+    contentOnfirmRejectDialog.value =
+      "ต้องการนำรูปภาพ " +
+      props.images_data.imagereferences[activeIndexList.value].name +
+      " กลับมาใช้";
     isReject.value = false;
     onfirmRejectDialog.value = true;
   }
 }
 
-
-
 function selectModeImage() {
-
   console.log("selectModeImage");
   console.log(checkUseImg(props.images_data.guidfixed));
 
@@ -456,7 +594,6 @@ function selectModeImage() {
   let modeMenu = props.mode;
   let statusImage = props.images_data.isreject;
   if (!checkUseImg(props.images_data.guidfixed)) {
-
     if (props.images_data.references.length > 0) {
       return false;
     } else {
@@ -466,16 +603,18 @@ function selectModeImage() {
           zoomImg(props.images_data);
         } else {
           console.log("sigle");
-          selectImg(props.images_data.guidfixed, props.images_data.imagereferences[0]);
+          selectImg(
+            props.images_data.guidfixed,
+            props.images_data.imagereferences[0]
+          );
         }
-      } else if (modeMenu == 3 || modeMenu == 4 && statusImage == false) {
+      } else if (modeMenu == 3 || (modeMenu == 4 && statusImage == false)) {
         selectImg(props.images_data.guidfixed);
       } else if (statusImage == true) {
         zoomImg(props.images_data);
       }
     }
   }
-
 }
 
 function printImg(data) {
@@ -486,7 +625,11 @@ function printImg(data) {
   w.document.write("</head><body >");
 
   data.forEach((element, index) => {
-    w.document.write('<img id="print-image-element" src="' + element.imageuri + '" width="100%"/>');
+    w.document.write(
+      '<img id="print-image-element" src="' +
+        element.imageuri +
+        '" width="100%"/>'
+    );
   });
 
   w.document.write(
@@ -499,14 +642,11 @@ function printImg(data) {
 }
 
 function borderImage() {
-
   let userImageStyle = "";
   let isUseImage = checkUseImg(props.images_data.guidfixed);
   let selectedImage = checkSelect(props.images_data.guidfixed);
   let statusImage = props.images_data.isreject;
   let referencesImage = props.images_data.references;
-
-
 
   if (referencesImage.length == 0) {
     if (statusImage == false) {
@@ -526,13 +666,65 @@ function borderImage() {
     userImageStyle = "bg-green-100";
   }
 
-
   return userImageStyle;
 }
 
+const setTransform = () => {
+  zoomStyle.value =
+    "transform:translate(" +
+    pointX.value +
+    "px, " +
+    pointY.value +
+    "px) scale(" +
+    scale.value +
+    ")";
+};
+
+function onmousedown(e) {
+  //console.log(e);
+  e.preventDefault();
+  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
+  panning.value = true;
+}
+
+function onmouseup(e) {
+  //console.log(e);
+  panning.value = false;
+}
+
+function onmousemove(e) {
+  //console.log(e);
+  e.preventDefault();
+  if (!panning.value) {
+    return;
+  }
+  pointX.value = e.clientX - start.value.x;
+  pointY.value = e.clientY - start.value.y;
+  setTransform();
+}
+
+function onwheel(e) {
+  //console.log(e);
+  e.preventDefault();
+  var xs = (e.clientX - pointX.value) / scale.value,
+    ys = (e.clientY - pointY.value) / scale.value,
+    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
+  pointX.value = e.clientX - xs * scale.value;
+  pointY.value = e.clientY - ys * scale.value;
+
+  setTransform();
+}
 
 
-
+function resetZoomImage() {
+  scale.value = 1;
+  panning.value = false;
+  pointX.value = 0;
+  pointY.value = 0;
+  start.value = { x: 0, y: 0 };
+  zoomStyle.value = "";
+}
 
 </script>
 <style scoped>
@@ -541,5 +733,28 @@ function borderImage() {
   line-height: 1.25rem;
 
   padding: 0px;
+}
+
+.zoom_outer {
+  padding: 0;
+  outline: 0;
+  overflow: hidden;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+}
+
+#zoom {
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0px 0px;
+  transform: scale(1) translate(0px, 0px);
+  cursor: grab;
+}
+
+div#zoom > img {
+  width: 100%;
+  height: auto;
 }
 </style>

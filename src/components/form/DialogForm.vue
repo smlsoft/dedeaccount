@@ -43,13 +43,12 @@ function onConfirm() {
       <Button
         label="ไม่"
         icon="pi pi-times"
-        class="p-button-text"
+        class="p-button-outlined p-button-danger"
         @click="onClose"
       />
       <Button
         label="ใช่"
         icon="pi pi-check"
-        class="p-button-text"
         @click="onConfirm"
       />
     </template>
