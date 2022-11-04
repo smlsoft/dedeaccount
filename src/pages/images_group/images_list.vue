@@ -112,6 +112,9 @@ const imagesDragReferences = ref(0);
 const addToGroup = ref("");
 const addImageGuidfixed = ref("");
 const addImagenewData = ref([]);
+const allowDropImage = ref("");
+
+const modeCreateImageGroup = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -1139,10 +1142,19 @@ function selectSortOrder(data) {
 
 function onScroll() {
   let div = $("#maincontainer")[0];
+  console.log(div.scrollTop);
   if (div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
     if (!showSkeleton.value) {
       nextPage();
     }
+  }
+
+  let header = document.getElementById("headMenu");
+
+  if (div.scrollTop > 0) {
+    header.classList.add("sticky-custom");
+  } else {
+    header.classList.remove("sticky-custom");
   }
 }
 
@@ -1233,6 +1245,15 @@ function dragging(data, event) {
 }
 
 function allowDrop(data, event) {
+  if (allowDropImage.value != data.guidfixed) {
+    allowDropImage.value = data.guidfixed;
+  } else {
+    //return;
+  }
+  console.log(allowDropImage.value);
+
+  // console.log(data);
+  //  console.log(event);
   event.stopPropagation();
   event.preventDefault();
 }
@@ -1245,7 +1266,7 @@ async function drop(data, event) {
   addImageGuidfixed.value = data.guidfixed;
   addImagenewData.value = data.imagereferences;
 
-  if (addImageGuidfixed == imagesDragData.value.guidfixed) {
+  if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
     return;
   }
 
@@ -1321,9 +1342,9 @@ async function addImageGroup() {
           @click="goList()"
         />
       </div>
-      <Card class="p-3" ref="content">
+      <Card class="p-3" ref="content" v-if="!modeCreateImageGroup">
         <template #header>
-          <div class="grid pt-2">
+          <div id="headMenu">
             <div class="flex">
               <div class="flex ml-2" v-if="!isGallery">
                 <!-- <Button
@@ -1346,6 +1367,23 @@ async function addImageGroup() {
                   icon="pi pi-pencil"
                   label="กำหนดกลุ่มเอกสาร"
                   @click="updateRefDialog = true"
+                />
+              </div>
+              <div class="flex ml-2">
+                <Button
+                  class="p-button-warning text-white"
+                  icon="pi pi-pencil"
+                  label="สร้างกลุ่มเอกสาร"
+                  @click="modeCreateImageGroup = true"
+                />
+              </div>
+              <div class="flex ml-2">
+                <Button
+                  v-if="selectedImg.length > 0"
+                  class="p-button-danger text-white"
+                  icon="pi pi-times"
+                  :label="selectedImg.length.toString()"
+                  @click="selectedImg = []"
                 />
               </div>
               <!-- <div class="flex ml-2">
@@ -1555,6 +1593,30 @@ async function addImageGroup() {
           </div>
         </template>
       </Card>
+      <Card class="p-3" v-if="modeCreateImageGroup">
+        <template #header >
+          <Button
+          label="ยกเลิก"
+          icon="pi pi-arrow-left"
+          class="p-button-text p-button-sm p-button-info"
+          @click="modeCreateImageGroup = false"
+        />
+        </template>
+        <template #content class="p-0">
+          <Splitter>
+            <SplitterPanel
+              class="flex align-items-center justify-content-center"
+            >
+              Panel 1
+            </SplitterPanel>
+            <SplitterPanel
+              class="flex align-items-center justify-content-center"
+            >
+              Panel 2
+            </SplitterPanel>
+          </Splitter>
+        </template>
+      </Card>
 
       <DialogForm
         :confirmDialog="createDialog"
@@ -1623,5 +1685,13 @@ async function addImageGroup() {
 <style lang="scss" scoped>
 .p-card-body {
   padding: 0px !important;
+}
+
+.sticky-custom {
+  z-index: 999;
+  padding-top: 140px;
+  position: fixed;
+  top: 0;
+  width: 100%;
 }
 </style>

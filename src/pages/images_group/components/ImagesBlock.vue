@@ -81,7 +81,7 @@
     v-model:visible="showImgDialog"
     :header="'รายละเอียด ' + props.images_data.title"
     :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{ width: '60vw' }"
+    style="width: '60vw'; z-index: 9999 !important"
     :modal="true"
     @update:visible="resetZoomImage()"
   >
@@ -190,7 +190,6 @@
                     <img
                       v-if="slotProps.item != null"
                       :src="slotProps.item.imageuri"
-                      
                     />
                   </div>
                 </div>
@@ -513,7 +512,13 @@ function selectImg(data, documentimageguid) {
 }
 
 function zoomImg(data) {
+  data.imagereferences = data.imagereferences.sort((a, b) => {
+    if (a.xorder < b.xorder) {
+      return -1;
+    }
+  });
   console.log(data);
+
   zoomImgData.value = data;
   showImgData.value = data.imagereferences;
   showImgDialog.value = true;
@@ -716,7 +721,6 @@ function onwheel(e) {
   setTransform();
 }
 
-
 function resetZoomImage() {
   scale.value = 1;
   panning.value = false;
@@ -725,7 +729,6 @@ function resetZoomImage() {
   start.value = { x: 0, y: 0 };
   zoomStyle.value = "";
 }
-
 </script>
 <style scoped>
 .textcenter {

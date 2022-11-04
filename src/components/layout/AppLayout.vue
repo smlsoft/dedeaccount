@@ -5,7 +5,7 @@ import BottomBar from "@/components/BottomBar.vue";
 </script>
 
 <template>
-  <div class="min-h-screen flex relative lg:static surface-ground">
+  <div class=" flex relative lg:static surface-ground" style="height: 100vh;">
     <!-- <SideBar /> -->
     <div class="min-h-screen flex flex-column relative flex-auto">
       <TopBar />
