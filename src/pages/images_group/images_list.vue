@@ -18,7 +18,7 @@ import $ from "jquery";
 
 const textContent = ref("ต้องการยกเลิกรูปภาพ ");
 const confirmChangeImage = ref("ต้องการเปลี่ยนรูปภาพ ");
-const updateRef = ref("ต้องการกำหนดกลุ่มเอกสาร ");
+const updateRef = ref("ต้องการกำหนดชุดเอกสาร ");
 const create = ref("ต้องการสร้าง Gallery ใหม่");
 const content = ref();
 const storeApp = useApp();
@@ -27,6 +27,7 @@ const route = useRoute();
 const toast = useToast();
 const detail = ref();
 const data_list = ref([]);
+const data_set_group = ref([]);
 const confirmSaveDialog = ref(false);
 const confirmGroupImageDialog = ref(false);
 const totalItemsCount = ref(10);
@@ -45,7 +46,7 @@ const showImgHeader = ref("");
 const showImgSrc = ref(null);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(20);
+const limitPage = ref(50);
 const showContent = ref("");
 const createDialog = ref(false);
 const data_gallery = ref([]);
@@ -391,22 +392,36 @@ function getDocumentImageGroup() {
       if (res.success) {
         data_list.value = res.data;
 
-        data_list.value = data_list.value.map((element) => {
-          let references = element.references ?? [];
-          element.references = references;
-          return element;
-        });
-
-        data_list.value.forEach((element, index) => {
-          element.imagereferences.sort(function (a, b) {
-            return a.xorder - b.xorder;
+        if (!modeCreateImageGroup.value) {
+          data_list.value = data_list.value.map((element) => {
+            let references = element.references ?? [];
+            element.references = references;
+            return element;
           });
-        });
 
-        loading.value = false;
-        totalPage.value = res.pagination.totalPage;
-        totalItemsCount.value = res.pagination.total;
-        getAllSelectImage();
+          data_list.value.forEach((element, index) => {
+            element.imagereferences.sort(function (a, b) {
+              return a.xorder - b.xorder;
+            });
+          });
+
+          loading.value = false;
+          totalPage.value = res.pagination.totalPage;
+          totalItemsCount.value = res.pagination.total;
+          getAllSelectImage();
+        } else {
+          let filtered = data_list.value.filter(function (ele) {
+            return (
+              ele.isreject == false &&
+              ele.imagereferences.length == 1 &&
+              ele.references.length == 0
+            );
+          });
+
+          data_list.value = filtered;
+
+          totalPage.value = res.pagination.totalPage;
+        }
       }
     })
     .catch((err) => {
@@ -1142,7 +1157,7 @@ function selectSortOrder(data) {
 
 function onScroll() {
   let div = $("#maincontainer")[0];
-  console.log(div.scrollTop);
+  //console.log(div.scrollTop);
   if (div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
     if (!showSkeleton.value) {
       nextPage();
@@ -1151,10 +1166,12 @@ function onScroll() {
 
   let header = document.getElementById("headMenu");
 
-  if (div.scrollTop > 0) {
-    header.classList.add("sticky-custom");
-  } else {
-    header.classList.remove("sticky-custom");
+  if (!modeCreateImageGroup.value) {
+    if (div.scrollTop > 0) {
+      header.classList.add("sticky-custom");
+    } else {
+      header.classList.remove("sticky-custom");
+    }
   }
 }
 
@@ -1224,7 +1241,7 @@ function showDetailGlImage(docno) {
 }
 
 function dragStart(data) {
-  console.log("dragStart");
+  console.log("dragStart :" + data.guidfixed);
 
   imagesDragData.value = data;
   imagesDragCount.value = data.imagereferences.length;
@@ -1250,10 +1267,10 @@ function allowDrop(data, event) {
   } else {
     //return;
   }
-  console.log(allowDropImage.value);
+  //console.log(allowDropImage.value);
 
   // console.log(data);
-  //  console.log(event);
+  // console.log(event);
   event.stopPropagation();
   event.preventDefault();
 }
@@ -1262,42 +1279,70 @@ async function drop(data, event) {
   //console.log(data);
   event.preventDefault();
   console.log("drop");
+  if (!modeCreateImageGroup.value) {
+    addImageGuidfixed.value = data.guidfixed;
+    addImagenewData.value = data.imagereferences;
 
-  addImageGuidfixed.value = data.guidfixed;
-  addImagenewData.value = data.imagereferences;
-
-  if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
-    return;
-  }
-
-  if (!data.isreject && data.references.length == 0) {
-    //จัดกลุ่มใหม่
-    if (data.imagereferences.length == 1) {
-      let result = [];
-      result = selectedImg.value.filter(
-        (el) => el.guidfixed == addImageGuidfixed
-      );
-      if (result.length > 0) {
-        updateRefDialog.value = true;
-      } else {
-        selectedImg.value.push({
-          guidfixed: data.guidfixed,
-          documentimageguid: data.imagereferences[0],
-        });
-        updateRefDialog.value = true;
-      }
-      console.log(selectedImg.value);
-      //เพิ่มรูปเข้ากลุ่ม
-    } else {
-      addToGroup.value = data.title;
-      confirmGroupImageDialog.value = true;
+    if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+      return;
     }
+
+    if (!data.isreject && data.references.length == 0) {
+      //จัดชุดใหม่
+      if (data.imagereferences.length == 1) {
+        let result = [];
+        result = selectedImg.value.filter(
+          (el) => el.guidfixed == addImageGuidfixed
+        );
+        if (result.length > 0) {
+          updateRefDialog.value = true;
+        } else {
+          selectedImg.value.push({
+            guidfixed: data.guidfixed,
+            documentimageguid: data.imagereferences[0],
+          });
+          updateRefDialog.value = true;
+        }
+        console.log(selectedImg.value);
+        //เพิ่มรูปเข้าชุด
+      } else {
+        addToGroup.value = data.title;
+        confirmGroupImageDialog.value = true;
+      }
+    }
+  } else {
+    console.log(event);
   }
+}
+
+function dropGrupImage(event) {
+  console.log("dropGrupImage");
+  //console.log(event);
+  //console.log(selectedImg.value);
+
+  if (selectedImg.value.length > 1) {
+    selectedImg.value.forEach((element) => {
+      data_set_group.value.push(element);
+      data_list.value.splice(element.guidfixed, 1);
+    });
+  } else {
+    data_set_group.value.push(imagesDragData.value);
+    data_list.value.splice(imagesDragData.value.guidfixed, 1);
+  }
+
+  selectedImg.value = [];
+  console.log(data_set_group.value);
+}
+
+function allowDropImageGroup(event) {
+  //console.log(event);
+  event.stopPropagation();
+  event.preventDefault();
 }
 
 async function addImageGroup() {
   selectedImg.value.forEach((element) => {
-    element.documentimageguid.xorder = addImagenewData.length;
+    element.documentimageguid.xorder = addImagenewData.value.length;
     addImagenewData.value.push(element.documentimageguid);
   });
   //console.log(newData);
@@ -1329,294 +1374,385 @@ async function addImageGroup() {
     console.log(err);
   }
 }
+
+function getImageNoGroup(mode) {
+  if (mode) {
+    setTimeout(() => {
+      var panel2 = document.getElementById("panelForm2");
+      panel2.setAttribute("style", "flex-basis: calc(70% - 4px) !important");
+
+      var panel1 = document.getElementById("panelForm1");
+      panel1.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+    }, 50);
+
+    modeCreateImageGroup.value = true;
+  } else {
+    selectedImg.value = [];
+    data_set_group.value = [];
+    modeCreateImageGroup.value = false;
+  }
+  setTimeout(() => {
+    activePage.value = 1;
+    getDocumentImageGroup();
+  }, 200);
+}
+
+function removeSetImageGroup(data) {
+  console.log(data);
+
+  data_set_group.value.splice(data.guidfixed, 1);
+  data_list.value.push(data);
+
+  selectedImg.value = [];
+}
+
+function addToGroupImage(data) {
+  data_set_group.value.push(data);
+  data_list.value.splice(data.guidfixed, 1);
+
+  console.log(data_set_group.value);
+}
 </script>
 
 <template>
   <AppLayout>
     <MainContentWarp @scroll="onScroll">
-      <div class="surface-ground" v-if="isGallery">
-        <Button
-          label="กลับหน้ารายการ"
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-sm p-button-info"
-          @click="goList()"
-        />
+      <div
+        class="flex justify-content-between flex-wrap pb-3"
+        v-if="modeCreateImageGroup"
+      >
+        <div class="flex align-items-center justify-content-center"></div>
+        <div class="flex align-items-center justify-content-center">
+          <Button
+            label="ยกเลิกจัดชุด"
+            icon="pi pi-times"
+            class="p-button-outlined p-button-danger"
+            @click="getImageNoGroup(false)"
+          />
+        </div>
       </div>
-      <Card class="p-3" ref="content" v-if="!modeCreateImageGroup">
-        <template #header>
-          <div id="headMenu">
-            <div class="flex">
-              <div class="flex ml-2" v-if="!isGallery">
-                <!-- <Button
+
+      <Splitter>
+        <SplitterPanel
+          id="panelForm1"
+          v-if="modeCreateImageGroup"
+          @dragover="allowDropImageGroup($event)"
+          @drop="dropGrupImage($event)"
+        >
+          <div class="flex flex-row flex-wrap card-container blue-container">
+            <div class="flex align-items-center justify-content-center p-4">
+              <span class="p-float-label">
+                <InputText id="title" type="text" />
+                <label for="title">ชื่อเอกสารชุด</label>
+              </span>
+            </div>
+            <div class="flex align-items-center justify-content-center">
+              <span class="p-float-label">
+                <InputText id="title" type="text" />
+                <label for="title">วันที่</label>
+              </span>
+            </div>
+          </div>
+
+          <div
+            class="flex align-content-center justify-content-center flex-wrap card-container"
+            v-if="data_set_group.length == 0"
+          >
+            <div class="text-xl text-300">
+              <h3>Drop File Here To Upload</h3>
+            </div>
+          </div>
+
+          <div class="card" v-if="data_set_group.length > 0">
+            <div
+              class="flex flex-wrap align-content-center justify-content-center card-container"
+            >
+              <div
+                class="flex relative align-items-center justify-content-center surface-500 font-bold m-2 border-round"
+                style="min-width: 200px"
+                v-for="data in data_set_group"
+                :key="data.documentimageguid"
+              >
+                <div class="p-1 cursor-pointer">
+                  <div class="p-1 surface-card border-round">
+                    <img
+                      :src="data.imagereferences[0].imageuri"
+                      class="w-full"
+                      style="object-fit: cover; height: 100px"
+                    />
+                  </div>
+                  <div class="align-items-center justify-content-center p-1">
+                    {{ data.title }}
+                  </div>
+                </div>
+                <div class="absolute top-0 right-0">
+                  <Button
+                    icon="pi pi-times"
+                    class="p-button-rounded p-button-danger"
+                    @click="removeSetImageGroup(data)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </SplitterPanel>
+        <SplitterPanel id="panelForm2">
+          <Card class="p-3" ref="content">
+            <template #header>
+              <div id="headMenu" v-if="!modeCreateImageGroup">
+                <div class="flex">
+                  <div class="flex ml-0" v-if="!isGallery">
+                    <!-- <Button
                                 class="p-button-success"
                                 icon="pi pi-plus"
                                 label="สร้าง Gallery"
                                 @click="createDialog = true"
                                 /> -->
-                <Button
-                  class="ml-2"
-                  label="Upload รูปภาพ"
-                  icon="pi pi-upload"
-                  @click="openModal()"
-                />
-              </div>
-              <div class="flex ml-2">
-                <Button
-                  :disabled="selectedImg.length <= 1"
-                  class="p-button-info text-white"
-                  icon="pi pi-pencil"
-                  label="กำหนดกลุ่มเอกสาร"
-                  @click="updateRefDialog = true"
-                />
-              </div>
-              <div class="flex ml-2">
-                <Button
-                  class="p-button-warning text-white"
-                  icon="pi pi-pencil"
-                  label="สร้างกลุ่มเอกสาร"
-                  @click="modeCreateImageGroup = true"
-                />
-              </div>
-              <div class="flex ml-2">
-                <Button
-                  v-if="selectedImg.length > 0"
-                  class="p-button-danger text-white"
-                  icon="pi pi-times"
-                  :label="selectedImg.length.toString()"
-                  @click="selectedImg = []"
-                />
-              </div>
-              <!-- <div class="flex ml-2">
+                    <Button
+                      class="ml-0"
+                      label="Upload รูปภาพ"
+                      icon="pi pi-upload"
+                      @click="openModal()"
+                    />
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      :disabled="selectedImg.length <= 1"
+                      class="p-button-info text-white"
+                      icon="pi pi-pencil"
+                      label="กำหนดชุดเอกสาร"
+                      @click="updateRefDialog = true"
+                    />
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      class="p-button-warning text-white"
+                      icon="pi pi-pencil"
+                      label="สร้างชุดเอกสาร"
+                      @click="getImageNoGroup(true)"
+                    />
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      v-if="selectedImg.length > 0"
+                      class="p-button-danger text-white"
+                      icon="pi pi-times"
+                      :label="selectedImg.length.toString()"
+                      @click="selectedImg = []"
+                    />
+                  </div>
+                  <!-- <div class="flex ml-2">
                                 <Button :disabled="selectedImg.length == 0" class="p-button-danger text-white"
                                     icon="pi pi-pencil" label="ยกเลิกรูปเอกสาร" @click="confirmRejectDialog = true" />
                             </div> -->
-            </div>
-          </div>
-          <div class="p-inputgroup mt-2">
-            <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-            <Button
-              icon="pi pi-search"
-              @click="getDocumentImageGroup()"
-              class="p-button-primary"
-            />
-          </div>
-          <div class="flex justify-content-between">
-            <div class="grid mt-3 ml-1">
-              <div
-                v-for="listShowImageBy of listShowImageBys"
-                :key="listShowImageBy.code"
-                class="field-radiobutton m-3"
-              >
-                <RadioButton
-                  :id="listShowImageBy.code"
-                  name="listShowImageBy"
-                  :value="listShowImageBy.code"
-                  v-model="showImageBy"
-                  @change="getDocImageListDefualt()"
+                </div>
+              </div>
+              <div class="p-inputgroup mt-2">
+                <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
+                <Button
+                  icon="pi pi-search"
+                  @click="getDocumentImageGroup()"
+                  class="p-button-primary"
                 />
-                <label :for="listShowImageBy.code">{{
-                  listShowImageBy.name
-                }}</label>
               </div>
-            </div>
-            <div class="grid mt-3 mr-1">
-              <div class="flex align-items-center ml-2">
-                <span class="mr-2 text-900">การเรียงข้อมูล</span>
-                <Dropdown
-                  v-model="selectSort"
-                  :options="sortField"
-                  optionLabel="name"
-                  optionValue="code"
-                  @change="selectSortUse($event)"
-                >
-                </Dropdown>
-                <i
-                  v-if="sortOrder == -1"
-                  class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
-                  style="font-size: 1.5rem"
-                  @click="selectSortOrder(1)"
-                ></i>
-                <i
-                  v-if="sortOrder == 1"
-                  class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
-                  style="font-size: 1.5rem"
-                  @click="selectSortOrder(-1)"
-                ></i>
-              </div>
-            </div>
-          </div>
-          <div class="flex">
-            <div class="mt-2">
-              <Paginator
-                class="justify-content-start"
-                :rows="limitPage"
-                v-model:first="firstPage"
-                :totalRecords="totalItemsCount"
-                @page="onPage($event)"
-              >
-              </Paginator>
-            </div>
-          </div>
-        </template>
-        <template #content class="p-0">
-          <div
-            class="p-3 card"
-            v-if="data_gallery.length == 0 && data_list.length == 0"
-          >
-            <div
-              class="flex align-content-center justify-content-center flex-wrap card-container"
-              style="min-height: 56vh"
-            >
-              <div class="p-0">
-                <div class="text-xl text-300">
-                  <h3>Drop File Here To Upload</h3>
+              <div class="flex justify-content-between">
+                <div class="grid mt-3 ml-1">
+                  <div
+                    v-if="!modeCreateImageGroup"
+                    v-for="listShowImageBy of listShowImageBys"
+                    :key="listShowImageBy.code"
+                    class="field-radiobutton m-3"
+                  >
+                    <RadioButton
+                      :id="listShowImageBy.code"
+                      name="listShowImageBy"
+                      :value="listShowImageBy.code"
+                      v-model="showImageBy"
+                      @change="getDocImageListDefualt()"
+                    />
+                    <label :for="listShowImageBy.code">{{
+                      listShowImageBy.name
+                    }}</label>
+                  </div>
+                </div>
+                <div class="grid mt-3 mr-1">
+                  <div class="flex align-items-center ml-2">
+                    <span class="mr-2 text-900">การเรียงข้อมูล</span>
+                    <Dropdown
+                      v-model="selectSort"
+                      :options="sortField"
+                      optionLabel="name"
+                      optionValue="code"
+                      @change="selectSortUse($event)"
+                    >
+                    </Dropdown>
+                    <i
+                      v-if="sortOrder == -1"
+                      class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                      style="font-size: 1.5rem"
+                      @click="selectSortOrder(1)"
+                    ></i>
+                    <i
+                      v-if="sortOrder == 1"
+                      class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                      style="font-size: 1.5rem"
+                      @click="selectSortOrder(-1)"
+                    ></i>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="grid pt-0 mt-0">
-            <div
-              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-              v-for="(data, index) in data_gallery"
-              :key="index"
-            >
-              <ImagesGallery
-                :gallery_data="data"
-                v-on:selectGallery="selectGallery"
-              ></ImagesGallery>
-            </div>
-            <div
-              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-              v-for="data in data_list"
-              :key="data.guidfixed"
-            >
+              <div class="flex" v-if="!modeCreateImageGroup">
+                <div class="mt-2">
+                  <Paginator
+                    class="justify-content-start"
+                    :rows="limitPage"
+                    v-model:first="firstPage"
+                    :totalRecords="totalItemsCount"
+                    @page="onPage($event)"
+                  >
+                  </Paginator>
+                </div>
+              </div>
+            </template>
+            <template #content class="p-0">
               <div
-                draggable="true"
-                @dragstart="dragStart(data, $event)"
-                @drag="
-                  imagesDragCount == 1 &&
-                  imagesDragReject == false &&
-                  imagesDragReferences == 0
-                    ? dragging(data, $event)
-                    : ''
-                "
-                @drop="
-                  imagesDragCount == 1 &&
-                  imagesDragReject == false &&
-                  imagesDragReferences == 0
-                    ? drop(data, $event)
-                    : ''
-                "
-                @dragover="
-                  imagesDragCount == 1 &&
-                  imagesDragReject == false &&
-                  imagesDragReferences == 0
-                    ? allowDrop(data, $event)
-                    : ''
-                "
+                class="p-3 card"
+                v-if="data_gallery.length == 0 && data_list.length == 0"
               >
-                <ImageBlock
-                  :images_data="data"
-                  :images_selete="selectedImg"
-                  :allimage_used="AllImageUsed"
-                  :mode="1"
-                  v-on:selectImg="selectImg"
-                  v-on:useImage="useImage"
-                  v-on:createform="createform"
-                  v-on:onFileSelect="onFileNewSelect"
-                  v-on:onReloadData="getDocumentImageGroup"
-                  v-on:documentImageUnGroup="documentImageUnGroup"
-                  v-on:rejectImage="rejectImage"
-                  v-on:showDetailGlImage="showDetailGlImage"
+                <div
+                  class="flex align-content-center justify-content-center flex-wrap card-container"
+                  style="min-height: 56vh"
                 >
-                </ImageBlock>
-              </div>
-            </div>
-            <div
-              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-              v-if="showSkeleton"
-            >
-              <div class="custom-skeleton p-4">
-                <div class="flex mb-3">
-                  <div>
-                    <Skeleton width="10rem" class="mb-2"></Skeleton>
-                    <Skeleton width="5rem" class="mb-2"></Skeleton>
-                    <Skeleton height=".5rem"></Skeleton>
+                  <div class="p-0">
+                    <div class="text-xl text-300">
+                      <h3>Drop File Here To Upload</h3>
+                    </div>
                   </div>
                 </div>
-                <Skeleton width="100%" height="150px"></Skeleton>
-                <div class="flex justify-content-center mt-3">
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
-                </div>
               </div>
-            </div>
-            <div
-              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-              v-if="showSkeleton"
-            >
-              <div class="custom-skeleton p-4">
-                <div class="flex mb-3">
-                  <div>
-                    <Skeleton width="10rem" class="mb-2"></Skeleton>
-                    <Skeleton width="5rem" class="mb-2"></Skeleton>
-                    <Skeleton height=".5rem"></Skeleton>
+
+              <div class="grid pt-0 mt-0">
+                <div
+                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                  v-for="(data, index) in data_gallery"
+                  :key="index"
+                >
+                  <ImagesGallery
+                    :gallery_data="data"
+                    v-on:selectGallery="selectGallery"
+                  ></ImagesGallery>
+                </div>
+                <div
+                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                  v-for="data in data_list"
+                  :key="data.guidfixed"
+                >
+                  <div
+                    draggable="true"
+                    @dragstart="dragStart(data, $event)"
+                    @drag="
+                      imagesDragCount == 1 &&
+                      imagesDragReject == false &&
+                      imagesDragReferences == 0
+                        ? dragging(data, $event)
+                        : ''
+                    "
+                    @drop="
+                      imagesDragCount == 1 &&
+                      imagesDragReject == false &&
+                      imagesDragReferences == 0
+                        ? drop(data, $event)
+                        : ''
+                    "
+                    @dragover="
+                      imagesDragCount == 1 &&
+                      imagesDragReject == false &&
+                      imagesDragReferences == 0
+                        ? allowDrop(data, $event)
+                        : ''
+                    "
+                  >
+                    <ImageBlock
+                      :modeAddGroup="modeCreateImageGroup"
+                      :images_data="data"
+                      :images_selete="selectedImg"
+                      :allimage_used="AllImageUsed"
+                      :mode="1"
+                      v-on:selectImg="selectImg"
+                      v-on:useImage="useImage"
+                      v-on:createform="createform"
+                      v-on:onFileSelect="onFileNewSelect"
+                      v-on:onReloadData="getDocumentImageGroup"
+                      v-on:documentImageUnGroup="documentImageUnGroup"
+                      v-on:rejectImage="rejectImage"
+                      v-on:showDetailGlImage="showDetailGlImage"
+                      v-on:addToGroupImage="addToGroupImage"
+                    >
+                    </ImageBlock>
                   </div>
                 </div>
-                <Skeleton width="100%" height="150px"></Skeleton>
-                <div class="flex justify-content-center mt-3">
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
-                </div>
-              </div>
-            </div>
-            <div
-              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-              v-if="showSkeleton"
-            >
-              <div class="custom-skeleton p-4">
-                <div class="flex mb-3">
-                  <div>
-                    <Skeleton width="10rem" class="mb-2"></Skeleton>
-                    <Skeleton width="5rem" class="mb-2"></Skeleton>
-                    <Skeleton height=".5rem"></Skeleton>
+                <div
+                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                  v-if="showSkeleton"
+                >
+                  <div class="custom-skeleton p-4">
+                    <div class="flex mb-3">
+                      <div>
+                        <Skeleton width="10rem" class="mb-2"></Skeleton>
+                        <Skeleton width="5rem" class="mb-2"></Skeleton>
+                        <Skeleton height=".5rem"></Skeleton>
+                      </div>
+                    </div>
+                    <Skeleton width="100%" height="150px"></Skeleton>
+                    <div class="flex justify-content-center mt-3">
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                    </div>
                   </div>
                 </div>
-                <Skeleton width="100%" height="150px"></Skeleton>
-                <div class="flex justify-content-center mt-3">
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
-                  <Skeleton width="4rem" height="2rem"></Skeleton>
+                <div
+                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                  v-if="showSkeleton"
+                >
+                  <div class="custom-skeleton p-4">
+                    <div class="flex mb-3">
+                      <div>
+                        <Skeleton width="10rem" class="mb-2"></Skeleton>
+                        <Skeleton width="5rem" class="mb-2"></Skeleton>
+                        <Skeleton height=".5rem"></Skeleton>
+                      </div>
+                    </div>
+                    <Skeleton width="100%" height="150px"></Skeleton>
+                    <div class="flex justify-content-center mt-3">
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                  v-if="showSkeleton"
+                >
+                  <div class="custom-skeleton p-4">
+                    <div class="flex mb-3">
+                      <div>
+                        <Skeleton width="10rem" class="mb-2"></Skeleton>
+                        <Skeleton width="5rem" class="mb-2"></Skeleton>
+                        <Skeleton height=".5rem"></Skeleton>
+                      </div>
+                    </div>
+                    <Skeleton width="100%" height="150px"></Skeleton>
+                    <div class="flex justify-content-center mt-3">
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </template>
-      </Card>
-      <Card class="p-3" v-if="modeCreateImageGroup">
-        <template #header >
-          <Button
-          label="ยกเลิก"
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-sm p-button-info"
-          @click="modeCreateImageGroup = false"
-        />
-        </template>
-        <template #content class="p-0">
-          <Splitter>
-            <SplitterPanel
-              class="flex align-items-center justify-content-center"
-            >
-              Panel 1
-            </SplitterPanel>
-            <SplitterPanel
-              class="flex align-items-center justify-content-center"
-            >
-              Panel 2
-            </SplitterPanel>
-          </Splitter>
-        </template>
-      </Card>
+            </template>
+          </Card>
+        </SplitterPanel>
+      </Splitter>
 
       <DialogForm
         :confirmDialog="createDialog"
@@ -1628,12 +1764,12 @@ async function addImageGroup() {
       <Dialog
         v-model:visible="updateRefDialog"
         :style="{ width: '450px' }"
-        header="กำหนดกลุ่มเอกสาร"
+        header="กำหนดชุดเอกสาร"
         :modal="true"
       >
         <div class="grid formgrid p-fluid">
           <div class="field mb-4 col-12">
-            <label class="font-medium text-900">ชื่อกลุ่มเอกสาร</label>
+            <label class="font-medium text-900">ชื่อชุดเอกสาร</label>
             <InputText type="text" v-model="getDocumentImageGroupTitle" />
           </div>
         </div>
@@ -1675,7 +1811,7 @@ async function addImageGroup() {
       ></DialogForm>
       <DialogForm
         :confirmDialog="confirmGroupImageDialog"
-        :textContent="'ต้องการรวมกลุ่มรูป ' + addToGroup"
+        :textContent="'ต้องการรวมชุดรูป ' + addToGroup"
         v-on:close="confirmGroupImageDialog = false"
         v-on:confirm="addImageGroup()"
       ></DialogForm>

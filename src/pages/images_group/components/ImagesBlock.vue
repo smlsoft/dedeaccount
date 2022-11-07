@@ -64,6 +64,12 @@
               @click="showDetailGlImage(props.images_data.references[0].docno)"
               v-if="props.images_data.references.length > 0"
             />
+            <Button
+              class="p-button-text"
+              icon="pi pi-shopping-cart"
+              @click="addToGroupImage(props.images_data)"
+              v-if="props.modeAddGroup"
+            />
           </div>
           <div
             class="flex align-items-center justify-content-center font-medium text-sm"
@@ -269,6 +275,7 @@ const props = defineProps({
   images_selete: Array,
   mode: Number,
   allimage_used: Array,
+  modeAddGroup: Boolean,
 });
 const emit = defineEmits([
   "selectImg",
@@ -280,6 +287,7 @@ const emit = defineEmits([
   "documentImageUnGroup",
   "rejectImage",
   "showDetailGlImage",
+  "addToGroupImage",
 ]);
 
 onMounted(async () => {
@@ -505,8 +513,14 @@ function selectImg(data, documentimageguid) {
       guidfixed: data,
       documentimageguid: documentimageguid,
     };
-    emit("selectImg", dataSelet);
+    if (props.modeAddGroup) {
+      emit("selectImg", data);
+    } else {
+      emit("selectImg", dataSelet);
+    }
   } else if (props.mode == 3 || props.mode == 4) {
+    emit("selectImg", data);
+  } else {
     emit("selectImg", data);
   }
 }
@@ -567,6 +581,10 @@ function showDetailGlImage(docno) {
   emit("showDetailGlImage", docno);
 }
 
+function addToGroupImage(data) {
+  emit("addToGroupImage", data);
+}
+
 function selectRejectImage(reject) {
   if (reject) {
     contentOnfirmRejectDialog.value =
@@ -607,11 +625,14 @@ function selectModeImage() {
           console.log("group");
           zoomImg(props.images_data);
         } else {
-          console.log("sigle");
-          selectImg(
-            props.images_data.guidfixed,
-            props.images_data.imagereferences[0]
-          );
+          if (props.modeAddGroup) {
+            selectImg(props.images_data);
+          } else {
+            selectImg(
+              props.images_data.guidfixed,
+              props.images_data.imagereferences[0]
+            );
+          }
         }
       } else if (modeMenu == 3 || (modeMenu == 4 && statusImage == false)) {
         selectImg(props.images_data.guidfixed);
