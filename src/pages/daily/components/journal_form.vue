@@ -169,9 +169,7 @@ function searchAccount(event) {
           account.accountcode
             .toLowerCase()
             .includes(event.query.toLowerCase()) ||
-          account.accountname
-            .toLowerCase()
-            .includes(event.query.toLowerCase())
+          account.accountname.toLowerCase().includes(event.query.toLowerCase())
         ) {
           return true;
         }
@@ -180,8 +178,8 @@ function searchAccount(event) {
   }, 250);
 }
 
-
 function focusNext(field, index) {
+  console.log(field);
   setTimeout(() => {
     if (field == "accountcode") {
       $(".debit_" + index + " > input").focus();
@@ -194,12 +192,8 @@ function focusNext(field, index) {
           $(".accountcode_" + (index + 1) + " > input").focus();
         }
       }, 100);
-
-
     }
   }, 100);
-
-
 }
 
 function getAccountChart() {
@@ -216,47 +210,84 @@ function getAccountChart() {
       console.log(err);
     });
 }
-
-
 </script>
-  
+
 <template>
   <form>
     <div class="grid formgrid p-fluid">
       <div class="field mb-4 col-12 md:col-3">
         <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
-        <InputText id="docNo" type="text" v-model="props.daily_form.docno"
-          :class="props.daily_form_valid.docno ? 'p-invalid' : ''" :disabled="props.isUpdate || update_mode" />
+        <InputText
+          id="docNo"
+          type="text"
+          v-model="props.daily_form.docno"
+          :class="props.daily_form_valid.docno ? 'p-invalid' : ''"
+          :disabled="props.isUpdate || update_mode"
+          
+        />
       </div>
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">เอกสารวันที่</label>
-        <DatePicker dateFormat="d/m/yy" v-model="props.daily_form.docdate" :modelValue="props.daily_form.docdate"
-          :class="props.daily_form_valid.docdate ? 'p-invalid' : ''" :showIcon="true" :disabled="props.isUpdate"
-          :buddhist="buddhistYear" :hideOnDateTimeSelect="true" :hiddenTime="true" />
+        <DatePicker
+          dateFormat="d/m/yy"
+          v-model="props.daily_form.docdate"
+          :modelValue="props.daily_form.docdate"
+          :class="props.daily_form_valid.docdate ? 'p-invalid' : ''"
+          :showIcon="true"
+          :disabled="props.isUpdate"
+          :buddhist="buddhistYear"
+          :hideOnDateTimeSelect="true"
+          :hiddenTime="true"
+        />
       </div>
 
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">หมายเลขดำเนินการ</label>
-        <InputText type="text" v-model="props.daily_form.batchId"
-          :class="props.daily_form_valid.batchId ? 'p-invalid' : ''" :disabled="props.isUpdate" />
+        <InputText
+          type="text"
+          v-model="props.daily_form.batchId"
+          :class="props.daily_form_valid.batchId ? 'p-invalid' : ''"
+          :disabled="props.isUpdate"
+        />
       </div>
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
-        <InputText type="number" :min="0" v-model="props.daily_form.accountperiod"
-          :class="props.daily_form_valid.accountperiod ? 'p-invalid' : ''" :disabled="props.isUpdate" />
+        <InputText
+          type="number"
+          :min="0"
+          v-model="props.daily_form.accountperiod"
+          :class="props.daily_form_valid.accountperiod ? 'p-invalid' : ''"
+          :disabled="props.isUpdate"
+        />
       </div>
       <div class="col-12"></div>
       <div class="field mb-4 col-12 md:col-4">
         <label class="font-medium text-900">ปีบัญชี</label>
-        <InputText type="number" :min="0" v-model="props.daily_form.accountyear"
-          :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''" :disabled="props.isUpdate" />
+        <InputText
+          type="number"
+          :min="0"
+          v-model="props.daily_form.accountyear"
+          :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
+          :disabled="props.isUpdate"
+        />
       </div>
       <div class="field mb-4 col-12 md:col-4">
-        <label for="accountgroup" class="font-medium text-900">กลุ่มบัญชี</label>
-        <Dropdown v-model="props.daily_form.accountgroup" autofocus
-          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''" :options="props.groupAccount_detail"
-          :filter="true" :filterFields="['code', 'name1']" optionValue="code" optionLabel="label"
-          filterPlaceholder="ค้นหา" placeholder="เลือก" :disabled="props.isUpdate">
+        <label for="accountgroup" class="font-medium text-900"
+          >กลุ่มบัญชี</label
+        >
+        <Dropdown
+          v-model="props.daily_form.accountgroup"
+          autofocus
+          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
+          :options="props.groupAccount_detail"
+          :filter="true"
+          :filterFields="['code', 'name1']"
+          optionValue="code"
+          optionLabel="label"
+          filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+          :disabled="props.isUpdate"
+        >
           <template #option="slotProps">
             <div>
               {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
@@ -266,10 +297,19 @@ function getAccountChart() {
       </div>
       <div class="field mb-4 col-12 md:col-4">
         <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
-        <Dropdown v-model="props.daily_form.bookcode" autofocus :options="props.accountBook_detail"
-          :class="props.daily_form_valid.bookcode ? 'p-invalid' : ''" :disabled="props.isUpdate" :filter="true"
-          :filterFields="['code', 'name1']" optionValue="code" optionLabel="label" filterPlaceholder="ค้นหา"
-          placeholder="เลือก">
+        <Dropdown
+          v-model="props.daily_form.bookcode"
+          autofocus
+          :options="props.accountBook_detail"
+          :class="props.daily_form_valid.bookcode ? 'p-invalid' : ''"
+          :disabled="props.isUpdate"
+          :filter="true"
+          :filterFields="['code', 'name1']"
+          optionValue="code"
+          optionLabel="label"
+          filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+        >
           <template #option="slotProps">
             <div>
               {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
@@ -279,53 +319,101 @@ function getAccountChart() {
       </div>
       <div class="field mb-12 col-12 md:col-8">
         <label class="font-medium text-900">คำอธิบาย</label>
-        <InputText type="text" :disabled="props.isUpdate" v-model="props.daily_form.accountdescription" />
+        <InputText
+          type="text"
+          :disabled="props.isUpdate"
+          v-model="props.daily_form.accountdescription"
+        />
       </div>
       <div class="field mb-4 col-12 md:col-4">
         <label class="font-medium text-900">ประเภทรายการ</label>
         <div class="grid mt-2 ml-2">
           <div class="flex field-checkbox">
-            <RadioButton :disabled="props.isUpdate" name="journaltype" value="0"
-              v-model="props.daily_form.journaltype" />
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="0"
+              v-model="props.daily_form.journaltype"
+            />
             <label>ทั่วไป</label>
           </div>
           <div class="flex field-checkbox ml-3">
-            <RadioButton :disabled="props.isUpdate" name="journaltype" value="1"
-              v-model="props.daily_form.journaltype" />
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="1"
+              v-model="props.daily_form.journaltype"
+            />
             <label>ปิดบัญชี</label>
           </div>
         </div>
       </div>
       <div class="field mb-4 col-12 md:col-6">
-        <label for="exdocrefno" class="font-medium text-900">เลขที่เอกสารอ้างอิง</label>
-        <InputText id="exdocrefno" type="text" v-model="props.daily_form.exdocrefno"
-          :disabled="props.isUpdate || update_mode" />
+        <label for="exdocrefno" class="font-medium text-900"
+          >เลขที่เอกสารอ้างอิง</label
+        >
+        <InputText
+          id="exdocrefno"
+          type="text"
+          v-model="props.daily_form.exdocrefno"
+          :disabled="props.isUpdate || update_mode"
+        />
       </div>
       <div class="field mb-4 col-12 md:col-6">
         <label class="font-medium text-900">เอกสารวันที่อ้างอิง</label>
-        <DatePicker dateFormat="d/m/yy" v-model="props.daily_form.exdocrefdate"
-          :modelValue="props.daily_form.exdocrefdate" :showIcon="true" :disabled="props.isUpdate"
-          :buddhist="buddhistYear" :hideOnDateTimeSelect="true" :hiddenTime="true" />
-          
+        <DatePicker
+          dateFormat="d/m/yy"
+          v-model="props.daily_form.exdocrefdate"
+          :modelValue="props.daily_form.exdocrefdate"
+          :showIcon="true"
+          :disabled="props.isUpdate"
+          :buddhist="buddhistYear"
+          :hideOnDateTimeSelect="true"
+          :hiddenTime="true"
+        />
       </div>
       <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>
     </div>
     <div class="py-1">
-      <FileUpload mode="basic" name="input file" accept=".xls,.xlsx" ref="myFiles" :customUpload="true"
-        v-if="!props.isUpdate" @change="ImportFile()" class="p-button-plain p-button-primary p-button-sm"
-        chooseLabel="นำเข้าไฟล์">
+      <FileUpload
+        mode="basic"
+        name="input file"
+        accept=".xls,.xlsx"
+        ref="myFiles"
+        :customUpload="true"
+        v-if="!props.isUpdate"
+        @change="ImportFile()"
+        class="p-button-plain p-button-primary p-button-sm"
+        chooseLabel="นำเข้าไฟล์"
+      >
       </FileUpload>
     </div>
     <div>
-      <DataTable :value="props.daily_form.journaldetail" :reorderableColumns="true" @rowReorder="onRowReorder"
-        class="editable-cells-table" responsiveLayout="scroll">
-        <Column header="ย้าย" :rowReorder="true" style="width: 5%" v-if="!props.isUpdate">
+      <DataTable
+        :value="props.daily_form.journaldetail"
+        :reorderableColumns="true"
+        @rowReorder="onRowReorder"
+        class="editable-cells-table"
+        responsiveLayout="scroll"
+      >
+        <Column
+          header="ย้าย"
+          :rowReorder="true"
+          style="width: 5%"
+          v-if="!props.isUpdate"
+        >
         </Column>
         <Column field="accountcode" header="รหัสบัญชี" style="width: 20%">
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
-            <TextAutoComplete v-model="data[field]" :suggestions="filteredCountries" @complete="searchAccount($event)"
-              :class="'accountcode_' + index" :dropdown="false" optionLabel="accountcode"
-              @item-select="selectAccount(data[field], field, index)">
+            <TextAutoComplete
+              v-model="data[field]"
+              :suggestions="filteredCountries"
+              @complete="searchAccount($event)"
+              :class="'accountcode_' + index"
+              :dropdown="false"
+              optionLabel="accountcode"
+              @item-select="selectAccount(data[field], field, index)"
+            >
               <template #item="slotProps">
                 <div class="ml-2">
                   {{ slotProps.item.accountcode }} ~
@@ -346,59 +434,118 @@ function getAccountChart() {
             -->
           </template>
         </Column>
-        <Column field="accountname" header="ชื่อบัญชี" style="min-width: 300px"
-          footerStyle="text-align: right !important" footer="รวม">
+        <Column
+          field="accountname"
+          header="ชื่อบัญชี"
+          style="min-width: 300px"
+          footerStyle="text-align: right !important"
+          footer="รวม"
+        >
         </Column>
 
-        <Column field="debitamount" header="เดบิต" footerStyle="text-align: right !important"
-          :footer="Utils.formatCurrency(sumTableDebit)" bodyStyle="text-align: right !important"
-          headerStyle="text-align:center;width: 10%" style="width: 13%">
+        <Column
+          field="debitamount"
+          header="เดบิต"
+          footerStyle="text-align: right !important"
+          :footer="Utils.formatCurrency(sumTableDebit)"
+          bodyStyle="text-align: right !important"
+          headerStyle="text-align:center;width: 10%"
+          style="width: 13%"
+        >
           <!-- <template #body="{ data, field }">
             {{ Utils.formatCurrency(data[field]) }}
           </template> -->
 
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
-            <TextInputNumber :class="'debit_' + index" v-model="data[field]" mode="decimal" :maxFractionDigits="2"
-              @enter="focusNext(field, index)" />
+            <TextInputNumber
+              :class="'debit_' + index"
+              v-model="data[field]"
+              mode="decimal"
+              :maxFractionDigits="2"
+              @enter="focusNext(field, index)"
+            />
           </template>
         </Column>
 
-        <Column field="creditamount" header="เครดิต" footerStyle="text-align: right !important"
-          :footer="Utils.formatCurrency(sumTableCredit)" bodyStyle="text-align: right !important"
-          headerStyle="text-align:center;width: 10%" style="width: 13%">
+        <Column
+          field="creditamount"
+          header="เครดิต"
+          footerStyle="text-align: right !important"
+          :footer="Utils.formatCurrency(sumTableCredit)"
+          bodyStyle="text-align: right !important"
+          headerStyle="text-align:center;width: 10%"
+          style="width: 13%"
+        >
           <!-- <template #body="{ data, field }">
             {{ Utils.formatCurrency(data[field]) }}
           </template> -->
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
-            <TextInputNumber :class="'credit_' + index" v-model="data[field]" mode="decimal" :maxFractionDigits="2"
-              @enter="focusNext(field, index)" />
+            <TextInputNumber
+              :class="'credit_' + index"
+              v-model="data[field]"
+              mode="decimal"
+              :maxFractionDigits="2"
+              @enter="focusNext(field, index)"
+            />
           </template>
         </Column>
 
-        <Column header="ลบ" bodyStyle="text-align:center" style="width: 5%" v-if="!props.isUpdate">
+        <Column
+          header="ลบ"
+          bodyStyle="text-align:center"
+          style="width: 5%"
+          v-if="!props.isUpdate"
+        >
           <template #body="slotProps">
-            <Button icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text"
-              @click="confirmDeleteDetail(slotProps.data, slotProps.index)" />
+            <Button
+              icon="pi pi-times"
+              class="p-button-rounded p-button-danger p-button-text"
+              @click="confirmDeleteDetail(slotProps.data, slotProps.index)"
+            />
           </template>
         </Column>
-        <Column header="เพิ่ม" bodyStyle="text-align:center" style="width: 5%" v-if="!props.isUpdate">
+        <Column
+          header="เพิ่ม"
+          bodyStyle="text-align:center"
+          style="width: 5%"
+          v-if="!props.isUpdate"
+        >
           <template #body="slotProps">
-            <Button icon="pi pi-plus" class="p-button-rounded p-button-success p-button-text"
-              @click="addColumn(slotProps.index)" />
+            <Button
+              icon="pi pi-plus"
+              class="p-button-rounded p-button-success p-button-text"
+              @click="addColumn(slotProps.index)"
+            />
           </template>
         </Column>
       </DataTable>
     </div>
   </form>
-  <Dialog v-model:visible="deleteDetailDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+  <Dialog
+    v-model:visible="deleteDetailDialog"
+    :style="{ width: '450px' }"
+    header="Confirm"
+    :modal="true"
+  >
     <div class="confirmation-content">
       <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-      <span>Are you sure you want to delete <b>{{ detail.accountname }}</b> ?</span>
+      <span
+        >Are you sure you want to delete <b>{{ detail.accountname }}</b> ?</span
+      >
     </div>
     <template #footer>
-      <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteDetailDialog = false" />
-      <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteDetail" />
+      <Button
+        label="No"
+        icon="pi pi-times"
+        class="p-button-text"
+        @click="deleteDetailDialog = false"
+      />
+      <Button
+        label="Yes"
+        icon="pi pi-check"
+        class="p-button-text"
+        @click="deleteDetail"
+      />
     </template>
   </Dialog>
 </template>
-  

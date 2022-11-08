@@ -13,7 +13,7 @@ import Utils from "@/utils/";
 import ImageUpload from "./components/ImagesUpload.vue";
 import ImageBlock from "./components/ImagesBlock.vue";
 import ImagesGallery from "./components/ImagesGallery.vue";
-import JournalForm from "../daily/components/journal_form.vue";
+import DatePicker from "@/components/widget/DatePicker.vue";
 import $ from "jquery";
 
 const textContent = ref("ต้องการยกเลิกรูปภาพ ");
@@ -116,6 +116,10 @@ const addImagenewData = ref([]);
 const allowDropImage = ref("");
 
 const modeCreateImageGroup = ref(false);
+const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
+const title = ref("");
+const title_valid = ref(false);
+const uploadedat = ref(new Date());
 
 onUnmounted(() => {
   console.log(
@@ -388,7 +392,7 @@ function getDocumentImageGroup() {
     showImageBy.value
   )
     .then((res) => {
-      console.log(res);
+      //console.log(res);
       if (res.success) {
         data_list.value = res.data;
 
@@ -410,6 +414,7 @@ function getDocumentImageGroup() {
           totalItemsCount.value = res.pagination.total;
           getAllSelectImage();
         } else {
+
           let filtered = data_list.value.filter(function (ele) {
             return (
               ele.isreject == false &&
@@ -418,8 +423,21 @@ function getDocumentImageGroup() {
             );
           });
 
-          data_list.value = filtered;
+          console.log(filtered);
 
+          if (data_set_group.value.length > 0) {
+            data_list.value = filtered.filter(function (dataList) {
+              return (
+                data_set_group.value.filter(function (dataGroup) {
+                  return dataGroup.guidfixed == dataList.guidfixed;
+                }).length == 0
+              );
+            });
+          } else {
+            data_list.value = filtered;
+          }
+          console.log(data_list.value);
+          //data_list.value = filtered;
           totalPage.value = res.pagination.totalPage;
         }
       }
@@ -1323,15 +1341,19 @@ function dropGrupImage(event) {
   if (selectedImg.value.length > 1) {
     selectedImg.value.forEach((element) => {
       data_set_group.value.push(element);
-      data_list.value.splice(element.guidfixed, 1);
+      data_list.value = data_list.value.filter(
+        (item) => !data_set_group.value.includes(item)
+      );
     });
   } else {
     data_set_group.value.push(imagesDragData.value);
-    data_list.value.splice(imagesDragData.value.guidfixed, 1);
+    data_list.value = data_list.value.filter(
+      (item) => !data_set_group.value.includes(item)
+    );
   }
 
   selectedImg.value = [];
-  console.log(data_set_group.value);
+  console.log(data_list.value);
 }
 
 function allowDropImageGroup(event) {
@@ -1387,6 +1409,7 @@ function getImageNoGroup(mode) {
 
     modeCreateImageGroup.value = true;
   } else {
+    title_valid.value = false;
     selectedImg.value = [];
     data_set_group.value = [];
     modeCreateImageGroup.value = false;
@@ -1394,7 +1417,7 @@ function getImageNoGroup(mode) {
   setTimeout(() => {
     activePage.value = 1;
     getDocumentImageGroup();
-  }, 200);
+  }, 100);
 }
 
 function removeSetImageGroup(data) {
@@ -1408,9 +1431,90 @@ function removeSetImageGroup(data) {
 
 function addToGroupImage(data) {
   data_set_group.value.push(data);
-  data_list.value.splice(data.guidfixed, 1);
+  data_list.value = data_list.value.filter(
+    (item) => !data_set_group.value.includes(item)
+  );
 
   console.log(data_set_group.value);
+}
+
+async function saveGropImages() {
+  console.log(data_set_group.value);
+
+  let isPass = await verifyData();
+
+  if (isPass) {
+    let imagereferences = [];
+    data_set_group.value.forEach((element, index) => {
+      element.imagereferences[0].xorder = index;
+      imagereferences.push(element.imagereferences[0]);
+    });
+    let data = {
+      imagereferences: imagereferences,
+      title: title.value,
+      uploadedat: Utils.getFormatDateTime(uploadedat.value),
+    };
+    console.log(data);
+
+    try {
+      const res = await ImageDataService.postDocumentImageGroup(data);
+      if (res.success) {
+        title.value = "";
+        uploadedat.value = new Date();
+        activePage.value = 1;
+        modeCreateImageGroup = false;
+        toast.add({
+          severity: "success",
+          summary: "success",
+          detail: "บันทึกข้อมูลสำเร็จ",
+          life: 3000,
+        });
+        setTimeout(() => {
+          getDocumentImageGroup();
+        }, 100);
+      }
+    } catch (err) {
+      toast.add({
+        severity: "error",
+        summary: "error",
+        detail: "บันทึกไม่สำเร็จ " + err,
+        life: 3000,
+      });
+    }
+  }
+}
+
+function verifyData() {
+  var errorCount = 0;
+
+  if (title.value == "") {
+    errorCount += 1;
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาป้อนชื่อชุดเอกสาร ",
+      life: 4000,
+    });
+    title_valid.value = true;
+  } else {
+    title_valid.value = false;
+  }
+
+  if (data_set_group.value.length == 0) {
+    errorCount += 1;
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกรูปเอกสาร ",
+      life: 4000,
+    });
+  }
+
+  if (errorCount != 0) {
+    return false;
+  } else {
+    return true;
+  }
 }
 </script>
 
@@ -1421,13 +1525,20 @@ function addToGroupImage(data) {
         class="flex justify-content-between flex-wrap pb-3"
         v-if="modeCreateImageGroup"
       >
-        <div class="flex align-items-center justify-content-center"></div>
         <div class="flex align-items-center justify-content-center">
           <Button
             label="ยกเลิกจัดชุด"
             icon="pi pi-times"
             class="p-button-outlined p-button-danger"
             @click="getImageNoGroup(false)"
+          />
+        </div>
+        <div class="flex align-items-center justify-content-center">
+          <Button
+            label="บันทึกจัดชุด"
+            icon="pi pi-save"
+            class="p-button-success"
+            @click="saveGropImages(false)"
           />
         </div>
       </div>
@@ -1439,33 +1550,42 @@ function addToGroupImage(data) {
           @dragover="allowDropImageGroup($event)"
           @drop="dropGrupImage($event)"
         >
-          <div class="flex flex-row flex-wrap card-container blue-container">
-            <div class="flex align-items-center justify-content-center p-4">
-              <span class="p-float-label">
-                <InputText id="title" type="text" />
-                <label for="title">ชื่อเอกสารชุด</label>
-              </span>
+          <div class="grid formgrid p-fluid m-3">
+            <div class="field mb-12 col-12 md:col-12">
+              <label for="title" class="font-medium text-900"
+                >ชื่อชุดเอกสาร</label
+              >
+              <InputText
+                id="title"
+                type="text"
+                v-model="title"
+                :class="title_valid ? 'p-invalid' : ''"
+              />
             </div>
-            <div class="flex align-items-center justify-content-center">
-              <span class="p-float-label">
-                <InputText id="title" type="text" />
-                <label for="title">วันที่</label>
-              </span>
+            <div class="field mb-12 col-12 md:col-12">
+              <label class="font-medium text-900">วันที่เอกสาร</label>
+              <DatePicker
+                v-model="uploadedat"
+                dateFormat="d/m/yy"
+                :showIcon="true"
+                :buddhist="buddhistYear"
+                :hideOnDateTimeSelect="true"
+                :hiddenTime="true"
+              />
             </div>
           </div>
-
           <div
             class="flex align-content-center justify-content-center flex-wrap card-container"
             v-if="data_set_group.length == 0"
           >
             <div class="text-xl text-300">
-              <h3>Drop File Here To Upload</h3>
+              <h3>Drop File Here To Group</h3>
             </div>
           </div>
 
           <div class="card" v-if="data_set_group.length > 0">
             <div
-              class="flex flex-wrap align-content-center justify-content-center card-container"
+              class="flex flex-wrap align-content-start justify-content-start card-container"
             >
               <div
                 class="flex relative align-items-center justify-content-center surface-500 font-bold m-2 border-round"

@@ -65,8 +65,8 @@
               v-if="props.images_data.references.length > 0"
             />
             <Button
-              class="p-button-text"
-              icon="pi pi-shopping-cart"
+              class="p-button-raised"
+              icon="pi pi-plus"
               @click="addToGroupImage(props.images_data)"
               v-if="props.modeAddGroup"
             />
