@@ -422,8 +422,6 @@ function getDocumentImageGroup() {
             );
           });
 
-          console.log(filtered);
-
           if (data_set_group.value.length > 0) {
             data_list.value = filtered.filter(function (dataList) {
               return (
@@ -435,7 +433,6 @@ function getDocumentImageGroup() {
           } else {
             data_list.value = filtered;
           }
-          console.log(data_list.value);
           //data_list.value = filtered;
           totalPage.value = res.pagination.totalPage;
         }
@@ -1421,7 +1418,12 @@ function getImageNoGroup(mode) {
 function removeSetImageGroup(data) {
   console.log(data);
 
-  data_set_group.value.splice(data.guidfixed, 1);
+  let index = data_set_group.value.indexOf(data);
+
+  if (index != -1) {
+    data_set_group.value.splice(index, 1);
+  }
+
   data_list.value.push(data);
 
   selectedImg.value = [];
