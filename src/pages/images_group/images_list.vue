@@ -414,7 +414,6 @@ function getDocumentImageGroup() {
           totalItemsCount.value = res.pagination.total;
           getAllSelectImage();
         } else {
-
           let filtered = data_list.value.filter(function (ele) {
             return (
               ele.isreject == false &&
@@ -1353,7 +1352,6 @@ function dropGrupImage(event) {
   }
 
   selectedImg.value = [];
-  console.log(data_list.value);
 }
 
 function allowDropImageGroup(event) {
@@ -1441,6 +1439,17 @@ function addToGroupImage(data) {
 async function saveGropImages() {
   console.log(data_set_group.value);
 
+  if (uploadedat.value.getHours() == 0) {
+    let d = new Date();
+    let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+    let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
+
+    uploadedat.value.setHours(hours);
+    uploadedat.value.setMinutes(minutes);
+    uploadedat.value.setSeconds(seconds);
+  }
+
   let isPass = await verifyData();
 
   if (isPass) {
@@ -1454,15 +1463,10 @@ async function saveGropImages() {
       title: title.value,
       uploadedat: Utils.getFormatDateTime(uploadedat.value),
     };
-    console.log(data);
 
     try {
       const res = await ImageDataService.postDocumentImageGroup(data);
       if (res.success) {
-        title.value = "";
-        uploadedat.value = new Date();
-        activePage.value = 1;
-        modeCreateImageGroup = false;
         toast.add({
           severity: "success",
           summary: "success",
@@ -1470,10 +1474,18 @@ async function saveGropImages() {
           life: 3000,
         });
         setTimeout(() => {
+          title.value = "";
+          title_valid.value = false;
+          uploadedat.value = new Date();
+          activePage.value = 1;
+          modeCreateImageGroup.value = false;
+          data_set_group.value = [];
+          selectedImg.value = [];
           getDocumentImageGroup();
         }, 100);
       }
     } catch (err) {
+      console.log(err);
       toast.add({
         severity: "error",
         summary: "error",
@@ -1569,7 +1581,7 @@ function verifyData() {
                 dateFormat="d/m/yy"
                 :showIcon="true"
                 :buddhist="buddhistYear"
-                :hideOnDateTimeSelect="true"
+                :hideOnDateTimeSelect="false"
                 :hiddenTime="true"
               />
             </div>
