@@ -172,7 +172,7 @@
         :show-thumbnails="showImgData.length > 1"
         v-model:activeIndex="activeIndexList"
         @update:activeIndex="resetZoomImage()"
-        :numVisible="5"
+        :numVisible="(showImgData.length > 5) ? 5 : showImgData.length "
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">

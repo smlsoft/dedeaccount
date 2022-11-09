@@ -79,7 +79,6 @@ const sortOrder = ref(-1);
 
 const isGallery = ref(false);
 const selectedImg = ref([]);
-const getDocumentImageGroupTitle = ref("");
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref("");
 const showrejectImgdialog = ref(false);
@@ -119,7 +118,11 @@ const modeCreateImageGroup = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const title = ref("");
 const title_valid = ref(false);
+const title2 = ref("");
+const title2_valid = ref(false);
 const uploadedat = ref(new Date());
+const uploadedat2 = ref(new Date());
+const data_save_group = ref({});
 
 onUnmounted(() => {
   console.log(
@@ -917,48 +920,6 @@ function uploadSuccess() {
   getDocumentImageGroup();
 }
 
-async function postDocumentImageGroup() {
-  console.log(selectedImg.value);
-  let imagereferences = [];
-
-  selectedImg.value.forEach((element, index) => {
-    element.documentimageguid.xorder = index;
-    imagereferences.push(element.documentimageguid);
-  });
-
-  let data = {
-    imagereferences: imagereferences,
-    title: getDocumentImageGroupTitle.value,
-  };
-  console.log(data);
-
-  try {
-    const res = await ImageDataService.postDocumentImageGroup(data);
-    if (res.success) {
-      updateRefDialog.value = false;
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
-      setTimeout(() => {
-        getDocumentImageGroupTitle.value = "";
-        selectedImg.value = [];
-        activePage.value = 1;
-        getDocumentImageGroup();
-      }, 100);
-    }
-  } catch (err) {
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
-  }
-}
-
 async function documentImageUnGroup(data) {
   console.log(data);
 
@@ -1438,90 +1399,140 @@ function addToGroupImage(data) {
   console.log(data_set_group.value);
 }
 
-async function saveGropImages() {
-  console.log(data_set_group.value);
+async function saveGropImages(mode) {
+  // mode true == สร้างชุดเอกสาร
+  // mode false == กำหนดชุดเอกสาร
+  console.log(mode);
 
-  if (uploadedat.value.getHours() == 0) {
+  let newDate = new Date();
+  if (mode) {
+    newDate = uploadedat.value;
+  } else {
+    newDate = uploadedat2.value;
+  }
+
+  if (newDate.getHours() == 0) {
     let d = new Date();
     let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
     let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
     let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
 
-    uploadedat.value.setHours(hours);
-    uploadedat.value.setMinutes(minutes);
-    uploadedat.value.setSeconds(seconds);
+    newDate.setHours(hours);
+    newDate.setMinutes(minutes);
+    newDate.setSeconds(seconds);
   }
 
-  let isPass = await verifyData();
+  console.log(newDate);
 
-  if (isPass) {
-    let imagereferences = [];
-    data_set_group.value.forEach((element, index) => {
-      element.imagereferences[0].xorder = index;
-      imagereferences.push(element.imagereferences[0]);
-    });
-    let data = {
-      imagereferences: imagereferences,
-      title: title.value,
-      uploadedat: Utils.getFormatDateTime(uploadedat.value),
-    };
+  if (mode) {
+    console.log(data_set_group.value);
+    let isPass = await verifyData(mode);
+    if (isPass) {
+      let imagereferences = [];
+      data_set_group.value.forEach((element, index) => {
+        element.imagereferences[0].xorder = index;
+        imagereferences.push(element.imagereferences[0]);
+      });
+      data_save_group.value = {
+        imagereferences: imagereferences,
+        title: title.value,
+        uploadedat: Utils.getFormatDateTime(newDate),
+      };
+    }
+  } else {
+    console.log(selectedImg.value);
+    let isPass = await verifyData(mode);
+    if (isPass) {
+      let imagereferences = [];
+      selectedImg.value.forEach((element, index) => {
+        element.documentimageguid.xorder = index;
+        imagereferences.push(element.documentimageguid);
+      });
 
-    try {
-      const res = await ImageDataService.postDocumentImageGroup(data);
-      if (res.success) {
-        toast.add({
-          severity: "success",
-          summary: "success",
-          detail: "บันทึกข้อมูลสำเร็จ",
-          life: 3000,
-        });
-        setTimeout(() => {
-          title.value = "";
-          title_valid.value = false;
-          uploadedat.value = new Date();
-          activePage.value = 1;
-          modeCreateImageGroup.value = false;
-          data_set_group.value = [];
-          selectedImg.value = [];
-          getDocumentImageGroup();
-        }, 100);
-      }
-    } catch (err) {
-      console.log(err);
+      data_save_group.value = {
+        imagereferences: imagereferences,
+        title: title2.value,
+        uploadedat: Utils.getFormatDateTime(newDate),
+      };
+    }
+  }
+
+  try {
+    const res = await ImageDataService.postDocumentImageGroup(
+      data_save_group.value
+    );
+    if (res.success) {
       toast.add({
-        severity: "error",
-        summary: "error",
-        detail: "บันทึกไม่สำเร็จ " + err,
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
         life: 3000,
       });
+      setTimeout(() => {
+        title.value = "";
+        title_valid.value = false;
+        uploadedat.value = new Date();
+        title2.value = "";
+        title2_valid.value = false;
+        uploadedat2.value = new Date();
+        updateRefDialog.value = false;
+        modeCreateImageGroup.value = false;
+        data_set_group.value = [];
+        selectedImg.value = [];
+        activePage.value = 1;
+        getDocumentImageGroup();
+      }, 100);
     }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
   }
 }
 
-function verifyData() {
+function verifyData(mode) {
   var errorCount = 0;
 
-  if (title.value == "") {
-    errorCount += 1;
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "กรุณาป้อนชื่อชุดเอกสาร ",
-      life: 4000,
-    });
-    title_valid.value = true;
-  } else {
-    title_valid.value = false;
-  }
+  if (mode) {
+    if (title.value == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาป้อนชื่อชุดเอกสาร ",
+        life: 4000,
+      });
+      title_valid.value = true;
+    } else {
+      title_valid.value = false;
+    }
 
-  if (data_set_group.value.length == 0) {
-    errorCount += 1;
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "กรุณาเลือกรูปเอกสาร ",
-      life: 4000,
-    });
+    if (data_set_group.value.length == 0) {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรูปเอกสาร ",
+        life: 4000,
+      });
+    }
+  } else {
+    if (title2.value == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาป้อนชื่อชุดเอกสาร ",
+        life: 4000,
+      });
+      title2_valid.value = true;
+    } else {
+      title2_valid.value = false;
+    }
   }
 
   if (errorCount != 0) {
@@ -1552,7 +1563,7 @@ function verifyData() {
             label="บันทึกจัดชุด"
             icon="pi pi-save"
             class="p-button-success"
-            @click="saveGropImages(false)"
+            @click="saveGropImages(modeCreateImageGroup)"
           />
         </div>
       </div>
@@ -1565,6 +1576,7 @@ function verifyData() {
           @drop="dropGrupImage($event)"
         >
           <div class="grid formgrid p-fluid m-3">
+
             <div class="field mb-12 col-12 md:col-12">
               <label for="title" class="font-medium text-900"
                 >ชื่อชุดเอกสาร</label
@@ -1901,10 +1913,29 @@ function verifyData() {
         header="กำหนดชุดเอกสาร"
         :modal="true"
       >
+    
         <div class="grid formgrid p-fluid">
-          <div class="field mb-4 col-12">
-            <label class="font-medium text-900">ชื่อชุดเอกสาร</label>
-            <InputText type="text" v-model="getDocumentImageGroupTitle" />
+          <div class="field mb-12 col-12 md:col-12">
+            <label for="title" class="font-medium text-900"
+              >ชื่อชุดเอกสาร</label
+            >
+            <InputText
+              id="title"
+              type="text"
+              v-model="title2"
+              :class="title2_valid ? 'p-invalid' : ''"
+            />
+          </div>
+          <div class="field mb-12 col-12 md:col-12">
+            <label class="font-medium text-900">วันที่เอกสาร</label>
+            <DatePicker
+              v-model="uploadedat2"
+              dateFormat="d/m/yy"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="false"
+              :hiddenTime="true"
+            />
           </div>
         </div>
         <template #footer>
@@ -1918,7 +1949,7 @@ function verifyData() {
             label="บันทึก"
             icon="pi pi-check"
             class="p-button-text"
-            @click="postDocumentImageGroup()"
+            @click="saveGropImages(modeCreateImageGroup)"
           />
         </template>
       </Dialog>
