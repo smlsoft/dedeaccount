@@ -24,7 +24,7 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
- 
+
         if (showBy == "save") {
             sortShowBy = "&ref=2"
         } else if (showBy == "unsave") {
@@ -33,12 +33,22 @@ export default {
             sortShowBy = "&reject=1"
         }
 
-       // console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`);
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`).then(res => res.data);
+    },
+
+    getDocumentImageGroupById(data) {
+        return instanceApi(true).get(`/documentimagegroup/${data}`).then(res => res.data);
     },
 
     getDocumentImageById(data) {
         return instanceApi(true).get(`/documentimage/${data}`).then(res => res.data);
+    },
+    //update image /documentimagegroup
+    putUpdateImageDocumentimageGroup(id, data) {
+        console.log(id)
+        console.log(data)
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/documentimages`, data).then(res => res.data);
     },
 
     //Group

@@ -106,9 +106,21 @@
       <div class="flex justify-content-between pt-2 pb-2">
         <div class="flex">
           <Button
-            class="p-button-danger text-white"
+            class="p-button-warning"
+            icon="pi pi-images"
+            label="แก้ไขชุดเอกสาร"
+            @click="confirmEditGroup = true"
+            v-if="
+              showImgData.length > 1 &&
+              !checkUseImg(props.images_data.guidfixed) &&
+              props.images_data.references.length == 0 &&
+              props.images_data.isreject != true
+            "
+          />
+          <Button
+            class="p-button-danger text-white ml-1"
             icon="pi pi-file-excel"
-            label="ยกเลิกกลุ่มเอกสาร"
+            label="ยกเลิกชุดเอกสาร"
             @click="confirmUnGroup = true"
             v-if="
               showImgData.length > 1 &&
@@ -118,7 +130,7 @@
           />
           <Button
             v-if="props.mode != 4"
-            class="p-button-warning ml-1"
+            class="p-button-info ml-1"
             icon="pi pi-print"
             @click="printImg(showImgData)"
             label="ปริ้นเอกสาร"
@@ -172,7 +184,7 @@
         :show-thumbnails="showImgData.length > 1"
         v-model:activeIndex="activeIndexList"
         @update:activeIndex="resetZoomImage()"
-        :numVisible="(showImgData.length > 5) ? 5 : showImgData.length "
+        :numVisible="showImgData.length > 5 ? 5 : showImgData.length"
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
@@ -218,15 +230,21 @@
   </Dialog>
   <DialogForm
     :confirmDialog="confirmSaveImg"
-    :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
+    :textContent="'ต้องการบันทึกรูปภาพ'"
     v-on:close="confirmSaveImg = false"
     v-on:confirm="saveUpdateImg()"
   ></DialogForm>
   <DialogForm
     :confirmDialog="confirmUnGroup"
-    :textContent="'ต้องการยกเลิกกลุ่มรูปภาพใช่หรือไม่'"
+    :textContent="'ต้องการยกเลิกชุดรูปภาพ'"
     v-on:close="confirmUnGroup = false"
     v-on:confirm="documentImageUnGroup()"
+  ></DialogForm>
+  <DialogForm
+    :confirmDialog="confirmEditGroup"
+    :textContent="'ต้องการแก้ไขชุดรูปภาพ'"
+    v-on:close="confirmEditGroup = false"
+    v-on:confirm="documentImageEditGroup()"
   ></DialogForm>
   <DialogForm
     :confirmDialog="onfirmRejectDialog"
@@ -262,6 +280,7 @@ const activeIndexList = ref(0);
 const onfirmRejectDialog = ref(false);
 const isReject = ref(true);
 const contentOnfirmRejectDialog = ref("");
+const confirmEditGroup = ref(false);
 
 const scale = ref(1);
 const panning = ref(false);
@@ -285,6 +304,7 @@ const emit = defineEmits([
   "onFileSelect",
   "onReloadData",
   "documentImageUnGroup",
+  "documentImageEditGroup",
   "rejectImage",
   "showDetailGlImage",
   "addToGroupImage",
@@ -567,6 +587,12 @@ function reloadData() {
 function documentImageUnGroup() {
   emit("documentImageUnGroup", props.images_data.guidfixed);
   confirmUnGroup.value = false;
+  showImgDialog.value = false;
+}
+
+function documentImageEditGroup() {
+  emit("documentImageEditGroup", props.images_data.guidfixed);
+  confirmEditGroup.value = false;
   showImgDialog.value = false;
 }
 
