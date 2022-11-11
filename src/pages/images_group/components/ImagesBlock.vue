@@ -68,7 +68,9 @@
               class="p-button-raised"
               icon="pi pi-plus"
               @click="addToGroupImage(props.images_data)"
-              v-if="props.modeAddGroup"
+              v-if="
+                props.modeAddGroup && !checkUseImg(props.images_data.guidfixed)
+              "
             />
           </div>
           <div

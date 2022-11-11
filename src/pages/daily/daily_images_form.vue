@@ -1701,9 +1701,6 @@ function resetZoomImage() {
                       " />
                   </div> -->
                 </div>
-                <div v-if="waitForImages" class="flex justify-content-center">
-                  <ProgressSpinner />
-                </div>
 
                 <div class="p-0" v-if="selectedImg">
                   <Message
@@ -1733,31 +1730,55 @@ function resetZoomImage() {
                     :thumbnailsPosition="'top'"
                     :showThumbnails="showThumbnails"
                     v-model:activeIndex="activeIndex"
-                    :numVisible="10"
+                    :numVisible="
+                      doc_images.imagereferences.length > 5
+                        ? 5
+                        : doc_images.imagereferences.length
+                    "
                     @update:activeIndex="resetZoomImage"
                   >
                     <template #item="slotProps">
-                      <div class="p-3 img-magnifier-container mt-3">
-                        <div class="zoom_outer">
+                      <div class="grid">
+                        <div class="col-12 ">
                           <div
-                            id="zoom"
-                            :style="zoomStyle"
-                            @mousedown="onmousedown($event)"
-                            @mouseup="onmouseup($event)"
-                            @mousemove="onmousemove($event)"
-                            @wheel="onwheel($event)"
+                            class="flex justify-content-between flex-wrap card-container purple-container"
                           >
-                            <img :src="slotProps.item.imageuri" />
+                            <Chip
+                              :label="slotProps.item.name"
+                              icon="pi pi-image"
+                              class="ml-2 mt-2"
+                            />
+                            <Chip
+                              :label="'วันที่ : ' + Utils.getDateTimeFormat(slotProps.item.uploadedat)"
+                              icon="pi pi-calendar"
+                              class="mr-2 mt-2"
+                            />
                           </div>
                         </div>
+                        <div class="col-12">
+                          <div class="img-magnifier-container">
+                            <div class="zoom_outer">
+                              <div
+                                id="zoom"
+                                :style="zoomStyle"
+                                @mousedown="onmousedown($event)"
+                                @mouseup="onmouseup($event)"
+                                @mousemove="onmousemove($event)"
+                                @wheel="onwheel($event)"
+                              >
+                                <img :src="slotProps.item.imageuri" />
+                              </div>
+                            </div>
 
-                        <!-- <img
+                            <!-- <img
                           :src="slotProps.item.imageuri"
                           @click="magnify('myimage', 2)"
                           class="w-full"
                           :style="imagePreviewStyle"
                           id="myimage"
                         /> -->
+                          </div>
+                        </div>
                       </div>
                     </template>
                     <template #thumbnail="slotProps">
@@ -1857,7 +1878,7 @@ function resetZoomImage() {
               :value="data_list"
               :thumbnailsPosition="'top'"
               :showThumbnails="true"
-              :numVisible="10"
+              :numVisible="data_list.length > 10 ? 10 : data_list.length"
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >

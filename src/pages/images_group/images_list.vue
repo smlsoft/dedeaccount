@@ -1216,27 +1216,44 @@ function showDetailGlImage(docno) {
 }
 
 function dragStart(data) {
-  console.log("dragStart :" + data.guidfixed);
-
   imagesDragData.value = data;
   imagesDragCount.value = data.imagereferences.length;
   imagesDragReject.value = data.isreject;
   imagesDragReferences.value = data.references.length;
 
-  if (selectedImg.value.length == 0) {
-    selectedImg.value.push({
-      guidfixed: data.guidfixed,
-      documentimageguid: data.imagereferences[0],
-    });
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  } else {
+    //console.log(data);
+    if (
+      data.imagereferences.length == 1 &&
+      data.isreject == false &&
+      data.references.length == 0
+    ) {
+      if (selectedImg.value.length == 0) {
+        selectedImg.value.push({
+          guidfixed: data.guidfixed,
+          documentimageguid: data.imagereferences[0],
+        });
+      }
+    } else {
+      return;
+    }
   }
 }
 
 function dragging(data, event) {
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  }
   event.stopPropagation();
   event.preventDefault();
 }
 
 function allowDrop(data, event) {
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  }
   if (allowDropImage.value != data.guidfixed) {
     allowDropImage.value = data.guidfixed;
   } else {
@@ -1254,6 +1271,11 @@ async function drop(data, event) {
   //console.log(data);
   event.preventDefault();
   console.log("drop");
+
+  if (checkUseImg(imagesDragData.value.guidfixed)) {
+    return;
+  }
+
   if (!modeCreateImageGroup.value) {
     addImageGuidfixed.value = data.guidfixed;
     addImagenewData.value = data.imagereferences;
@@ -1267,9 +1289,21 @@ async function drop(data, event) {
       if (data.imagereferences.length == 1) {
         let result = [];
         result = selectedImg.value.filter(
-          (el) => el.guidfixed == addImageGuidfixed
+          (el) => el.guidfixed == addImageGuidfixed.value
         );
         if (result.length > 0) {
+          let result_detail = [];
+          result_detail = selectedImg.value.filter(
+            (el) => el.guidfixed == imagesDragData.value.guidfixed
+          );
+          if (result_detail.length > 0) {
+            updateRefDialog.value = true;
+          } else {
+            selectedImg.value.push({
+              guidfixed: imagesDragData.value.guidfixed,
+              documentimageguid: imagesDragData.value.imagereferences[0],
+            });
+          }
           updateRefDialog.value = true;
         } else {
           selectedImg.value.push({
@@ -1294,6 +1328,10 @@ function dropGrupImage(event) {
   console.log("dropGrupImage");
   //console.log(event);
   //console.log(selectedImg.value);
+
+  if (checkUseImg(imagesDragData.value.guidfixed)) {
+    return;
+  }
 
   if (selectedImg.value.length > 1) {
     selectedImg.value.forEach((element) => {
@@ -1853,7 +1891,7 @@ function documentImageEditGroup(data) {
                   </div>
                   <div class="flex ml-2">
                     <Button
-                      class="p-button-warning "
+                      class="p-button-warning"
                       icon="pi pi-images"
                       label="สร้างชุดเอกสาร"
                       @click="getImageNoGroup(true)"
