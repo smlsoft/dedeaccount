@@ -1732,36 +1732,6 @@ function documentImageEditGroup(data) {
 <template>
   <AppLayout>
     <MainContentWarp @scroll="onScroll">
-      <div
-        class="flex justify-content-between flex-wrap pb-3"
-        v-if="modeCreateImageGroup"
-      >
-        <div class="flex align-items-center justify-content-center">
-          <Button
-            label="กลับ"
-            icon="pi pi-arrow-left"
-            class="p-button-outlined p-button-danger"
-            @click="getImageNoGroup(false)"
-          />
-        </div>
-        <div class="flex align-items-center justify-content-center">
-          <Button
-            v-if="imageGroup != null"
-            label="แก้ไขจัดชุด"
-            icon="pi pi-save"
-            class="p-button-warning"
-            @click="updateGropImages()"
-          />
-          <Button
-            v-if="imageGroup == null"
-            label="บันทึกจัดชุด"
-            icon="pi pi-save"
-            class="p-button-success"
-            @click="saveGropImages(modeCreateImageGroup)"
-          />
-        </div>
-      </div>
-
       <Splitter>
         <SplitterPanel
           id="panelForm1"
@@ -1818,6 +1788,30 @@ function documentImageEditGroup(data) {
                 :hiddenTime="true"
               />
             </div>
+            <div class="field col-12 md:col-12 lg:col-6">
+              <Button
+                label="ยกเลิก"
+                icon="pi pi-arrow-left"
+                class="p-button-outlined p-button-danger"
+                @click="getImageNoGroup(false)"
+              />
+            </div>
+            <div class="field col-12 md:col-12 lg:col-6">
+              <Button
+                v-if="imageGroup != null"
+                label="แก้ไข"
+                icon="pi pi-save"
+                class="p-button-warning"
+                @click="updateGropImages()"
+              />
+              <Button
+                v-if="imageGroup == null"
+                label="บันทึก"
+                icon="pi pi-save"
+                class="p-button-success"
+                @click="saveGropImages(modeCreateImageGroup)"
+              />
+            </div>
           </div>
           <div
             class="flex align-content-center justify-content-center flex-wrap card-container"
@@ -1827,42 +1821,43 @@ function documentImageEditGroup(data) {
               <h3>Drop File Here To Group</h3>
             </div>
           </div>
-
           <div class="card" v-if="data_set_group.length > 0">
-            <div
-              class="flex flex-wrap align-content-start justify-content-start card-container"
-            >
+            <ScrollPanel style="height: 40vh" >
               <div
-                class="flex relative align-items-center justify-content-center surface-500 font-bold m-2 border-round"
-                style="min-width: 200px"
-                v-for="data in data_set_group"
-                :key="data.documentimageguid"
+                class="flex flex-wrap align-content-start justify-content-start card-container"
               >
-                <div class="p-1 cursor-pointer">
-                  <div class="p-1 surface-card border-round">
-                    <img
-                      :src="data.imagereferences[0].imageuri"
-                      class="w-full"
-                      style="object-fit: cover; height: 100px"
+                <div
+                  class="flex relative align-items-center justify-content-center surface-500 font-bold m-2 border-round"
+                  style="min-width: 200px"
+                  v-for="data in data_set_group"
+                  :key="data.documentimageguid"
+                >
+                  <div class="p-1 cursor-pointer">
+                    <div class="p-1 surface-card border-round">
+                      <img
+                        :src="data.imagereferences[0].imageuri"
+                        class="w-full"
+                        style="object-fit: cover; height: 100px"
+                      />
+                    </div>
+                    <div class="align-items-center justify-content-center p-1">
+                      {{ data.title }}
+                    </div>
+                  </div>
+                  <div class="absolute top-0 right-0">
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-rounded p-button-danger"
+                      @click="removeSetImageGroup(data)"
                     />
                   </div>
-                  <div class="align-items-center justify-content-center p-1">
-                    {{ data.title }}
-                  </div>
-                </div>
-                <div class="absolute top-0 right-0">
-                  <Button
-                    icon="pi pi-times"
-                    class="p-button-rounded p-button-danger"
-                    @click="removeSetImageGroup(data)"
-                  />
                 </div>
               </div>
-            </div>
+            </ScrollPanel>
           </div>
         </SplitterPanel>
         <SplitterPanel id="panelForm2">
-          <Card class="p-3" ref="content">
+          <Card class="p-1" ref="content">
             <template #header>
               <div id="headMenu" v-if="!modeCreateImageGroup">
                 <div class="flex">
@@ -1995,126 +1990,248 @@ function documentImageEditGroup(data) {
                   </div>
                 </div>
               </div>
-
-              <div class="grid pt-0 mt-0">
-                <div
-                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                  v-for="(data, index) in data_gallery"
-                  :key="index"
-                >
-                  <ImagesGallery
-                    :gallery_data="data"
-                    v-on:selectGallery="selectGallery"
-                  ></ImagesGallery>
-                </div>
-                <div
-                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                  v-for="data in data_list"
-                  :key="data.guidfixed"
-                >
+              <div v-if="!modeCreateImageGroup">
+                <div class="grid pt-0 mt-0">
                   <div
-                    draggable="true"
-                    @dragstart="dragStart(data, $event)"
-                    @drag="
-                      imagesDragCount == 1 &&
-                      imagesDragReject == false &&
-                      imagesDragReferences == 0
-                        ? dragging(data, $event)
-                        : ''
-                    "
-                    @drop="
-                      imagesDragCount == 1 &&
-                      imagesDragReject == false &&
-                      imagesDragReferences == 0
-                        ? drop(data, $event)
-                        : ''
-                    "
-                    @dragover="
-                      imagesDragCount == 1 &&
-                      imagesDragReject == false &&
-                      imagesDragReferences == 0
-                        ? allowDrop(data, $event)
-                        : ''
-                    "
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-for="(data, index) in data_gallery"
+                    :key="index"
                   >
-                    <ImageBlock
-                      :modeAddGroup="modeCreateImageGroup"
-                      :images_data="data"
-                      :images_selete="selectedImg"
-                      :allimage_used="AllImageUsed"
-                      :mode="1"
-                      v-on:selectImg="selectImg"
-                      v-on:useImage="useImage"
-                      v-on:createform="createform"
-                      v-on:onFileSelect="onFileNewSelect"
-                      v-on:onReloadData="getDocumentImageGroup"
-                      v-on:documentImageUnGroup="documentImageUnGroup"
-                      v-on:documentImageEditGroup="documentImageEditGroup"
-                      v-on:rejectImage="rejectImage"
-                      v-on:showDetailGlImage="showDetailGlImage"
-                      v-on:addToGroupImage="addToGroupImage"
+                    <ImagesGallery
+                      :gallery_data="data"
+                      v-on:selectGallery="selectGallery"
+                    ></ImagesGallery>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
+                  >
+                    <div
+                      draggable="true"
+                      @dragstart="dragStart(data, $event)"
+                      @drag="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? dragging(data, $event)
+                          : ''
+                      "
+                      @drop="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? drop(data, $event)
+                          : ''
+                      "
+                      @dragover="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? allowDrop(data, $event)
+                          : ''
+                      "
                     >
-                    </ImageBlock>
-                  </div>
-                </div>
-                <div
-                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                  v-if="showSkeleton"
-                >
-                  <div class="custom-skeleton p-4">
-                    <div class="flex mb-3">
-                      <div>
-                        <Skeleton width="10rem" class="mb-2"></Skeleton>
-                        <Skeleton width="5rem" class="mb-2"></Skeleton>
-                        <Skeleton height=".5rem"></Skeleton>
-                      </div>
-                    </div>
-                    <Skeleton width="100%" height="150px"></Skeleton>
-                    <div class="flex justify-content-center mt-3">
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                  v-if="showSkeleton"
-                >
-                  <div class="custom-skeleton p-4">
-                    <div class="flex mb-3">
-                      <div>
-                        <Skeleton width="10rem" class="mb-2"></Skeleton>
-                        <Skeleton width="5rem" class="mb-2"></Skeleton>
-                        <Skeleton height=".5rem"></Skeleton>
-                      </div>
-                    </div>
-                    <Skeleton width="100%" height="150px"></Skeleton>
-                    <div class="flex justify-content-center mt-3">
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                      <ImageBlock
+                        :modeAddGroup="modeCreateImageGroup"
+                        :images_data="data"
+                        :images_selete="selectedImg"
+                        :allimage_used="AllImageUsed"
+                        :mode="1"
+                        v-on:selectImg="selectImg"
+                        v-on:useImage="useImage"
+                        v-on:createform="createform"
+                        v-on:onFileSelect="onFileNewSelect"
+                        v-on:onReloadData="getDocumentImageGroup"
+                        v-on:documentImageUnGroup="documentImageUnGroup"
+                        v-on:documentImageEditGroup="documentImageEditGroup"
+                        v-on:rejectImage="rejectImage"
+                        v-on:showDetailGlImage="showDetailGlImage"
+                        v-on:addToGroupImage="addToGroupImage"
+                      >
+                      </ImageBlock>
                     </div>
                   </div>
-                </div>
-                <div
-                  class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                  v-if="showSkeleton"
-                >
-                  <div class="custom-skeleton p-4">
-                    <div class="flex mb-3">
-                      <div>
-                        <Skeleton width="10rem" class="mb-2"></Skeleton>
-                        <Skeleton width="5rem" class="mb-2"></Skeleton>
-                        <Skeleton height=".5rem"></Skeleton>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
                       </div>
                     </div>
-                    <Skeleton width="100%" height="150px"></Skeleton>
-                    <div class="flex justify-content-center mt-3">
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
-                      <Skeleton width="4rem" height="2rem"></Skeleton>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <ScrollPanel style="height: 61vh" v-if="modeCreateImageGroup">
+                <div class="grid pt-0 mt-0">
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-for="(data, index) in data_gallery"
+                    :key="index"
+                  >
+                    <ImagesGallery
+                      :gallery_data="data"
+                      v-on:selectGallery="selectGallery"
+                    ></ImagesGallery>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
+                  >
+                    <div
+                      draggable="true"
+                      @dragstart="dragStart(data, $event)"
+                      @drag="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? dragging(data, $event)
+                          : ''
+                      "
+                      @drop="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? drop(data, $event)
+                          : ''
+                      "
+                      @dragover="
+                        imagesDragCount == 1 &&
+                        imagesDragReject == false &&
+                        imagesDragReferences == 0
+                          ? allowDrop(data, $event)
+                          : ''
+                      "
+                    >
+                      <ImageBlock
+                        :modeAddGroup="modeCreateImageGroup"
+                        :images_data="data"
+                        :images_selete="selectedImg"
+                        :allimage_used="AllImageUsed"
+                        :mode="1"
+                        v-on:selectImg="selectImg"
+                        v-on:useImage="useImage"
+                        v-on:createform="createform"
+                        v-on:onFileSelect="onFileNewSelect"
+                        v-on:onReloadData="getDocumentImageGroup"
+                        v-on:documentImageUnGroup="documentImageUnGroup"
+                        v-on:documentImageEditGroup="documentImageEditGroup"
+                        v-on:rejectImage="rejectImage"
+                        v-on:showDetailGlImage="showDetailGlImage"
+                        v-on:addToGroupImage="addToGroupImage"
+                      >
+                      </ImageBlock>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollPanel>
             </template>
           </Card>
         </SplitterPanel>

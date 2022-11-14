@@ -24,7 +24,7 @@
             type="text"
             v-ripple
             class="fadein p-link w-3rem h-3rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
-            style="top: 0rem; right: 1rem"
+            style="top: 0rem; right: 0rem"
           >
             <span class="font-bold text-white">{{
               props.images_data.imagereferences.length
@@ -58,6 +58,17 @@
         </div>
         <div class="flex justify-content-between flex-wrap h-3rem">
           <div class="flex align-items-center justify-content-center">
+            <Button
+              class="p-button-text text-orange-600"
+              icon="pi pi-pencil"
+              @click="confirmEditGroup = true"
+              v-if="
+                props.images_data.imagereferences.length > 1 &&
+                !checkUseImg(props.images_data.guidfixed) &&
+                props.images_data.references.length == 0 &&
+                props.images_data.isreject != true
+              "
+            />
             <Button
               class="p-button-text text-color-secondary"
               icon="pi pi-eye"
@@ -651,7 +662,7 @@ function selectModeImage() {
       if (modeMenu == 1 && statusImage == false) {
         if (props.images_data.imagereferences.length > 1) {
           console.log("group");
-          zoomImg(props.images_data);
+          // zoomImg(props.images_data);
         } else {
           if (props.modeAddGroup) {
             selectImg(props.images_data);
