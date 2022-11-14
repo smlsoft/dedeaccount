@@ -85,6 +85,24 @@
             <Checkbox :binary="true" v-model="ica" />
             <label>รวมรายการปิดบัญชีสิ้นปี</label>
           </div>
+          <div class="flex">
+                  <div class="flex">
+                    <Button
+                      label="ส่งออก Excel"
+                      class="p-button-primary"
+                      icon="pi pi-file-excel"
+                      @click="DownloadExampleExcel()"
+                    />
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      label="ส่งออก PDF"
+                      icon="pi pi-file-pdf"
+                      class="p-button-primary"
+                      @click="exportPDF()"
+                    />
+                  </div>
+                </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
             <Button
               label="จัดทำรายงาน"
@@ -123,13 +141,15 @@ import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
-
+import XLSX from "xlsx";
 const storeApp = useApp();
 const isvisible = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const startDate = ref();
 const endDate = ref();
 const accountGroup = ref("");
+const detail_example = ref([]);
+const detail_examplenumbertwo = ref([]);
 const data_list = ref([]);
 const groups = ref([]);
 const ica = ref(false);
@@ -184,6 +204,184 @@ function selectAccount(event) {
   console.log(data_list.value);
   //   getAccountledger();
   //   isvisible.value = true;
+}
+function checkaccountCat(data) {
+ if(data == 1 || 5){data }
+ 
+} 
+async function DownloadExampleExcel() {
+  let body = [];
+  let listTrialBalanceSheet = [];
+
+  let totalnextbalancedebit = "";
+  let totalnextbalancecredit = "";
+
+  let accountgroup = accountGroup.value;
+  let startdate = Utils.getDateFromYear(startDate.value);
+  let enddate = Utils.getDateFromYear(endDate.value);
+  console.log("ica", ica.value);
+
+  let icax = "0";
+  if (ica.value) {
+    icax = "1";
+  }
+  try {
+    const res = await ReportService.getTrialBalanceSheet(
+      accountgroup,
+      startdate,
+      enddate,
+      icax
+    );
+    if (res.success) {
+      console.log(res.data);
+      listTrialBalanceSheet.value = res.data;
+      totalnextbalancedebit = res.data.totalnextbalancedebit;
+      totalnextbalancecredit = res.data.totalnextbalancecredit;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    detail_example.value.push(
+      {
+       "ชื่อบัญชี": detailAccount.accountname,
+       "เลขที่บีญชี":detailAccount.accountcode,
+       "ยอดคงเหลือบัญชีหมวดสินทรัพย์ / ค่าใช้จ่าย "  :  (detailAccount.accountcategory == 1 ||
+          detailAccount.accountcategory == 5)
+            ? Utils.formatNumber(detailAccount.nextbalanceamount)
+            : "",
+            "ยอดคงเหลือบัญชี หนี้สิน /ทุน / รายได้ ":   (detailAccount.accountcategory == 2 || detailAccount.accountcategory == 3||
+          detailAccount.accountcategory == 4)
+            ? Utils.formatNumber(detailAccount.nextbalanceamount)
+            : "",
+      },
+ 
+    )
+
+  }
+  detail_example.value.push( {
+       "ชื่อบัญชี" :"รวม",
+       "เลขที่บีญชี":"",
+       "ยอดคงเหลือบัญชีหมวดสินทรัพย์ / ค่าใช้จ่าย " : Utils.formatNumber(totalnextbalancedebit),
+       "ยอดคงเหลือบัญชี หนี้สิน /ทุน / รายได้ ":  Utils.formatNumber(totalnextbalancecredit)
+      },
+)
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+    detail_examplenumbertwo.value,
+
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานงบทดลอง");
+  XLSX.writeFile(wb, "รายงานงบทดลอง.xlsx");
+}
+function DownloadExampleExcel2() {
+  let body = [];
+  let listTrialBalanceSheet = [];
+
+  let totalnextbalancedebit = "";
+  let totalnextbalancecredit = "";
+
+  let accountgroup = accountGroup.value;
+  let startdate = Utils.getDateFromYear(startDate.value);
+  let enddate = Utils.getDateFromYear(endDate.value);
+  console.log("ica", ica.value);
+
+  let icax = "0";
+  if (ica.value) {
+    icax = "1";
+  }
+  try {
+    const res =  ReportService.getTrialBalanceSheet(
+      accountgroup,
+      startdate,
+      enddate,
+      icax
+    );
+    if (res.success) {
+      console.log(res.data);
+      listTrialBalanceSheet.value = res.data;
+      totalnextbalancedebit = res.data.totalnextbalancedebit;
+      totalnextbalancecredit = res.data.totalnextbalancecredit;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
+ 
+
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    detail_example.value.push(
+      {
+       ชื่อบัญชี: detailAccount.accountname,
+       เลขที่บีญชี:detailAccount.accountcode,
+       ยอดคงเหลือด้านเดบิต  :  detailAccount.accountcategory == 1 ||
+          detailAccount.accountcategory == 5
+            ? Utils.formatNumber(detailAccount.nextbalanceamount)
+            : "",
+       ยอดคงเหลือด้านเครดิค: data
+      }
+
+      
+    );
+  }
+
+ 
+
+
+
+  // // data_list.value.forEach((data) => {
+   
+  // //   detail_example.value.push(
+  // //     {
+  // //      ชื่อบัญชี: data.accountname,
+  // //      เลขที่บีญชี:data.accountcode,
+  // //      ยอดคงเหลือด้านเดบิต :data.accountcategory,
+  // //      ยอดคงเหลือด้านเครดิค:data.accountcategory
+  // //     },
+  // //     {
+  //       1: "วันที่",
+
+  //       2: "เลขที่เอกสาร",
+  //       3: "รายละเอียด",
+  //       4: "เดบิต",
+  //       5: "เครดิต",
+  //       6: "ยอดรวม",
+  //       7: "",
+  //       8: "",
+  //     },
+  //     {
+  //       1: data.accountcode,
+
+  //       2: data.accountname,
+  //       3: "",
+  //       4: "",
+  //       5: "",
+  //       6: "",
+  //       7: "",
+  //       8: "",
+  //     }
+  //   );
+
+
+  // });
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+    detail_examplenumbertwo.value,
+
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานข้อมูลผังบัญชี");
+  XLSX.writeFile(wb, "รายงานข้อมูลผังบัญชี.xlsx");
 }
 async function exportPDF() {
   isvisible.value = true;
