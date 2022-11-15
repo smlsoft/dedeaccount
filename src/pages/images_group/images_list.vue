@@ -1273,6 +1273,12 @@ async function drop(data, event) {
   console.log("drop");
 
   if (checkUseImg(imagesDragData.value.guidfixed)) {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "ไม่สามารถเลือกรูปได้ ",
+      life: 3000,
+    });
     return;
   }
 
@@ -1330,6 +1336,12 @@ function dropGrupImage(event) {
   //console.log(selectedImg.value);
 
   if (checkUseImg(imagesDragData.value.guidfixed)) {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "ไม่สามารถเลือกรูปได้ ",
+      life: 3000,
+    });
     return;
   }
 
@@ -1822,7 +1834,7 @@ function documentImageEditGroup(data) {
             </div>
           </div>
           <div class="card" v-if="data_set_group.length > 0">
-            <ScrollPanel style="height: 40vh" >
+            <ScrollPanel style="height: 40vh">
               <div
                 class="flex flex-wrap align-content-start justify-content-start card-container"
               >
