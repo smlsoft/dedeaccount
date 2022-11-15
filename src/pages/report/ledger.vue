@@ -50,15 +50,17 @@
 
                 <Dropdown
                   v-model="accountcode"
+                  :showClear="true"
+                 
                   field="accountcode"
                   :options="groups"
-                  :filter="true"
+                 
                   :editable="true"
-                  filterPlaceholder="ค้นหา"
+                  
                   @change="selectAccount($event)"
                   optionLabel="accountcode"
                   optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
+              
                 >
                   <template #footer>
                     <div class="align-right">
@@ -527,7 +529,7 @@ function buildFromJson2() {
       { text: "" },
       { text: "" },
       { text: "" },
-      { text: Utils.formatNumber(data.balance), alignment: "right" },
+      { text: Utils.formatNumber(data.balance), alignment: "center" },
     ]);
     data.details.forEach((details) => {
       // console.log(details);
@@ -538,7 +540,7 @@ function buildFromJson2() {
         { text: "" },
         { text: checkzero(Utils.formatNumber(details.debit)) },
         { text: checkzero(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount), alignment: "right" },
+        { text: Utils.formatNumber(details.amount), alignment: "center" },
       ]);
     });
 
@@ -555,7 +557,7 @@ function buildFromJson2() {
       { text: "" },
       {
         text: Utils.formatNumber(data.nextbalance),
-        alignment: "right",
+        alignment: "center",
       },
     ]);
   });
@@ -699,11 +701,9 @@ function buildFromJson() {
     if (
       data.balance == data.nextbalance &&
       data.balance == 0 &&
-      data.nextbalance == 0
-    ) {
-      return console.log("true");
-    }
-    body.push([
+      data.nextbalance == 0 && data.details.length >0
+    ) { console.log("1")
+      body.push([
       {
         text: data.accountcode,
         fillColor: "#d8eaf2",
@@ -726,7 +726,7 @@ function buildFromJson() {
       { text: "" },
       { text: "" },
       { text: "" },
-      { text: checkbalance(data.balance), alignment: "right" },
+      { text: checkbalance(data.balance),alignment: "center",},
     ]);
     data.details.forEach((details) => {
       // console.log(details);
@@ -735,9 +735,9 @@ function buildFromJson() {
         { text: details.docno },
         { colSpan: 2, text: details.accountdescription },
         { text: "" },
-        { text: checkzero(Utils.formatNumber(details.debit)) },
-        { text: checkzero(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount), alignment: "right" },
+        { text: checkzero(Utils.formatNumber(details.debit)) ,alignment: "center"},
+        { text: checkzero(Utils.formatNumber(details.credit)) ,alignment: "center"},
+        { text: Utils.formatNumber(details.amount),alignment: "center",},
       ]);
     });
 
@@ -753,10 +753,71 @@ function buildFromJson() {
       { text: "" },
       { text: "" },
       {
-        text: checkbalance(data.nextbalance),
-        alignment: "right",
+        text: (data.nextbalance),
+        alignment: "center",
       },
     ]);
+    }else if (  
+      data.balance == 0 &&
+      data.nextbalance == 0 ){ 
+        console.log("2");
+ 
+  } else { console.log("3")
+      body.push([
+      {
+        text: data.accountcode,
+        fillColor: "#d8eaf2",
+        style: ["header", "textdecoration"],
+      },
+
+      { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+      { text: "", fillColor: "#d8eaf2" },
+    ]);
+
+    body.push([
+      { text: "" },
+
+      { text: checkbalanceWord(data.balance) },
+      { colSpan: 2, text: "" },
+      { text: "" },
+      { text: "" },
+      { text: "" },
+      { text: checkbalance(data.balance),alignment: "center" },
+    ]);
+    data.details.forEach((details) => {
+      // console.log(details);
+      body.push([
+        { text: Utils.getDateFormatDMY(details.docdate) },
+        { text: details.docno },
+        { colSpan: 2, text: details.accountdescription },
+        { text: "" },
+        { text: checkzero(Utils.formatNumber(details.debit)),alignment: "center" },
+        { text: checkzero(Utils.formatNumber(details.credit)) ,alignment: "center"},
+        { text: Utils.formatNumber(details.amount),alignment: "center"},
+      ]);
+    });
+
+    body.push([
+      { text: "" },
+      { text: "ยกไป" },
+
+      { colSpan: 2, text: "", style: ["header", "textdecoration"] },
+      {
+        text: "",
+      },
+
+      { text: "" },
+      { text: "" },
+      {
+        text: checkbalance(data.nextbalance),alignment: "center"
+      },
+    ]);
+    }
+  
   });
 
   return body;
