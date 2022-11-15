@@ -561,6 +561,7 @@ async function onSave() {
   var isPass = await verifyData();
   var isVaxPass = await verifyVat();
   var isTatPass = await verifyTax();
+
   if (isPass && isVaxPass && isTatPass) {
     confirmSaveDialog.value = true;
   }
@@ -613,7 +614,15 @@ function verifyData() {
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
-    if (ele.accountcode == "") {
+    if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
+      deletIndex.push(index);
+    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != ""){
+      deletIndex.push(index);
+    }else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == ""){
       deletIndex.push(index);
     }
 
