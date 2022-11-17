@@ -100,7 +100,7 @@
     v-model:visible="showImgDialog"
     :header="'รายละเอียด ' + props.images_data.title"
     :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    style="width: '60vw'; z-index: 9999 !important"
+    :style="{width: '60vw'}"
     :modal="true"
     @update:visible="resetZoomImage()"
   >
@@ -197,7 +197,7 @@
         :show-thumbnails="showImgData.length > 1"
         v-model:activeIndex="activeIndexList"
         @update:activeIndex="resetZoomImage()"
-        :numVisible="showImgData.length > 5 ? 5 : showImgData.length"
+        :numVisible="showImgData.length > 10 ? 10 : showImgData.length"
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
