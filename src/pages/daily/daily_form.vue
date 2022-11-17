@@ -561,7 +561,7 @@ async function onSave() {
   var isPass = await verifyData();
   var isVaxPass = await verifyVat();
   var isTatPass = await verifyTax();
- 
+
   if (isPass && isVaxPass && isTatPass) {
     confirmSaveDialog.value = true;
   }
@@ -620,9 +620,13 @@ function verifyData() {
       ele.debitamount == ""
     ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" || ele.debitamount != ""){
+    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != ""){
       deletIndex.push(index);
-    }else if (ele.accountcode != "" && ele.creditamount == "" || ele.debitamount == ""){
+    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == ""){
+      deletIndex.push(index);
+    }else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != ""){
+      deletIndex.push(index);
+    }else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == ""){
       deletIndex.push(index);
     }
 

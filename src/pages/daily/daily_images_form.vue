@@ -648,9 +648,13 @@ function verifyData() {
       ele.debitamount == ""
     ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" || ele.debitamount != ""){
+    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != ""){
       deletIndex.push(index);
-    }else if (ele.accountcode != "" && ele.creditamount == "" || ele.debitamount == ""){
+    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == ""){
+      deletIndex.push(index);
+    }else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != ""){
+      deletIndex.push(index);
+    }else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == ""){
       deletIndex.push(index);
     }
 
