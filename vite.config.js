@@ -46,6 +46,6 @@ export default defineConfig({
       }
     }
   },
-  base: '/app/',
+  // base: '/app/',
   title: 'Hello 7777'
 });
