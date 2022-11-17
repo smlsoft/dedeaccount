@@ -228,16 +228,13 @@ function getSumCreditAmount(data) {
     <MainContentWarp>
       <div class="grid">
         <div class="col-12">
-          <Button label="เพิ่มข้อมูลรายวัน" icon="pi pi-plus" class="w-auto" @click="goForm()"></Button>
-        </div>
-      </div>
-      <div class="grid">
-        <div class="col-12">
           <DataTable :value="data_list" dataKey="docno" class="p-datatable-sm" :loading="loading" stripedRows
             responsiveLayout="scroll" @sort="sortBy" scrollHeight="69vh" v-model:expandedRows="expandedRows">
             <template #header>
               <div class="flex justify-content-between">
-                <div></div>
+                <div>
+                  <Button label="เพิ่มข้อมูลรายวัน" icon="pi pi-plus" class="w-auto" @click="goForm()"></Button>
+                </div>
                 <span class="p-input-icon-left">
                   <i class="pi pi-search" />
                   <InputText v-model="filters" placeholder="ค้นหา...." @keyup="keyup()" @keydown="keydown()" />
