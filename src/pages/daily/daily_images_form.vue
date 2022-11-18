@@ -648,13 +648,29 @@ function verifyData() {
       ele.debitamount == ""
     ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount != ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount != ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == ""){
+    } else if (
+      ele.accountcode != "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
     }
 
@@ -1673,7 +1689,6 @@ function resetZoomImage() {
         >
           <Splitter layout="horizontal">
             <SplitterPanel
-              :size="50"
               class="relative"
               id="panelForm2"
               @mouseleave="removeMagnify()"
@@ -1736,75 +1751,81 @@ function resetZoomImage() {
                 </div>
 
                 <KeepAlive>
-                  <Galleria
-                    v-if="selectedImg && !waitForImages"
-                    :value="doc_images.imagereferences"
-                    :thumbnailsPosition="'top'"
-                    :showThumbnails="showThumbnails"
-                    v-model:activeIndex="activeIndex"
-                    :numVisible="
-                      doc_images.imagereferences.length > 5
-                        ? 5
-                        : doc_images.imagereferences.length
-                    "
-                    @update:activeIndex="resetZoomImage"
-                  >
-                    <template #item="slotProps">
-                      <div class="grid">
-                        <div class="col-12 ">
-                          <div
-                            class="flex justify-content-between flex-wrap card-container purple-container"
-                          >
-                            <Chip
-                              :label="slotProps.item.name"
-                              icon="pi pi-image"
-                              class="ml-2 mt-2"
-                            />
-                            <Chip
-                              :label="'วันที่ : ' + Utils.getDateTimeFormat(slotProps.item.uploadedat)"
-                              icon="pi pi-calendar"
-                              class="mr-2 mt-2"
-                            />
-                          </div>
-                        </div>
-                        <div class="col-12">
-                          <div class="img-magnifier-container">
-                            <div class="zoom_outer">
-                              <div
-                                id="zoom"
-                                :style="zoomStyle"
-                                @mousedown="onmousedown($event)"
-                                @mouseup="onmouseup($event)"
-                                @mousemove="onmousemove($event)"
-                                @wheel="onwheel($event)"
-                              >
-                                <img :src="slotProps.item.imageuri" />
-                              </div>
+                  <div style="max-width: 50vh" v-if="selectedImg && !waitForImages">
+                    <Galleria
+                      :value="doc_images.imagereferences"
+                      :thumbnailsPosition="'top'"
+                      :showThumbnails="showThumbnails"
+                      v-model:activeIndex="activeIndex"
+                      :numVisible="
+                        doc_images.imagereferences.length > 5
+                          ? 5
+                          : doc_images.imagereferences.length
+                      "
+                      @update:activeIndex="resetZoomImage"
+                    >
+                      <template #item="slotProps">
+                        <div class="grid">
+                          <div class="col-12">
+                            <div
+                              class="flex justify-content-between flex-wrap card-container purple-container"
+                            >
+                              <Chip
+                                :label="slotProps.item.name"
+                                icon="pi pi-image"
+                                class="ml-2 mt-2"
+                              />
+                              <Chip
+                                :label="
+                                  'วันที่ : ' +
+                                  Utils.getDateTimeFormat(
+                                    slotProps.item.uploadedat
+                                  )
+                                "
+                                icon="pi pi-calendar"
+                                class="mr-2 mt-2"
+                              />
                             </div>
+                          </div>
+                          <div class="col-12">
+                            <div class="img-magnifier-container">
+                              <div class="zoom_outer">
+                                <div
+                                  id="zoom"
+                                  :style="zoomStyle"
+                                  @mousedown="onmousedown($event)"
+                                  @mouseup="onmouseup($event)"
+                                  @mousemove="onmousemove($event)"
+                                  @wheel="onwheel($event)"
+                                >
+                                  <img :src="slotProps.item.imageuri" />
+                                </div>
+                              </div>
 
-                            <!-- <img
+                              <!-- <img
                           :src="slotProps.item.imageuri"
                           @click="magnify('myimage', 2)"
                           class="w-full"
                           :style="imagePreviewStyle"
                           id="myimage"
                         /> -->
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </template>
-                    <template #thumbnail="slotProps">
-                      <img
-                        :src="slotProps.item.imageuri"
-                        style="width: 40px; height: 40px"
-                      />
-                    </template>
-                    <template #footer> </template>
-                  </Galleria>
+                      </template>
+                      <template #thumbnail="slotProps">
+                        <img
+                          :src="slotProps.item.imageuri"
+                          style="width: 40px; height: 40px"
+                        />
+                      </template>
+                      <template #footer> </template>
+                    </Galleria>
+                  </div>
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
+            <SplitterPanel @click="removeMagnify()" id="panelForm3">
               <TabView class="tabview-custom" ref="tabview">
                 <TabPanel>
                   <template #header>
