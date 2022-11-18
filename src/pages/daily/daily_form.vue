@@ -1908,8 +1908,8 @@ function resetZoomImage() {
                 </Message>
               </div>
               <KeepAlive>
+                <div style="max-width: 50vh" v-if="doc_images.length > 0 && selectedImg">
                 <Galleria
-                  v-if="doc_images.length > 0 && selectedImg"
                   :value="doc_images"
                   :thumbnailsPosition="'top'"
                   :showThumbnails="doc_images.length > 1"
@@ -1946,6 +1946,8 @@ function resetZoomImage() {
                   </template>
                   <template #footer></template>
                 </Galleria>
+                </div>
+
               </KeepAlive>
 
               <Button
