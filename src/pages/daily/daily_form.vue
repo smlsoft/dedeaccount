@@ -181,8 +181,6 @@ onMounted(() => {
     readMode.value = false;
   }
 
-  console.log(readMode.value);
-
   if (
     route.params.id != "" &&
     route.params.id != "" &&
@@ -285,6 +283,14 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
+        if (daily_form.value.journaldetail.length == 0) {
+          daily_form.value.journaldetail.push({
+            accountcode: "",
+            accountname: "",
+            debitamount: 0,
+            creditamount: 0,
+          });
+        }
         if ((daily_form.value.exdocrefdate = "0001-01-01T00:00:00Z")) {
           daily_form.value.exdocrefdate = "";
         } else {
@@ -620,13 +626,29 @@ function verifyData() {
       ele.debitamount == ""
     ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount != ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != ""){
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount != ""
+    ) {
       deletIndex.push(index);
-    }else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == ""){
+    } else if (
+      ele.accountcode != "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
     }
 
