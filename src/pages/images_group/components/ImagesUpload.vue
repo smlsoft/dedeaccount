@@ -1,120 +1,203 @@
 <template>
   <div class="p-3 surface-section flex-auto">
-    <div class="flex justify-content-between  pl-2 pt-2">
+    <div class="flex justify-content-between pl-2 pt-2">
       <div class="flex align-items-center justify-content-center">
         <div class="flex">
-          <FileUpload ref="fileInput" :disabled="loading == true" name="Image[]" mode="basic" @select="selectedFile"
-            :multiple="true" accept="image/*" chooseLabel="เลือกรูป" :maxFileSize="10000000">
+          <FileUpload
+            ref="fileInput"
+            :disabled="loading == true"
+            name="Image[]"
+            mode="basic"
+            @select="selectedFile"
+            :multiple="true"
+            accept="image/*"
+            chooseLabel="เลือกรูป"
+            :maxFileSize="10000000"
+          >
           </FileUpload>
         </div>
         <div class="flex ml-2">
-          <Button :disabled="loading == true || data_import.length == 0" class="p-button-success" icon="pi pi-save"
-            label="อัพโหลด" @click="uploadClick()" />
+          <Button
+            :disabled="loading == true || data_import.length == 0"
+            class="p-button-success"
+            icon="pi pi-save"
+            label="อัพโหลด"
+            @click="uploadClick()"
+          />
         </div>
         <div class="flex ml-2">
-          <Button :disabled="loading == true || data_import.length == 0" class="p-button-warning" icon="pi pi-trash"
-            label="ยกเลิกรูปภาพ" @click="clear()" />
+          <Button
+            :disabled="loading == true || data_import.length == 0"
+            class="p-button-warning"
+            icon="pi pi-trash"
+            label="ยกเลิกรูปภาพ"
+            @click="clear()"
+          />
         </div>
       </div>
       <div class="flex align-items-center justify-content-center">
-        <Button class="p-button-danger" icon="pi pi-times" label="ปิด" @click="closeDialogUpload()" />
+        <Button
+          class="p-button-danger"
+          icon="pi pi-times"
+          label="ปิด"
+          @click="closeDialogUpload()"
+        />
       </div>
     </div>
 
-    <div ref="content" class="p-fileupload-content mt-3 p-3 surface-card shadow-2 border-rounded"
-      @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-
-
+    <div
+      ref="content"
+      class="p-fileupload-content mt-3 p-3 surface-card shadow-2 border-rounded"
+      @dragenter="onDragEnter"
+      @dragover="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
+    >
       <!-- <ProgressBar class="" v-if="loading" :value="onUploadProgress" style="height: 0.9em; font-size: 14px">
         {{ onUploadProgress }}% ({{ loadImg }}/{{ data_import.length }})</ProgressBar> -->
 
-      <div class="flex flex-row flex-wrap " v-if="data_import.length > 0">
-        <div class="flex align-items-center justify-content-center ">
-          <Tag icon="pi pi-image" severity="info" class="mr-2" :value="'จำนวน ' +  data_import.length +' รูป'" rounded>
+      <div class="flex flex-row flex-wrap" v-if="data_import.length > 0">
+        <div class="flex align-items-center justify-content-center">
+          <Tag
+            icon="pi pi-image"
+            severity="info"
+            class="mr-2"
+            :value="'จำนวน ' + data_import.length + ' รูป'"
+            rounded
+          >
           </Tag>
         </div>
-        <div class="flex align-items-center justify-content-center ">
-          <Tag class="mr-2" icon="pi pi-check" severity="success"
-            :value="'สำเร็จ ' +  data_import_success.length +' รูป'" rounded></Tag>
+        <div class="flex align-items-center justify-content-center">
+          <Tag
+            class="mr-2"
+            icon="pi pi-check"
+            severity="success"
+            :value="'สำเร็จ ' + data_import_success.length + ' รูป'"
+            rounded
+          ></Tag>
         </div>
-        <div class="flex align-items-center justify-content-center ">
-          <Tag icon="pi pi-times" severity="danger" :value="'ไม่สำเร็จ ' +  data_import_false.length +' รูป'" rounded>
+        <div class="flex align-items-center justify-content-center">
+          <Tag
+            icon="pi pi-times"
+            severity="danger"
+            :value="'ไม่สำเร็จ ' + data_import_false.length + ' รูป'"
+            rounded
+          >
           </Tag>
         </div>
       </div>
       <div class="p-fileupload-files pt-3" v-if="data_import.length > 0">
         <div class="relative mb-1">
           <div class="flex flex-wrap justify-content-center gap-1">
-            <div class="border-round m-1 " v-for="(file, index) of data_import"
-              :key="file.name + file.type + file.size">
-              <div class="relative shadow-2  card-container ">
-                <div class="relative p-3  border-round ">
-                  <img v-if="isImage(file)" :class="file.cmd != 'success' ? 'opacity-30': ''" :alt="file.name"
-                    :src="file.objectURL" class="mb-0 w-full h-9rem" style="object-fit: cover; " />
-                  <div class="flex justify-content-center  pt-1">
+            <div
+              class="border-round m-1"
+              v-for="(file, index) of data_import"
+              :key="file.name + file.type + file.size"
+            >
+              <div class="relative shadow-2 card-container">
+                <div class="relative p-3 border-round">
+                  <img
+                    v-if="isImage(file)"
+                    :class="file.cmd != 'success' ? 'opacity-30' : ''"
+                    :alt="file.name"
+                    :src="file.objectURL"
+                    class="mb-0 w-full h-9rem"
+                    style="object-fit: cover"
+                  />
+                  <div class="flex justify-content-center pt-1">
                     <span class="text-900 font-medium titletext">
-                      {{ file.name}}
+                      {{ file.name }}
                     </span>
                   </div>
-                  <div class="absolute top-0 left-0  " v-if="file.cmd =='success'">
-                    <Button class="p-button-rounded  p-button-outlined" :icon="
-                         file.cmd == 'success'
-                        ? 'pi pi-trash'
-                        : ''
-                    " :class="file.cmd == 'success'
-                    ? 'p-button-warning'
-                    : ''" @click="remove(file.cmd, index)" />
+                  <div
+                    class="absolute top-0 left-0"
+                    v-if="file.cmd == 'success'"
+                  >
+                    <Button
+                      class="p-button-rounded p-button-outlined"
+                      :icon="file.cmd == 'success' ? 'pi pi-trash' : ''"
+                      :class="file.cmd == 'success' ? 'p-button-warning' : ''"
+                      @click="remove(file.cmd, index)"
+                    />
                   </div>
-                  <div class="absolute top-0 right-0  ">
-                    <Button class="p-button-rounded  " :icon="
-                      file.cmd == 'wait'
-                        ? 'pi pi-times'
-                        : file.cmd == 'progress'
-                        ? 'pi pi-spin pi-spinner'
-                        : file.cmd == 'error'
-                        ? 'pi pi-trash'
-                        : 'pi pi-check-circle'
-                    " :class=" file.cmd == 'error'
-                    ? 'p-button-danger'
-                    : file.cmd == 'wait'
-                    ? 'p-button-danger'
-                    : file.cmd == 'progress'
-                    ? 'p-button-info'
-                    : ' p-button-success'"
-                      @click="file.cmd == 'error' || file.cmd == 'wait'  ? remove(file.cmd, index) : ''" />
+                  <div class="absolute top-0 right-0">
+                    <Button
+                      class="p-button-rounded"
+                      :icon="
+                        file.cmd == 'wait'
+                          ? 'pi pi-times'
+                          : file.cmd == 'progress'
+                          ? 'pi pi-spin pi-spinner'
+                          : file.cmd == 'error'
+                          ? 'pi pi-trash'
+                          : 'pi pi-check-circle'
+                      "
+                      :class="
+                        file.cmd == 'error'
+                          ? 'p-button-danger'
+                          : file.cmd == 'wait'
+                          ? 'p-button-danger'
+                          : file.cmd == 'progress'
+                          ? 'p-button-info'
+                          : ' p-button-success'
+                      "
+                      @click="
+                        file.cmd == 'error' || file.cmd == 'wait'
+                          ? remove(file.cmd, index)
+                          : ''
+                      "
+                    />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
       <div class="p-fileupload-empty" v-if="data_import.length == 0">
         <p>ลากไฟล์ที่ต้องการอัพโหลดวางที่นี่.</p>
       </div>
-
     </div>
-    <div class="flex justify-content-end  pt-5">
-      <Button class="p-button-success" icon="pi pi-save" label="บันทึก" :disabled="!queSuccess"
-        :loading="queDocRefSuccess" @click="saveDocumentImage()" />
+    <div class="flex justify-content-end pt-5">
+      <Button
+        class="p-button-success"
+        icon="pi pi-save"
+        label="บันทึก"
+        :disabled="!queSuccess"
+        :loading="queDocRefSuccess"
+        @click="saveDocumentImage()"
+      />
     </div>
     <div class="pt-1">
       <ProgressBar mode="indeterminate" v-if="loadingSaveDocumentImage" />
     </div>
-
   </div>
-  <DialogForm :confirmDialog="showCloseDialogUpload" :textContent="'ต้องการยกเลิกรูปภาพทั้งหมด'"
-    v-on:close="showCloseDialogUpload = false" v-on:confirm="cancelUploadImage()"></DialogForm>
+  <DialogForm
+    :confirmDialog="showCloseDialogUpload"
+    :textContent="'ต้องการยกเลิกรูปภาพทั้งหมด'"
+    v-on:close="showCloseDialogUpload = false"
+    v-on:confirm="cancelUploadImage()"
+  ></DialogForm>
 
-  <Dialog header="ยืนยันการอัพโหลด" v-model:visible="openConfirmationDocRef"
-    :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '350px'}" :modal="true" :closable="false">
+  <Dialog
+    header="ยืนยันการอัพโหลด"
+    v-model:visible="openConfirmationDocRef"
+    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    :style="{ width: '350px' }"
+    :modal="true"
+    :closable="false"
+  >
     <div class="confirmation-content">
       <i class="pi pi pi-check-circle mr-3" style="font-size: 2rem" />
-      <span>{{data_import_success.length}} Image Upload Complete </span>
+      <span>{{ data_import_success.length }} Image Upload Complete </span>
     </div>
     <template #footer>
-      <Button label="ยืนยัน" icon="pi pi-check" @click="emitImagesList()" autofocus />
+      <Button
+        label="ยืนยัน"
+        icon="pi pi-check"
+        @click="emitImagesList()"
+        autofocus
+      />
     </template>
   </Dialog>
   <Toast position="top-right" />
@@ -160,23 +243,16 @@ const queDocRefSuccess = ref(false);
 const upLoadQueDocRef = ref(0);
 const openConfirmationDocRef = ref(false);
 
-
-
 const emit = defineEmits(["success", "closeDialogUpload"]);
-
 
 const props = defineProps({
   data_ondrop: Array,
 });
 onMounted(() => {
-
-  console.log(props.data_ondrop.value);
+  // console.log(props.data_ondrop.value);
   storeApp.setPageTitle("อัพโหลดรูปภาพเอกสาร");
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_upload");
-
-
-
 });
 
 // function upLoadQue() {
@@ -201,7 +277,6 @@ function closeDialogUpload() {
 }
 
 function cancelUploadImage() {
-
   data_import_success.value = [];
   data_import_false.value = [];
   data_import.value = [];
@@ -211,7 +286,6 @@ function cancelUploadImage() {
 
   emit("closeDialogUpload");
 }
-
 
 function remove(cmd, index) {
   console.log(cmd);
@@ -229,8 +303,6 @@ function remove(cmd, index) {
   if (data_import.value.length == 0) {
     loading.value = false;
   }
-
-
 }
 function formatSize(bytes) {
   if (bytes === 0) {
@@ -249,7 +321,9 @@ function onDragEnter(event) {
 }
 
 function isFileLimitExceeded() {
-  console.log(fileLimit.value < data_import.value.length + uploadedFileCount.value);
+  console.log(
+    fileLimit.value < data_import.value.length + uploadedFileCount.value
+  );
   return fileLimit.value < data_import.value.length + uploadedFileCount.value;
 }
 function checkFileLimit() {
@@ -306,7 +380,9 @@ function onDrop(event) {
   event.stopPropagation();
   event.preventDefault();
 
-  const files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+  const files = event.dataTransfer
+    ? event.dataTransfer.files
+    : event.target.files;
   const allowDrop = true || (files && files.length === 1);
 
   if (allowDrop) {
@@ -315,7 +391,9 @@ function onDrop(event) {
 }
 function onFileSelect(event) {
   console.log(event);
-  let files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+  let files = event.dataTransfer
+    ? event.dataTransfer.files
+    : event.target.files;
   uploadedFileCount.value = files.length;
   if (checkFileLimit()) {
     for (let file of files) {
@@ -432,9 +510,8 @@ function selectedFile(event) {
   fileInput.value.files = "";
 }
 
-
 function uploadClick() {
-  data_import.value.forEach(element => {
+  data_import.value.forEach((element) => {
     element.cmd = "progress";
   });
   queProcess.value = true;
@@ -442,13 +519,10 @@ function uploadClick() {
   myUploader();
 }
 
-
 function myUploader() {
-
   loading.value = true;
   var interval = 300;
   if (data_import.value.length > 0) {
-
     var ele = data_import.value[upLoadQue.value];
     var index = upLoadQue.value;
 
@@ -456,7 +530,6 @@ function myUploader() {
     console.log(index);
 
     setTimeout(function () {
-
       var file = ele;
       var reader = new FileReader();
       var returnimgblob;
@@ -514,21 +587,24 @@ function myUploader() {
                   uploadedat: Utils.getFormatDateTime(new Date()),
                 });
 
-
                 loadImg.value = index + 1;
-                onUploadProgress.value = ((index + 1) / data_import.value.length) * 100;
-                onUploadProgress.value = parseFloat(onUploadProgress.value.toFixed(2));
+                onUploadProgress.value =
+                  ((index + 1) / data_import.value.length) * 100;
+                onUploadProgress.value = parseFloat(
+                  onUploadProgress.value.toFixed(2)
+                );
                 // setTimeout(() => {
                 //   if (onUploadProgress.value == 100) {
                 //     onUploadProgress.value = 0;
                 //   }
                 // }, 2000);
                 if (upLoadQue.value < data_import.value.length) {
-                  myUploader();
+                  setTimeout(() => {
+                    myUploader();
+                  }, 1000);
                 } else {
                   queSuccess.value = true;
                   queProcess.value = false;
-
                 }
               }
             })
@@ -537,7 +613,7 @@ function myUploader() {
               loading.value = true;
               if (err == "Network Error") {
                 setTimeout(() => {
-                  console.log(err)
+                  console.log(err);
                   myUploader();
                 }, 5000);
               } else {
@@ -549,17 +625,13 @@ function myUploader() {
                 detail: err + " กรุณารอสักครู่",
                 life: 6000,
               });
-
             });
-
-
         };
         image.src = readerEvent.target.result;
       };
       reader.readAsDataURL(file);
     }, interval);
   }
-
 }
 
 function emitImagesList() {
@@ -572,23 +644,35 @@ function emitImagesList() {
   upLoadQue.value = 0;
   queSuccess.value = false;
 
-
   emit("success");
 }
 
-
 function saveDocumentImage() {
-
+  console.log(data_import.value);
   console.log(data_import_success.value);
+
+  let data = [];
+
+  data_import.value.forEach((master_data) => {
+    if (master_data.cmd == "success") {
+      let newDaa = data_import_success.value.filter(
+        (dataSuccess) => dataSuccess.name == master_data.name
+      );
+      if (newDaa.length > 0) {
+        data.push(newDaa[0]);
+      }
+    }
+  });
+
+  console.log(data);
 
   loadingSaveDocumentImage.value = true;
   queDocRefSuccess.value = true;
 
-  ImageDataService.postDocumentImageBulk(data_import_success.value)
+  ImageDataService.postDocumentImageBulk(data)
     .then((res) => {
       console.log(res);
       if (res.success) {
-
         setTimeout(() => {
           queDocRefSuccess.value = false;
           loadingSaveDocumentImage.value = false;
@@ -604,16 +688,11 @@ function saveDocumentImage() {
         detail: err,
         life: 6000,
       });
-
     });
-
-
-
-};
-
+}
 </script>
 
-<style >
+<style>
 .p-fileupload-content {
   position: relative;
 }
@@ -623,12 +702,12 @@ function saveDocumentImage() {
   align-items: center;
 }
 
-.p-fileupload-row>div {
+.p-fileupload-row > div {
   flex: 1 1 auto;
   width: 25%;
 }
 
-.p-fileupload-row>div:last-child {
+.p-fileupload-row > div:last-child {
   text-align: right;
 }
 

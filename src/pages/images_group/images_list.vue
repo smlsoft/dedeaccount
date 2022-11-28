@@ -1132,7 +1132,7 @@ function selectSortOrder(data) {
 
 function onScroll() {
   let div = $("#maincontainer")[0];
-  //console.log(div.scrollTop);
+  console.log(div.scrollTop);
   if (div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
     if (!showSkeleton.value) {
       nextPage();
@@ -2338,7 +2338,7 @@ function documentImageEditGroup(data) {
 
 .sticky-custom {
   z-index: 999;
-  padding-top: 140px;
+  margin-top: 140px;
   position: fixed;
   top: 0;
   width: 100%;
