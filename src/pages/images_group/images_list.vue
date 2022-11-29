@@ -25,6 +25,7 @@ const route = useRoute();
 const toast = useToast();
 const detail = ref();
 const data_list = ref([]);
+const data_list_group = ref([]);
 const data_set_group = ref([]);
 const confirmSaveDialog = ref(false);
 const confirmGroupImageDialog = ref(false);
@@ -136,6 +137,7 @@ onUnmounted(() => {
 
 onMounted(() => {
   getDocumentImageGroup();
+  getDocumentImageGroupAll();
 
   storeApp.setActivePage("pic_group_docref");
   storeApp.setActiveChild("images_list");
@@ -380,6 +382,43 @@ function getDocumentImageGroupScroll() {
     .catch((err) => {
       console.log(err);
       showSkeleton.value = false;
+    });
+}
+
+function getDocumentImageGroupAll() {
+
+  ImageDataService.getDocumentImageGroupAll()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        data_list_group.value = res.data;
+
+        data_list_group.value.forEach(element => {
+
+          element.uploadedat = Utils.getDateFormatDMY(element.uploadedat)
+        });
+
+          // group by uploaddate
+          const result = data_list_group.value.reduce(
+            (r, { uploadedat: uploadedat, ...object }) => {
+              var temp = r.find((o) => o.uploadedat === uploadedat);
+              if (!temp) r.push((temp = { uploadedat, children: [] }));
+              temp.children.push(object);
+              return r;
+            },
+            []
+          );
+          
+          console.log(result);
+      }
+    })
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
     });
 }
 
@@ -1132,7 +1171,7 @@ function selectSortOrder(data) {
 
 function onScroll() {
   let div = $("#maincontainer")[0];
-  //console.log(div.scrollTop);
+  console.log(div.scrollTop);
   if (div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
     if (!showSkeleton.value) {
       nextPage();
@@ -2338,9 +2377,19 @@ function documentImageEditGroup(data) {
 
 .sticky-custom {
   z-index: 999;
-  padding-top: 140px;
+  margin-top: 140px;
   position: fixed;
   top: 0;
   width: 100%;
+}
+
+@media only screen and (max-width: 991px) {
+  .sticky-custom {
+    z-index: 999;
+    margin-top: 70px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
 }
 </style>

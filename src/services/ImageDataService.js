@@ -37,6 +37,10 @@ export default {
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`).then(res => res.data);
     },
 
+    getDocumentImageGroupAll() {
+        return instanceApi(true).get(`/documentimagegroup?limit=999999&sort=uploadedat:-1`).then(res => res.data);
+    },
+
     getDocumentImageGroupById(data) {
         return instanceApi(true).get(`/documentimagegroup/${data}`).then(res => res.data);
     },
