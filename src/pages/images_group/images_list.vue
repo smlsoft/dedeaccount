@@ -137,7 +137,7 @@ onUnmounted(() => {
 
 onMounted(() => {
   getDocumentImageGroup();
-  getDocumentImageGroupAll();
+  getDocumentImageAll();
 
   storeApp.setActivePage("pic_group_docref");
   storeApp.setActiveChild("images_list");
@@ -385,9 +385,9 @@ function getDocumentImageGroupScroll() {
     });
 }
 
-function getDocumentImageGroupAll() {
+function getDocumentImageAll() {
 
-  ImageDataService.getDocumentImageGroupAll()
+  ImageDataService.getDocumentImageAll()
     .then((res) => {
       //console.log(res);
       if (res.success) {
