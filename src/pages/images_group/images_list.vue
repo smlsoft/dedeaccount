@@ -124,6 +124,8 @@ const uploadedat2 = ref(new Date());
 const data_save_group = ref({});
 const images_list_group = ref([]);
 const imageGroup = ref();
+const imageDialog = ref(false);
+const dataImageDialog = ref({});
 
 onUnmounted(() => {
   console.log(
@@ -386,30 +388,28 @@ function getDocumentImageGroupScroll() {
 }
 
 function getDocumentImageAll() {
-
   ImageDataService.getDocumentImageAll()
     .then((res) => {
       //console.log(res);
       if (res.success) {
         data_list_group.value = res.data;
 
-        data_list_group.value.forEach(element => {
-
-          element.uploadedat = Utils.getDateFormatDMY(element.uploadedat)
+        data_list_group.value.forEach((element) => {
+          element.uploadedat = Utils.getDateFormatDMY(element.uploadedat);
         });
 
-          // group by uploaddate
-          const result = data_list_group.value.reduce(
-            (r, { uploadedat: uploadedat, ...object }) => {
-              var temp = r.find((o) => o.uploadedat === uploadedat);
-              if (!temp) r.push((temp = { uploadedat, children: [] }));
-              temp.children.push(object);
-              return r;
-            },
-            []
-          );
-          
-          console.log(result);
+        // group by uploaddate
+        const result = data_list_group.value.reduce(
+          (r, { uploadedat: uploadedat, ...object }) => {
+            var temp = r.find((o) => o.uploadedat === uploadedat);
+            if (!temp) r.push((temp = { uploadedat, children: [] }));
+            temp.children.push(object);
+            return r;
+          },
+          []
+        );
+
+        console.log(result);
       }
     })
     .catch((err) => {
@@ -1778,6 +1778,17 @@ function documentImageEditGroup(data) {
     getDataImageSelectGroup();
   }, 100);
 }
+
+function showImageDialog(data) {
+  console.log(data);
+  imageDialog.value = true;
+  if(data != ""){
+    dataImageDialog.value = data;
+
+  }else{
+    return
+  }
+}
 </script>
 
 <template>
@@ -1873,7 +1884,7 @@ function documentImageEditGroup(data) {
             </div>
           </div>
           <div class="card" v-if="data_set_group.length > 0">
-            <ScrollPanel style="height: 40vh">
+            <ScrollPanel style="height: 60vh">
               <div
                 class="flex flex-wrap align-content-start justify-content-start card-container"
               >
@@ -1889,6 +1900,7 @@ function documentImageEditGroup(data) {
                         :src="data.imagereferences[0].imageuri"
                         class="w-full"
                         style="object-fit: cover; height: 100px"
+                        @click="showImageDialog(data.imagereferences[0])"
                       />
                     </div>
                     <div class="align-items-center justify-content-center p-1">
@@ -2162,7 +2174,7 @@ function documentImageEditGroup(data) {
                   </div>
                 </div>
               </div>
-              <ScrollPanel style="height: 61vh" v-if="modeCreateImageGroup">
+              <ScrollPanel style="height: 73vh" v-if="modeCreateImageGroup">
                 <div class="grid pt-0 mt-0">
                   <div
                     class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
@@ -2288,6 +2300,39 @@ function documentImageEditGroup(data) {
         </SplitterPanel>
       </Splitter>
 
+      <Dialog
+        :dismissableMask="true"
+        :close-on-escape="false"
+        :closeOnEscape="true"
+        v-model:visible="imageDialog"
+        :header="'รายละเอียด ' + dataImageDialog.name"
+        :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
+        :style="{ width: '60vw' }"
+        :modal="true"
+      >
+        <div class="confirmation-content" id="boxconfirm" style="height: 80vh">
+          <div class="flex justify-content-between mb-2">
+            <div class="flex">
+              ชื่อรูป : {{ dataImageDialog.name }}
+            </div>
+            <div class="flex">
+              วันที่ :{{
+                Utils.getDateTimeFormat(dataImageDialog.uploadedat)
+              }}
+              โดย {{ dataImageDialog.uploadedby }}
+            </div>
+          </div>
+          <div style="margin: 0px; padding: 0px">
+            <iframe
+              :src="
+                '/images_group/components/zoom?uri=' + dataImageDialog.imageuri
+              "
+            >
+            </iframe>
+          </div>
+        </div>
+      </Dialog>
+
       <DialogForm
         :confirmDialog="createDialog"
         :textContent="create"
@@ -2391,5 +2436,11 @@ function documentImageEditGroup(data) {
     top: 0;
     width: 100%;
   }
+}
+iframe {
+  display: block; /* iframes are inline by default */
+  border: none; /* Reset default border */
+  height: 78vh; /* Viewport-relative units */
+  width: 57.39vw;
 }
 </style>

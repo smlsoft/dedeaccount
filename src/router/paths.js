@@ -379,4 +379,12 @@ export default [
     },
     component: () => import("../pages/user/user_edit.vue"),
   },
+  {
+    path: "/images_group/components/zoom",
+    name: "zoom",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images_group/components/zoom.vue"),
+  }
 ];
