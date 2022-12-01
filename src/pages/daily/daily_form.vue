@@ -191,15 +191,34 @@ onMounted(() => {
     updateMode.value = true;
     setTimeout(() => {
       getGLDetail(route.params.id);
+
     }, 1000);
   } else {
     storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
     daily_form.value.docno = Utils.getDocNoDate("JO");
   }
+
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+
 });
+
+function setWidthPanelForm2(left,right) { 
+
+  setTimeout(() => {
+    let box = document.getElementById("maincontainer");
+  let width = box.offsetWidth;
+
+  console.log('maincontainer: '+width)
+
+
+    let boxtable = document.getElementById("galleriabox");
+    boxtable.setAttribute("style", "width:" + ((width*left)/100) + "px");
+  }, 500);
+
+
+}
 
 function getImagesByDocref(data) {
   console.log(data);
@@ -390,6 +409,9 @@ function getGLDetail(id) {
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
+      
+                  setWidthPanelForm2(50,50);
+         
                 }
               }
             })
@@ -1312,7 +1334,8 @@ function showpanel() {
     panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
+    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+
   }, 50);
 }
 function isImage(file) {
@@ -1606,6 +1629,12 @@ function resetZoomImage() {
   start.value = { x: 0, y: 0 };
   zoomStyle.value = "";
 }
+
+function resizeGalleria(e) {
+  console.log("resizeGalleria");
+  console.log(e.sizes);
+  setWidthPanelForm2(e.sizes[0],e.sizes[1]);
+}
 </script>
 
 <template>
@@ -1833,7 +1862,7 @@ function resetZoomImage() {
           class="surface-card p-4 shadow-2 border-round p-fluid"
           v-if="!onLoad"
         >
-          <Splitter layout="horizontal">
+          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
             <SplitterPanel
               :size="1"
               class="relative"
@@ -1908,46 +1937,49 @@ function resetZoomImage() {
                 </Message>
               </div>
               <KeepAlive>
-                <div style="max-width: 50vh" v-if="doc_images.length > 0 && selectedImg">
-                <Galleria
-                  :value="doc_images"
-                  :thumbnailsPosition="'top'"
-                  :showThumbnails="doc_images.length > 1"
-                  v-model:activeIndex="activeIndex"
-                  @update:activeIndex="resetZoomImage()"
+                <div
+                  id="galleriabox"
+                  v-if="doc_images.length > 0 && selectedImg"
                 >
-                  <template #item="slotProps">
-                    <div class="p-0 img-magnifier-container mt-0">
-                      <div class="zoom_outer">
-                        <div
-                          id="zoom"
-                          :style="zoomStyle"
-                          @mousedown="onmousedown($event)"
-                          @mouseup="onmouseup($event)"
-                          @mousemove="onmousemove($event)"
-                          @wheel="onwheel($event)"
-                        >
-                          <img
-                            v-if="slotProps.item != null"
-                            :src="slotProps.item.imageuri"
-                            class="p-image-preview zoom"
-                          />
+                  <Galleria
+                    :numVisible="doc_images.length > 5 ? 10 : doc_images.length"
+                    :value="doc_images"
+                    :thumbnailsPosition="'top'"
+                    :showThumbnails="doc_images.length > 1"
+                    v-model:activeIndex="activeIndex"
+                    @update:activeIndex="resetZoomImage()"
+                  >
+                    <template #item="slotProps">
+                      <div class="p-0 img-magnifier-container mt-0">
+                        <div class="zoom_outer">
+                          <div
+                            id="zoom"
+                            :style="zoomStyle"
+                            @mousedown="onmousedown($event)"
+                            @mouseup="onmouseup($event)"
+                            @mousemove="onmousemove($event)"
+                            @wheel="onwheel($event)"
+                          >
+                            <img
+                              v-if="slotProps.item != null"
+                              :src="slotProps.item.imageuri"
+                              class="p-image-preview zoom"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
+                        <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
                         class="w-full" :style="imagePreviewStyle" id="myimage" /> -->
-                    </div>
-                  </template>
-                  <template #thumbnail="slotProps">
-                    <img
-                      :src="slotProps.item.imageuri"
-                      style="width: 40px; height: 40px"
-                    />
-                  </template>
-                  <template #footer></template>
-                </Galleria>
+                      </div>
+                    </template>
+                    <template #thumbnail="slotProps">
+                      <img
+                        :src="slotProps.item.imageuri"
+                        style="width: 40px; height: 40px"
+                      />
+                    </template>
+                    <template #footer></template>
+                  </Galleria>
                 </div>
-
               </KeepAlive>
 
               <Button

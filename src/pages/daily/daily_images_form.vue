@@ -416,6 +416,7 @@ function websocketConnect() {
               disableAllinput(res.data.imagereferences[0].isreject);
               setTimeout(() => {
                 checkActiveIndex();
+                setWidthPanelForm2(50, 50);
               }, 100);
             }
           }
@@ -1109,10 +1110,12 @@ function rejectImg() {
 }
 
 function hidepanel() {
-  var panel = document.getElementById("panelForm3");
-  panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
-  var panel2 = document.getElementById("panelForm2");
-  panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
+  setTimeout(() => {
+    var panel = document.getElementById("panelForm3");
+    panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
+    var panel2 = document.getElementById("panelForm2");
+    panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
+  }, 50);
 }
 function showpanel() {
   setTimeout(() => {
@@ -1120,8 +1123,8 @@ function showpanel() {
     panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
-  }, 30);
+    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+  }, 50);
 }
 
 function ImportDaliy(data) {
@@ -1663,6 +1666,24 @@ function resetZoomImage() {
   start.value = { x: 0, y: 0 };
   zoomStyle.value = "";
 }
+
+function setWidthPanelForm2(left, right) {
+  setTimeout(() => {
+    let box = document.getElementById("maincontainer");
+    let width = box.offsetWidth;
+
+    console.log("maincontainer: " + width);
+
+    let boxtable = document.getElementById("galleriabox");
+    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
+  }, 500);
+}
+
+function resizeGalleria(e) {
+  console.log("resizeGalleria");
+  console.log(e.sizes);
+  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
+}
 </script>
 
 <template>
@@ -1687,7 +1708,7 @@ function resetZoomImage() {
           class="surface-card p-4 shadow-2 border-round p-fluid"
           v-if="!onLoad"
         >
-          <Splitter layout="horizontal">
+          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
             <SplitterPanel
               class="relative"
               id="panelForm2"
@@ -1751,15 +1772,15 @@ function resetZoomImage() {
                 </div>
 
                 <KeepAlive>
-                  <div style="max-width: 50vh" v-if="selectedImg && !waitForImages">
+                  <div id="galleriabox" v-if="selectedImg && !waitForImages">
                     <Galleria
                       :value="doc_images.imagereferences"
                       :thumbnailsPosition="'top'"
                       :showThumbnails="showThumbnails"
                       v-model:activeIndex="activeIndex"
                       :numVisible="
-                        doc_images.imagereferences.length > 5
-                          ? 5
+                        doc_images.imagereferences.length > 10
+                          ? 10
                           : doc_images.imagereferences.length
                       "
                       @update:activeIndex="resetZoomImage"
@@ -1788,18 +1809,16 @@ function resetZoomImage() {
                             </div>
                           </div>
                           <div class="col-12">
-                            <div class="img-magnifier-container">
-                              <div class="zoom_outer">
-                                <div
-                                  id="zoom"
-                                  :style="zoomStyle"
-                                  @mousedown="onmousedown($event)"
-                                  @mouseup="onmouseup($event)"
-                                  @mousemove="onmousemove($event)"
-                                  @wheel="onwheel($event)"
-                                >
-                                  <img :src="slotProps.item.imageuri" />
-                                </div>
+                            <div class="zoom_outer">
+                              <div
+                                id="zoom"
+                                :style="zoomStyle"
+                                @mousedown="onmousedown($event)"
+                                @mouseup="onmouseup($event)"
+                                @mousemove="onmousemove($event)"
+                                @wheel="onwheel($event)"
+                              >
+                                <img :src="slotProps.item.imageuri" />
                               </div>
 
                               <!-- <img
@@ -2024,25 +2043,20 @@ function resetZoomImage() {
 }
 
 .zoom_outer {
+  margin: 0;
   padding: 0;
-  outline: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  position: relative;
-  max-width: 100%;
-  min-height: 100%;
-  height: auto;
-  margin: 0 auto;
 }
 
 #zoom {
-  padding: 20px;
   width: 100%;
   height: 100%;
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
   cursor: grab;
 }
-
 div#zoom > img {
   width: 100%;
   height: auto;

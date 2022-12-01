@@ -66,7 +66,8 @@
                 props.images_data.imagereferences.length > 1 &&
                 !checkUseImg(props.images_data.guidfixed) &&
                 props.images_data.references.length == 0 &&
-                props.images_data.isreject != true
+                props.images_data.isreject != true &&
+                props.mode == 1
               "
             />
             <Button
@@ -87,7 +88,13 @@
           <div
             class="flex align-items-center justify-content-center font-medium text-sm"
           >
-            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
+            {{
+              Utils.getDateTimeFormat(
+                props.modeAddGroup == true
+                  ? props.images_data.imagereferences[0].uploadedat
+                  : props.images_data.uploadedat
+              )
+            }}
           </div>
         </div>
       </div>
@@ -98,13 +105,13 @@
     :close-on-escape="false"
     :closeOnEscape="true"
     v-model:visible="showImgDialog"
+    @update:visible="exitDialog"
     :header="'รายละเอียด ' + props.images_data.title"
-    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    :style="{width: '60vw'}"
+    :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
+    :style="{ width: '60vw' }"
     :modal="true"
-    @update:visible="resetZoomImage()"
   >
-    <div class="confirmation-content" id="boxconfirm">
+    <div class="confirmation-content" id="boxconfirm" style="height: 80vh">
       <div class="flex justify-content-between mb-2">
         <div class="flex">
           ชื่อรูป : {{ showImgData[activeIndexList].name }}
@@ -189,47 +196,28 @@
           />
         </div>
       </div>
-
+      <div style="margin: 0px; padding: 0px">
+        <Message severity="warn" v-if="showImgData[activeIndexList].isreject"
+          >รูป {{ showImgData[activeIndexList].name }} โดนยกเลิก</Message
+        >
+      </div>
       <Galleria
         :value="showImgData"
-        thumbnailsPosition="top"
         :circular="true"
+        containerStyle="max-width: 100%"
+        thumbnailsPosition="top"
         :show-thumbnails="showImgData.length > 1"
         v-model:activeIndex="activeIndexList"
-        @update:activeIndex="resetZoomImage()"
         :numVisible="showImgData.length > 10 ? 10 : showImgData.length"
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
-          <div class="grid">
-            <div class="col-12">
-              <Message severity="warn" v-if="slotProps.item.isreject"
-                >รูป {{ slotProps.item.name }} โดนยกเลิก</Message
-              >
-            </div>
-            <div class="col-12">
-              <div class="p-0 img-magnifier-container mt-0">
-                <div class="zoom_outer">
-                  <div
-                    id="zoom"
-                    :style="zoomStyle"
-                    @mousedown="onmousedown($event)"
-                    @mouseup="onmouseup($event)"
-                    @mousemove="onmousemove($event)"
-                    @wheel="onwheel($event)"
-                  >
-                    <img
-                      v-if="slotProps.item != null"
-                      :src="slotProps.item.imageuri"
-                    />
-                  </div>
-                </div>
-              </div>
-              <!-- <img
-                :src="slotProps.item.imageuri"
-                style="width: 100%; display: block"
-              /> -->
-            </div>
+          <div style="margin: 0px; padding: 0px">
+            <iframe
+              :name="slotProps.item.imageuri"
+              :src="'/images_group/components/zoom?uri='+ slotProps.item.imageuri"
+            >
+            </iframe>
           </div>
         </template>
         <template #thumbnail="slotProps">
@@ -280,6 +268,7 @@ import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
 import { useToast } from "primevue/usetoast";
 import DialogForm from "@/components/form/DialogForm.vue";
+
 const toast = useToast();
 const confirmSaveImg = ref(false);
 const confirmUnGroup = ref(false);
@@ -294,13 +283,6 @@ const onfirmRejectDialog = ref(false);
 const isReject = ref(true);
 const contentOnfirmRejectDialog = ref("");
 const confirmEditGroup = ref(false);
-
-const scale = ref(1);
-const panning = ref(false);
-const pointX = ref(0);
-const pointY = ref(0);
-const start = ref({ x: 0, y: 0 });
-const zoomStyle = ref("");
 
 const props = defineProps({
   images_data: Object,
@@ -734,90 +716,30 @@ function borderImage() {
   return userImageStyle;
 }
 
-const setTransform = () => {
-  zoomStyle.value =
-    "transform:translate(" +
-    pointX.value +
-    "px, " +
-    pointY.value +
-    "px) scale(" +
-    scale.value +
-    ")";
-};
-
-function onmousedown(e) {
-  //console.log(e);
-  e.preventDefault();
-  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
-  panning.value = true;
-}
-
-function onmouseup(e) {
-  //console.log(e);
-  panning.value = false;
-}
-
-function onmousemove(e) {
-  //console.log(e);
-  e.preventDefault();
-  if (!panning.value) {
-    return;
-  }
-  pointX.value = e.clientX - start.value.x;
-  pointY.value = e.clientY - start.value.y;
-  setTransform();
-}
-
-function onwheel(e) {
-  //console.log(e);
-  e.preventDefault();
-  var xs = (e.clientX - pointX.value) / scale.value,
-    ys = (e.clientY - pointY.value) / scale.value,
-    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
-  pointX.value = e.clientX - xs * scale.value;
-  pointY.value = e.clientY - ys * scale.value;
-
-  setTransform();
-}
-
-function resetZoomImage() {
-  scale.value = 1;
-  panning.value = false;
-  pointX.value = 0;
-  pointY.value = 0;
-  start.value = { x: 0, y: 0 };
-  zoomStyle.value = "";
+function exitDialog(){
+  console.log("exitDialog");
+  activeIndexList.value = 0;
 }
 </script>
 <style scoped>
-.textcenter {
-  margin: auto;
-  line-height: 1.25rem;
-
-  padding: 0px;
+.selectimgDialog .p-dialog-header {
+  padding: 10px 15px 10px 15px;
 }
 
-.zoom_outer {
-  padding: 0;
-  outline: 0;
-  overflow: hidden;
-  width: auto;
-  height: auto;
-  margin: 0 auto;
+.p-galleria-thumbnails-top {
+  width: 100% !important;
 }
 
-#zoom {
-  padding: 0px;
-  width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
+.p-message {
+  margin: 0px;
+  width: 100% !important;
 }
 
-div#zoom > img {
-  width: 100%;
-  height: auto;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #000;
+  border: none; /* Reset default border */
+  height: 68vh; /* Viewport-relative units */
+  width: 57.39vw;
 }
 </style>
