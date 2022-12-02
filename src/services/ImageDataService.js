@@ -37,8 +37,16 @@ export default {
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`).then(res => res.data);
     },
 
-    getDocumentImageAll() {
-        return instanceApi(true).get(`/documentimage?limit=999999&sort=uploadedat:-1`).then(res => res.data);
+    // ดึงกลุ่มรูปทั้งหมด
+    getDocumentImageGroupAll(limitPage, page) {
+        //console.log(`/documentimagegroup?limit=${limitPage}&page=${page}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}`).then(res => res.data);
+    },
+
+    //ดึงรูปทั้งหมด
+    getImageAll(limitPage, page) {
+        //console.log(`/documentimage?limit=${limitPage}&page=${page}`);
+        return instanceApi(true).get(`/documentimage?limit=${limitPage}&page=${page}&sort=uploadedat:-1`).then(res => res.data);
     },
 
     getDocumentImageGroupById(data) {

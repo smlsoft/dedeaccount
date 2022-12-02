@@ -250,6 +250,9 @@ onMounted(() => {
   WSImageConnect();
   WsAllImageConnect();
 
+  showpanel();
+  setWidthPanelForm2(30, 70);
+
   // setTimeout(() => {
   //   if (selectedImgUrl.value == "") {
   //     reLoadImage();
@@ -416,7 +419,6 @@ function websocketConnect() {
               disableAllinput(res.data.imagereferences[0].isreject);
               setTimeout(() => {
                 checkActiveIndex();
-                setWidthPanelForm2(50, 50);
               }, 100);
             }
           }
@@ -1120,7 +1122,7 @@ function hidepanel() {
 function showpanel() {
   setTimeout(() => {
     var panel3 = document.getElementById("panelForm3");
-    panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
+    panel3.setAttribute("style", "flex-basis: calc(70% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
     panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
@@ -1357,6 +1359,7 @@ function nextImage(index) {
           if (res.data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             clearData();
+            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1555,8 +1558,9 @@ function changeImage(data) {
           if (res.data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             confirmChangeImageDialog.value = false;
-
             clearData();
+
+            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1779,11 +1783,11 @@ function resizeGalleria(e) {
                       :showThumbnails="showThumbnails"
                       v-model:activeIndex="activeIndex"
                       :numVisible="
-                        doc_images.imagereferences.length > 10
+                        doc_images.imagereferences.length > 5
                           ? 10
                           : doc_images.imagereferences.length
                       "
-                      @update:activeIndex="resetZoomImage"
+                      @update:activeIndex="resetZoomImage()"
                     >
                       <template #item="slotProps">
                         <div class="grid">
