@@ -83,6 +83,22 @@
             <Checkbox :binary="true" v-model="ica" />
             <label>รวมรายการปิดบัญชีสิ้นปี</label>
           </div>
+          <div class="col-12">
+        <div class="overflow-auto surface-overlay">
+          <div class="flex">
+            <div class="flex">
+              <Button
+                label="ส่งออก Excel"
+                class="p-button-primary"
+                icon="pi pi-file-excel"
+                @click="DownloadExampleExcel()"
+                :disabled="isvisible === false"
+              />
+            </div>
+          
+          </div>
+        </div>
+      </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
             <Button
               label="จัดทำรายงาน"
@@ -126,13 +142,15 @@ import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
-
+import XLSX from "xlsx";
 const storeApp = useApp();
 const isvisible = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const startDate = ref(null);
 const endDate = ref(null);
 const accountGroup = ref("");
+const detail_example = ([]);
+const detail_examplenumbertwo = ([]);
 const groups = ref([]);
 const data_list = ref([]);
 const ica = ref(false);
@@ -290,7 +308,30 @@ function pageSetup(data, startdate, enddate) {
   };
   return docDefinition;
 }
+ function DownloadExampleExcel() {
+  
 
+  detail_example.value.push({
+       "ชื่อบัญชี" :"รวม",
+       "เลขที่บีญชี":"",
+       "ยอดคงเหลือบัญชีหมวดสินทรัพย์ / ค่าใช้จ่าย " : Utils.formatNumber(totalnextbalancedebit),
+       "ยอดคงเหลือบัญชี หนี้สิน /ทุน / รายได้ ":  Utils.formatNumber(totalnextbalancecredit)
+      },
+)
+
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+
+
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานงบทดลอง");
+  XLSX.writeFile(wb, "รายงานงบทดลอง.xlsx");
+}
 async function buildFromJson() {
   let body = [];
   let listProfitandloss = [];

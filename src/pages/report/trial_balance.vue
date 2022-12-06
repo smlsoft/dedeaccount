@@ -85,7 +85,7 @@
             <Checkbox :binary="true" v-model="ica" />
             <label>รวมรายการปิดบัญชีสิ้นปี</label>
           </div>
-          <div class="flex">
+          <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
                   <div class="flex">
                     <Button
                       label="ส่งออก Excel"
@@ -94,14 +94,7 @@
                       @click="DownloadExampleExcel()"
                     />
                   </div>
-                  <div class="flex ml-2">
-                    <Button
-                      label="ส่งออก PDF"
-                      icon="pi pi-file-pdf"
-                      class="p-button-primary"
-                      @click="exportPDF()"
-                    />
-                  </div>
+                 
                 </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
             <Button

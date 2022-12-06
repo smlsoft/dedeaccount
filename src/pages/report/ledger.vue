@@ -51,17 +51,24 @@
                 <Dropdown
                   v-model="accountcode"
                   :showClear="true"
-                 
-                  field="accountcode"
+                  :filter="true"
+          :filterFields="['accountcode', 'accountname']"
+          field="accountcode"
                   :options="groups"
+                  filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
                  
-                  :editable="true"
                   
                   @change="selectAccount($event)"
-                  optionLabel="accountcode"
+                 optionLabel="label"
                   optionValue="accountcode"
               
                 >
+                <template #option="groups">
+                  <div>
+              {{ groups.option.accountcode }} ~ {{ groups.option.accountname }}
+            </div>
+                </template>
                   <template #footer>
                     <div class="align-right">
                       <Button
@@ -83,17 +90,20 @@
                   >ถึงผังบัญชีที่
                 </label>
                 <Dropdown
-                  v-if="state == true"
-                  v-model="accountcode2"
-                  field="accountcode"
-                  :options="groups"
+                v-if="state == true"
+                v-model="accountcode2"
+                  :showClear="true"
                   :filter="true"
-                  :editable="true"
+          :filterFields="['accountcode', 'accountname']"
+          field="accountcode"
+                  :options="groups"
                   filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+                 
+                  
                   @change="selectAccount2($event)"
-                  optionLabel="accountcode"
-                  optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
+                 optionLabel="label"
+                  optionValue="accountcode" 
                 />
               </div>
             </div>
@@ -302,17 +312,17 @@ async function expandAll() {
   toast.add({ severity: "success", summary: "All Rows Expanded", life: 3000 });
 }
 
-async function getAccountChart() {
-  try {
-    const res = await MasterdataService.getAccountChartList(limitPage.value);
-    console.log(res);
-    if (res.success) {
-      groups.value = res.data;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
+// async function getAccountChart() {
+//   try {
+//     const res = await MasterdataService.getAccountChartList(limitPage.value);
+//     console.log(res);
+//     if (res.success) {
+//       groups.value = res.data;
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
 function searchCountry(event) {
   setTimeout(() => {
     if (!event.query.trim().length) {
@@ -330,6 +340,22 @@ function searchCountry(event) {
       });
     }
   }, 250);
+}
+async function getAccountChart() {
+  try {
+    const res = await MasterdataService.getAccountChartList(limitPage.value);
+    console.log(res);
+    if (res.success) {
+        groups.value = res.data.sort(function (obj1, obj2) {
+          return obj1.code - obj2.code;
+        });
+        groups.value.forEach((ele) => {
+          ele.label = ele.accountcode +  "~"  + ele.accountname ;
+        });
+      }
+  } catch (err) {
+    console.log(err);
+  }
 }
 function checkadExceldll() {
   result.value == false;
