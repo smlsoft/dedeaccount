@@ -252,7 +252,7 @@ function getSumCreditAmount(data) {
             </Column>
             <Column field="accountyear" header="ปีบัญชี" :sortable="true"></Column>
             <Column field="accountperiod" header="งวดบัญชี" :sortable="true"></Column>
-            <Column field="accountgroup" header="กลุ่มบัญชี" :sortable="true"></Column>
+            <!-- <Column field="accountgroup" header="กลุ่มบัญชี" :sortable="true"></Column> -->
             <Column field="accountdescription" header="รายละเอียด" :sortable="true"></Column>
             <Column field="amount" header="มูลค่า" class="text-header-right" headerStyle="text-align: right;"
               bodyStyle="text-align: right;" :sortable="true">
@@ -260,11 +260,12 @@ function getSumCreditAmount(data) {
                 {{ Utils.formatCurrency(data[field]) }}
               </template>
             </Column>
-            <Column field="docdate" header="วันที่สร้าง" dataType="date" :sortable="true">
+            <Column field="createdat" header="วันที่สร้าง" dataType="date" :sortable="true">
               <template #body="slotProps">
-                {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+                {{ Utils.getDateFormatDMY(slotProps.data.createdat) }}
               </template>
             </Column>
+             <Column field="createdby" header="ผู้สร้าง" :sortable="true"></Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
                 <Button icon="pi pi-pencil" class="p-button-rounded p-button-warning p-button-text"

@@ -384,7 +384,7 @@ function getDocumentImageGroupScroll() {
         }, 500);
       }
     })
-    .catch((err) => {
+    .catch((err) => {getImageAll
       console.log(err);
       showSkeleton.value = false;
     });
