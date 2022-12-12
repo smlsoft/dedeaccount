@@ -127,6 +127,9 @@ const imageGroup = ref();
 const imageDialog = ref(false);
 const dataImageDialog = ref({});
 
+const pageGetAllImage = ref(1);
+const pageGetAllImageGroup = ref(1);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -139,7 +142,7 @@ onUnmounted(() => {
 
 onMounted(() => {
   getDocumentImageGroup();
-  getDocumentImageAll();
+  getImageAll();
 
   storeApp.setActivePage("pic_group_docref");
   storeApp.setActiveChild("images_list");
@@ -381,18 +384,45 @@ function getDocumentImageGroupScroll() {
         }, 500);
       }
     })
-    .catch((err) => {
+    .catch((err) => {getImageAll
       console.log(err);
       showSkeleton.value = false;
     });
 }
 
-function getDocumentImageAll() {
-  ImageDataService.getDocumentImageAll()
+function getImageAll() {
+  let limePage = 1000;
+  ImageDataService.getImageAll(limePage, pageGetAllImage.value)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        data_list_group.value = res.data;
+
+        if (pageGetAllImage.value <= res.pagination.totalPage) {
+          pageGetAllImage.value += 1;
+          getImageAllAppend();
+        }
+      }
+    })
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+}
+
+function getImageAllAppend() {
+  let limePage = 1000;
+  ImageDataService.getImageAll(limePage, pageGetAllImage.value)
     .then((res) => {
       //console.log(res);
       if (res.success) {
-        data_list_group.value = res.data;
+        res.data.forEach((ele) => {
+          data_list_group.value.push(ele);
+        });
 
         data_list_group.value.forEach((element) => {
           element.uploadedat = Utils.getDateFormatDMY(element.uploadedat);
@@ -408,8 +438,70 @@ function getDocumentImageAll() {
           },
           []
         );
-
+        console.log("count image : " + data_list_group.value.length);
         console.log(result);
+      }
+    })
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+}
+
+function getImageGroupAll() {
+  let limePage = 1000;
+  ImageDataService.getDocumentImageGroupAll(
+    limePage,
+    pageGetAllImageGroup.value
+  )
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        images_list_group.value = res.data;
+
+        if (pageGetAllImageGroup.value <= res.pagination.totalPage) {
+          pageGetAllImageGroup.value += 1;
+          getDocumentImageGroupAllAppend();
+        }
+
+      }
+    })
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+}
+
+function getDocumentImageGroupAllAppend() {
+  let limePage = 1000;
+  ImageDataService.getDocumentImageGroupAll(
+    limePage,
+    pageGetAllImageGroup.value
+  )
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        res.data.forEach((ele) => {
+          images_list_group.value.push(ele);
+        });
+
+        let filtered = images_list_group.value.filter(function (ele) {
+          return (
+            ele.imagereferences.length > 1 &&
+            ele.isreject == false &&
+            ele.references.length == 0
+          );
+        });
+        images_list_group.value = filtered;
+        console.log(images_list_group.value);
       }
     })
     .catch((err) => {
@@ -1171,7 +1263,7 @@ function selectSortOrder(data) {
 
 function onScroll() {
   let div = $("#maincontainer")[0];
-  console.log(div.scrollTop);
+  // console.log(div.scrollTop);
   if (div.scrollTop + div.clientHeight >= div.scrollHeight - 10) {
     if (!showSkeleton.value) {
       nextPage();
@@ -1442,34 +1534,6 @@ async function addImageGroup() {
   }
 }
 
-function getImageGroup() {
-  ImageDataService.getDocumentImageGroup(9999)
-    .then((res) => {
-      //console.log(res);
-      if (res.success) {
-        images_list_group.value = res.data;
-        let filtered = images_list_group.value.filter(function (ele) {
-          return (
-            ele.imagereferences.length > 1 &&
-            ele.isreject == false &&
-            ele.references.length == 0
-          );
-        });
-        images_list_group.value = filtered;
-
-        console.log(images_list_group.value);
-      }
-    })
-    .catch((err) => {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: err,
-        life: 3000,
-      });
-    });
-}
-
 function getImageNoGroup(mode) {
   if (mode) {
     setTimeout(() => {
@@ -1481,7 +1545,7 @@ function getImageNoGroup(mode) {
     }, 50);
 
     modeCreateImageGroup.value = true;
-    getImageGroup();
+    getImageGroupAll();
   } else {
     imageGroup.value = null;
     title.value = "";
@@ -1769,7 +1833,7 @@ function documentImageEditGroup(data) {
   }, 50);
 
   modeCreateImageGroup.value = true;
-  getImageGroup();
+  getImageGroupAll();
 
   setTimeout(() => {
     activePage.value = 1;
@@ -1782,11 +1846,10 @@ function documentImageEditGroup(data) {
 function showImageDialog(data) {
   console.log(data);
   imageDialog.value = true;
-  if(data != ""){
+  if (data != "") {
     dataImageDialog.value = data;
-
-  }else{
-    return
+  } else {
+    return;
   }
 }
 </script>
@@ -2312,9 +2375,7 @@ function showImageDialog(data) {
       >
         <div class="confirmation-content" id="boxconfirm" style="height: 80vh">
           <div class="flex justify-content-between mb-2">
-            <div class="flex">
-              ชื่อรูป : {{ dataImageDialog.name }}
-            </div>
+            <div class="flex">ชื่อรูป : {{ dataImageDialog.name }}</div>
             <div class="flex">
               วันที่ :{{
                 Utils.getDateTimeFormat(dataImageDialog.uploadedat)
