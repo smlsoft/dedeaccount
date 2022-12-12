@@ -50,16 +50,23 @@
 
                 <Dropdown
                   v-model="accountcode"
+                  :showClear="true"
+                  :filter="true"
+                  :filterFields="['accountcode', 'accountname']"
                   field="accountcode"
                   :options="groups"
-                  :filter="true"
-                  :editable="true"
                   filterPlaceholder="ค้นหา"
+                  placeholder="เลือก"
                   @change="selectAccount($event)"
-                  optionLabel="accountcode"
+                  optionLabel="label"
                   optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
                 >
+                  <template #option="groups">
+                    <div>
+                      {{ groups.option.accountcode }} ~
+                      {{ groups.option.accountname }}
+                    </div>
+                  </template>
                   <template #footer>
                     <div class="align-right">
                       <Button
@@ -83,15 +90,16 @@
                 <Dropdown
                   v-if="state == true"
                   v-model="accountcode2"
+                  :showClear="true"
+                  :filter="true"
+                  :filterFields="['accountcode', 'accountname']"
                   field="accountcode"
                   :options="groups"
-                  :filter="true"
-                  :editable="true"
                   filterPlaceholder="ค้นหา"
+                  placeholder="เลือก"
                   @change="selectAccount2($event)"
-                  optionLabel="accountcode"
+                  optionLabel="label"
                   optionValue="accountcode"
-                  placeholder="เลือกทั้งหมด"
                 />
               </div>
             </div>
@@ -142,6 +150,7 @@
                 @click="exreport2()"
             /></a>
           </div>
+
           <!-- <Button
               label="จัดทำรายงาน"
               class="p-button-raised p-button-text"
@@ -149,7 +158,111 @@
             
             /> -->
         </div>
+
+        <DataTable
+          :value="data_list"
+          dataKey="accountcode"
+          :scrollable="true"
+          scrollHeight="1000px"
+          :loading="loading"
+          class="mt-3"
+          @sort="sortBy"
+          v-model:expandedRows="expandedRows"
+        >
+          <template #header>
+            <div class="table-header-container">
+              <Button
+                icon="pi pi-plus"
+                label="Expand All"
+                @click="expandAll"
+                class="mr-2"
+              />
+              <h1>รายงานบัญชีแยกประเภท</h1>
+            </div>
+            <div class="table-header-container"></div>
+          </template>
+
+          <template #empty> ไม่พบข้อมูล </template>
+          <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
+          <ColumnGroup type="header">
+            <Row>
+              <Column header="รหัสบัญขี" :colspan="1" />
+              <Column header="ชื่อบัญชี" :colspan="6" />
+            </Row>
+            <Row>
+              <Column header="วันที่" :colspan="1" />
+              <Column header="เลขที่เอกสาร" :colspan="1" />
+              <Column header="รายละเอียด" :colspan="1" />
+              <Column header="เดบิต" :colspan="1" />
+              <Column header="เครดิต" :colspan="1" />
+              <Column header="ยอดรวม" :colspan="1" />
+              <Column />
+            </Row>
+            <!-- <Row>
+            <Column header="Last Year" :sortable="true" field="lastYearSale" />
+            <Column header="This Year" :sortable="true" field="thisYearSale" />
+            <Column
+              header="Last Year"
+              :sortable="true"
+              field="lastYearProfit"
+            />
+            <Column
+              header="This Year"
+              :sortable="true"
+              field="thisYearProfit"
+            />
+          </Row> -->
+          </ColumnGroup>
+          <Column field="accountcode"></Column>
+          <Column field="accountname"> </Column>
+          <Column
+            ><template #body="slotsProps">
+              {{ slotsProps.data.balance }}</template
+            >
+          </Column>
+          <Column field=""> </Column>
+          <Column field=""> </Column>
+          <Column field=""> </Column>
+          <Column :expander="true" />
+
+          <template #expansion="mainProps">
+            <div>
+              <DataTable :value="mainProps.data.details" dataKey="accountcode">
+                <Column field="docdate" dataType="date">
+                  <template #body="slotProps">
+                    {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+                  </template>
+                </Column>
+                <Column field="docno">
+                  <template #body="slotProps">
+                    {{ slotProps.data.docno }}
+                  </template>
+
+                  <template #header>
+                    {{ checkbalanceWord(mainProps.data.balance) }}
+                  </template>
+                  <template #footer>ยกไป </template></Column
+                >
+                <Column field="accountdescription" :colspan="1"> </Column>
+
+                <Column field="debit"> </Column>
+                <Column field="credit"> </Column>
+
+                <Column field="amount">
+                  <template #header
+                    >{{ checkbalance(mainProps.data.balance) }}
+                  </template>
+                  <template #footer
+                    >{{ mainProps.data.nextbalance }}
+                  </template></Column
+                >
+                <Column field="cedit"> </Column>
+              </DataTable>
+            </div>
+          </template>
+        </DataTable>
       </div>
+
       <div class="col-12">
         <div class="overflow-auto surface-overlay">
           <div class="flex">
@@ -174,7 +287,7 @@
           </div>
         </div>
       </div>
-      <div id="section">
+      <!-- <div id="section">
         <iframe
           v-if="isvisible"
           style="height: 90vh"
@@ -184,7 +297,7 @@
           id="iframeContainer"
           type="application/pdf"
         />
-      </div>
+      </div> -->
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -295,22 +408,22 @@ onMounted(async () => {
   storeApp.setActivePage("report_list");
   storeApp.setActiveChild("ledger");
 });
-async function expandAll() {
-  expandedRows.value = data_list.value.filter();
+function expandAll() {
+  expandedRows.value = data_list.value.filter((p) => p.accountcode);
   toast.add({ severity: "success", summary: "All Rows Expanded", life: 3000 });
 }
 
-async function getAccountChart() {
-  try {
-    const res = await MasterdataService.getAccountChartList(limitPage.value);
-    console.log(res);
-    if (res.success) {
-      groups.value = res.data;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
+// async function getAccountChart() {
+//   try {
+//     const res = await MasterdataService.getAccountChartList(limitPage.value);
+//     console.log(res);
+//     if (res.success) {
+//       groups.value = res.data;
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
 function searchCountry(event) {
   setTimeout(() => {
     if (!event.query.trim().length) {
@@ -328,6 +441,38 @@ function searchCountry(event) {
       });
     }
   }, 250);
+}
+function onRowGroupExpand(event) {
+  toast.add({
+    severity: "info",
+    summary: "Row Group Expanded",
+    detail: "Value: " + event.data,
+    life: 3000,
+  });
+}
+function onRowGroupCollapse(event) {
+  toast.add({
+    severity: "success",
+    summary: "Row Group Collapsed",
+    detail: "Value: " + event.data,
+    life: 3000,
+  });
+}
+async function getAccountChart() {
+  try {
+    const res = await MasterdataService.getAccountChartList(limitPage.value);
+    console.log(res);
+    if (res.success) {
+      groups.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      groups.value.forEach((ele) => {
+        ele.label = ele.accountcode + "~" + ele.accountname;
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
 }
 function checkadExceldll() {
   result.value == false;
@@ -413,21 +558,82 @@ function exreport2() {
     (consolidateaccountcode.value = "")
   )
     .then((res) => {
+      res.data.forEach((element) => {
+        if (
+          element.balance == 0 &&
+          element.nextbalance == 0 &&
+          element.balance == element.nextbalance &&
+          element.details.length > 0
+        ) {
+          console.log("1");
+          data_list.value.push(element);
+          // console.log(data_list.value);
+        } else if (
+          (element.balance != 0 &&
+            element.nextbalance != 0 &&
+            element.details.length > 0) ||
+          (element.balance == 0 &&
+            element.nextbalance != 0 &&
+            element.details.length > 0) ||
+          (element.balance != 0 &&
+            element.nextbalance == 0 &&
+            element.details.length > 0)
+        ) {
+          console.log("2");
+          data_list.value.push(element);
+          // console.log(data_list.value);
+        } else if (element.balance != 0 && element.nextbalance != 0) {
+          console.log("3");
+          data_list.value.push(element);
+          // console.log(data_list.value);
+        } else if (
+          (element.balance == 0 &&
+            element.nextbalance != 0 &&
+            element.details.length == 0) ||
+          (element.balance != 0 &&
+            element.nextbalance == 0 &&
+            element.details.length == 0)
+        ) {
+          console.log("4");
+        } else if (
+          element.balance == 0 &&
+          element.nextbalance == 0 &&
+          element.balance == element.nextbalance &&
+          element.details.length == 0
+        ) {
+          console.log("5");
+        }
+      });
       if (res.success) {
-        data_list.value = res.data;
+        // console.log(res.data);
+        if (result.value == true) {
+          data_list.value = res.data;
+        }
+        console.log(data_list.value);
+        // if (
+        //   data_list.value.balance == data_list.value.nextbalance &&
+        //   data_list.value.balance == 0 &&
+        //   data_list.value.nextbalance == 0 &&
+        //   data_list.value.details.length > 0
+        // ) {
+        //   console.log("1");
+        // } else {
+        //   console.log("2");
+        // }
+
         console.log(res);
         toast.add({
           severity: "success",
           summary: "จัดทำรายงานสำเร็จ",
           life: 1000,
         });
-        if (result.value == false) {
-          exportPDF();
-          result.value = false;
-        } else if (result.value == true) {
-          exportPDFAll();
-          result.value == true;
-        }
+        // if (result.value == false) {
+        //   exportPDF();
+        //   result.value = false;
+        // } else if (result.value == true) {
+        //   exportPDFAll();
+        //   result.value == true;
+        // }
 
         // console.log(totalItemsCount.value);
       }
@@ -527,7 +733,7 @@ function buildFromJson2() {
       { text: "" },
       { text: "" },
       { text: "" },
-      { text: Utils.formatNumber(data.balance), alignment: "right" },
+      { text: Utils.formatNumber(data.balance), alignment: "center" },
     ]);
     data.details.forEach((details) => {
       // console.log(details);
@@ -538,7 +744,7 @@ function buildFromJson2() {
         { text: "" },
         { text: checkzero(Utils.formatNumber(details.debit)) },
         { text: checkzero(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount), alignment: "right" },
+        { text: Utils.formatNumber(details.amount), alignment: "center" },
       ]);
     });
 
@@ -555,7 +761,7 @@ function buildFromJson2() {
       { text: "" },
       {
         text: Utils.formatNumber(data.nextbalance),
-        alignment: "right",
+        alignment: "center",
       },
     ]);
   });
@@ -699,64 +905,133 @@ function buildFromJson() {
     if (
       data.balance == data.nextbalance &&
       data.balance == 0 &&
-      data.nextbalance == 0
+      data.nextbalance == 0 &&
+      data.details.length > 0
     ) {
-      return console.log("true");
-    }
-    body.push([
-      {
-        text: data.accountcode,
-        fillColor: "#d8eaf2",
-        style: ["header", "textdecoration"],
-      },
-
-      { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-    ]);
-
-    body.push([
-      { text: "" },
-
-      { text: checkbalanceWord(data.balance) },
-      { colSpan: 2, text: "" },
-      { text: "" },
-      { text: "" },
-      { text: "" },
-      { text: checkbalance(data.balance), alignment: "right" },
-    ]);
-    data.details.forEach((details) => {
-      // console.log(details);
+      console.log("1");
       body.push([
-        { text: Utils.getDateFormatDMY(details.docdate) },
-        { text: details.docno },
-        { colSpan: 2, text: details.accountdescription },
-        { text: "" },
-        { text: checkzero(Utils.formatNumber(details.debit)) },
-        { text: checkzero(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount), alignment: "right" },
+        {
+          text: data.accountcode,
+          fillColor: "#d8eaf2",
+          style: ["header", "textdecoration"],
+        },
+
+        { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
       ]);
-    });
 
-    body.push([
-      { text: "" },
-      { text: "ยกไป" },
+      body.push([
+        { text: "" },
 
-      { colSpan: 2, text: "", style: ["header", "textdecoration"] },
-      {
-        text: "",
-      },
+        { text: checkbalanceWord(data.balance) },
+        { colSpan: 2, text: "" },
+        { text: "" },
+        { text: "" },
+        { text: "" },
+        { text: checkbalance(data.balance), alignment: "center" },
+      ]);
+      data.details.forEach((details) => {
+        // console.log(details);
+        body.push([
+          { text: Utils.getDateFormatDMY(details.docdate) },
+          { text: details.docno },
+          { colSpan: 2, text: details.accountdescription },
+          { text: "" },
+          {
+            text: checkzero(Utils.formatNumber(details.debit)),
+            alignment: "center",
+          },
+          {
+            text: checkzero(Utils.formatNumber(details.credit)),
+            alignment: "center",
+          },
+          { text: Utils.formatNumber(details.amount), alignment: "center" },
+        ]);
+      });
 
-      { text: "" },
-      { text: "" },
-      {
-        text: checkbalance(data.nextbalance),
-        alignment: "right",
-      },
-    ]);
+      body.push([
+        { text: "" },
+        { text: "ยกไป" },
+
+        { colSpan: 2, text: "", style: ["header", "textdecoration"] },
+        {
+          text: "",
+        },
+
+        { text: "" },
+        { text: "" },
+        {
+          text: data.nextbalance,
+          alignment: "center",
+        },
+      ]);
+    } else if (data.balance == 0 && data.nextbalance == 0) {
+    } else {
+      body.push([
+        {
+          text: data.accountcode,
+          fillColor: "#d8eaf2",
+          style: ["header", "textdecoration"],
+        },
+
+        { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+        { text: "", fillColor: "#d8eaf2" },
+      ]);
+
+      body.push([
+        { text: "" },
+
+        { text: checkbalanceWord(data.balance) },
+        { colSpan: 2, text: "" },
+        { text: "" },
+        { text: "" },
+        { text: "" },
+        { text: checkbalance(data.balance), alignment: "center" },
+      ]);
+      data.details.forEach((details) => {
+        // console.log(details);
+        body.push([
+          { text: Utils.getDateFormatDMY(details.docdate) },
+          { text: details.docno },
+          { colSpan: 2, text: details.accountdescription },
+          { text: "" },
+          {
+            text: checkzero(Utils.formatNumber(details.debit)),
+            alignment: "center",
+          },
+          {
+            text: checkzero(Utils.formatNumber(details.credit)),
+            alignment: "center",
+          },
+          { text: Utils.formatNumber(details.amount), alignment: "center" },
+        ]);
+      });
+
+      body.push([
+        { text: "" },
+        { text: "ยกไป" },
+
+        { colSpan: 2, text: "", style: ["header", "textdecoration"] },
+        {
+          text: "",
+        },
+
+        { text: "" },
+        { text: "" },
+        {
+          text: checkbalance(data.nextbalance),
+          alignment: "center",
+        },
+      ]);
+    }
   });
 
   return body;
@@ -1050,7 +1325,7 @@ function checkbalance(data) {
     return;
   } else {
     // console.log(data);
-    return Utils.formatNumber(data);
+    return data;
   }
 }
 // function checkbalancenext(data) {
