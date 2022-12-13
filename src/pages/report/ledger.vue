@@ -168,6 +168,7 @@
           class="mt-3"
           @sort="sortBy"
           v-model:expandedRows="expandedRows"
+          showGridlines
         >
           <template #header>
             <div class="table-header-container">
@@ -215,11 +216,7 @@
           </ColumnGroup>
           <Column field="accountcode"></Column>
           <Column field="accountname"> </Column>
-          <Column
-            ><template #body="slotsProps">
-              {{ slotsProps.data.balance }}</template
-            >
-          </Column>
+          <Column field="" :colspan="4"> </Column>
           <Column field=""> </Column>
           <Column field=""> </Column>
           <Column field=""> </Column>
@@ -227,7 +224,11 @@
 
           <template #expansion="mainProps">
             <div>
-              <DataTable :value="mainProps.data.details" dataKey="accountcode">
+              <DataTable
+                :value="mainProps.data.details"
+                dataKey="accountcode"
+                showGridlines
+              >
                 <Column field="docdate" dataType="date">
                   <template #body="slotProps">
                     {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
@@ -245,12 +246,23 @@
                 >
                 <Column field="accountdescription" :colspan="1"> </Column>
 
-                <Column field="debit"> </Column>
-                <Column field="credit"> </Column>
+                <Column field="debit">
+                  <template #body="slotProps">
+                    {{ checkzero(Utils.formatNumber(slotProps.data.debit)) }}
+                  </template>
+                </Column>
+                <Column field="credit">
+                  <template #body="slotProps">
+                    {{ checkzero(Utils.formatNumber(slotProps.data.credit)) }}
+                  </template>
+                </Column>
 
                 <Column field="amount">
                   <template #header
                     >{{ checkbalance(mainProps.data.balance) }}
+                  </template>
+                  <template #body="slotProps">
+                    {{ checkzero(Utils.formatNumber(slotProps.data.amount)) }}
                   </template>
                   <template #footer
                     >{{ mainProps.data.nextbalance }}
@@ -281,7 +293,6 @@
                 icon="pi pi-file-pdf"
                 class="p-button-primary"
                 @click="exportdowloadPDF()"
-                :disabled="isvisible === false"
               />
             </div>
           </div>
@@ -1321,7 +1332,7 @@ function checkzero(data) {
 }
 function checkbalance(data) {
   balance.value = data;
-  if (balance.value == 0) {
+  if (balance.value == 0 && result.value == false) {
     return;
   } else {
     // console.log(data);
@@ -1359,7 +1370,7 @@ function checkbalance(data) {
 //   }
 // }
 function checkbalanceWord(data) {
-  if (data == 0) {
+  if (data == 0 && result.value == false) {
     return;
   } else {
     return "ยกมา";
