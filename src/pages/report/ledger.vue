@@ -242,8 +242,8 @@
                   <template #header>
                     {{ checkbalanceWord(mainProps.data.balance) }}
                   </template>
-                  <template #footer>ยกไป </template></Column
-                >
+                  <template #footer>ยกไป </template>
+                </Column>
                 <Column field="accountdescription" :colspan="1"> </Column>
 
                 <Column field="debit">
@@ -569,7 +569,7 @@ function exreport2() {
     (consolidateaccountcode.value = "")
   )
     .then((res) => {
-      res.data.forEach((element) => {
+      res.data.forEach((element, index) => {
         if (
           element.balance == 0 &&
           element.nextbalance == 0 &&
@@ -578,6 +578,7 @@ function exreport2() {
         ) {
           console.log("1");
           data_list.value.push(element);
+          data_list.value.details.push(data_list.value.balance);
           // console.log(data_list.value);
         } else if (
           (element.balance != 0 &&
@@ -590,11 +591,9 @@ function exreport2() {
             element.nextbalance == 0 &&
             element.details.length > 0)
         ) {
-          console.log("2");
           data_list.value.push(element);
           // console.log(data_list.value);
         } else if (element.balance != 0 && element.nextbalance != 0) {
-          console.log("3");
           data_list.value.push(element);
           // console.log(data_list.value);
         } else if (
@@ -605,7 +604,6 @@ function exreport2() {
             element.nextbalance == 0 &&
             element.details.length == 0)
         ) {
-          console.log("4");
         } else if (
           element.balance == 0 &&
           element.nextbalance == 0 &&
@@ -621,16 +619,6 @@ function exreport2() {
           data_list.value = res.data;
         }
         console.log(data_list.value);
-        // if (
-        //   data_list.value.balance == data_list.value.nextbalance &&
-        //   data_list.value.balance == 0 &&
-        //   data_list.value.nextbalance == 0 &&
-        //   data_list.value.details.length > 0
-        // ) {
-        //   console.log("1");
-        // } else {
-        //   console.log("2");
-        // }
 
         console.log(res);
         toast.add({
@@ -638,15 +626,6 @@ function exreport2() {
           summary: "จัดทำรายงานสำเร็จ",
           life: 1000,
         });
-        // if (result.value == false) {
-        //   exportPDF();
-        //   result.value = false;
-        // } else if (result.value == true) {
-        //   exportPDFAll();
-        //   result.value == true;
-        // }
-
-        // console.log(totalItemsCount.value);
       }
       loading.value = false;
     })
@@ -661,9 +640,6 @@ function exreport2() {
       loading.value = false;
       console.log(err);
     });
-  //   newResultCategory();
-  //   getGLJournalList();
-  // expandAll();
 }
 
 async function exportPDF() {
