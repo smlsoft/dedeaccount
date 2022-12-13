@@ -333,7 +333,8 @@ async function exportReport() {
 async function getDataReport() {
   loadingTrialBalance.value = true;
 
-  let accountgroup = (accountGroup.value == "gruupAll" ? null : accountGroup.value);
+  let accountgroup =
+    accountGroup.value == "gruupAll" ? null : accountGroup.value;
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 

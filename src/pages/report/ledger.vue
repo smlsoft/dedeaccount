@@ -368,8 +368,9 @@ const consolidateaccountcode = ref("");
 const accountcode2 = ref([]);
 const dataaccountcode = ref("");
 const state = ref(false);
-const data_list = ref([{}]);
+const data_list = ref([]);
 const data_list2 = ref([]);
+const group = ref([]);
 const docno = ref();
 const balance = ref();
 const balancenext = ref();
@@ -569,7 +570,7 @@ function exreport2() {
     (consolidateaccountcode.value = "")
   )
     .then((res) => {
-      res.data.forEach((element, index) => {
+      res.data.forEach((element) => {
         if (
           element.balance == 0 &&
           element.nextbalance == 0 &&
@@ -578,7 +579,7 @@ function exreport2() {
         ) {
           console.log("1");
           data_list.value.push(element);
-          data_list.value.details.push(data_list.value.balance);
+
           // console.log(data_list.value);
         } else if (
           (element.balance != 0 &&
@@ -610,17 +611,33 @@ function exreport2() {
           element.balance == element.nextbalance &&
           element.details.length == 0
         ) {
-          console.log("5");
         }
       });
       if (res.success) {
+        // group.value.push({
+        //   code: "gruupAll",
+        //   name1: "ทั้งหมด",
+        // });
+
+        res.data.forEach((element) => {
+          group.value.push({
+            name1: element.balance,
+          });
+        });
+
+        setTimeout(() => {
+          if ((data_list.value.details = [])) {
+            data_list.value.details = group.value[0].name1;
+            console.log(data_list.value.details);
+          }
+        }, 100);
+        console.log(group.value);
         // console.log(res.data);
         if (result.value == true) {
           data_list.value = res.data;
         }
         console.log(data_list.value);
 
-        console.log(res);
         toast.add({
           severity: "success",
           summary: "จัดทำรายงานสำเร็จ",
