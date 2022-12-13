@@ -285,14 +285,27 @@ async function getAccountGroup() {
     const res = await MasterdataService.getAccountGroup();
     //console.log(res);
     if (res.success) {
-      groups.value = res.data
-        .sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        })
-        .map((acc) => {
-          acc.label = `${acc.code} ~ ${acc.name1}`;
-          return acc;
+      groups.value.push({
+        code: "gruupAll",
+        name1: "ทั้งหมด",
+      });
+
+      res.data.forEach((element) => {
+        groups.value.push({
+          code: element.code,
+          name1: element.name1,
         });
+      });
+
+      // groups.value = (res.data
+      //   .sort(function (obj1, obj2) {
+      //     return obj1.code - obj2.code;
+      //   })
+      //   .map((acc) => {
+      //     acc.label = `${acc.code} ~ ${acc.name1}`;
+      //     return acc;
+      //   }));
+
       setTimeout(() => {
         if (accountGroup.value == "") {
           accountGroup.value = groups.value[0].code;
@@ -320,7 +333,7 @@ async function exportReport() {
 async function getDataReport() {
   loadingTrialBalance.value = true;
 
-  let accountgroup = accountGroup.value;
+  let accountgroup = (accountGroup.value == "gruupAll" ? null : accountGroup.value);
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 
@@ -541,9 +554,9 @@ function formatCurrency(value) {
 function showSplitterPanel() {
   setTimeout(() => {
     var panel1 = document.getElementById("panelForm1");
-    panel1.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
+    panel1.setAttribute("style", "flex-basis: calc(50% - 4px) !important");
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
+    panel2.setAttribute("style", "flex-basis: calc(50% - 4px) !important");
   }, 50);
 }
 

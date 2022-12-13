@@ -52,7 +52,7 @@
                   {{ slotProps.data.docno }}
                 </div>
               </div>
-              <div class="flex justify-content-end pt-1">
+              <!-- <div class="flex justify-content-end pt-1">
                 <div class="flex align-items-center justify-content-center">
                   <div style="padding-bottom: 1rem"></div>
                   <Badge
@@ -64,7 +64,7 @@
                   <Badge value="2" severity="success" class="mr-2"></Badge>
                   <Badge value="12" severity="warning"></Badge>
                 </div>
-              </div>
+              </div> -->
             </div>
           </template>
         </Column>
