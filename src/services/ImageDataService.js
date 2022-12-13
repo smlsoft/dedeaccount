@@ -96,4 +96,9 @@ export default {
     putAddImageInGroup(id, data) {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/documentimages`, data).then(res => res.data);
     },
+
+    // get documentimagegroup by docno
+    getDocumentImageByDocNo(id) {
+        return instanceApi(true).get(`/documentimagegroup/docref/` + id).then(res => res.data);
+    },
 }

@@ -45,15 +45,15 @@ import Message from 'primevue/message';
 import VirtualScroller from 'primevue/virtualscroller';
 import Skeleton from 'primevue/skeleton';
 import Editor from 'primevue/editor';
-import { Cropper,Preview } from 'vue-advanced-cropper'
+import { Cropper, Preview } from 'vue-advanced-cropper'
 import AutoComplete from 'primevue/autocomplete';
 import Tag from 'primevue/tag';
 import SpeedDial from 'primevue/speeddial';
 import Chip from 'primevue/chip';
 import Badge from 'primevue/badge';
+import BadgeDirective from 'primevue/badgedirective';
 import SplitButton from 'primevue/splitbutton';
 import ScrollPanel from 'primevue/scrollpanel';
-
 
 
 import 'primevue/resources/themes/saga-blue/theme.css'
@@ -117,6 +117,7 @@ app.component('Row', Row);
 app.directive('tooltip', Tooltip);
 app.directive('ripple', Ripple);
 app.directive('styleclass', StyleClass);
+app.directive('badge', BadgeDirective);
 
 const pinia = createPinia()
 pinia.use(piniaPersist)
