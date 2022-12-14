@@ -2,109 +2,80 @@
   <AppLayout>
     <MainContentWarp>
       <div class="p-2 surface-section flex-auto">
-        <div class="grid p-fluid">
-          <!--
-                <div class="field mb-4 col-6 md:col-3">
-                  <label for="accountGroup" class="font-medium text-900">กลุ่มบัญชี</label>
-                  <Dropdown v-model="accountGroup" autofocus :options="data_list" :filter="true"
-                    :filterFields="['code', 'name1']" filterPlaceholder="ค้นหา" placeholder="เลือก">
-                    <template #value="slotProps">
-                      <div v-if="slotProps.value">
-                        <div>{{ slotProps.value.code }} ~ {{ slotProps.value.name1 }}</div>
-                      </div>
-                      <span v-else>
-                        {{ slotProps.placeholder }}
-                      </span>
-                    </template>
-                    <template #option="slotProps">
-                      <div>{{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}</div>
-                    </template>
-                  </Dropdown>
-                </div>
-                -->
-
+        <div class="grid p-fluid formgrid">
           <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem"> รายงานทางการเงิน</i>
+            <i class="pi pi-book" style="font-size: 2rem">
+              รายงานทางการเงิน / งบทดลอง</i
+            >
           </div>
-          <div class="field mb-12 col-12 md:col-12">
-            <div class="flex flex-wrap card-container blue-container">
-              <h1 for="selectedgroup" class="font-medium text-900"></h1>
+          <h3 class="field mb-4 col-4 md:col-3">บัญชีแยกประเภท</h3>
 
-              <h3 class="field mb-4 col-4 md:col-3">บัญชีแยกประเภท</h3>
-
-              <h4 class="field mb-4 col-4 md:col-2">
-                <div class="field-checkbox">
-                  <Checkbox
-                    v-model="state"
-                    :binary="true"
-                    @change="switchOn()"
-                  />
-                  <label>เลือกช่วงผังบัญชี:</label>
-                </div>
-              </h4>
-
-              <div class="field mb-4 col-6 md:col-3 ml-3">
-                <label for="startDate" class="font-medium text-900"
-                  >ผังบัญชีที่
-                </label>
-
-                <Dropdown
-                  v-model="accountcode"
-                  :showClear="true"
-                  :filter="true"
-                  :filterFields="['accountcode', 'accountname']"
-                  field="accountcode"
-                  :options="groups"
-                  filterPlaceholder="ค้นหา"
-                  placeholder="เลือก"
-                  @change="selectAccount($event)"
-                  optionLabel="label"
-                  optionValue="accountcode"
-                >
-                  <template #option="groups">
-                    <div>
-                      {{ groups.option.accountcode }} ~
-                      {{ groups.option.accountname }}
-                    </div>
-                  </template>
-                  <template #footer>
-                    <div class="align-right">
-                      <Button
-                        style="font-size: 0.9rem"
-                        label="เคลียร์ข้อความ"
-                        icon="pi pi-times"
-                        class="p-button-danger-sm"
-                        @click="cleartext($event)"
-                      />
-                    </div>
-                  </template>
-                </Dropdown>
-              </div>
-              <div class="field mb-4 col-6 md:col-3">
-                <label
-                  for="endDate"
-                  class="font-medium text-900"
-                  v-if="state == true"
-                  >ถึงผังบัญชีที่
-                </label>
-                <Dropdown
-                  v-if="state == true"
-                  v-model="accountcode2"
-                  :showClear="true"
-                  :filter="true"
-                  :filterFields="['accountcode', 'accountname']"
-                  field="accountcode"
-                  :options="groups"
-                  filterPlaceholder="ค้นหา"
-                  placeholder="เลือก"
-                  @change="selectAccount2($event)"
-                  optionLabel="label"
-                  optionValue="accountcode"
-                />
-              </div>
+          <h4 class="field mb-4 col-4 md:col-2">
+            <div class="field-checkbox">
+              <Checkbox v-model="state" :binary="true" @change="switchOn()" />
+              <label>เลือกช่วงผังบัญชี:</label>
             </div>
-          </div>
+          </h4>
 
+          <div class="field mb-4 col-6 md:col-3 ml-3">
+            <label for="startDate" class="font-medium text-900"
+              >ผังบัญชีที่
+            </label>
+
+            <Dropdown
+              v-model="accountcode"
+              :showClear="true"
+              :filter="true"
+              :filterFields="['accountcode', 'accountname']"
+              field="accountcode"
+              :options="groups"
+              filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
+              @change="selectAccount($event)"
+              optionLabel="label"
+              optionValue="accountcode"
+            >
+              <template #option="groups">
+                <div>
+                  {{ groups.option.accountcode }} ~
+                  {{ groups.option.accountname }}
+                </div>
+              </template>
+              <template #footer>
+                <div class="align-right">
+                  <Button
+                    style="font-size: 0.9rem"
+                    label="เคลียร์ข้อความ"
+                    icon="pi pi-times"
+                    class="p-button-danger-sm"
+                    @click="cleartext($event)"
+                  />
+                </div>
+              </template>
+            </Dropdown>
+          </div>
+          <div class="field mb-4 col-6 md:col-3">
+            <label
+              for="endDate"
+              class="font-medium text-900"
+              v-if="state == true"
+              >ถึงผังบัญชีที่
+            </label>
+            <Dropdown
+              v-if="state == true"
+              v-model="accountcode2"
+              :showClear="true"
+              :filter="true"
+              :filterFields="['accountcode', 'accountname']"
+              field="accountcode"
+              :options="groups"
+              filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
+              @change="selectAccount2($event)"
+              optionLabel="label"
+              optionValue="accountcode"
+            />
+          </div>
           <div class="field mb-4 col-6 md:col-3 ml-4">
             <label for="startDate" class="font-medium text-900"
               >ช่วงระหว่างวันที่ :</label
@@ -135,21 +106,48 @@
               :hiddenTime="true"
             />
           </div>
+
           <div class="field-checkbox mb-12 col-12 md:col-3">
             <Checkbox :binary="true" v-model="result" @change="addall()" />
 
             <label>แสดงผังที่ไม่เคลื่อนไหว</label>
           </div>
-          <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
-            <a href="#section">
-              <Button
-                class="field mb-12 col-12 md:col-2"
-                label="จัดทำรายงาน"
-                icon="pi pi-book"
-                iconPos="left"
-                @click="exreport2()"
-            /></a>
+          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
+            <Button
+              label="จัดทำรายงาน"
+              icon="pi pi-book"
+              iconPos="left"
+              @click="exreport2()"
+            />
           </div>
+          <!-- <div class="col-12" v-if="isvisible">
+            <iframe
+              class="w-full overflow-auto surface-overlay"
+              style="height: 90vh"
+              id="iframeContainer"
+            ></iframe>
+          </div> -->
+        </div>
+        <div class="grid p-fluid">
+          <!--
+                <div class="field mb-4 col-6 md:col-3">
+                  <label for="accountGroup" class="font-medium text-900">กลุ่มบัญชี</label>
+                  <Dropdown v-model="accountGroup" autofocus :options="data_list" :filter="true"
+                    :filterFields="['code', 'name1']" filterPlaceholder="ค้นหา" placeholder="เลือก">
+                    <template #value="slotProps">
+                      <div v-if="slotProps.value">
+                        <div>{{ slotProps.value.code }} ~ {{ slotProps.value.name1 }}</div>
+                      </div>
+                      <span v-else>
+                        {{ slotProps.placeholder }}
+                      </span>
+                    </template>
+                    <template #option="slotProps">
+                      <div>{{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}</div>
+                    </template>
+                  </Dropdown>
+                </div>
+                -->
 
           <!-- <Button
               label="จัดทำรายงาน"
@@ -159,6 +157,17 @@
             /> -->
         </div>
 
+        <div class="card p-2">
+          <div class="flex flex-column">
+            <div
+              class="flex align-items-center justify-content-center m-1"
+            ></div>
+
+            <div class="flex align-items-center justify-content-center m-1">
+              รายงานบัญชีแยกประเภท
+            </div>
+          </div>
+        </div>
         <DataTable
           :value="data_list"
           dataKey="accountcode"
@@ -178,42 +187,26 @@
                 @click="expandAll"
                 class="mr-2"
               />
-              <h1>รายงานบัญชีแยกประเภท</h1>
             </div>
-            <div class="table-header-container"></div>
           </template>
 
           <template #empty> ไม่พบข้อมูล </template>
           <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
           <ColumnGroup type="header">
             <Row>
-              <Column header="รหัสบัญขี" :colspan="1" />
+              <Column header="รหัสบัญขี" />
               <Column header="ชื่อบัญชี" :colspan="6" />
             </Row>
             <Row>
-              <Column header="วันที่" :colspan="1" />
-              <Column header="เลขที่เอกสาร" :colspan="1" />
-              <Column header="รายละเอียด" :colspan="1" />
-              <Column header="เดบิต" :colspan="1" />
-              <Column header="เครดิต" :colspan="1" />
-              <Column header="ยอดรวม" :colspan="1" />
-              <Column />
+              <Column header="รหัสบัญขี" />
+              <Column header="ชื่อบัญชี" />
+              <Column header="รหัสบัญขี" />
+              <Column header="ชื่อบัญชี" />
+              <Column header="รหัสบัญขี" />
+              <Column header="ชื่อบัญชี" /> <Column header="รหัสบัญขี" />
             </Row>
-            <!-- <Row>
-            <Column header="Last Year" :sortable="true" field="lastYearSale" />
-            <Column header="This Year" :sortable="true" field="thisYearSale" />
-            <Column
-              header="Last Year"
-              :sortable="true"
-              field="lastYearProfit"
-            />
-            <Column
-              header="This Year"
-              :sortable="true"
-              field="thisYearProfit"
-            />
-          </Row> -->
           </ColumnGroup>
+
           <Column field="accountcode"></Column>
           <Column field="accountname"> </Column>
           <Column field="" :colspan="4"> </Column>
@@ -223,54 +216,44 @@
           <Column :expander="true" />
 
           <template #expansion="mainProps">
-            <div>
-              <DataTable
-                :value="mainProps.data.details"
-                dataKey="accountcode"
-                showGridlines
-              >
-                <Column field="docdate" dataType="date">
-                  <template #body="slotProps">
-                    {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
-                  </template>
-                </Column>
-                <Column field="docno">
-                  <template #body="slotProps">
-                    {{ slotProps.data.docno }}
-                  </template>
+            <DataTable
+              :value="mainProps.data.details"
+              dataKey="accountcode"
+              showGridlines
+              hide-default-header
+            >
+              <Column field="docdate" dataType="date">
+                <template #body="slotProps">
+                  {{
+                    dateCheck(Utils.getDateFormatDMY(slotProps.data.docdate))
+                  }}
+                </template>
+              </Column>
+              <Column field="docno">
+                <template #body="slotProps">
+                  {{ slotProps.data.docno }}
+                </template>
+              </Column>
+              <Column field="accountdescription" :colspan="1"> </Column>
 
-                  <template #header>
-                    {{ checkbalanceWord(mainProps.data.balance) }}
-                  </template>
-                  <template #footer>ยกไป </template>
-                </Column>
-                <Column field="accountdescription" :colspan="1"> </Column>
+              <Column field="debit">
+                <template #body="slotProps">
+                  {{ checkzero(Utils.formatNumber(slotProps.data.debit)) }}
+                </template>
+              </Column>
+              <Column field="credit">
+                <template #body="slotProps">
+                  {{ checkzero(Utils.formatNumber(slotProps.data.credit)) }}
+                </template>
+              </Column>
 
-                <Column field="debit">
-                  <template #body="slotProps">
-                    {{ checkzero(Utils.formatNumber(slotProps.data.debit)) }}
-                  </template>
-                </Column>
-                <Column field="credit">
-                  <template #body="slotProps">
-                    {{ checkzero(Utils.formatNumber(slotProps.data.credit)) }}
-                  </template>
-                </Column>
-
-                <Column field="amount">
-                  <template #header
-                    >{{ checkbalance(mainProps.data.balance) }}
-                  </template>
-                  <template #body="slotProps">
-                    {{ checkzero(Utils.formatNumber(slotProps.data.amount)) }}
-                  </template>
-                  <template #footer
-                    >{{ mainProps.data.nextbalance }}
-                  </template></Column
-                >
-                <Column field="cedit"> </Column>
-              </DataTable>
-            </div>
+              <Column field="amount">
+                <template #body="slotProps">
+                  {{ slotProps.data.amount }}
+                </template>
+              </Column>
+              <Column> </Column>
+            </DataTable>
           </template>
         </DataTable>
       </div>
@@ -368,9 +351,9 @@ const consolidateaccountcode = ref("");
 const accountcode2 = ref([]);
 const dataaccountcode = ref("");
 const state = ref(false);
-const data_list = ref([]);
-const data_list2 = ref([]);
 const group = ref([]);
+const data_list = ref([{}]);
+const data_list2 = ref([]);
 const docno = ref();
 const balance = ref();
 const balancenext = ref();
@@ -486,6 +469,16 @@ async function getAccountChart() {
     console.log(err);
   }
 }
+
+function dateCheck(data) {
+  if (data == "NaN/NaN/NaN") {
+    console.log("true");
+    return "";
+  } else {
+    return data;
+  }
+}
+
 function checkadExceldll() {
   result.value == false;
   console.log(result.value);
@@ -570,7 +563,7 @@ function exreport2() {
     (consolidateaccountcode.value = "")
   )
     .then((res) => {
-      res.data.forEach((element) => {
+      res.data.forEach((element, index) => {
         if (
           element.balance == 0 &&
           element.nextbalance == 0 &&
@@ -614,30 +607,51 @@ function exreport2() {
         }
       });
       if (res.success) {
-        // group.value.push({
-        //   code: "gruupAll",
-        //   name1: "ทั้งหมด",
-        // });
+        res.data.forEach((data) => {
+          group.value = data.details;
 
-        res.data.forEach((element) => {
-          group.value.push({
-            name1: element.balance,
-          });
+          if (data.balance == 0) {
+            return data.details.push({
+              docdate: "",
+              docno: "ยกไป",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.nextbalance,
+            });
+          } else {
+            data.details.unshift({
+              docdate: "",
+              docno: checkbalanceWord(data.balance),
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: checkbalance(data.balance),
+            });
+            data.details.push({
+              docdate: "",
+              docno: "ยกไป",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.nextbalance,
+            });
+          }
         });
 
         setTimeout(() => {
-          if ((data_list.value.details = [])) {
-            data_list.value.details = group.value[0].name1;
-            console.log(data_list.value.details);
+          if (data_list.value == "") {
+            group.value = data.details[0];
           }
         }, 100);
-        console.log(group.value);
+        console.log(data_list.value);
         // console.log(res.data);
         if (result.value == true) {
           data_list.value = res.data;
         }
         console.log(data_list.value);
 
+        console.log(res);
         toast.add({
           severity: "success",
           summary: "จัดทำรายงานสำเร็จ",
@@ -657,6 +671,9 @@ function exreport2() {
       loading.value = false;
       console.log(err);
     });
+  //   newResultCategory();
+  //   getGLJournalList();
+  // expandAll();
 }
 
 async function exportPDF() {
@@ -1324,9 +1341,10 @@ function checkzero(data) {
   }
 }
 function checkbalance(data) {
+  console.log(data);
   balance.value = data;
   if (balance.value == 0 && result.value == false) {
-    return;
+    return "";
   } else {
     // console.log(data);
     return data;
