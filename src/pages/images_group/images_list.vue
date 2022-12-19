@@ -23,30 +23,21 @@ const storeApp = useApp();
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
-const detail = ref();
 const data_list = ref([]);
 const data_list_group = ref([]);
 const data_set_group = ref([]);
 const confirmSaveDialog = ref(false);
 const confirmGroupImageDialog = ref(false);
 const totalItemsCount = ref(10);
-const filters = ref(null);
 const loading = ref(true);
 const activePage = ref(1);
-const typingTimer = ref(null);
 const data_import = ref([]);
-const doneTypingInterval = ref(20);
 const onUploadProgress = ref(0);
 const firstPage = ref(0);
-const showImgDialog = ref(false);
-const showImageDocRef = ref("");
 const uploadmodel = ref(false);
-const showImgHeader = ref("");
-const showImgSrc = ref(null);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
 const limitPage = ref(50);
-const showContent = ref("");
 const createDialog = ref(false);
 const data_gallery = ref([]);
 const fileLimit = ref(100);
@@ -80,8 +71,6 @@ const isGallery = ref(false);
 const selectedImg = ref([]);
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref("");
-const showrejectImgdialog = ref(false);
-const rejectDocref = ref("");
 const connection = ref();
 const listShowImageBys = ref([
   { name: "แสดงทั้งหมด", code: "" },
@@ -91,18 +80,6 @@ const listShowImageBys = ref([
 ]);
 const showImageBy = ref("");
 const createFormStatus = ref(false);
-const dataGlDetail = ref({});
-const daily_form_valid = ref({
-  accountdescription: false,
-  accountgroup: false,
-  accountperiod: false,
-  accountyear: false,
-  amount: false,
-  batchId: false,
-  docdate: false,
-  docno: false,
-  bookcode: false,
-});
 
 const imagesDragData = ref({});
 const imagesDragCount = ref(0);
@@ -130,6 +107,12 @@ const dataImageDialog = ref({});
 const pageGetAllImage = ref(1);
 const pageGetAllImageGroup = ref(1);
 
+const searchImageDate = ref();
+const searchFromDate = ref(new Date());
+const searchToDate = ref(new Date());
+const searchDate = ref("");
+const fromDate = ref("");
+const toDate = ref("");
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -352,7 +335,9 @@ function getDocumentImageGroupScroll() {
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value
+    showImageBy.value,
+    fromDate.value,
+    toDate.value
   )
     .then((res) => {
       console.log(res);
@@ -384,7 +369,8 @@ function getDocumentImageGroupScroll() {
         }, 500);
       }
     })
-    .catch((err) => {getImageAll
+    .catch((err) => {
+      getImageAll;
       console.log(err);
       showSkeleton.value = false;
     });
@@ -467,7 +453,6 @@ function getImageGroupAll() {
           pageGetAllImageGroup.value += 1;
           getDocumentImageGroupAllAppend();
         }
-
       }
     })
     .catch((err) => {
@@ -523,7 +508,9 @@ function getDocumentImageGroup() {
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value
+    showImageBy.value,
+    fromDate.value,
+    toDate.value
   )
     .then((res) => {
       console.log(res);
@@ -1852,6 +1839,34 @@ function showImageDialog(data) {
     return;
   }
 }
+
+function searchImageDateToDate(event) {
+  searchImageDate.value.toggle(event);
+}
+
+function filterDatetoDate() {
+  searchImageDate.value.hide();
+  // console.log(Utils.getDateTimeFormatStandard(searchFromDate.value));
+  // console.log(Utils.getDateTimeFormatStandard(searchToDate.value));
+
+  searchDate.value =
+    Utils.getDateDisplayFromDate(searchFromDate.value) +
+    " - " +
+    Utils.getDateDisplayFromDate(searchToDate.value);
+  activePage.value = 1;
+  fromDate.value = Utils.getDateTimeFormatStandard(searchFromDate.value);
+  toDate.value = Utils.getDateTimeFormatStandard(searchToDate.value);
+  getDocumentImageGroup();
+}
+
+function clearFilterDatetoDate() {
+  searchImageDate.value.hide();
+  activePage.value = 1;
+  searchDate.value = "";
+  fromDate.value = "";
+  toDate.value = "";
+  getDocumentImageGroup();
+}
 </script>
 
 <template>
@@ -2016,6 +2031,14 @@ function showImageDialog(data) {
                       icon="pi pi-images"
                       label="สร้างชุดเอกสาร"
                       @click="getImageNoGroup(true)"
+                    />
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      class="ml-0 p-button-secondary"
+                      :label="searchDate == '' ? ' ค้นหาตามวันที่' : searchDate"
+                      icon="pi pi-search"
+                      @click="searchImageDateToDate($event)"
                     />
                   </div>
                   <div class="flex ml-2">
@@ -2362,6 +2385,50 @@ function showImageDialog(data) {
           </Card>
         </SplitterPanel>
       </Splitter>
+
+      <OverlayPanel
+        ref="searchImageDate"
+        :showCloseIcon="true"
+        style="width: 450px"
+        :breakpoints="{ '960px': '75vw' }"
+      >
+        <div class="grid formgrid p-fluid">
+          <div class="field mb-4 col-12 md:col-6">
+            <label class="font-medium text-900">จากวันที่</label>
+            <DatePicker
+              :disabled="imageGroup != null"
+              v-model="searchFromDate"
+              dateFormat="d/m/yy"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="false"
+              :hiddenTime="true"
+            />
+          </div>
+          <div class="field mb-4 col-12 md:col-6">
+            <label class="font-medium text-900">ถึงวันที่</label>
+            <DatePicker
+              :disabled="imageGroup != null"
+              v-model="searchToDate"
+              dateFormat="d/m/yy"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="false"
+              :hiddenTime="true"
+            />
+          </div>
+          <Button
+            @click="filterDatetoDate()"
+            label="ค้นหา"
+            class="p-button-raised p-button-secondary mb-2"
+          />
+          <Button
+            @click="clearFilterDatetoDate()"
+            label="ล้างการค้นหา"
+            class="p-button-raised p-button-danger"
+          />
+        </div>
+      </OverlayPanel>
 
       <Dialog
         :dismissableMask="true"

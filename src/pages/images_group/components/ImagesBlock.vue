@@ -740,6 +740,6 @@ iframe {
   background: #000;
   border: none; /* Reset default border */
   height: 68vh; /* Viewport-relative units */
-  width: 56.6vw;
+  width: 56.7vw;
 }
 </style>
