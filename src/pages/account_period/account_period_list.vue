@@ -38,7 +38,7 @@ const statusAccountPeriod = ref(false);
 
 const deleteDialog = ref(false);
 const deleteData = ref([]);
-const dialogMode = ref("create");
+const dialogMode = ref(0);
 const editGuidfixed = ref("");
 
 const selectedAccountPeriod = ref([]);
@@ -59,8 +59,8 @@ function getAccountPeriod() {
       console.log(res);
       if (res.success) {
         res.data.forEach((element) => {
-          element.startdate = Utils.getDateFormatDMY(element.startdate);
-          element.enddate = Utils.getDateFormatDMY(element.enddate);
+          element.startdateshow = Utils.getDateFormatDMY(element.startdate);
+          element.enddateshow = Utils.getDateFormatDMY(element.enddate);
         });
         data_list.value = res.data;
       }
@@ -79,7 +79,7 @@ function getAccountPeriod() {
 }
 
 function opendialogAccountPeriodSingle() {
-  dialogMode.value = "create";
+  dialogMode.value = 0;
   dialogAccountPeriodSingle.value = true;
   if (data_list.value.length != 0) {
     // หาจำนวนงวดเริ่มต้นที่มากที่สุด
@@ -307,10 +307,14 @@ async function deleteAccountPeriod() {
 }
 
 function editDetail(data) {
-  dialogMode.value = "edit";
+  dialogMode.value = 1;
+  console.log(dialogMode.value);
+
   editGuidfixed.value = data.guidfixed;
+
   startDate.value = Utils.getDateTimeFromDate(data.startdate);
   endDate.value = Utils.getDateTimeFromDate(data.enddate);
+
   startAccountPeriod.value = data.period;
   statusAccountPeriod.value = !data.isdisabled;
   dialogAccountPeriodSingle.value = true;
@@ -410,14 +414,14 @@ async function editAccountPeriodSingle() {
             :exportable="false"
           ></Column>
           <Column
-            field="startdate"
+            field="startdateshow"
             header="จากวันที่"
             :sortable="true"
             style="min-width: 12rem"
           >
           </Column>
           <Column
-            field="enddate"
+            field="enddateshow"
             header="ถึงวันที่"
             :sortable="true"
             style="min-width: 16rem"
@@ -569,7 +573,7 @@ async function editAccountPeriodSingle() {
         </template>
       </Dialog>
       <Dialog
-        :header="dialogMode == 'create' ? 'เพิ่มงวดบัญชี' : 'แก้ไขงวดบัญชี'"
+        :header="dialogMode == 0 ? 'เพิ่มงวดบัญชี' : 'แก้ไขงวดบัญชี'"
         v-model:visible="dialogAccountPeriodSingle"
         :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
         :style="{ width: '50vw' }"
@@ -599,26 +603,22 @@ async function editAccountPeriodSingle() {
             />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">{{
-              dialogMode == "งวดลำดับที่" ? "" : "งวดลำดับที่"
-            }}</label>
+            <label class="font-medium text-900">
+              {{ dialogMode == 0 ? "เริ่มต้นงวด" : "งวดลำดับที่" }}</label
+            >
             <InputNumber v-model="startAccountPeriod" />
           </div>
-          <div class="field col-6" v-if="dialogMode == 'create'">
-            <label class="font-medium text-900">จำนวนงวด</label>
-            <InputNumber v-model="countAccountPeriod" :disabled="true" />
+          <div class="field col-6">
+            <label class="font-medium text-900">รายละเอียด</label>
+            <InputText type="text" v-model="description" />
           </div>
-          <div class="field col-6" v-if="dialogMode == 'edit'">
+          <div class="field col-12" v-if="dialogMode == 1">
             <label class="font-medium text-900">สถานะ</label>
             <InputSwitch
               v-model="statusAccountPeriod"
               style="display: flex"
               class="mt-1"
             />
-          </div>
-          <div class="field col-12">
-            <label class="font-medium text-900">รายละเอียด</label>
-            <InputText type="text" v-model="description" />
           </div>
         </div>
 
@@ -634,7 +634,7 @@ async function editAccountPeriodSingle() {
             class="p-button-success"
             icon="pi pi-save"
             @click="
-              dialogMode == 'create'
+              dialogMode == 0
                 ? saveAccountPeriodSingle()
                 : editAccountPeriodSingle()
             "
