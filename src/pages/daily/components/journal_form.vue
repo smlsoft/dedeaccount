@@ -201,7 +201,7 @@ function focusNext(field, index) {
 }
 
 function checkAccountPeriod(event, mode) {
-  console.log(event);
+  //console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
@@ -239,6 +239,24 @@ function getAccountPeriodByDate(keyDate) {
       });
     });
 }
+
+function headerNextFocus(filedName) {
+  console.log(filedName);
+  setTimeout(() => {
+    if (filedName == "docdate") {
+      $(".docdate  > input ").focus();
+    } else if (filedName == "batchid") {
+      checkAccountPeriod(props.daily_form.docdate, 1);
+      $(".batchid").focus();
+    } else if (filedName == "accountperiod") {
+      $(".accountperiod").focus();
+    } else if (filedName == "accountyear") {
+      $(".accountyear").focus();
+    } else if (filedName == "accountgroup") {
+      $(".accountgroup").focus();
+    }
+  }, 100);
+}
 </script>
 
 <template>
@@ -247,11 +265,12 @@ function getAccountPeriodByDate(keyDate) {
       <div class="field mb-4 col-12 md:col-3">
         <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
         <InputText
-          id="docNo"
           type="text"
           v-model="props.daily_form.docno"
-          :class="props.daily_form_valid.docno ? 'p-invalid' : ''"
+          :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
           :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('docdate')"
+          class="docno"
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
@@ -268,6 +287,8 @@ function getAccountPeriodByDate(keyDate) {
           :hiddenTime="true"
           @date-select="checkAccountPeriod($event, 0)"
           @blur="checkAccountPeriod($event, 1)"
+          @keyup.enter="headerNextFocus('batchid')"
+          class="docdate"
         />
       </div>
 
@@ -278,6 +299,8 @@ function getAccountPeriodByDate(keyDate) {
           v-model="props.daily_form.batchId"
           :class="props.daily_form_valid.batchId ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountperiod')"
+          class="batchid"
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
@@ -286,8 +309,9 @@ function getAccountPeriodByDate(keyDate) {
           type="number"
           :min="0"
           v-model="props.daily_form.accountperiod"
-          
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountyear')"
+          class="accountperiod"
         />
       </div>
       <div class="col-12"></div>
@@ -299,6 +323,8 @@ function getAccountPeriodByDate(keyDate) {
           v-model="props.daily_form.accountyear"
           :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountgroup')"
+          class="accountyear"
         />
       </div>
 
@@ -318,6 +344,7 @@ function getAccountPeriodByDate(keyDate) {
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
           :disabled="props.isUpdate"
+          class="accountgroup"
         >
           <template #option="slotProps">
             <div>
