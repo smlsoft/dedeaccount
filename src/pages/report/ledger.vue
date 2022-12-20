@@ -5,7 +5,7 @@
         <div class="grid p-fluid formgrid">
           <div class="field mb-12 col-12 md:col-12">
             <i class="pi pi-book" style="font-size: 2rem">
-              รายงานทางการเงิน / งบทดลอง</i
+              รายงานทางการเงิน / บัญชีแยกประเภท</i
             >
           </div>
           <h3 class="field mb-4 col-4 md:col-3">บัญชีแยกประเภท</h3>
@@ -178,8 +178,9 @@
           @sort="sortBy"
           v-model:expandedRows="expandedRows"
           showGridlines
+          v-if="isvisible"
         >
-          <template #header>
+          <!-- <template #header>
             <div class="table-header-container">
               <Button
                 icon="pi pi-plus"
@@ -188,7 +189,7 @@
                 class="mr-2"
               />
             </div>
-          </template>
+          </template> -->
 
           <template #empty> ไม่พบข้อมูล </template>
           <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
@@ -213,14 +214,13 @@
           <Column field=""> </Column>
           <Column field=""> </Column>
           <Column field=""> </Column>
-          <Column :expander="true" />
+          <Column :expander="true" :invisible="false" />
 
           <template #expansion="mainProps">
             <DataTable
               :value="mainProps.data.details"
               dataKey="accountcode"
               showGridlines
-              hide-default-header
             >
               <Column field="docdate" dataType="date">
                 <template #body="slotProps">
@@ -393,6 +393,7 @@ onMounted(async () => {
 
   getDate();
   switchOn();
+
   //   newResultdocno();
   console.log(data_list.value);
   // getAccountChartList();
@@ -472,7 +473,6 @@ async function getAccountChart() {
 
 function dateCheck(data) {
   if (data == "NaN/NaN/NaN") {
-    console.log("true");
     return "";
   } else {
     return data;
@@ -551,10 +551,10 @@ function exreport2() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 
-  loading.value = true;
   if (dataaccountcode.value == ":") {
     dataaccountcode.value = "";
   }
+  isvisible.value = true;
   MasterdataService.getAccountledger(
     startdate,
     enddate,
@@ -562,7 +562,9 @@ function exreport2() {
     (accountgroup.value = ""),
     (consolidateaccountcode.value = "")
   )
+
     .then((res) => {
+      loading.value = true;
       res.data.forEach((element, index) => {
         if (
           element.balance == 0 &&
@@ -610,7 +612,8 @@ function exreport2() {
         res.data.forEach((data) => {
           group.value = data.details;
 
-          if (data.balance == 0) {
+          if (data.balance == 0 && result.value == false) {
+            console.log("1");
             return data.details.push({
               docdate: "",
               docno: "ยกไป",
@@ -619,7 +622,26 @@ function exreport2() {
               debit: "",
               amount: data.nextbalance,
             });
+          } else if (result.value == true && data.balance == 0) {
+            console.log("2");
+            data.details.unshift({
+              docdate: "",
+              docno: "ยกมา",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.balance,
+            });
+            data.details.push({
+              docdate: "",
+              docno: "ยกไป",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.nextbalance,
+            });
           } else {
+            console.log("3");
             data.details.unshift({
               docdate: "",
               docno: checkbalanceWord(data.balance),
@@ -638,7 +660,7 @@ function exreport2() {
             });
           }
         });
-
+        expandAll();
         setTimeout(() => {
           if (data_list.value == "") {
             group.value = data.details[0];
@@ -660,6 +682,7 @@ function exreport2() {
       }
       loading.value = false;
     })
+
     .catch((err) => {
       toast.add({
         severity: "error",
@@ -1341,10 +1364,12 @@ function checkzero(data) {
   }
 }
 function checkbalance(data) {
-  console.log(data);
   balance.value = data;
   if (balance.value == 0 && result.value == false) {
     return "";
+  } else if (balance == 0 && result.value == true) {
+    console.log();
+    return data;
   } else {
     // console.log(data);
     return data;
