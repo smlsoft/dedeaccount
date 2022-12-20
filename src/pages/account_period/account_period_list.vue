@@ -183,7 +183,7 @@ async function saveAccountPeriod() {
       enddate: newEndDate,
       period: startAccountPeriod.value + i,
       description: "",
-      isdisabled: true,
+      isdisabled: false,
     });
   }
 
@@ -308,15 +308,13 @@ async function deleteAccountPeriod() {
 
 function editDetail(data) {
   dialogMode.value = 1;
-  console.log(dialogMode.value);
-
   editGuidfixed.value = data.guidfixed;
-
   startDate.value = Utils.getDateTimeFromDate(data.startdate);
   endDate.value = Utils.getDateTimeFromDate(data.enddate);
-
+  description.value = data.description;
   startAccountPeriod.value = data.period;
   statusAccountPeriod.value = !data.isdisabled;
+
   dialogAccountPeriodSingle.value = true;
 }
 
@@ -356,6 +354,9 @@ async function editAccountPeriodSingle() {
     });
   }
 }
+function onPage(event) {
+  console.log(event);
+}
 </script>
 
 <template>
@@ -367,10 +368,13 @@ async function editAccountPeriodSingle() {
           v-model:selection="selectedAccountPeriod"
           dataKey="guidfixed"
           :paginator="true"
-          :rows="10"
+          :rows="12"
           :filters="filters"
-          :rowsPerPageOptions="[5, 10, 25]"
+          :rowsPerPageOptions="[12, 24, 36, 48, 60, 100]"
           responsiveLayout="scroll"
+          stripedRows
+          :rowHover="true"
+          @page="onPage($event)"
         >
           <template #header>
             <div class="table-header flex justify-content-between flex-wrap">
@@ -408,11 +412,7 @@ async function editAccountPeriodSingle() {
               </div>
             </div>
           </template>
-          <Column
-            selectionMode="multiple"
-            style="width: 3rem"
-            :exportable="false"
-          ></Column>
+          <Column selectionMode="multiple" style="width: 3rem"></Column>
           <Column
             field="startdateshow"
             header="จากวันที่"
@@ -441,7 +441,7 @@ async function editAccountPeriodSingle() {
           ></Column>
           <Column
             field="isdisabled"
-            header="สถานะ"
+            header="ปิด/เปิด"
             :sortable="true"
             style="min-width: 10rem"
           >
@@ -450,6 +450,7 @@ async function editAccountPeriodSingle() {
                 :modelValue="!slotProps.data.isdisabled"
                 style="display: flex"
                 class="mt-1"
+                :disabled="true"
               />
             </template>
           </Column>
@@ -652,3 +653,9 @@ async function editAccountPeriodSingle() {
     </MainContentWarp>
   </AppLayout>
 </template>
+
+<style>
+.p-datatable-thead .p-checkbox .p-component {
+  display: none;
+}
+</style>

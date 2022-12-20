@@ -99,7 +99,7 @@ const showSkeleton = ref(false);
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: "1",
+  accountperiod: null,
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -191,7 +191,6 @@ onMounted(() => {
     updateMode.value = true;
     setTimeout(() => {
       getGLDetail(route.params.id);
-
     }, 1000);
   } else {
     storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
@@ -201,23 +200,18 @@ onMounted(() => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
-
 });
 
-function setWidthPanelForm2(left,right) { 
-
+function setWidthPanelForm2(left, right) {
   setTimeout(() => {
     let box = document.getElementById("maincontainer");
-  let width = box.offsetWidth;
+    let width = box.offsetWidth;
 
-  console.log('maincontainer: '+width)
-
+    console.log("maincontainer: " + width);
 
     let boxtable = document.getElementById("galleriabox");
-    boxtable.setAttribute("style", "width:" + ((width*left)/100) + "px");
+    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
   }, 500);
-
-
 }
 
 function getImagesByDocref(data) {
@@ -409,9 +403,8 @@ function getGLDetail(id) {
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
-      
-                  setWidthPanelForm2(50,50);
-         
+
+                  setWidthPanelForm2(50, 50);
                 }
               }
             })
@@ -616,12 +609,6 @@ function verifyData() {
   } else {
     daily_form_valid.value.docno = false;
   }
-  if (daily_form.value.accountperiod == "") {
-    errorCount += 1;
-    daily_form_valid.value.accountperiod = true;
-  } else {
-    daily_form_valid.value.accountperiod = false;
-  }
   if (daily_form.value.accountyear == "") {
     errorCount += 1;
     daily_form_valid.value.accountyear = true;
@@ -752,9 +739,10 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod = parseInt(
-      daily_form.value.accountperiod.toString()
-    );
+    daily_form.value.accountperiod =
+      daily_form.value.accountperiod != null
+        ? parseInt(daily_form.value.accountperiod.toString())
+        : null;
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }
@@ -1335,7 +1323,6 @@ function showpanel() {
 
     var panel2 = document.getElementById("panelForm2");
     panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
-
   }, 50);
 }
 function isImage(file) {
@@ -1633,7 +1620,7 @@ function resetZoomImage() {
 function resizeGalleria(e) {
   console.log("resizeGalleria");
   console.log(e.sizes);
-  setWidthPanelForm2(e.sizes[0],e.sizes[1]);
+  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
 }
 </script>
 

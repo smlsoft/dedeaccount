@@ -213,6 +213,19 @@ const getYearBuddhist = (date) => {
     return showDate;
 }
 
+const getYearDC = (date) => {
+    var date = new Date(date);
+    var showDate =
+        date.getDate() +
+        "-" +
+        (date.getMonth() + 1) +
+        "-" +
+        (date.getFullYear() - 543)
+
+    return showDate;
+}
+
+
 
 
 
@@ -278,4 +291,5 @@ export default {
     checkSpecialString,
     getDateShowText,
     formatNumberReport,
+    getYearDC,
 }

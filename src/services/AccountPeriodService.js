@@ -4,6 +4,9 @@ export default {
     getAccountPeriod() {
         return instanceApi(true).get(`/gl/accountperiodmaster?limit=99999`).then(res => res.data);
     },
+    getAccountPeriodByDate(date) {
+        return instanceApi(true).get(`/gl/accountperiodmaster/bydate?date=${date}`).then(res => res.data);
+    },
 
     postAccountPeriod(data) {
         return instanceApi(true).post(`/gl/accountperiodmaster`, data).then(res => res.data);
