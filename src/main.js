@@ -104,7 +104,6 @@ app.component('Galleria', Galleria);
 app.component('Card', Card);
 app.component('Image', Image);
 app.component('Paginator', Paginator);
-//app.component('Calendar', Calendar);
 app.component('Avatar', Avatar);
 app.component('Button', Button);
 app.component('Dialog', Dialog);

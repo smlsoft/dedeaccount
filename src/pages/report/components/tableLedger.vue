@@ -1,12 +1,14 @@
 <template>
   <div lass="p-2 surface-section flex-auto">
-    <div class="card">
+    <div class="card p-1">
       <div class="flex flex-column">
         <div class="flex justify-content-between">
           <div class="flex align-items-center justify-content-center"></div>
-          <div class="flex align-items-center justify-content-center">
-            {{ props.headDataReport.shopName }}
-          </div>
+          <div class="flex align-items-center justify-content-center m-1">
+          บัญชีแยกประเภท ประจำวันที่ :
+          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+          {{ props.headDataReport.endDateShow }}
+        </div>
           <div class="flex align-items-center justify-content-center">
             <Button
               icon="pi pi-times"
@@ -15,14 +17,10 @@
             />
           </div>
         </div>
-        <div class="flex align-items-center justify-content-center m-1">
-          บัญชีแยกประเภท ประจำวันที่ :
-          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
-          {{ props.headDataReport.endDateShow }}
-        </div>
+      
       </div>
     </div>
-    <div class="card" style="height: calc(100vh - 18vh)">
+    <div class="card" style="height: calc(100vh - 23vh)">
       <DataTable
         :value="props.dataReport[0].details"
         showGridlines

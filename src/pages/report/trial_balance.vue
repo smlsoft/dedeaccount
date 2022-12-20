@@ -1,13 +1,18 @@
 <template>
   <AppLayout>
     <MainContentWarp>
-      <div class="p-2 surface-section flex-auto">
+      <Panel
+        :toggleable="true"
+        :collapsed="showSearch"
+        class="p-2"
+        @toggle="hideSearch($event)"
+      >
+        <template #header>
+          <i class="pi pi-book" style="font-size: 1.5rem">
+            รายงานทางการเงิน / งบทดลอง</i
+          >
+        </template>
         <div class="grid p-fluid formgrid">
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem">
-              รายงานทางการเงิน / งบทดลอง</i
-            >
-          </div>
           <div class="field col-12 md:col-3">
             <label for="startDate" class="font-medium text-900"
               >สำหรับชุดบัญชี :</label
@@ -78,8 +83,9 @@
             ></iframe>
           </div> -->
         </div>
-
-        <Splitter v-if="isvisible" style="height: calc(100vh - 12vh)">
+      </Panel>
+      <div class="p-2 surface-section flex-auto">
+        <Splitter v-if="isvisible" style="height: calc(100vh - 19.4vh)">
           <SplitterPanel id="panelForm1">
             <TrialBalance
               :dataReport="dataReport"
@@ -271,6 +277,8 @@ const countVats = ref(0);
 const countTaxes = ref(0);
 const countImages = ref(0);
 
+const showSearch = ref(false);
+
 onMounted(async () => {
   await getAccountGroup();
   getAccountGroupList();
@@ -280,6 +288,9 @@ onMounted(async () => {
   storeApp.setActiveChild("report_trialbalance");
 });
 
+function hideSearch(event) {
+  showSearch.value = event.value;
+}
 async function getAccountGroup() {
   try {
     const res = await MasterdataService.getAccountGroup();
@@ -319,6 +330,7 @@ async function getAccountGroup() {
 }
 
 async function exportReport() {
+  showSearch.value = true;
   isvisible.value = true;
   detailLedger.value = false;
   shopName.value = localStorage.shop_name;
@@ -333,7 +345,8 @@ async function exportReport() {
 async function getDataReport() {
   loadingTrialBalance.value = true;
 
-  let accountgroup = (accountGroup.value == "gruupAll" ? null : accountGroup.value);
+  let accountgroup =
+    accountGroup.value == "gruupAll" ? null : accountGroup.value;
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 

@@ -38,8 +38,8 @@ export default {
             filterDate = "&fromdate=" + fromDate + "&todate=" + toDate;
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1,${sortField}:${sortOrder}${sortShowBy}${filterDate}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1,${sortField}:${sortOrder},${sortShowBy}${filterDate}`).then(res => res.data);
     },
 
     // ดึงกลุ่มรูปทั้งหมด

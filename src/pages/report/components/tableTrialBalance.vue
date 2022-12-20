@@ -2,9 +2,6 @@
   <div lass="p-2 surface-section flex-auto">
     <div class="card p-2">
       <div class="flex flex-column">
-        <div class="flex align-items-center justify-content-center m-1">
-          {{ props.headDataReport.shopName }}
-        </div>
 
         <div class="flex align-items-center justify-content-center m-1">
           งบทดลอง ประจำวันที่ :
@@ -13,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div class="card" style="height: calc(100vh - 17.8vh)">
+    <div class="card" style="height: calc(100vh - 23vh)">
       <DataTable
         :value="props.dataReport.accountdetails"
         showGridlines
