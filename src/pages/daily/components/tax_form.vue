@@ -353,7 +353,7 @@ function deleteDetailTableTax(data, index) {
           >
             <template #footer>
               {{
-                props.isUpdate ? data.taxamount : getSumTaxAmount(data.details)
+                 getSumTaxAmount(data.details)
               }}
             </template>
             <template #body="{ data, field }">

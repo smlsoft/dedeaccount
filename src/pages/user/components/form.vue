@@ -23,17 +23,17 @@ const roles = ref([
 
 const props = defineProps({
   form_model: Object,
-  isUpdate: Boolean,
+  form_valid: Object,
 });
 
-const emit = defineEmits(["save", "back"]);
+const emit = defineEmits(["save"]);
 
-onMounted(async () => {
-});
+onMounted(async () => {});
 
 async function onSave() {
-  confirmSaveDialog.value = true;
   var isPass = await verifyData();
+
+  console.log(isPass);
   if (isPass) {
     confirmSaveDialog.value = true;
   }
@@ -48,18 +48,15 @@ function onClose() {
   confirmSaveDialog.value = false;
 }
 
-function onBack() {
-  emit("back");
-}
 function verifyData() {
   let checkValid = 0;
   let err_msg = "";
-  if (form_model.value.username == "") {
-    form_valid.value.username = false;
+  if (props.form_model.username == "") {
+    props.form_valid.username = false;
     err_msg += "Username ";
     checkValid += 1;
   } else {
-    form_valid.value.username = true;
+    props.form_valid.username = true;
   }
 
   if (checkValid == 0) {
@@ -77,34 +74,52 @@ function verifyData() {
 </script>
 
 <template>
-  <div class="surface-ground px-2 py-2">
-    <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info"
-      @click="onBack()" />
-    <div class="surface-card p-4 shadow-2 border-round p-fluid">
-      <div class="grid formgrid p-fluid">
-        <div class="field mb-12 col-12 md:col-12">
-          <label for="groupCode" class="font-medium text-900">
-            <TextRequire textLabel="Username"></TextRequire>
-          </label>
-          <InputText id="username" type="text" v-model="props.form_model.username"
-            :class="!form_valid.username ? 'p-invalid' : ''" :disabled="props.isUpdate" />
+  <div class="grid formgrid p-fluid">
+    <div class="field mb-12 col-12 md:col-12">
+      <label for="groupCode" class="font-medium text-900">
+        <TextRequire textLabel="Username"></TextRequire>
+      </label>
+      <InputText
+        id="username"
+        type="text"
+        v-model="props.form_model.username"
+        :class="!props.form_valid.username ? 'p-invalid' : ''"
+        :disabled="props.isUpdate"
+      />
+    </div>
+    <div class="field mb-12 col-12 md:col-12">
+      <label for="accountcategory" class="font-medium text-900"
+        >สิทธิ์การใช้งาน</label
+      >
+      <div class="flex flex-wrap card-container blue-container">
+        <div
+          v-for="role of roles"
+          :key="role.code"
+          class="field-radiobutton m-3"
+        >
+          <RadioButton
+            :id="role.code"
+            name="category"
+            :value="role.code"
+            v-model="props.form_model.role"
+          />
+          <label :for="role.code">{{ role.name }}</label>
         </div>
-        <div class="field mb-12 col-12 md:col-12">
-          <label for="accountcategory" class="font-medium text-900">สิทธิ์การใช้งาน</label>
-          <div class="flex flex-wrap card-container blue-container">
-            <div v-for="role of roles" :key="role.code" class="field-radiobutton m-3">
-              <RadioButton :id="role.code" name="category" :value="role.code" v-model="props.form_model.role" />
-              <label :for="role.code">{{ role.name }}</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-2">
-        <Button @click="onSave" label="บันทึกข้อมูลผู้ใช้งาน" icon="pi pi-save"
-          class="w-auto p-button-success"></Button>
       </div>
     </div>
   </div>
-  <DialogForm :confirmDialog="confirmSaveDialog" :textContent="textContent" v-on:close="onClose"
-    v-on:confirm="confirmSave"></DialogForm>
+  <div class="mt-2">
+    <Button
+      @click="onSave"
+      label="บันทึกข้อมูลผู้ใช้งาน"
+      icon="pi pi-save"
+      class="w-auto p-button-success"
+    ></Button>
+  </div>
+  <DialogForm
+    :confirmDialog="confirmSaveDialog"
+    :textContent="textContent"
+    v-on:close="onClose"
+    v-on:confirm="confirmSave"
+  ></DialogForm>
 </template>

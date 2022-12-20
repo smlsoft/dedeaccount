@@ -17,8 +17,9 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate) {
         let q = "";     // search
+        let filterDate = "";
 
         let sortShowBy = "";
         if (search != "" && search != undefined && search != null) {
@@ -33,8 +34,12 @@ export default {
             sortShowBy = "&reject=1"
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}`).then(res => res.data);
+        if (fromDate != "" && fromDate != undefined && fromDate != null) {
+            filterDate = "&fromdate=" + fromDate + "&todate=" + toDate;
+        }
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`).then(res => res.data);
     },
 
     // ดึงกลุ่มรูปทั้งหมด
@@ -95,5 +100,10 @@ export default {
     // เพิ่มรูปใน Group Image
     putAddImageInGroup(id, data) {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/documentimages`, data).then(res => res.data);
+    },
+
+    // get documentimagegroup by docno
+    getDocumentImageByDocNo(id) {
+        return instanceApi(true).get(`/documentimagegroup/docref/` + id).then(res => res.data);
     },
 }

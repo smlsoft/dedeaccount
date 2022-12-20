@@ -119,11 +119,11 @@ export default {
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getAccountledger(startdate, enddate, accountcode) {
-        //console.log('Page' + page);
 
-        // console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+         console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`);
         return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`).then(res => res.data);
     },
+    
     postAccountChart(data) {
         return instanceApi(true).post(`/gl/chartofaccount`, data).then(res => res.data);
     },

@@ -4,10 +4,14 @@ import XLSX from "xlsx";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import MasterdataService from "@/services/MasterdataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import TextInputNumber from "@/components/widget/TextInputNumber.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
+import { useToast } from "primevue/usetoast";
 
+const tempCheckDate = ref(null);
+const toast = useToast();
 const myFiles = ref();
 const deleteDetailDialog = ref(false);
 const update_mode = ref(false);
@@ -60,7 +64,7 @@ const emit = defineEmits([
 ]);
 
 onMounted(async () => {
-  console.log(props.daily_form.journaldetail);
+  checkAccountPeriod(props.daily_form.docdate, 0);
 });
 
 function selectAccount(data, field, index) {
@@ -196,34 +200,77 @@ function focusNext(field, index) {
   }, 100);
 }
 
-function getAccountChart() {
-  MasterdataService.getAccountChart()
+function checkAccountPeriod(event, mode) {
+  //console.log(event);
+  let keyDate = "";
+  if (tempCheckDate.value != null) {
+    clearTimeout(tempCheckDate.value);
+  }
+  tempCheckDate.value = setTimeout(() => {
+    if (mode == 0) {
+      keyDate = Utils.getDateFromYear(event);
+    } else if (mode == 1) {
+      const dateString = event.value;
+      const dateParts = dateString.split("/");
+      const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
+      keyDate = isoDate; // 2022-12-20
+    }
+    //console.log(keyDate);
+    getAccountPeriodByDate(keyDate);
+  }, 100);
+}
+
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
     .then((res) => {
       console.log(res);
       if (res.success) {
-        accountChart_detail.value = res.data.sort(function (obj1, obj2) {
-          return obj1.accountcode - obj2.accountcode;
-        });
+        props.daily_form.accountperiod = res.data.period;
       }
     })
     .catch((err) => {
-      console.log(err);
+      console.log(err.response.data.message);
+      props.daily_form.accountperiod = null;
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "ไม่เจอ งวด บัญชี",
+        life: 3000,
+      });
     });
+}
+
+function headerNextFocus(filedName) {
+  console.log(filedName);
+  setTimeout(() => {
+    if (filedName == "docdate") {
+      $(".docdate  > input ").focus();
+    } else if (filedName == "batchid") {
+      checkAccountPeriod(props.daily_form.docdate, 1);
+      $(".batchid").focus();
+    } else if (filedName == "accountperiod") {
+      $(".accountperiod").focus();
+    } else if (filedName == "accountyear") {
+      $(".accountyear").focus();
+    } else if (filedName == "accountgroup") {
+      $(".accountgroup").focus();
+    }
+  }, 100);
 }
 </script>
 
 <template>
-  <form>
+  <form ref="myForm">
     <div class="grid formgrid p-fluid">
       <div class="field mb-4 col-12 md:col-3">
         <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
         <InputText
-          id="docNo"
           type="text"
           v-model="props.daily_form.docno"
-          :class="props.daily_form_valid.docno ? 'p-invalid' : ''"
+          :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
           :disabled="props.isUpdate || update_mode"
-          
+          @keyup.enter="headerNextFocus('docdate')"
+          class="docno"
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
@@ -238,6 +285,10 @@ function getAccountChart() {
           :buddhist="buddhistYear"
           :hideOnDateTimeSelect="true"
           :hiddenTime="true"
+          @date-select="checkAccountPeriod($event, 0)"
+          @blur="checkAccountPeriod($event, 1)"
+          @keyup.enter="headerNextFocus('batchid')"
+          class="docdate"
         />
       </div>
 
@@ -248,6 +299,8 @@ function getAccountChart() {
           v-model="props.daily_form.batchId"
           :class="props.daily_form_valid.batchId ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountperiod')"
+          class="batchid"
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
@@ -256,8 +309,9 @@ function getAccountChart() {
           type="number"
           :min="0"
           v-model="props.daily_form.accountperiod"
-          :class="props.daily_form_valid.accountperiod ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountyear')"
+          class="accountperiod"
         />
       </div>
       <div class="col-12"></div>
@@ -269,8 +323,11 @@ function getAccountChart() {
           v-model="props.daily_form.accountyear"
           :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountgroup')"
+          class="accountyear"
         />
       </div>
+
       <div class="field mb-4 col-12 md:col-4">
         <label for="accountgroup" class="font-medium text-900"
           >กลุ่มบัญชี</label
@@ -287,6 +344,7 @@ function getAccountChart() {
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
           :disabled="props.isUpdate"
+          class="accountgroup"
         >
           <template #option="slotProps">
             <div>

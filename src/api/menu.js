@@ -194,6 +194,12 @@ export const menus = [
         to: "/group/list",
         name: "group_list",
       },
+      {
+        title: "กำหนดงวดบัญชี",
+        icon: "pi pi-link",
+        to: "/accountPeriod/list",
+        name: "accountPeriod",
+      },
     ],
   },
   {

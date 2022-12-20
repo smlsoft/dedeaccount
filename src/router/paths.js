@@ -386,5 +386,14 @@ export default [
       auth: true,
     },
     component: () => import("../pages/images_group/components/zoom.vue"),
-  }
+  },
+  {
+    path: "/accountPeriod/list",
+    name: "accountPeriod",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/account_period/account_period_list.vue"),
+  },
+
 ];

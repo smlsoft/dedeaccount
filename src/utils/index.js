@@ -43,6 +43,16 @@ const formatNumber = (val, digit = 0) => {
     }
 
 }
+
+const formatNumberReport = (val, digit = 0) => {
+    if (val == 0) {
+        return "0.00"
+    } else {
+        return Numeral(val).format('0,0.00')
+    }
+
+}
+
 const formatNumberforExcel = (val, digit = 0) => {
     if (val == 0) {
         return "0.00"
@@ -203,6 +213,21 @@ const getYearBuddhist = (date) => {
     return showDate;
 }
 
+const getYearDC = (date) => {
+    var date = new Date(date);
+    var showDate =
+        date.getDate() +
+        "-" +
+        (date.getMonth() + 1) +
+        "-" +
+        (date.getFullYear() - 543)
+
+    return showDate;
+}
+
+
+
+
 
 const getDateDisplayFromDate = (date) => {
 
@@ -264,5 +289,7 @@ export default {
     isImage,
     getYearBuddhist,
     checkSpecialString,
-    getDateShowText
+    getDateShowText,
+    formatNumberReport,
+    getYearDC,
 }
