@@ -244,7 +244,7 @@ function headerNextFocus(filedName) {
   console.log(filedName);
   setTimeout(() => {
     if (filedName == "docdate") {
-      $(".docdate  > input ").focus();
+      $(".docdate").focus();
     } else if (filedName == "batchid") {
       checkAccountPeriod(props.daily_form.docdate, 1);
       $(".batchid").focus();
@@ -253,14 +253,27 @@ function headerNextFocus(filedName) {
     } else if (filedName == "accountyear") {
       $(".accountyear").focus();
     } else if (filedName == "accountgroup") {
-      $(".accountgroup").focus();
+      $(".accountgroup").click();
+    } else if (filedName == "bookcode") {
+      $(".bookcode").click();
+    } else if (filedName == "accountdescription") {
+      $(".accountdescription").focus();
+    } else if (filedName == "exdocrefno") {
+      $(".exdocrefno").focus();
+    } else if (filedName == "exdocrefdate") {
+      $(".exdocrefdate").focus();
+    } else if (filedName == "isUpdate") {
+      $(".isUpdate").focus();
+    } else if (filedName == "accountRow1") {
+      $(".accountcode_" + 0 + " > input").focus();
+      
     }
   }, 100);
 }
 </script>
 
 <template>
-  <form ref="myForm">
+  <form>
     <div class="grid formgrid p-fluid">
       <div class="field mb-4 col-12 md:col-3">
         <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
@@ -270,7 +283,6 @@ function headerNextFocus(filedName) {
           :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
           :disabled="props.isUpdate || update_mode"
           @keyup.enter="headerNextFocus('docdate')"
-          class="docno"
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
@@ -288,7 +300,7 @@ function headerNextFocus(filedName) {
           @date-select="checkAccountPeriod($event, 0)"
           @blur="checkAccountPeriod($event, 1)"
           @keyup.enter="headerNextFocus('batchid')"
-          class="docdate"
+          inputClass="docdate"
         />
       </div>
 
@@ -324,6 +336,7 @@ function headerNextFocus(filedName) {
           :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
           @keyup.enter="headerNextFocus('accountgroup')"
+          @keydown.tab="headerNextFocus('accountgroup')"
           class="accountyear"
         />
       </div>
@@ -332,9 +345,9 @@ function headerNextFocus(filedName) {
         <label for="accountgroup" class="font-medium text-900"
           >กลุ่มบัญชี</label
         >
+
         <Dropdown
           v-model="props.daily_form.accountgroup"
-          autofocus
           :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
           :options="props.groupAccount_detail"
           :filter="true"
@@ -344,7 +357,9 @@ function headerNextFocus(filedName) {
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
           :disabled="props.isUpdate"
-          class="accountgroup"
+          :autoFilterFocus="true"
+          @keyup.enter="headerNextFocus('bookcode')"
+          inputClass="accountgroup"
         >
           <template #option="slotProps">
             <div>
@@ -357,7 +372,6 @@ function headerNextFocus(filedName) {
         <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
         <Dropdown
           v-model="props.daily_form.bookcode"
-          autofocus
           :options="props.accountBook_detail"
           :class="props.daily_form_valid.bookcode ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
@@ -367,6 +381,9 @@ function headerNextFocus(filedName) {
           optionLabel="label"
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
+          :autoFilterFocus="true"
+          @keyup.enter="headerNextFocus('accountdescription')"
+          inputClass="bookcode"
         >
           <template #option="slotProps">
             <div>
@@ -381,6 +398,8 @@ function headerNextFocus(filedName) {
           type="text"
           :disabled="props.isUpdate"
           v-model="props.daily_form.accountdescription"
+          @keyup.enter="headerNextFocus('isUpdate')"
+          class="accountdescription"
         />
       </div>
       <div class="field mb-4 col-12 md:col-4">
@@ -392,6 +411,8 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="0"
               v-model="props.daily_form.journaltype"
+              inputClass="isUpdate"
+              @keyup.enter="headerNextFocus('exdocrefno')"
             />
             <label>ทั่วไป</label>
           </div>
@@ -401,6 +422,7 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="1"
               v-model="props.daily_form.journaltype"
+              @keyup.enter="headerNextFocus('exdocrefno')"
             />
             <label>ปิดบัญชี</label>
           </div>
@@ -415,6 +437,8 @@ function headerNextFocus(filedName) {
           type="text"
           v-model="props.daily_form.exdocrefno"
           :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('exdocrefdate')"
+          class="exdocrefno"
         />
       </div>
       <div class="field mb-4 col-12 md:col-6">
@@ -428,6 +452,8 @@ function headerNextFocus(filedName) {
           :buddhist="buddhistYear"
           :hideOnDateTimeSelect="true"
           :hiddenTime="true"
+          inputClass="exdocrefdate"
+          @keyup.enter="headerNextFocus('accountRow1')"
         />
       </div>
       <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>

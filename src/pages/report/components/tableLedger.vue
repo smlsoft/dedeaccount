@@ -5,10 +5,10 @@
         <div class="flex justify-content-between">
           <div class="flex align-items-center justify-content-center"></div>
           <div class="flex align-items-center justify-content-center m-1">
-          บัญชีแยกประเภท ประจำวันที่ :
-          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
-          {{ props.headDataReport.endDateShow }}
-        </div>
+            บัญชีแยกประเภท ประจำวันที่ :
+            {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+            {{ props.headDataReport.endDateShow }}
+          </div>
           <div class="flex align-items-center justify-content-center">
             <Button
               icon="pi pi-times"
@@ -17,10 +17,9 @@
             />
           </div>
         </div>
-      
       </div>
     </div>
-    <div class="card" style="height: calc(100vh - 23vh)">
+    <div class="card" :style="screenHeight">
       <DataTable
         :value="props.dataReport[0].details"
         showGridlines
@@ -34,8 +33,20 @@
         :loading="props.loading"
       >
         <template #header>
-          {{ props.dataReport[0].accountcode }} :
-          {{ props.dataReport[0].accountname }}
+          <div class="flex justify-content-between">
+            <div>
+              {{ props.dataReport[0].accountcode }} :
+              {{ props.dataReport[0].accountname }}
+            </div>
+            <div class="flex align-items-center">
+              <i class="pi pi-bookmark mr-1 text-teal-500"></i>
+              <span class="mr-3 text-teal-500"> VAT</span>
+              <i class="pi pi-bookmark-fill mr-1 text-green-500"></i>
+              <span class="mr-3 text-green-500"> TAX</span>
+              <i class="pi pi-image mr-1 text-cyan-500"></i>
+              <span class="mr-3 text-cyan-500"> IMAGE</span>
+            </div>
+          </div>
         </template>
         <Column field="docdate" header="วันที่">
           <template #body="slotProps">
@@ -50,19 +61,33 @@
                   {{ slotProps.data.docno }}
                 </div>
               </div>
-              <!-- <div class="flex justify-content-end pt-1">
-                <div class="flex align-items-center justify-content-center">
-                  <div style="padding-bottom: 1rem"></div>
-                  <Badge
-                    value="1"
-                    class="mr-2"
-                    aria-label="Tabable Primary Badge"
-                    tabindex="0"
-                  ></Badge>
-                  <Badge value="2" severity="success" class="mr-2"></Badge>
-                  <Badge value="12" severity="warning"></Badge>
+              <div class="flex justify-content-end pt-1">
+                <div class=" flex align-items-center">
+                  <i
+                    class="pi pi-bookmark mr-1 text-teal-500"
+                    v-if="slotProps.data.countvat > 0"
+                  ></i>
+                  <span class="mr-3 text-teal-500" v-if="slotProps.data.countvat > 0"
+                    >({{ slotProps.data.countvat }})</span
+                  >
+
+                  <i
+                    class="pi pi-bookmark-fill mr-1 text-green-500"
+                    v-if="slotProps.data.counttax > 0"
+                  ></i>
+                  <span class="mr-3 text-green-500" v-if="slotProps.data.counttax > 0"
+                    >({{ slotProps.data.counttax }})</span
+                  >
+
+                  <i
+                    class="pi pi-image mr-1 text-cyan-500"
+                    v-if="slotProps.data.countimage > 0"
+                  ></i>
+                  <span class="text-cyan-500" v-if="slotProps.data.countimage > 0"
+                    >({{ slotProps.data.countimage }})</span
+                  >
                 </div>
-              </div> -->
+              </div>
             </div>
           </template>
         </Column>
@@ -108,6 +133,8 @@ import { ref, onMounted } from "vue";
 import ImageDataService from "@/services/ImageDataService";
 import Utils from "@/utils/";
 const selectedRow = ref();
+const screenHeight = ref("height: calc(100vh - 25.6vh)");
+
 const props = defineProps({
   headDataReport: Object,
   dataReport: Object,
@@ -115,7 +142,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["showDialogDocNo", "closeSplitterLedger"]);
-onMounted(() => {});
+onMounted(() => {
+  //console.log(screen.height);
+  if (screen.height < 1440) {
+    screenHeight.value = "height: calc(100vh - 35vh)";
+  }
+});
 
 function rowClick(event) {
   console.log(event.data);

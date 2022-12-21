@@ -239,8 +239,6 @@ function getSumCreditAmount(data) {
             scrollHeight="77vh"
             v-model:expandedRows="expandedRows"
             :rowHover="true"
-            showGridlines
-            
           >
             <template #header>
               <div class="flex justify-content-between">
