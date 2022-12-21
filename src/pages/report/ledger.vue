@@ -180,53 +180,32 @@
           showGridlines
           v-if="isvisible"
         >
-          <!-- <template #header>
-            <div class="table-header-container">
-              <Button
-                icon="pi pi-plus"
-                label="Expand All"
-                @click="expandAll"
-                class="mr-2"
-              />
-            </div>
-          </template> -->
-
           <template #empty> ไม่พบข้อมูล </template>
           <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-          <ColumnGroup type="header">
-            <Row>
-              <Column header="รหัสบัญขี" />
-              <Column header="ชื่อบัญชี" :colspan="6" />
-            </Row>
-            <Row>
-              <Column header="รหัสบัญขี" />
-              <Column header="ชื่อบัญชี" />
-              <Column header="รหัสบัญขี" />
-              <Column header="ชื่อบัญชี" />
-              <Column header="รหัสบัญขี" />
-              <Column header="ชื่อบัญชี" /> <Column header="รหัสบัญขี" />
-            </Row>
-          </ColumnGroup>
-
-          <Column field="accountcode"></Column>
-          <Column field="accountname"> </Column>
-          <Column field="" :colspan="4"> </Column>
-          <Column field=""> </Column>
-          <Column field=""> </Column>
-          <Column field=""> </Column>
-          <Column :expander="true" :invisible="false" />
-
+          <ColumnGroup type="header"> </ColumnGroup>
           <template #expansion="mainProps">
             <DataTable
               :value="mainProps.data.details"
               dataKey="accountcode"
               showGridlines
+              :scrollable="true"
+              :loading="loading"
             >
+              <ColumnGroup type="header">
+                <Row>
+                  <Column header="รหัสบัญขี" />
+                  <Column header="ชื่อบัญชี" :colspan="5" />
+                </Row>
+                <Row>
+                  <Column header="รหัสบัญขี" />
+                  <Column header="เลขที่เอกสาร" />
+                  <Column header="รายละเอียด" /> <Column header="เดบิต" />
+                  <Column header="เครดิต" /> <Column header="ผลรวม" />
+                </Row>
+              </ColumnGroup>
               <Column field="docdate" dataType="date">
                 <template #body="slotProps">
-                  {{
-                    dateCheck(Utils.getDateFormatDMY(slotProps.data.docdate))
-                  }}
+                  {{ dateCheck(slotProps.data.docdate) }}
                 </template>
               </Column>
               <Column field="docno">
@@ -252,7 +231,6 @@
                   {{ slotProps.data.amount }}
                 </template>
               </Column>
-              <Column> </Column>
             </DataTable>
           </template>
         </DataTable>
@@ -275,7 +253,7 @@
                 label="ส่งออก PDF"
                 icon="pi pi-file-pdf"
                 class="p-button-primary"
-                @click="exportdowloadPDF()"
+                @click="exreportpdf()"
               />
             </div>
           </div>
@@ -353,6 +331,7 @@ const dataaccountcode = ref("");
 const state = ref(false);
 const group = ref([]);
 const data_list = ref([{}]);
+const data_listPdf = ref([{}]);
 const data_list2 = ref([]);
 const docno = ref();
 const balance = ref();
@@ -474,8 +453,10 @@ async function getAccountChart() {
 function dateCheck(data) {
   if (data == "NaN/NaN/NaN") {
     return "";
-  } else {
+  } else if (data.length <= 7) {
     return data;
+  } else {
+    return Utils.getDateFormatDMY(data);
   }
 }
 
@@ -614,7 +595,16 @@ function exreport2() {
 
           if (data.balance == 0 && result.value == false) {
             console.log("1");
-            return data.details.push({
+            data.details.unshift({
+              docdate: data.accountcode,
+              docno: data.accountname,
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: "",
+            });
+
+            data.details.push({
               docdate: "",
               docno: "ยกไป",
               accountdescription: "",
@@ -625,13 +615,22 @@ function exreport2() {
           } else if (result.value == true && data.balance == 0) {
             console.log("2");
             data.details.unshift({
+              docdate: data.accountcode,
+              docno: data.accountname,
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: "",
+            });
+            data.details.unshift({
               docdate: "",
-              docno: "ยกมา",
+              docno: "ยกมา +2",
               accountdescription: "",
               credit: "",
               debit: "",
               amount: data.balance,
             });
+
             data.details.push({
               docdate: "",
               docno: "ยกไป",
@@ -642,6 +641,7 @@ function exreport2() {
             });
           } else {
             console.log("3");
+
             data.details.unshift({
               docdate: "",
               docno: checkbalanceWord(data.balance),
@@ -650,6 +650,15 @@ function exreport2() {
               debit: "",
               amount: checkbalance(data.balance),
             });
+            data.details.unshift({
+              docdate: data.accountcode,
+              docno: data.accountname,
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: "",
+            });
+
             data.details.push({
               docdate: "",
               docno: "ยกไป",
@@ -698,7 +707,55 @@ function exreport2() {
   //   getGLJournalList();
   // expandAll();
 }
+function exreportpdf() {
+  let startdate = Utils.getDateFromYear(startDate.value);
+  let enddate = Utils.getDateFromYear(endDate.value);
 
+  if (dataaccountcode.value == ":") {
+    dataaccountcode.value = "";
+  }
+  isvisible.value = true;
+  MasterdataService.getAccountledger(
+    startdate,
+    enddate,
+    dataaccountcode.value,
+    (accountgroup.value = ""),
+    (consolidateaccountcode.value = "")
+  )
+
+    .then((res) => {
+      loading.value = true;
+
+      if (res.success) {
+        data_listPdf.value = res.data;
+        exportdowloadPDF();
+        setTimeout(() => {}, 100);
+
+        console.log(res);
+        toast.add({
+          severity: "success",
+          summary: "จัดทำรายงานสำเร็จ",
+          life: 1000,
+        });
+      }
+      loading.value = false;
+    })
+
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "จัดทำรายงานไม่สำเร็จ",
+        detail: "โปรดตรวจสอบวันที่และผังบัญชี",
+        life: 3000,
+      });
+      isvisible.value = false;
+      loading.value = false;
+      console.log(err);
+    });
+  //   newResultCategory();
+  //   getGLJournalList();
+  // expandAll();
+}
 async function exportPDF() {
   isvisible.value = true;
   var body = [];
@@ -944,8 +1001,8 @@ function buildFromJson() {
     { text: "เครดิต", style: "header" },
     { text: "ยอดรวม", style: "header" },
   ]);
-  console.log(data_list.value);
-  data_list.value.forEach((data) => {
+  console.log(data_listPdf.value);
+  data_listPdf.value.forEach((data) => {
     if (
       data.balance == data.nextbalance &&
       data.balance == 0 &&
