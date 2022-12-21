@@ -266,7 +266,8 @@ function headerNextFocus(filedName) {
       $(".isUpdate").focus();
     } else if (filedName == "accountRow1") {
       $(".accountcode_" + 0 + " > input").focus();
-      
+    } else if (filedName == "docno")  {
+      $(".docno").focus();
     }
   }, 100);
 }
@@ -275,16 +276,6 @@ function headerNextFocus(filedName) {
 <template>
   <form>
     <div class="grid formgrid p-fluid">
-      <div class="field mb-4 col-12 md:col-3">
-        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
-        <InputText
-          type="text"
-          v-model="props.daily_form.docno"
-          :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
-          :disabled="props.isUpdate || update_mode"
-          @keyup.enter="headerNextFocus('docdate')"
-        />
-      </div>
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">เอกสารวันที่</label>
         <DatePicker
@@ -299,12 +290,22 @@ function headerNextFocus(filedName) {
           :hiddenTime="true"
           @date-select="checkAccountPeriod($event, 0)"
           @blur="checkAccountPeriod($event, 1)"
-          @keyup.enter="headerNextFocus('batchid')"
+          @keyup.enter="headerNextFocus('docno')"
           inputClass="docdate"
         />
       </div>
-
       <div class="field mb-4 col-12 md:col-3">
+        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
+        <InputText
+          type="text"
+          v-model="props.daily_form.docno"
+          :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
+          :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('accountperiod')"
+          class="docno"
+        />
+      </div>
+      <!-- <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">หมายเลขดำเนินการ</label>
         <InputText
           type="text"
@@ -314,7 +315,7 @@ function headerNextFocus(filedName) {
           @keyup.enter="headerNextFocus('accountperiod')"
           class="batchid"
         />
-      </div>
+      </div> -->
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
@@ -326,8 +327,7 @@ function headerNextFocus(filedName) {
           class="accountperiod"
         />
       </div>
-      <div class="col-12"></div>
-      <div class="field mb-4 col-12 md:col-4">
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">ปีบัญชี</label>
         <InputText
           type="number"
@@ -335,40 +335,41 @@ function headerNextFocus(filedName) {
           v-model="props.daily_form.accountyear"
           :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
-          @keyup.enter="headerNextFocus('accountgroup')"
-          @keydown.tab="headerNextFocus('accountgroup')"
+          @keyup.enter="headerNextFocus('exdocrefdate')"
           class="accountyear"
         />
       </div>
-
-      <div class="field mb-4 col-12 md:col-4">
-        <label for="accountgroup" class="font-medium text-900"
-          >กลุ่มบัญชี</label
-        >
-
-        <Dropdown
-          v-model="props.daily_form.accountgroup"
-          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
-          :options="props.groupAccount_detail"
-          :filter="true"
-          :filterFields="['code', 'name1']"
-          optionValue="code"
-          optionLabel="label"
-          filterPlaceholder="ค้นหา"
-          placeholder="เลือก"
+      <div class="col-12"></div>
+      <div class="field mb-4 col-12 md:col-3">
+        <label class="font-medium text-900">เอกสารวันที่อ้างอิง</label>
+        <DatePicker
+          dateFormat="d/m/yy"
+          v-model="props.daily_form.exdocrefdate"
+          :modelValue="props.daily_form.exdocrefdate"
+          :showIcon="true"
           :disabled="props.isUpdate"
-          :autoFilterFocus="true"
-          @keyup.enter="headerNextFocus('bookcode')"
-          inputClass="accountgroup"
-        >
-          <template #option="slotProps">
-            <div>
-              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
-            </div>
-          </template>
-        </Dropdown>
+          :buddhist="buddhistYear"
+          :hideOnDateTimeSelect="true"
+          :hiddenTime="true"
+          inputClass="exdocrefdate"
+          @keyup.enter="headerNextFocus('exdocrefno')"
+        />
       </div>
-      <div class="field mb-4 col-12 md:col-4">
+      <div class="field mb-4 col-12 md:col-3">
+        <label for="exdocrefno" class="font-medium text-900"
+          >เลขที่เอกสารอ้างอิง</label
+        >
+        <InputText
+          id="exdocrefno"
+          type="text"
+          v-model="props.daily_form.exdocrefno"
+          :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('bookcode')"
+          @keydown.tab="headerNextFocus('bookcode')"
+          class="exdocrefno"
+        />
+      </div>
+      <div class="field mb-4 col-12 md:col-3">
         <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
         <Dropdown
           v-model="props.daily_form.bookcode"
@@ -382,7 +383,7 @@ function headerNextFocus(filedName) {
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
           :autoFilterFocus="true"
-          @keyup.enter="headerNextFocus('accountdescription')"
+          @keyup.enter="headerNextFocus('accountgroup')"
           inputClass="bookcode"
         >
           <template #option="slotProps">
@@ -392,17 +393,46 @@ function headerNextFocus(filedName) {
           </template>
         </Dropdown>
       </div>
-      <div class="field mb-12 col-12 md:col-8">
+      <div class="field mb-4 col-12 md:col-3">
+        <label for="accountgroup" class="font-medium text-900"
+          >กลุ่มบัญชี</label
+        >
+        <Dropdown
+          v-model="props.daily_form.accountgroup"
+          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
+          :options="props.groupAccount_detail"
+          :filter="true"
+          :filterFields="['code', 'name1']"
+          optionValue="code"
+          optionLabel="label"
+          filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+          :disabled="props.isUpdate"
+          :autoFilterFocus="true"
+          @keyup.enter="headerNextFocus('accountdescription')"
+          inputClass="accountgroup"
+        >
+          <template #option="slotProps">
+            <div>
+              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
+            </div>
+          </template>
+        </Dropdown>
+      </div>
+
+      <div class="field mb-12 col-12 md:col-9">
         <label class="font-medium text-900">คำอธิบาย</label>
-        <InputText
+        <Textarea
           type="text"
           :disabled="props.isUpdate"
           v-model="props.daily_form.accountdescription"
-          @keyup.enter="headerNextFocus('isUpdate')"
+          @keydown.tab="headerNextFocus('isUpdate')"
           class="accountdescription"
+          :autoResize="true"
+          rows="5"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-4">
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">ประเภทรายการ</label>
         <div class="grid mt-2 ml-2">
           <div class="flex field-checkbox">
@@ -412,7 +442,7 @@ function headerNextFocus(filedName) {
               value="0"
               v-model="props.daily_form.journaltype"
               inputClass="isUpdate"
-              @keyup.enter="headerNextFocus('exdocrefno')"
+              @keyup.enter="headerNextFocus('accountRow1')"
             />
             <label>ทั่วไป</label>
           </div>
@@ -422,40 +452,13 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="1"
               v-model="props.daily_form.journaltype"
-              @keyup.enter="headerNextFocus('exdocrefno')"
+              @keyup.enter="headerNextFocus('accountRow1')"
             />
             <label>ปิดบัญชี</label>
           </div>
         </div>
       </div>
-      <div class="field mb-4 col-12 md:col-6">
-        <label for="exdocrefno" class="font-medium text-900"
-          >เลขที่เอกสารอ้างอิง</label
-        >
-        <InputText
-          id="exdocrefno"
-          type="text"
-          v-model="props.daily_form.exdocrefno"
-          :disabled="props.isUpdate || update_mode"
-          @keyup.enter="headerNextFocus('exdocrefdate')"
-          class="exdocrefno"
-        />
-      </div>
-      <div class="field mb-4 col-12 md:col-6">
-        <label class="font-medium text-900">เอกสารวันที่อ้างอิง</label>
-        <DatePicker
-          dateFormat="d/m/yy"
-          v-model="props.daily_form.exdocrefdate"
-          :modelValue="props.daily_form.exdocrefdate"
-          :showIcon="true"
-          :disabled="props.isUpdate"
-          :buddhist="buddhistYear"
-          :hideOnDateTimeSelect="true"
-          :hiddenTime="true"
-          inputClass="exdocrefdate"
-          @keyup.enter="headerNextFocus('accountRow1')"
-        />
-      </div>
+
       <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>
     </div>
     <div class="py-1">

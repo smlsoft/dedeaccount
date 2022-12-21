@@ -38,14 +38,14 @@
               {{ props.dataReport[0].accountcode }} :
               {{ props.dataReport[0].accountname }}
             </div>
-            <div class="flex align-items-center">
+            <!-- <div class="flex align-items-center">
               <i class="pi pi-bookmark mr-1 text-teal-500"></i>
               <span class="mr-3 text-teal-500"> VAT</span>
               <i class="pi pi-bookmark-fill mr-1 text-green-500"></i>
               <span class="mr-3 text-green-500"> TAX</span>
               <i class="pi pi-image mr-1 text-cyan-500"></i>
               <span class="mr-3 text-cyan-500"> IMAGE</span>
-            </div>
+            </div> -->
           </div>
         </template>
         <Column field="docdate" header="วันที่">
@@ -62,28 +62,40 @@
                 </div>
               </div>
               <div class="flex justify-content-end pt-1">
-                <div class=" flex align-items-center">
+                <div class="flex align-items-center">
                   <i
                     class="pi pi-bookmark mr-1 text-teal-500"
                     v-if="slotProps.data.countvat > 0"
+                    v-tooltip.bottom.bottom="'ภาษีมูลค่าเพิ่ม'"
                   ></i>
-                  <span class="mr-3 text-teal-500" v-if="slotProps.data.countvat > 0"
+                  <span
+                    class="mr-3 text-teal-500"
+                    v-if="slotProps.data.countvat > 0"
+                    v-tooltip.bottom="'ภาษีมูลค่าเพิ่ม'"
                     >({{ slotProps.data.countvat }})</span
                   >
 
                   <i
                     class="pi pi-bookmark-fill mr-1 text-green-500"
                     v-if="slotProps.data.counttax > 0"
+                    v-tooltip.bottom="'ภาษีมูลหัก ณ ที่จ่าย'"
                   ></i>
-                  <span class="mr-3 text-green-500" v-if="slotProps.data.counttax > 0"
+                  <span
+                    class="mr-3 text-green-500"
+                    v-if="slotProps.data.counttax > 0"
+                    v-tooltip.bottom="'ภาษีมูลหัก ณ ที่จ่าย'"
                     >({{ slotProps.data.counttax }})</span
                   >
 
                   <i
                     class="pi pi-image mr-1 text-cyan-500"
                     v-if="slotProps.data.countimage > 0"
+                    v-tooltip.bottom="'รูปภาพ'"
                   ></i>
-                  <span class="text-cyan-500" v-if="slotProps.data.countimage > 0"
+                  <span
+                    class="text-cyan-500"
+                    v-if="slotProps.data.countimage > 0"
+                    v-tooltip.bottom="'รูปภาพ'"
                     >({{ slotProps.data.countimage }})</span
                   >
                 </div>
