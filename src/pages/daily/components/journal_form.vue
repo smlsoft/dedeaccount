@@ -9,6 +9,7 @@ import TextInputNumber from "@/components/widget/TextInputNumber.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
 import { useToast } from "primevue/usetoast";
+import dayjs from "dayjs";
 
 const tempCheckDate = ref(null);
 const toast = useToast();
@@ -201,7 +202,7 @@ function focusNext(field, index) {
 }
 
 function checkAccountPeriod(event, mode) {
-  //console.log(event);
+  console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
@@ -215,8 +216,8 @@ function checkAccountPeriod(event, mode) {
       const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
       keyDate = isoDate; // 2022-12-20
     }
-    //console.log(keyDate);
-    getAccountPeriodByDate(keyDate);
+    console.log(dayjs(keyDate).format('YYYY-MM-DD'));
+    getAccountPeriodByDate(dayjs(keyDate).format('YYYY-MM-DD'));
   }, 100);
 }
 
