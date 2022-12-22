@@ -164,6 +164,10 @@ const newDocRefImage = ref("");
 const showThumbnails = ref(false);
 const modeEdit = ref(false);
 
+const confirmRemoveImgDialog = ref(false);
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -205,13 +209,21 @@ watch(taxes.value, (newValue, oldValue) => {
   }
 });
 
-const confirmRemoveImgDialog = ref(false);
-function sendChange(data) {
-  connection.value.send(
-    JSON.stringify({ event: "change", payload: { status: data } })
-  );
-}
+watch(taxes.value, (newValue, oldValue) => {
+  if (taxes.value.length > 0) {
+    isChange.value = true;
+    sendChange(1);
+  } else {
+    isChange.value = false;
+    sendChange(0);
+  }
+});
+
 onMounted(() => {
+  // set height ifram
+  heightIamgeDivCheckGl.value = 'height:' + divCheckGl.value.offsetHeight + 'px';
+
+  
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_images_list");
 
@@ -481,6 +493,12 @@ function getAllSelectImage() {
         life: 3000,
       });
     });
+}
+
+function sendChange(data) {
+  connection.value.send(
+    JSON.stringify({ event: "change", payload: { status: data } })
+  );
 }
 
 function goList() {
@@ -1155,6 +1173,8 @@ function deleteDetail(data) {
   });
 }
 function addColumn(index) {
+  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
+
   daily_form.value.journaldetail.splice(index + 1, 0, {
     index: index + 1,
     accountcode: "",
@@ -1718,7 +1738,7 @@ function resizeGalleria(e) {
               id="panelForm2"
               @mouseleave="removeMagnify()"
             >
-              <div>
+              <div >
                 <div class="flex justify-content-between align-items-right">
                   <div>
                     <Button
@@ -1812,26 +1832,23 @@ function resizeGalleria(e) {
                               />
                             </div>
                           </div>
-                          <div class="col-12">
-                            <div class="zoom_outer">
-                              <div
-                                id="zoom"
-                                :style="zoomStyle"
-                                @mousedown="onmousedown($event)"
-                                @mouseup="onmouseup($event)"
-                                @mousemove="onmousemove($event)"
-                                @wheel="onwheel($event)"
+                          <div class="col-12" :style="heightIamgeDivCheckGl">
+                            <div
+                              style="
+                                margin: 0px;
+                                padding: 0px;
+                                width: 100%;
+                                height: 100%;
+                              "
+                            >
+                              <iframe
+                                :name="slotProps.item.imageuri"
+                                :src="
+                                  '/images_group/components/zoom?uri=' +
+                                  slotProps.item.imageuri
+                                "
                               >
-                                <img :src="slotProps.item.imageuri" />
-                              </div>
-
-                              <!-- <img
-                          :src="slotProps.item.imageuri"
-                          @click="magnify('myimage', 2)"
-                          class="w-full"
-                          :style="imagePreviewStyle"
-                          id="myimage"
-                        /> -->
+                              </iframe>
                             </div>
                           </div>
                         </div>
@@ -1849,61 +1866,63 @@ function resizeGalleria(e) {
               </div>
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" id="panelForm3">
-              <TabView class="tabview-custom" ref="tabview">
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-book mr-1"></i>
-                    <span> ข้อมูลรายวัน</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <JournalForm
-                      :daily_form="daily_form"
-                      :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail"
-                      :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail"
-                      v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail"
-                      v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder"
-                      v-on:selectAccount="selectAccount"
-                    >
-                    </JournalForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ข้อมูลภาษี</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <VatForm
-                      :vats="vats"
-                      :vats_valid="vats_valid"
-                      v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat"
-                      v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat"
-                      v-on:setBranch="setBranch"
-                    ></VatForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <TaxForm
-                      :taxes="taxes"
-                      :taxes_valid="taxes_valid"
-                      v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax"
-                      v-on:getSumTaxBase="getSumTaxBase"
-                    ></TaxForm>
-                  </div>
-                </TabPanel>
-              </TabView>
+              <div ref="divCheckGl">
+                <TabView class="tabview-custom" ref="tabview">
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-book mr-1"></i>
+                      <span> ข้อมูลรายวัน</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <JournalForm
+                        :daily_form="daily_form"
+                        :daily_form_valid="daily_form_valid"
+                        :accountChart_detail="accountChart_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectAccount="selectAccount"
+                      >
+                      </JournalForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ข้อมูลภาษี</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <VatForm
+                        :vats="vats"
+                        :vats_valid="vats_valid"
+                        v-on:addBoxVat="addBoxVat"
+                        v-on:deleteDetailVat="deleteDetailVat"
+                        v-on:calVatAmount="calVatAmount"
+                        v-on:checkDateFormat="checkDateFormat"
+                        v-on:setBranch="setBranch"
+                      ></VatForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <TaxForm
+                        :taxes="taxes"
+                        :taxes_valid="taxes_valid"
+                        v-on:addBoxTax="addBoxTax"
+                        v-on:deleteDetailTax="deleteDetailTax"
+                        v-on:getSumTaxBase="getSumTaxBase"
+                      ></TaxForm>
+                    </div>
+                  </TabPanel>
+                </TabView>
+              </div>
             </SplitterPanel>
           </Splitter>
           <div class="flex justify-content-between">
@@ -2046,23 +2065,11 @@ function resizeGalleria(e) {
   width: 100% !important;
 }
 
-.zoom_outer {
-  margin: 0;
-  padding: 0;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #000;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-#zoom {
-  width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
-}
-div#zoom > img {
-  width: 100%;
-  height: auto;
 }
 </style>

@@ -134,7 +134,8 @@
               showImgData.length > 1 &&
               !checkUseImg(props.images_data.guidfixed) &&
               props.images_data.references.length == 0 &&
-              props.images_data.isreject != true
+              props.images_data.isreject != true &&
+              props.mode == 1
             "
           />
           <Button
@@ -145,7 +146,8 @@
             v-if="
               showImgData.length > 1 &&
               !checkUseImg(props.images_data.guidfixed) &&
-              props.images_data.references.length == 0
+              props.images_data.references.length == 0 &&
+              props.mode == 1
             "
           />
           <Button
@@ -212,10 +214,12 @@
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
-          <div style="margin: 0px; padding: 0px">
+          <div style="margin: 0px; padding: 0px;width: 100%;height: 65vh;" >
             <iframe
               :name="slotProps.item.imageuri"
-              :src="'/images_group/components/zoom?uri='+ slotProps.item.imageuri"
+              :src="
+                '/images_group/components/zoom?uri=' + slotProps.item.imageuri
+              "
             >
             </iframe>
           </div>
@@ -716,7 +720,7 @@ function borderImage() {
   return userImageStyle;
 }
 
-function exitDialog(){
+function exitDialog() {
   console.log("exitDialog");
   activeIndexList.value = 0;
 }
@@ -739,7 +743,7 @@ iframe {
   display: block; /* iframes are inline by default */
   background: #000;
   border: none; /* Reset default border */
-  height: 68vh; /* Viewport-relative units */
-  width: 56.7vw;
+  height: 100%; /* Viewport-relative units */
+  width: 100%;
 }
 </style>

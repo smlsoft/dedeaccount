@@ -161,6 +161,9 @@ const taxes_valid = ref([
 ]);
 const readMode = ref(false);
 
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -172,6 +175,11 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
+
+    // set height ifram
+    heightIamgeDivCheckGl.value = 'height:' + divCheckGl.value.offsetHeight + 'px';
+
+  
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
@@ -1356,6 +1364,8 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
+  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
+
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
     accountname: "",
@@ -1923,7 +1933,7 @@ function resizeGalleria(e) {
                   *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว
                 </Message>
               </div>
-              <KeepAlive>
+              <!-- <KeepAlive>
                 <div
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
@@ -1954,8 +1964,6 @@ function resizeGalleria(e) {
                             />
                           </div>
                         </div>
-                        <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
-                        class="w-full" :style="imagePreviewStyle" id="myimage" /> -->
                       </div>
                     </template>
                     <template #thumbnail="slotProps">
@@ -1965,6 +1973,74 @@ function resizeGalleria(e) {
                       />
                     </template>
                     <template #footer></template>
+                  </Galleria>
+                </div>
+              </KeepAlive> -->
+
+              <KeepAlive>
+                <div
+                  id="galleriabox"
+                  v-if="doc_images.length > 0 && selectedImg"
+                >
+                  <Galleria
+                    :numVisible="doc_images.length > 5 ? 10 : doc_images.length"
+                    :value="doc_images"
+                    :thumbnailsPosition="'top'"
+                    :showThumbnails="doc_images.length > 1"
+                    v-model:activeIndex="activeIndex"
+                    @update:activeIndex="resetZoomImage()"
+                  >
+                    <template #item="slotProps">
+                      <div class="grid">
+                        <div class="col-12">
+                          <div
+                            class="flex justify-content-between flex-wrap card-container purple-container"
+                          >
+                            <Chip
+                              :label="slotProps.item.name"
+                              icon="pi pi-image"
+                              class="ml-2 mt-2"
+                            />
+                            <Chip
+                              :label="
+                                'วันที่ : ' +
+                                Utils.getDateTimeFormat(
+                                  slotProps.item.uploadedat
+                                )
+                              "
+                              icon="pi pi-calendar"
+                              class="mr-2 mt-2"
+                            />
+                          </div>
+                        </div>
+                        <div class="col-12" :style="heightIamgeDivCheckGl">
+                          <div
+                            style="
+                              margin: 0px;
+                              padding: 0px;
+                              width: 100%;
+                              height: 100%;
+                            "
+                          >
+                            <iframe
+                              :name="slotProps.item.imageuri"
+                              :src="
+                                '/images_group/components/zoom?uri=' +
+                                slotProps.item.imageuri
+                              "
+                            >
+                            </iframe>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                    <template #thumbnail="slotProps">
+                      <img
+                        :src="slotProps.item.imageuri"
+                        style="width: 40px; height: 40px"
+                      />
+                    </template>
+                    <template #footer> </template>
                   </Galleria>
                 </div>
               </KeepAlive>
@@ -1981,65 +2057,67 @@ function resizeGalleria(e) {
               />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
-              <TabView class="tabview-custom" ref="tabview">
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-book mr-1"></i>
-                    <span> ข้อมูลรายวัน</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <JournalForm
-                      :isUpdate="readMode"
-                      :daily_form="daily_form"
-                      :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail"
-                      :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail"
-                      v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail"
-                      v-on:reload="reload"
-                      v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder"
-                      v-on:selectAccount="selectAccount"
-                    >
-                    </JournalForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ข้อมูลภาษี</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <VatForm
-                      :isUpdate="readMode"
-                      :vats="vats"
-                      :vats_valid="vats_valid"
-                      v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat"
-                      v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat"
-                      v-on:setBranch="setBranch"
-                    ></VatForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <TaxForm
-                      :isUpdate="readMode"
-                      :taxes="taxes"
-                      :taxes_valid="taxes_valid"
-                      v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax"
-                      v-on:getSumTaxBase="getSumTaxBase"
-                    ></TaxForm>
-                  </div>
-                </TabPanel>
-              </TabView>
+              <div ref="divCheckGl">
+                <TabView class="tabview-custom" ref="tabview">
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-book mr-1"></i>
+                      <span> ข้อมูลรายวัน</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <JournalForm
+                        :isUpdate="readMode"
+                        :daily_form="daily_form"
+                        :daily_form_valid="daily_form_valid"
+                        :accountChart_detail="accountChart_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:reload="reload"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectAccount="selectAccount"
+                      >
+                      </JournalForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ข้อมูลภาษี</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <VatForm
+                        :isUpdate="readMode"
+                        :vats="vats"
+                        :vats_valid="vats_valid"
+                        v-on:addBoxVat="addBoxVat"
+                        v-on:deleteDetailVat="deleteDetailVat"
+                        v-on:calVatAmount="calVatAmount"
+                        v-on:checkDateFormat="checkDateFormat"
+                        v-on:setBranch="setBranch"
+                      ></VatForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <TaxForm
+                        :isUpdate="readMode"
+                        :taxes="taxes"
+                        :taxes_valid="taxes_valid"
+                        v-on:addBoxTax="addBoxTax"
+                        v-on:deleteDetailTax="deleteDetailTax"
+                        v-on:getSumTaxBase="getSumTaxBase"
+                      ></TaxForm>
+                    </div>
+                  </TabPanel>
+                </TabView>
+              </div>
             </SplitterPanel>
           </Splitter>
 
@@ -2095,26 +2173,11 @@ function resizeGalleria(e) {
   padding: 10px 15px 10px 15px;
 }
 
-.zoom_outer {
-  padding: 0;
-  outline: 0;
-  overflow: hidden;
-  width: auto;
-  height: auto;
-  margin: 0 auto;
-}
-
-#zoom {
-  padding: 0px;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #000;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
-}
-
-div#zoom > img {
-  width: 100%;
-  height: auto;
 }
 </style>

@@ -44,11 +44,11 @@ function setTransform() {
     "px) scale(" +
     scale.value +
     ")";
-  console.log(zoomStyle.value);
+  //console.log(zoomStyle.value);
 }
 
 function onmousedown(e) {
-  console.log(e);
+ // console.log(e);
   e.preventDefault();
   start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
   panning.value = true;
@@ -77,14 +77,14 @@ function onwheel(e) {
   var ys = (e.clientY - pointY.value) / scale.value;
   var delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
 
-  console.log("delta : " + delta);
+  //console.log("delta : " + delta);
 
   delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
   pointX.value = e.clientX - xs * scale.value;
   pointY.value = e.clientY - ys * scale.value;
 
-  console.log("x : " + pointX.value);
-  console.log("y : " + pointY.value);
+  //console.log("x : " + pointX.value);
+  //console.log("y : " + pointY.value);
 
   setTransform();
 }
