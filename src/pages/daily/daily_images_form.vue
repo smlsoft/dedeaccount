@@ -1810,7 +1810,7 @@ function resizeGalleria(e) {
                       @update:activeIndex="resetZoomImage()"
                     >
                       <template #item="slotProps">
-                        <div class="grid">
+                        <div class="grid w-full" >
                           <div class="col-12">
                             <div
                               class="flex justify-content-between flex-wrap card-container purple-container"
@@ -1837,7 +1837,6 @@ function resizeGalleria(e) {
                               style="
                                 margin: 0px;
                                 padding: 0px;
-                                width: 100%;
                                 height: 100%;
                               "
                             >
@@ -2067,7 +2066,7 @@ function resizeGalleria(e) {
 
 iframe {
   display: block; /* iframes are inline by default */
-  background: #000;
+  background: #ffffff;
   border: none; /* Reset default border */
   height: 100%; /* Viewport-relative units */
   width: 100%;

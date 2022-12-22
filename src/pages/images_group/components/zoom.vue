@@ -1,5 +1,5 @@
 <template>
-  <div class="zoom_outer" style="background-color: black">
+  <div class="zoom_outer" style="background-color: #ffffff">
     <div
       id="zoom"
       :style="zoomStyle"
