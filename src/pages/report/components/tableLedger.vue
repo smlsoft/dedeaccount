@@ -61,43 +61,45 @@
                   {{ slotProps.data.docno }}
                 </div>
               </div>
-              <div class="flex justify-content-end pt-1">
+              <div class="flex justify-content-end pt-1 mb-2">
                 <div class="flex align-items-center">
-                  <i
-                    class="pi pi-bookmark mr-1 text-teal-500"
+                  <Chip
                     v-if="slotProps.data.countvat > 0"
-                    v-tooltip.bottom.bottom="'ภาษีมูลค่าเพิ่ม'"
-                  ></i>
-                  <span
-                    class="mr-3 text-teal-500"
-                    v-if="slotProps.data.countvat > 0"
-                    v-tooltip.bottom="'ภาษีมูลค่าเพิ่ม'"
-                    >({{ slotProps.data.countvat }})</span
+                    :label="slotProps.data.countvat.toString()"
+                    icon="pi pi-bookmark"
+                    class="mr-1 text-teal-500"
+                    v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                  />
+                  <Chip
+                    v-if="slotProps.data.counttax > 0"
+                    :label="slotProps.data.counttax.toString()"
+                    icon="pi pi-bookmark-fill"
+                    class="mr-1 text-green-500"
+                    v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                  />
+                  <Chip
+                    v-if="slotProps.data.countimage > 0"
+                    :label="slotProps.data.countimage.toString()"
+                    icon="pi pi-image "
+                    v-tooltip="'รูปภาพ'"
+                    class="text-cyan-500 "
+                  />
+                  <!-- <span class="mr-3 text-teal-500">
+                    <i class="pi pi-bookmark text-teal-500"></i>
+                    ({{ slotProps.data.countvat }})</span
                   >
 
-                  <i
-                    class="pi pi-bookmark-fill mr-1 text-green-500"
-                    v-if="slotProps.data.counttax > 0"
-                    v-tooltip.bottom="'ภาษีมูลหัก ณ ที่จ่าย'"
-                  ></i>
-                  <span
-                    class="mr-3 text-green-500"
-                    v-if="slotProps.data.counttax > 0"
-                    v-tooltip.bottom="'ภาษีมูลหัก ณ ที่จ่าย'"
-                    >({{ slotProps.data.counttax }})</span
+                  <span class="mr-3 text-green-500">
+                    <i class="pi pi-bookmark-fill text-green-500"></i>({{
+                      slotProps.data.counttax
+                    }})</span
                   >
 
-                  <i
-                    class="pi pi-image mr-1 text-cyan-500"
-                    v-if="slotProps.data.countimage > 0"
-                    v-tooltip.bottom="'รูปภาพ'"
-                  ></i>
-                  <span
-                    class="text-cyan-500"
-                    v-if="slotProps.data.countimage > 0"
-                    v-tooltip.bottom="'รูปภาพ'"
-                    >({{ slotProps.data.countimage }})</span
-                  >
+                  <span class="mr-3 text-cyan-500">
+                    <i class="pi pi-image text-cyan-500"></i>({{
+                      slotProps.data.counttax
+                    }})</span
+                  > -->
                 </div>
               </div>
             </div>
