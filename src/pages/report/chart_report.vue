@@ -120,6 +120,8 @@
               class="p-datatable-sm"
               stripedRows
               responsiveLayout="scroll"
+              :scrollable="true"
+              scrollHeight="1000px"
               @sort="sortBy"
             >
               <template #header>
@@ -157,23 +159,17 @@
               </template>
               <template #loading :loading="loading"> กำลังประมวลผล </template>
 
-              <Column
-                field="accountcode"
-                header="รหัสผังบัญชี"
-                :sortable="true"
-              ></Column>
+              <Column field="accountcode" header="รหัสผังบัญชี"></Column>
               <Column
                 field="accountname"
                 header="ชื่อผังบัญชี"
                 class="accountname"
-                :sortable="true"
               ></Column>
               <Column
                 field="consolidateaccountcode"
                 header="รหัสผังบัญชีคุม"
-                :sortable="true"
               ></Column>
-              <Column field="accountgroup" header="สถานะ" :sortable="true">
+              <Column field="accountgroup" header="สถานะ">
                 <template #body="{ data, field }">
                   {{ newResultmainClose(data[field]) }}
                 </template></Column

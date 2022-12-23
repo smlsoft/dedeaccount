@@ -168,72 +168,102 @@
             </div>
           </div>
         </div>
-        <DataTable
-          :value="data_list"
-          dataKey="accountcode"
-          :scrollable="true"
-          scrollHeight="1000px"
-          :loading="loading"
-          class="mt-3"
-          @sort="sortBy"
-          v-model:expandedRows="expandedRows"
-          showGridlines
-          v-if="isvisible"
-        >
-          <template #empty> ไม่พบข้อมูล </template>
-          <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-          <ColumnGroup type="header"> </ColumnGroup>
-          <template #expansion="mainProps">
-            <DataTable
-              :value="mainProps.data.details"
-              dataKey="accountcode"
-              showGridlines
-              :scrollable="true"
-              :loading="loading"
-            >
-              <ColumnGroup type="header">
-                <Row>
-                  <Column header="รหัสบัญขี" />
-                  <Column header="ชื่อบัญชี" :colspan="5" />
-                </Row>
-                <Row>
-                  <Column header="รหัสบัญขี" />
-                  <Column header="เลขที่เอกสาร" />
-                  <Column header="รายละเอียด" /> <Column header="เดบิต" />
-                  <Column header="เครดิต" /> <Column header="ผลรวม" />
-                </Row>
-              </ColumnGroup>
-              <Column field="docdate" dataType="date">
-                <template #body="slotProps">
-                  {{ dateCheck(slotProps.data.docdate) }}
-                </template>
-              </Column>
-              <Column field="docno">
-                <template #body="slotProps">
-                  {{ slotProps.data.docno }}
-                </template>
-              </Column>
-              <Column field="accountdescription" :colspan="1"> </Column>
-
-              <Column field="debit">
-                <template #body="slotProps">
-                  {{ checkzero(Utils.formatNumber(slotProps.data.debit)) }}
-                </template>
-              </Column>
-              <Column field="credit">
-                <template #body="slotProps">
-                  {{ checkzero(Utils.formatNumber(slotProps.data.credit)) }}
-                </template>
-              </Column>
-
-              <Column field="amount">
-                <template #body="slotProps">
-                  {{ slotProps.data.amount }}
-                </template>
-              </Column>
-            </DataTable>
-          </template>
-        </DataTable>
+        <div class="card">
+          <DataTable
+            :value="newData"
+            rowGroupMode="subheader"
+            groupRowsBy="accountcodegroup"
+            sortMode="single"
+            :sortOrder="1"
+            scrollable
+            scrollHeight="80vh"
+          >
+            <template #groupheader="slotProps">
+              <span type="header" style="vertical-align: middle"
+                >{{ slotProps.data.accountcodegroup }}
+              </span>
+              <span type="header" style="vertical-align: middle">
+                {{ slotProps.data.accountnamegroup }}</span
+              >
+            </template>
+            <Column field="docdate" header="docdate">
+              <template #body="slotProps">{{
+                dateCheck(slotProps.data.docdate)
+              }}</template>
+            </Column>
+            <Column field="docno" header="docno"></Column>
+            <Column
+              field="accountdescription"
+              header="accountdescription"
+            ></Column>
+            <Column field="debit" header="debit"></Column>
+            <Column field="credit" header="credit"></Column>
+            <Column field="amount" header="amount"></Column>
+          </DataTable>
+        </div>
+        <!-- <div class="card">
+          <h5>Subheader Grouping</h5>
+          <DataTable
+            :value="customersGrouped"
+            rowGroupMode="subheader"
+            groupRowsBy="representative.name"
+            sortMode="single"
+            sortField="representative.name"
+            :sortOrder="1"
+            scrollable
+            scrollHeight="400px"
+          >
+            <Column
+              field="representative.name"
+              header="Representative"
+            ></Column>
+            <Column
+              field="name"
+              header="Name"
+              style="min-width: 200px"
+            ></Column>
+            <Column field="country" header="Country" style="min-width: 200px">
+              <template #body="slotProps">
+                <img
+                  src="https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png"
+                  width="30"
+                />
+                <span class="image-text">{{
+                  slotProps.data.country.name
+                }}</span>
+              </template>
+            </Column>
+            <Column
+              field="company"
+              header="Company"
+              style="min-width: 200px"
+            ></Column>
+            <Column field="status" header="Status" style="min-width: 200px">
+              <template #body="slotProps">
+                <span
+                  :class="'customer-badge status-' + slotProps.data.status"
+                  >{{ slotProps.data.status }}</span
+                >
+              </template>
+            </Column>
+            <Column
+              field="date"
+              header="Date"
+              style="min-width: 200px"
+            ></Column>
+            <template #groupheader="slotProps">
+              <img
+                :alt="slotProps.data.representative.name"
+                src="https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png"
+                width="32"
+                style="vertical-align: middle"
+              />
+              <span class="image-text">{{
+                slotProps.data.representative.name
+              }}</span>
+            </template>
+          </DataTable>
+        </div> -->
       </div>
 
       <div class="col-12">
@@ -339,6 +369,64 @@ const balancenext = ref();
 const result = ref(false);
 const accountmaintypeList = ref([{ name: "0", code: 1 }]);
 3;
+const customersGrouped = ref([
+  {
+    id: 1000,
+    name: "James Butt",
+    country: {
+      name: "Algeria",
+      code: "dz",
+    },
+    company: "Benton, John B Jr",
+    date: "2015-09-13",
+    status: "unqualified",
+    verified: true,
+    activity: 17,
+    representative: {
+      name: "Ioni Bowcher",
+      image: "ionibowcher.png",
+    },
+    balance: 70663,
+  },
+  {
+    id: 1001,
+    name: "Josephine Darakjy",
+    country: {
+      name: "Egypt",
+      code: "eg",
+    },
+    company: "Chanay, Jeffrey A Esq",
+    date: "2019-02-09",
+    status: "proposal",
+    verified: true,
+    activity: 0,
+    representative: {
+      name: "Amy Elsner",
+      image: "amyelsner.png",
+    },
+    balance: 82429,
+  },
+  {
+    id: 1002,
+    name: "Art Venere",
+    country: {
+      name: "Panama",
+      code: "pa",
+    },
+    company: "Chemel, James L Cpa",
+    date: "2017-05-13",
+    status: "qualified",
+    verified: false,
+    activity: 63,
+    representative: {
+      name: "Asiya Javayant",
+      image: "asiyajavayant.png",
+    },
+    balance: 28334,
+  },
+]);
+
+const newData = ref([]);
 const props = defineProps({
   daily_form: Object,
   daily_form_valid: Object,
@@ -545,6 +633,7 @@ function exreport2() {
   )
 
     .then((res) => {
+      console.log(res.data);
       loading.value = true;
       res.data.forEach((element, index) => {
         if (
@@ -593,7 +682,12 @@ function exreport2() {
         res.data.forEach((data) => {
           group.value = data.details;
 
-          if (data.balance == 0 && result.value == false) {
+          if (
+            (data.balance == 0 &&
+              data.nextbalance != 0 &&
+              result.value == false) ||
+            (data.balance != 0 && data.nextbalance == 0)
+          ) {
             console.log("1");
             data.details.unshift({
               docdate: data.accountcode,
@@ -602,53 +696,32 @@ function exreport2() {
               credit: "",
               debit: "",
               amount: "",
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
             });
 
             data.details.push({
               docdate: "",
-              docno: "ยกไป",
+              docno: "ยกไป1",
               accountdescription: "",
               credit: "",
               debit: "",
               amount: data.nextbalance,
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
             });
           } else if (result.value == true && data.balance == 0) {
             console.log("2");
-            data.details.unshift({
-              docdate: data.accountcode,
-              docno: data.accountname,
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: "",
-            });
+
             data.details.unshift({
               docdate: "",
-              docno: "ยกมา +2",
+              docno: "ยกมา ",
               accountdescription: "",
               credit: "",
               debit: "",
               amount: data.balance,
-            });
-
-            data.details.push({
-              docdate: "",
-              docno: "ยกไป",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: data.nextbalance,
-            });
-          } else {
-            console.log("3");
-
-            data.details.unshift({
-              docdate: "",
-              docno: checkbalanceWord(data.balance),
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: checkbalance(data.balance),
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
             });
             data.details.unshift({
               docdate: data.accountcode,
@@ -657,6 +730,45 @@ function exreport2() {
               credit: "",
               debit: "",
               amount: "",
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
+            });
+            data.details.push({
+              docdate: "",
+              docno: "ยกไป",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.nextbalance,
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
+            });
+          } else if (
+            data.balance == 0 &&
+            data.nextbalance == 0 &&
+            data.balance == data.nextbalance
+          ) {
+          } else {
+            console.log("3");
+            data.details.unshift({
+              docdate: "",
+              docno: "ยกมา",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: checkbalance(data.balance),
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
+            });
+            data.details.unshift({
+              docdate: data.accountcode,
+              docno: data.accountname,
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: "",
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
             });
 
             data.details.push({
@@ -666,8 +778,15 @@ function exreport2() {
               credit: "",
               debit: "",
               amount: data.nextbalance,
+              accountcodegroup: data.accountcode,
+              accountnamegroup: data.accountname,
             });
           }
+
+          data.details.forEach((element, index) => {
+            newData.value.push(element);
+          });
+          // console.log(newData.value);
         });
         expandAll();
         setTimeout(() => {
@@ -1651,3 +1770,19 @@ function getSumCreditAmount(data) {
   return sum;
 }
 </script>
+<style lang="scss" scoped>
+.p-rowgroup-footer td {
+  font-weight: 700;
+}
+
+::v-deep(.p-rowgroup-header) {
+  span {
+    font-weight: 700;
+  }
+
+  .p-row-toggler {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+  }
+}
+</style>

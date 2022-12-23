@@ -138,54 +138,29 @@
               stripedRows
               responsiveLayout="scroll"
               @sort="sortBy"
-              scrollHeight="69vh"
               v-model:expandedRows="expandedRows"
+              :scrollable="true"
+              scrollHeight="1000px"
             >
               <template #header> </template>
               <template #empty> ไม่พบข้อมูล </template>
               <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
               <Column :expander="true" headerStyle="width: 3rem" />
-              <Column
-                field="docno"
-                header="เลชที่เอกสาร"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="docdate"
-                header="วันที่"
-                dataType="date"
-                :sortable="true"
-              >
+              <Column field="docno" header="เลชที่เอกสาร"></Column>
+              <Column field="docdate" header="วันที่" dataType="date">
                 <template #body="slotProps">
                   {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
                 </template>
               </Column>
-              <Column
-                field="accountyear"
-                header="ปีบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountperiod"
-                header="งวดบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountgroup"
-                header="กลุ่มบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountdescription"
-                header="รายละเอียด"
-                :sortable="true"
-              ></Column>
+              <Column field="accountyear" header="ปีบัญชี"></Column>
+              <Column field="accountperiod" header="งวดบัญชี"></Column>
+              <Column field="accountgroup" header="กลุ่มบัญชี"></Column>
+              <Column field="accountdescription" header="รายละเอียด"></Column>
               <Column
                 field="amount"
                 header="มูลค่า"
                 class="text-header-right"
                 headerStyle="text-align: right;"
-                :sortable="true"
               >
                 <template #body="{ data, field }">
                   {{ Utils.formatCurrency(data[field]) }}
