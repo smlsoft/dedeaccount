@@ -44,17 +44,18 @@
             </label>
 
             <Dropdown
-              class="field mb-12 col-12 md:col-12"
               v-model="accountcode"
+              :showClear="true"
+              :filter="true"
+              :filterFields="['accountcode', 'accountname']"
               field="accountcode"
               :options="groups"
-              :filter="true"
-              :editable="true"
               filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
               @change="selectAccount($event)"
-              optionLabel="accountcode"
+              optionLabel="label"
               optionValue="accountcode"
-              placeholder="เลือกทั้งหมด"
+              class="field mb-12 col-12 md:col-12"
               :disabled="state == true"
             />
           </div>
@@ -65,15 +66,16 @@
             <Dropdown
               class="field mb-10 col-12 md:col-12"
               v-model="accountcode2"
+              :showClear="true"
+              :filter="true"
+              :filterFields="['accountcode', 'accountname']"
               field="accountcode"
               :options="groups"
-              :filter="true"
-              :editable="true"
               filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
               @change="selectAccount2($event)"
-              optionLabel="accountcode"
+              optionLabel="label"
               optionValue="accountcode"
-              placeholder="เลือกทั้งหมด"
               :disabled="state == true"
             />
           </div>
@@ -364,7 +366,7 @@ const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
 const accDescript = ref("");
-const sortField = ref("docno");
+const sortField = ref("accountcode");
 const sortOrder = ref(1);
 const searchItem = ref("");
 const limitPage = ref(1000);
@@ -441,10 +443,21 @@ async function expandAll() {
 
 async function getAccountChart() {
   try {
-    const res = await MasterdataService.getAccountChartList(limitPage.value);
+    const res = await MasterdataService.getAccountChartList(
+      limitPage.value,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
     console.log(res);
     if (res.success) {
-      groups.value = res.data;
+      groups.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      groups.value.forEach((ele) => {
+        ele.label = ele.accountcode + "~" + ele.accountname;
+      });
     }
   } catch (err) {
     console.log(err);

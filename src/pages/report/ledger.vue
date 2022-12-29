@@ -117,7 +117,7 @@
               label="จัดทำรายงาน"
               icon="pi pi-book"
               iconPos="left"
-              @click="exreport2()"
+              @click="exportreport()"
             />
           </div>
           <!-- <div class="col-12" v-if="isvisible">
@@ -169,101 +169,140 @@
           </div>
         </div>
         <div class="card">
-          <DataTable
-            :value="newData"
-            rowGroupMode="subheader"
-            groupRowsBy="accountcodegroup"
-            sortMode="single"
-            :sortOrder="1"
-            scrollable
-            scrollHeight="80vh"
-          >
-            <template #groupheader="slotProps">
-              <span type="header" style="vertical-align: middle"
-                >{{ slotProps.data.accountcodegroup }}
-              </span>
-              <span type="header" style="vertical-align: middle">
-                {{ slotProps.data.accountnamegroup }}</span
+          <div style="{{style}}">
+            <DataTable
+              :value="newData"
+              rowGroupMode="subheader"
+              groupRowsBy="accountcodegroup"
+              sortMode="single"
+              :sortOrder="1"
+              scrollable
+              scrollHeight="80vh"
+              class="p-datatable-sm"
+              showGridlines
+            >
+              <ColumnGroup type="header">
+                <Row>
+                  <Column header="รหัสบัญชี"> </Column>
+                  <Column header="ชื่อบัญชี"> </Column>
+                  <Column :colspan="3"> </Column>
+                </Row>
+                <Row>
+                  <Column header="วันที่"> </Column>
+                  <Column header="เลขที่เอกสาร"> </Column>
+                  <Column header="รายละเอียด"> </Column>
+                  <Column header="เดบิต"> </Column>
+                  <Column header="เตรดิต"> </Column>
+                  <Column header="ยอดรวม"> </Column>
+                </Row>
+              </ColumnGroup>
+
+              <Column field="docdate">
+                <template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.docdate != '' &&
+                      slotProps.data.docdate != undefined
+                    "
+                  >
+                    {{ dateCheck(slotProps.data.docdate) }}</span
+                  >
+                </template>
+              </Column>
+              <Column field="docno"
+                ><template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.docno != '' &&
+                      slotProps.data.docno != undefined
+                    "
+                  >
+                    {{ slotProps.data.docno }}</span
+                  >
+                </template></Column
               >
-            </template>
-            <Column field="docdate" header="docdate">
-              <template #body="slotProps">{{
-                dateCheck(slotProps.data.docdate)
-              }}</template>
-            </Column>
-            <Column field="docno" header="docno"></Column>
-            <Column
-              field="accountdescription"
-              header="accountdescription"
-            ></Column>
-            <Column field="debit" header="debit"></Column>
-            <Column field="credit" header="credit"></Column>
-            <Column field="amount" header="amount"></Column>
-          </DataTable>
-        </div>
-        <!-- <div class="card">
-          <h5>Subheader Grouping</h5>
-          <DataTable
-            :value="customersGrouped"
-            rowGroupMode="subheader"
-            groupRowsBy="representative.name"
-            sortMode="single"
-            sortField="representative.name"
-            :sortOrder="1"
-            scrollable
-            scrollHeight="400px"
-          >
-            <Column
-              field="representative.name"
-              header="Representative"
-            ></Column>
-            <Column
-              field="name"
-              header="Name"
-              style="min-width: 200px"
-            ></Column>
-            <Column field="country" header="Country" style="min-width: 200px">
-              <template #body="slotProps">
-                <img
-                  src="https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png"
-                  width="30"
-                />
-                <span class="image-text">{{
-                  slotProps.data.country.name
-                }}</span>
-              </template>
-            </Column>
-            <Column
-              field="company"
-              header="Company"
-              style="min-width: 200px"
-            ></Column>
-            <Column field="status" header="Status" style="min-width: 200px">
-              <template #body="slotProps">
+              <Column field="accountdescription"
+                ><template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.accountdescription != '' &&
+                      slotProps.data.accountdescription != undefined
+                    "
+                  >
+                    {{ slotProps.data.accountdescription }}</span
+                  >
+                </template></Column
+              >
+              <Column field="debit"
+                ><template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.debit != '' &&
+                      slotProps.data.debit != undefined
+                    "
+                    >{{ slotProps.data.debit }}</span
+                  >
+                </template></Column
+              >
+              <Column field="credit"
+                ><template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.credit != '' &&
+                      slotProps.data.credit != undefined
+                    "
+                  >
+                    {{ slotProps.data.credit }}</span
+                  >
+                </template></Column
+              >
+              <Column field="amount"
+                ><template #body="slotProps">
+                  <span
+                    v-if="
+                      slotProps.data.amount != '' &&
+                      slotProps.data.amount != undefined
+                    "
+                    >{{ slotProps.data.amount }}</span
+                  >
+                </template></Column
+              >
+              <template #groupheader="slotProps">
                 <span
-                  :class="'customer-badge status-' + slotProps.data.status"
-                  >{{ slotProps.data.status }}</span
+                  v-if="
+                    slotProps.data.accountcodegroup != '' &&
+                    slotProps.data.accountcodegroup != undefined
+                  "
+                  style="
+                    font-size: 20px;
+                    min-width: 16.5%;
+                    min-height: 1000;
+                    background-color: whitesmoke;
+                    width: fit-content;
+                  "
+                >
+                  {{ slotProps.data.accountcodegroup }}
+                </span>
+
+                <span
+                  v-if="
+                    slotProps.data.accountnamegroup != '' &&
+                    slotProps.data.accountnamegroup != undefined
+                  "
+                  style="
+                    font-size: 20px;
+                    min-width: 84%;
+                    background-color: whitesmoke;
+                    min-height: 100%;
+                    border-top: 10cm;
+                  "
+                >
+                  {{ slotProps.data.accountnamegroup }}</span
                 >
               </template>
-            </Column>
-            <Column
-              field="date"
-              header="Date"
-              style="min-width: 200px"
-            ></Column>
-            <template #groupheader="slotProps">
-              <img
-                :alt="slotProps.data.representative.name"
-                src="https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png"
-                width="32"
-                style="vertical-align: middle"
-              />
-              <span class="image-text">{{
-                slotProps.data.representative.name
-              }}</span>
-            </template>
-          </DataTable>
-        </div> -->
+            </DataTable>
+          </div>
+        </div>
       </div>
 
       <div class="col-12">
@@ -289,17 +328,6 @@
           </div>
         </div>
       </div>
-      <!-- <div id="section">
-        <iframe
-          v-if="isvisible"
-          style="height: 90vh"
-          class="w-full"
-          frameborder="0"
-          scrolling="no"
-          id="iframeContainer"
-          type="application/pdf"
-        />
-      </div> -->
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -313,7 +341,7 @@ import MasterdataService from "@/services/MasterdataService";
 import { ref, onMounted } from "vue";
 import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
-
+import $ from "jquery";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
@@ -338,7 +366,7 @@ const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
 const accDescript = ref("");
-const sortField = ref("docno");
+const sortField = ref("accountcode");
 const sortOrder = ref(1);
 const searchItem = ref("");
 const limitPage = ref(1000);
@@ -523,7 +551,13 @@ function onRowGroupCollapse(event) {
 }
 async function getAccountChart() {
   try {
-    const res = await MasterdataService.getAccountChartList(limitPage.value);
+    const res = await MasterdataService.getAccountChartList(
+      limitPage.value,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
     console.log(res);
     if (res.success) {
       groups.value = res.data.sort(function (obj1, obj2) {
@@ -616,6 +650,12 @@ function selectAccount2(event) {
   // accountcode2.value = event.value;
   // dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
 }
+
+function exportreport() {
+  exreport2();
+  isvisible.value = true;
+}
+
 function exreport2() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
@@ -633,8 +673,8 @@ function exreport2() {
   )
 
     .then((res) => {
-      console.log(res.data);
-      loading.value = true;
+      // console.log(res.data);
+
       res.data.forEach((element, index) => {
         if (
           element.balance == 0 &&
@@ -680,15 +720,17 @@ function exreport2() {
       });
       if (res.success) {
         res.data.forEach((data) => {
+          // console.log(data);
           group.value = data.details;
 
           if (
-            (data.balance == 0 &&
-              data.nextbalance != 0 &&
-              result.value == false) ||
-            (data.balance != 0 && data.nextbalance == 0)
+            data.balance == 0 &&
+            data.nextbalance != 0 &&
+            result.value == false
           ) {
-            console.log("1");
+            console.log(data.accountcode + " เงื่อนไข1");
+            // console.log(data);
+
             data.details.unshift({
               docdate: data.accountcode,
               docno: data.accountname,
@@ -702,16 +744,14 @@ function exreport2() {
 
             data.details.push({
               docdate: "",
-              docno: "ยกไป1",
+              docno: "ยกไป",
               accountdescription: "",
               credit: "",
               debit: "",
               amount: data.nextbalance,
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
             });
           } else if (result.value == true && data.balance == 0) {
-            console.log("2");
+            console.log(data.accountcode + "เงื่อนไข2");
 
             data.details.unshift({
               docdate: "",
@@ -723,16 +763,7 @@ function exreport2() {
               accountcodegroup: data.accountcode,
               accountnamegroup: data.accountname,
             });
-            data.details.unshift({
-              docdate: data.accountcode,
-              docno: data.accountname,
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: "",
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
-            });
+
             data.details.push({
               docdate: "",
               docno: "ยกไป",
@@ -740,25 +771,21 @@ function exreport2() {
               credit: "",
               debit: "",
               amount: data.nextbalance,
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
             });
           } else if (
             data.balance == 0 &&
             data.nextbalance == 0 &&
-            data.balance == data.nextbalance
+            data.details.length == 0
           ) {
-          } else {
-            console.log("3");
+          } else if (data.balance != 0 && data.nextbalance != 0) {
+            console.log(data.accountcode + "เงื่อนไข 1919191");
             data.details.unshift({
               docdate: "",
               docno: "ยกมา",
               accountdescription: "",
               credit: "",
               debit: "",
-              amount: checkbalance(data.balance),
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
+              amount: data.balance,
             });
             data.details.unshift({
               docdate: data.accountcode,
@@ -778,17 +805,62 @@ function exreport2() {
               credit: "",
               debit: "",
               amount: data.nextbalance,
+            });
+          } else {
+            console.log(data.accountcode + "เงื่อนไขที่3");
+            data.details.unshift({
+              docdate: data.accountcode,
+              docno: data.accountname,
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: "",
               accountcodegroup: data.accountcode,
               accountnamegroup: data.accountname,
+            });
+
+            data.details.push({
+              docdate: "",
+              docno: "ยกไป",
+              accountdescription: "",
+              credit: "",
+              debit: "",
+              amount: data.nextbalance,
             });
           }
 
           data.details.forEach((element, index) => {
             newData.value.push(element);
           });
-          // console.log(newData.value);
         });
         expandAll();
+
+        setTimeout(() => {
+          console.log("newData", newData.value);
+
+          var html = $("tr.p-rowgroup-header td "); //.html();
+
+          for (var i = 0; i < html.length; i++) {
+            if (!html[i].innerHTML.includes("span")) {
+              console.log(html[i].innerHTML);
+              html[i].style.display = "none";
+            }
+
+            // if (!html[i].html().includes("span")) {
+            //   console.log(html[i]);
+            // }
+          }
+          var html2 = $("tr.td");
+          for (var i = 0; i < html2.length; i++) {
+            if (!html2[i].innerHTML.includes("span")) {
+              console.log(html2[i].innerHTML);
+              html2[i].style.display = "none";
+            }
+          }
+          // if (!html.includes("span")) {
+          //   console.log($("tr.p-rowgroup-header td"));
+          // }
+        }, 1500);
         setTimeout(() => {
           if (data_list.value == "") {
             group.value = data.details[0];
@@ -825,6 +897,7 @@ function exreport2() {
   //   newResultCategory();
   //   getGLJournalList();
   // expandAll();
+  loading.value = false;
 }
 function exreportpdf() {
   let startdate = Utils.getDateFromYear(startDate.value);
@@ -1772,7 +1845,11 @@ function getSumCreditAmount(data) {
 </script>
 <style lang="scss" scoped>
 .p-rowgroup-footer td {
-  font-weight: 700;
+  font-weight: normal;
+}
+
+.bold-font {
+  font-weight: bold;
 }
 
 ::v-deep(.p-rowgroup-header) {
