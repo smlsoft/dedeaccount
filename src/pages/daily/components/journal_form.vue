@@ -4,10 +4,15 @@ import XLSX from "xlsx";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import MasterdataService from "@/services/MasterdataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import TextInputNumber from "@/components/widget/TextInputNumber.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
+import { useToast } from "primevue/usetoast";
+import dayjs from "dayjs";
 
+const tempCheckDate = ref(null);
+const toast = useToast();
 const myFiles = ref();
 const deleteDetailDialog = ref(false);
 const update_mode = ref(false);
@@ -60,7 +65,7 @@ const emit = defineEmits([
 ]);
 
 onMounted(async () => {
-  console.log(props.daily_form.journaldetail);
+  checkAccountPeriod(props.daily_form.docdate, 0);
 });
 
 function selectAccount(data, field, index) {
@@ -196,36 +201,82 @@ function focusNext(field, index) {
   }, 100);
 }
 
-function getAccountChart() {
-  MasterdataService.getAccountChart()
+function checkAccountPeriod(event, mode) {
+  console.log(event);
+  let keyDate = "";
+  if (tempCheckDate.value != null) {
+    clearTimeout(tempCheckDate.value);
+  }
+  tempCheckDate.value = setTimeout(() => {
+    if (mode == 0) {
+      keyDate = Utils.getDateFromYear(event);
+    } else if (mode == 1) {
+      const dateString = event.value;
+      const dateParts = dateString.split("/");
+      const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
+      keyDate = isoDate; // 2022-12-20
+    }
+    console.log(dayjs(keyDate).format('YYYY-MM-DD'));
+    getAccountPeriodByDate(dayjs(keyDate).format('YYYY-MM-DD'));
+  }, 100);
+}
+
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
     .then((res) => {
       console.log(res);
       if (res.success) {
-        accountChart_detail.value = res.data.sort(function (obj1, obj2) {
-          return obj1.accountcode - obj2.accountcode;
-        });
+        props.daily_form.accountperiod = res.data.period;
       }
     })
     .catch((err) => {
-      console.log(err);
+      console.log(err.response.data.message);
+      props.daily_form.accountperiod = null;
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "ไม่เจอ งวด บัญชี",
+        life: 3000,
+      });
     });
+}
+
+function headerNextFocus(filedName) {
+  console.log(filedName);
+  setTimeout(() => {
+    if (filedName == "docdate") {
+      $(".docdate").focus();
+    } else if (filedName == "batchid") {
+      checkAccountPeriod(props.daily_form.docdate, 1);
+      $(".batchid").focus();
+    } else if (filedName == "accountperiod") {
+      $(".accountperiod").focus();
+    } else if (filedName == "accountyear") {
+      $(".accountyear").focus();
+    } else if (filedName == "accountgroup") {
+      $(".accountgroup").click();
+    } else if (filedName == "bookcode") {
+      $(".bookcode").click();
+    } else if (filedName == "accountdescription") {
+      $(".accountdescription").focus();
+    } else if (filedName == "exdocrefno") {
+      $(".exdocrefno").focus();
+    } else if (filedName == "exdocrefdate") {
+      $(".exdocrefdate").focus();
+    } else if (filedName == "isUpdate") {
+      $(".isUpdate").focus();
+    } else if (filedName == "accountRow1") {
+      $(".accountcode_" + 0 + " > input").focus();
+    } else if (filedName == "docno")  {
+      $(".docno").focus();
+    }
+  }, 100);
 }
 </script>
 
 <template>
   <form>
     <div class="grid formgrid p-fluid">
-      <div class="field mb-4 col-12 md:col-3">
-        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
-        <InputText
-          id="docNo"
-          type="text"
-          v-model="props.daily_form.docno"
-          :class="props.daily_form_valid.docno ? 'p-invalid' : ''"
-          :disabled="props.isUpdate || update_mode"
-          
-        />
-      </div>
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">เอกสารวันที่</label>
         <DatePicker
@@ -238,30 +289,46 @@ function getAccountChart() {
           :buddhist="buddhistYear"
           :hideOnDateTimeSelect="true"
           :hiddenTime="true"
+          @date-select="checkAccountPeriod($event, 0)"
+          @blur="checkAccountPeriod($event, 1)"
+          @keyup.enter="headerNextFocus('docno')"
+          inputClass="docdate"
         />
       </div>
-
       <div class="field mb-4 col-12 md:col-3">
+        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
+        <InputText
+          type="text"
+          v-model="props.daily_form.docno"
+          :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
+          :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('accountperiod')"
+          class="docno"
+        />
+      </div>
+      <!-- <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">หมายเลขดำเนินการ</label>
         <InputText
           type="text"
           v-model="props.daily_form.batchId"
           :class="props.daily_form_valid.batchId ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountperiod')"
+          class="batchid"
         />
-      </div>
+      </div> -->
       <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
           :min="0"
           v-model="props.daily_form.accountperiod"
-          :class="props.daily_form_valid.accountperiod ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('accountyear')"
+          class="accountperiod"
         />
       </div>
-      <div class="col-12"></div>
-      <div class="field mb-4 col-12 md:col-4">
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">ปีบัญชี</label>
         <InputText
           type="number"
@@ -269,97 +336,12 @@ function getAccountChart() {
           v-model="props.daily_form.accountyear"
           :class="props.daily_form_valid.accountyear ? 'p-invalid' : ''"
           :disabled="props.isUpdate"
+          @keyup.enter="headerNextFocus('exdocrefdate')"
+          class="accountyear"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-4">
-        <label for="accountgroup" class="font-medium text-900"
-          >กลุ่มบัญชี</label
-        >
-        <Dropdown
-          v-model="props.daily_form.accountgroup"
-          autofocus
-          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
-          :options="props.groupAccount_detail"
-          :filter="true"
-          :filterFields="['code', 'name1']"
-          optionValue="code"
-          optionLabel="label"
-          filterPlaceholder="ค้นหา"
-          placeholder="เลือก"
-          :disabled="props.isUpdate"
-        >
-          <template #option="slotProps">
-            <div>
-              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
-            </div>
-          </template>
-        </Dropdown>
-      </div>
-      <div class="field mb-4 col-12 md:col-4">
-        <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
-        <Dropdown
-          v-model="props.daily_form.bookcode"
-          autofocus
-          :options="props.accountBook_detail"
-          :class="props.daily_form_valid.bookcode ? 'p-invalid' : ''"
-          :disabled="props.isUpdate"
-          :filter="true"
-          :filterFields="['code', 'name1']"
-          optionValue="code"
-          optionLabel="label"
-          filterPlaceholder="ค้นหา"
-          placeholder="เลือก"
-        >
-          <template #option="slotProps">
-            <div>
-              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
-            </div>
-          </template>
-        </Dropdown>
-      </div>
-      <div class="field mb-12 col-12 md:col-8">
-        <label class="font-medium text-900">คำอธิบาย</label>
-        <InputText
-          type="text"
-          :disabled="props.isUpdate"
-          v-model="props.daily_form.accountdescription"
-        />
-      </div>
-      <div class="field mb-4 col-12 md:col-4">
-        <label class="font-medium text-900">ประเภทรายการ</label>
-        <div class="grid mt-2 ml-2">
-          <div class="flex field-checkbox">
-            <RadioButton
-              :disabled="props.isUpdate"
-              name="journaltype"
-              value="0"
-              v-model="props.daily_form.journaltype"
-            />
-            <label>ทั่วไป</label>
-          </div>
-          <div class="flex field-checkbox ml-3">
-            <RadioButton
-              :disabled="props.isUpdate"
-              name="journaltype"
-              value="1"
-              v-model="props.daily_form.journaltype"
-            />
-            <label>ปิดบัญชี</label>
-          </div>
-        </div>
-      </div>
-      <div class="field mb-4 col-12 md:col-6">
-        <label for="exdocrefno" class="font-medium text-900"
-          >เลขที่เอกสารอ้างอิง</label
-        >
-        <InputText
-          id="exdocrefno"
-          type="text"
-          v-model="props.daily_form.exdocrefno"
-          :disabled="props.isUpdate || update_mode"
-        />
-      </div>
-      <div class="field mb-4 col-12 md:col-6">
+      <div class="col-12"></div>
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">เอกสารวันที่อ้างอิง</label>
         <DatePicker
           dateFormat="d/m/yy"
@@ -370,8 +352,114 @@ function getAccountChart() {
           :buddhist="buddhistYear"
           :hideOnDateTimeSelect="true"
           :hiddenTime="true"
+          inputClass="exdocrefdate"
+          @keyup.enter="headerNextFocus('exdocrefno')"
         />
       </div>
+      <div class="field mb-4 col-12 md:col-3">
+        <label for="exdocrefno" class="font-medium text-900"
+          >เลขที่เอกสารอ้างอิง</label
+        >
+        <InputText
+          id="exdocrefno"
+          type="text"
+          v-model="props.daily_form.exdocrefno"
+          :disabled="props.isUpdate || update_mode"
+          @keyup.enter="headerNextFocus('bookcode')"
+          @keydown.tab="headerNextFocus('bookcode')"
+          class="exdocrefno"
+        />
+      </div>
+      <div class="field mb-4 col-12 md:col-3">
+        <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
+        <Dropdown
+          v-model="props.daily_form.bookcode"
+          :options="props.accountBook_detail"
+          :class="props.daily_form_valid.bookcode ? 'p-invalid' : ''"
+          :disabled="props.isUpdate"
+          :filter="true"
+          :filterFields="['code', 'name1']"
+          optionValue="code"
+          optionLabel="label"
+          filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+          :autoFilterFocus="true"
+          @keyup.enter="headerNextFocus('accountgroup')"
+          inputClass="bookcode"
+        >
+          <template #option="slotProps">
+            <div>
+              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
+            </div>
+          </template>
+        </Dropdown>
+      </div>
+      <div class="field mb-4 col-12 md:col-3">
+        <label for="accountgroup" class="font-medium text-900"
+          >กลุ่มบัญชี</label
+        >
+        <Dropdown
+          v-model="props.daily_form.accountgroup"
+          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
+          :options="props.groupAccount_detail"
+          :filter="true"
+          :filterFields="['code', 'name1']"
+          optionValue="code"
+          optionLabel="label"
+          filterPlaceholder="ค้นหา"
+          placeholder="เลือก"
+          :disabled="props.isUpdate"
+          :autoFilterFocus="true"
+          @keyup.enter="headerNextFocus('accountdescription')"
+          inputClass="accountgroup"
+        >
+          <template #option="slotProps">
+            <div>
+              {{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}
+            </div>
+          </template>
+        </Dropdown>
+      </div>
+
+      <div class="field mb-12 col-12 md:col-9">
+        <label class="font-medium text-900">คำอธิบาย</label>
+        <Textarea
+          type="text"
+          :disabled="props.isUpdate"
+          v-model="props.daily_form.accountdescription"
+          @keydown.tab="headerNextFocus('isUpdate')"
+          class="accountdescription"
+          :autoResize="true"
+          rows="5"
+        />
+      </div>
+      <div class="field mb-4 col-12 md:col-3">
+        <label class="font-medium text-900">ประเภทรายการ</label>
+        <div class="grid mt-2 ml-2">
+          <div class="flex field-checkbox">
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="0"
+              v-model="props.daily_form.journaltype"
+              inputClass="isUpdate"
+              @keyup.enter="headerNextFocus('accountRow1')"
+            />
+            <label>ทั่วไป</label>
+          </div>
+          <div class="flex field-checkbox ml-3">
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="1"
+              v-model="props.daily_form.journaltype"
+              @keyup.enter="headerNextFocus('accountRow1')"
+            />
+            <label>ปิดบัญชี</label>
+          </div>
+        </div>
+      </div>
+
       <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>
     </div>
     <div class="py-1">

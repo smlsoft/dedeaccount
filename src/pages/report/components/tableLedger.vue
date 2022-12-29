@@ -1,11 +1,13 @@
 <template>
   <div lass="p-2 surface-section flex-auto">
-    <div class="card">
+    <div class="card p-1">
       <div class="flex flex-column">
         <div class="flex justify-content-between">
           <div class="flex align-items-center justify-content-center"></div>
-          <div class="flex align-items-center justify-content-center">
-            {{ props.headDataReport.shopName }}
+          <div class="flex align-items-center justify-content-center m-1">
+            บัญชีแยกประเภท ประจำวันที่ :
+            {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+            {{ props.headDataReport.endDateShow }}
           </div>
           <div class="flex align-items-center justify-content-center">
             <Button
@@ -15,14 +17,9 @@
             />
           </div>
         </div>
-        <div class="flex align-items-center justify-content-center m-1">
-          บัญชีแยกประเภท ประจำวันที่ :
-          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
-          {{ props.headDataReport.endDateShow }}
-        </div>
       </div>
     </div>
-    <div class="card" style="height: calc(100vh - 18vh)">
+    <div class="card" :style="screenHeight">
       <DataTable
         :value="props.dataReport[0].details"
         showGridlines
@@ -36,8 +33,20 @@
         :loading="props.loading"
       >
         <template #header>
-          {{ props.dataReport[0].accountcode }} :
-          {{ props.dataReport[0].accountname }}
+          <div class="flex justify-content-between">
+            <div>
+              {{ props.dataReport[0].accountcode }} :
+              {{ props.dataReport[0].accountname }}
+            </div>
+            <!-- <div class="flex align-items-center">
+              <i class="pi pi-bookmark mr-1 text-teal-500"></i>
+              <span class="mr-3 text-teal-500"> VAT</span>
+              <i class="pi pi-bookmark-fill mr-1 text-green-500"></i>
+              <span class="mr-3 text-green-500"> TAX</span>
+              <i class="pi pi-image mr-1 text-cyan-500"></i>
+              <span class="mr-3 text-cyan-500"> IMAGE</span>
+            </div> -->
+          </div>
         </template>
         <Column field="docdate" header="วันที่">
           <template #body="slotProps">
@@ -52,19 +61,47 @@
                   {{ slotProps.data.docno }}
                 </div>
               </div>
-              <!-- <div class="flex justify-content-end pt-1">
-                <div class="flex align-items-center justify-content-center">
-                  <div style="padding-bottom: 1rem"></div>
-                  <Badge
-                    value="1"
-                    class="mr-2"
-                    aria-label="Tabable Primary Badge"
-                    tabindex="0"
-                  ></Badge>
-                  <Badge value="2" severity="success" class="mr-2"></Badge>
-                  <Badge value="12" severity="warning"></Badge>
+              <div class="flex justify-content-end pt-1 mb-2">
+                <div class="flex align-items-center">
+                  <Chip
+                    v-if="slotProps.data.countvat > 0"
+                    :label="slotProps.data.countvat.toString()"
+                    icon="pi pi-bookmark"
+                    class="mr-1 text-teal-500"
+                    v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                  />
+                  <Chip
+                    v-if="slotProps.data.counttax > 0"
+                    :label="slotProps.data.counttax.toString()"
+                    icon="pi pi-bookmark-fill"
+                    class="mr-1 text-green-500"
+                    v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                  />
+                  <Chip
+                    v-if="slotProps.data.countimage > 0"
+                    :label="slotProps.data.countimage.toString()"
+                    icon="pi pi-image "
+                    v-tooltip="'รูปภาพ'"
+                    class="text-cyan-500 "
+                  />
+                  <!-- <span class="mr-3 text-teal-500">
+                    <i class="pi pi-bookmark text-teal-500"></i>
+                    ({{ slotProps.data.countvat }})</span
+                  >
+
+                  <span class="mr-3 text-green-500">
+                    <i class="pi pi-bookmark-fill text-green-500"></i>({{
+                      slotProps.data.counttax
+                    }})</span
+                  >
+
+                  <span class="mr-3 text-cyan-500">
+                    <i class="pi pi-image text-cyan-500"></i>({{
+                      slotProps.data.counttax
+                    }})</span
+                  > -->
                 </div>
-              </div> -->
+              </div>
             </div>
           </template>
         </Column>
@@ -110,6 +147,8 @@ import { ref, onMounted } from "vue";
 import ImageDataService from "@/services/ImageDataService";
 import Utils from "@/utils/";
 const selectedRow = ref();
+const screenHeight = ref("height: calc(100vh - 25.6vh)");
+
 const props = defineProps({
   headDataReport: Object,
   dataReport: Object,
@@ -117,7 +156,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["showDialogDocNo", "closeSplitterLedger"]);
-onMounted(() => {});
+onMounted(() => {
+  //console.log(screen.height);
+  if (screen.height < 1440) {
+    screenHeight.value = "height: calc(100vh - 35vh)";
+  }
+});
 
 function rowClick(event) {
   console.log(event.data);

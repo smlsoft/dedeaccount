@@ -47,7 +47,7 @@ const formatNumber = (val, digit = 0) => {
 const formatNumberReport = (val, digit = 0) => {
     if (val == 0) {
         return "0.00"
-    }else {
+    } else {
         return Numeral(val).format('0,0.00')
     }
 
@@ -213,6 +213,21 @@ const getYearBuddhist = (date) => {
     return showDate;
 }
 
+const getYearDC = (date) => {
+    var date = new Date(date);
+    var showDate =
+        date.getDate() +
+        "-" +
+        (date.getMonth() + 1) +
+        "-" +
+        (date.getFullYear() - 543)
+
+    return showDate;
+}
+
+
+
+
 
 const getDateDisplayFromDate = (date) => {
 
@@ -275,5 +290,6 @@ export default {
     getYearBuddhist,
     checkSpecialString,
     getDateShowText,
-    formatNumberReport
+    formatNumberReport,
+    getYearDC,
 }

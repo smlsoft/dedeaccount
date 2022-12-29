@@ -54,7 +54,11 @@ import Badge from 'primevue/badge';
 import BadgeDirective from 'primevue/badgedirective';
 import SplitButton from 'primevue/splitbutton';
 import ScrollPanel from 'primevue/scrollpanel';
-
+import OverlayPanel from 'primevue/overlaypanel';
+import ToggleButton from 'primevue/togglebutton';
+import SelectButton from 'primevue/selectbutton';
+import Toolbar from 'primevue/toolbar';
+import MultiSelect from 'primevue/multiselect';
 
 import 'primevue/resources/themes/saga-blue/theme.css'
 import 'primevue/resources/primevue.min.css'
@@ -68,6 +72,11 @@ app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 
+app.component('MultiSelect', MultiSelect);
+app.component('Toolbar', Toolbar);
+app.component('SelectButton', SelectButton);
+app.component('ToggleButton', ToggleButton);
+app.component('OverlayPanel', OverlayPanel);
 app.component('ScrollPanel', ScrollPanel);
 app.component('SplitButton', SplitButton);
 app.component('Badge', Badge);
@@ -95,7 +104,6 @@ app.component('Galleria', Galleria);
 app.component('Card', Card);
 app.component('Image', Image);
 app.component('Paginator', Paginator);
-//app.component('Calendar', Calendar);
 app.component('Avatar', Avatar);
 app.component('Button', Button);
 app.component('Dialog', Dialog);

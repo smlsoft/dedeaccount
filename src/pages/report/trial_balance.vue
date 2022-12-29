@@ -1,103 +1,41 @@
 <template>
   <AppLayout>
     <MainContentWarp>
-      <div class="p-2 surface-section flex-auto">
-        <div class="grid p-fluid formgrid">
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem">
+      <div class="surface-card p-3 shadow-2 border-round">
+        <div class="mb-2 flex align-items-center justify-content-between">
+          <span class="text-xl font-medium text-900">
+            <i class="pi pi-book" style="font-size: 1.5rem">
               รายงานทางการเงิน / งบทดลอง</i
             >
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="startDate" class="font-medium text-900"
-              >สำหรับชุดบัญชี :</label
-            >
-            <Dropdown
-              v-model="accountGroup"
-              :options="groups"
-              optionValue="code"
-              optionLabel="name1"
-              placeholder="กรุณาเลือกชุดบัญชี"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="startDate"
-              :modelValue="startDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="endDate" class="font-medium text-900"
-              >ถึงวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="endDate"
-              :modelValue="endDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="closeyear" class="font-medium text-900"
-              >รวมรายการปิดบัญชีสิ้นปี :</label
-            >
-            <div class="field-checkbox mt-2">
-              <Checkbox :binary="true" v-model="ica" />
-              <label>รวมรายการปิดบัญชีสิ้นปี</label>
-            </div>
-          </div>
-          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
-            <Button
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exportReport()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
-            />
-          </div>
-          <!-- <div class="col-12" v-if="isvisible">
-            <iframe
-              class="w-full overflow-auto surface-overlay"
-              style="height: 90vh"
-              id="iframeContainer"
-            ></iframe>
-          </div> -->
+          </span>
+          <Button
+            label="ค้นหา"
+            icon="pi pi-cog"
+            @click="showSearch = true"
+            class="p-button-rounded mr-2"
+          ></Button>
         </div>
-
-        <Splitter v-if="isvisible" style="height: calc(100vh - 12vh)">
-          <SplitterPanel id="panelForm1">
-            <TrialBalance
-              :dataReport="dataReport"
-              :headDataReport="headDataReportTrialBalance"
-              :loading="loadingTrialBalance"
-              v-on:showSplitterLedger="showSplitterLedger"
-            ></TrialBalance>
-          </SplitterPanel>
-          <SplitterPanel v-if="detailLedger" id="panelForm2">
-            <Ledger
-              :dataReport="dataReportLedger"
-              :headDataReport="headDataReportLedger"
-              :loading="loadingLedger"
-              v-on:showDialogDocNo="getGLDetail"
-              v-on:closeSplitterLedger="closeSplitterLedger"
-            ></Ledger>
-          </SplitterPanel>
-        </Splitter>
+        <div class="p-2 surface-section flex-auto">
+          <Splitter v-if="isvisible" :style="screenHeight">
+            <SplitterPanel id="panelForm1">
+              <TrialBalance
+                :dataReport="dataReport"
+                :headDataReport="headDataReportTrialBalance"
+                :loading="loadingTrialBalance"
+                v-on:showSplitterLedger="showSplitterLedger"
+              ></TrialBalance>
+            </SplitterPanel>
+            <SplitterPanel v-if="detailLedger" id="panelForm2">
+              <Ledger
+                :dataReport="dataReportLedger"
+                :headDataReport="headDataReportLedger"
+                :loading="loadingLedger"
+                v-on:showDialogDocNo="getGLDetail"
+                v-on:closeSplitterLedger="closeSplitterLedger"
+              ></Ledger>
+            </SplitterPanel>
+          </Splitter>
+        </div>
       </div>
 
       <Dialog
@@ -147,27 +85,145 @@
                 <i class="pi pi-image mr-1"></i>
                 <span> รูปภาพ</span>
               </template>
-              <div class="flex justify-content-between mb-2">
-                <div class="flex">ชื่อรูป : {{ dataImage.name }}</div>
-                <div class="flex">
-                  วันที่ :{{
-                    Utils.getDateTimeFormat(dataImage.uploadedat)
-                  }}
-                  โดย {{ dataImage.uploadedby }}
-                </div>
-              </div>
-              <div style="margin: 0px; padding: 0px">
-                <iframe
-                  :src="
-                    '/images_group/components/zoom?uri=' + dataImage.imageuri
-                  "
-                >
-                </iframe>
-              </div>
+              <Galleria
+                :value="dataImage.imagereferences"
+                :circular="true"
+                thumbnailsPosition="top"
+                :show-thumbnails="dataImage.imagereferences.length > 1"
+                v-model:activeIndex="activeIndexList"
+                :numVisible="
+                  dataImage.imagereferences.length > 10
+                    ? 10
+                    : dataImage.imagereferences.length
+                "
+              >
+                <template #header>
+                  <div class="flex justify-content-between mb-2">
+                    <div class="flex">
+                      ชื่อรูป :
+                      {{ dataImage.imagereferences[[activeIndexList]].name }}
+                    </div>
+                    <div class="flex">
+                      วันที่ :{{
+                        Utils.getDateTimeFormat(
+                          dataImage.imagereferences[[activeIndexList]]
+                            .uploadedat
+                        )
+                      }}
+                      โดย
+                      {{
+                        dataImage.imagereferences[[activeIndexList]].uploadedby
+                      }}
+                    </div>
+                  </div>
+                </template>
+                <template #item="slotProps">
+                  <div style="margin: 0px; padding: 0px;width: 100%;height: 60vh;" >
+                    <iframe
+                      :name="slotProps.item.imageuri"
+                      :src="
+                        '/images_group/components/zoom?uri=' +
+                        slotProps.item.imageuri
+                      "
+                    >
+                    </iframe>
+                  </div>
+                </template>
+                <template #thumbnail="slotProps">
+                  <img
+                    :src="slotProps.item.imageuri"
+                    style="width: 50px; height: 50px"
+                  />
+                </template>
+              </Galleria>
             </TabPanel>
           </TabView>
         </div>
       </Dialog>
+
+      <Dialog
+        v-model:visible="showSearch"
+        :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+        :style="{ width: '50vw' }"
+        :modal="true"
+      >
+        <template #header>
+          <i class="pi pi-cog" style="font-size: 1.5rem"> ค้นหา</i>
+        </template>
+        <div class="grid p-fluid formgrid">
+          <div class="field col-12 md:col-6">
+            <label for="startDate" class="font-medium text-900"
+              >สำหรับชุดบัญชี :</label
+            >
+            <Dropdown
+              v-model="accountGroup"
+              :options="groups"
+              optionValue="code"
+              optionLabel="name1"
+              placeholder="กรุณาเลือกชุดบัญชี"
+            />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="closeyear" class="font-medium text-900"
+              >รวมรายการปิดบัญชีสิ้นปี :</label
+            >
+            <div class="field-checkbox mt-2">
+              <Checkbox :binary="true" v-model="ica" />
+              <label>รวมรายการปิดบัญชีสิ้นปี</label>
+            </div>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="startDate" class="font-medium text-900"
+              >ช่วงระหว่างวันที่ :</label
+            >
+            <DatePicker
+              dateFormat="d/m/yy"
+              v-model="startDate"
+              :modelValue="startDate"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="true"
+              :hiddenTime="true"
+            />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="endDate" class="font-medium text-900"
+              >ถึงวันที่ :</label
+            >
+            <DatePicker
+              dateFormat="d/m/yy"
+              v-model="endDate"
+              :modelValue="endDate"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="true"
+              :hiddenTime="true"
+            />
+          </div>
+
+          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
+            <Button
+              label="จัดทำรายงาน"
+              icon="pi pi-book"
+              iconPos="left"
+              @click="exportReport()"
+              :disabled="
+                startDate === null ||
+                endDate === null ||
+                accountGroup.length == 0
+              "
+            />
+          </div>
+        </div>
+      </Dialog>
+
+      <!-- <div class="col-12" v-if="isvisible">
+            <iframe
+              class="w-full overflow-auto surface-overlay"
+              style="height: 90vh"
+              id="iframeContainer"
+            ></iframe>
+          </div> -->
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -271,7 +327,15 @@ const countVats = ref(0);
 const countTaxes = ref(0);
 const countImages = ref(0);
 
+const showSearch = ref(true);
+const screenHeight = ref("height: calc(100vh - 22vh)");
+const activeIndexList = ref(0);
+
 onMounted(async () => {
+  console.log(screen.height);
+  if (screen.height < 1440) {
+    screenHeight.value = "height: calc(100vh - 30vh)";
+  }
   await getAccountGroup();
   getAccountGroupList();
   getDate();
@@ -319,14 +383,14 @@ async function getAccountGroup() {
 }
 
 async function exportReport() {
+  showSearch.value = true;
   isvisible.value = true;
   detailLedger.value = false;
   shopName.value = localStorage.shop_name;
   startDateShow.value = Utils.getYearBuddhist(startDate.value);
   endDateShow.value = Utils.getYearBuddhist(endDate.value);
-
   await getDataReport();
-
+  showSearch.value = false;
   //exportPDF();
 }
 
@@ -800,10 +864,15 @@ function puttaxValid() {
 </script>
 
 <style scoped>
+.p-galleria-thumbnails-top {
+  width: 100% !important;
+}
+
 iframe {
   display: block; /* iframes are inline by default */
+  background: #000;
   border: none; /* Reset default border */
-  height: 73vh; /* Viewport-relative units */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
 }
 </style>
