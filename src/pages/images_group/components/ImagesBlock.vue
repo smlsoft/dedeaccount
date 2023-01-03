@@ -8,7 +8,7 @@
   >
     <div class="p-2 surface-card border-round cardimage">
       <div
-        class="surface-section z-1 relative transition-all transition-duration-300 p-1"
+        class="surface-section z-0 relative transition-all transition-duration-300 p-1"
       >
         <div class="relative mb-1">
           <img

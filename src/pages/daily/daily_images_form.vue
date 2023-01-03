@@ -266,6 +266,7 @@ onMounted(() => {
   setWidthPanelForm2(30, 70);
 
   // setTimeout(() => {
+  //   console.log(selectedImgUrl.value );
   //   if (selectedImgUrl.value == "") {
   //     reLoadImage();
   //   }
@@ -1623,7 +1624,7 @@ function changeImage(data) {
 }
 
 function reLoadImage() {
-  clearData();
+  console.log("postNextImage");
   MasterdataService.postNextImage()
     .then((res) => {
       if (res.success) {
@@ -1786,13 +1787,7 @@ function resizeGalleria(e) {
                       *Warning Message รูปโดนยกเลิก
                     </span>
                   </Message>
-                  <Message
-                    severity="warn"
-                    :closable="false"
-                    v-if="countDocImage != 0"
-                  >
-                    *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว
-                  </Message>
+
                 </div>
 
                 <KeepAlive>

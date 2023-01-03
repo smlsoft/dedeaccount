@@ -379,6 +379,19 @@ function resetZoomImage() {
         <div class="p-galleria-item-container">
           <div class="p-galleria-item">
             <div
+              style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                margin-top: -50px;
+                margin-left: -100px;
+              "
+              v-if="selectedImgUrl == ''"
+            >
+              <ProgressSpinner animationDuration="10s" />
+            </div>
+
+            <div
               id="zoom"
               :style="zoomStyle"
               @mousedown="onmousedown($event)"
@@ -392,11 +405,8 @@ function resetZoomImage() {
                 :style="imagePreviewStyle"
               />
             </div>
-            <ProgressSpinner
-              v-if="selectedImgUrl == ''"
-              animationDuration="10s"
-            />
           </div>
+
           <button
             v-if="showNewImage"
             class="p-image-action p-link text-blue-600"

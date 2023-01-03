@@ -59,19 +59,33 @@ import ToggleButton from 'primevue/togglebutton';
 import SelectButton from 'primevue/selectbutton';
 import Toolbar from 'primevue/toolbar';
 import MultiSelect from 'primevue/multiselect';
+import Carousel from 'primevue/carousel';
+import DataView from 'primevue/dataview';
+import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
+import { createI18n } from 'vue-i18n';
+import messages from '@/assets/i18n';
 
-import 'primevue/resources/themes/saga-blue/theme.css'
+//theme https://primefaces.org/primevue/setup
+import 'primevue/resources/themes/md-light-indigo/theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
+
+const language = localStorage.getItem('language') || 'th';
+
+const i18n = createI18n({
+    messages,
+    locale: language,
+});
+
+
 const app = createApp(App)
 
-app.use(PrimeVue);
-app.use(router);
-app.use(ToastService);
-
+app.component('DataViewLayoutOptions', DataViewLayoutOptions);
+app.component('DataView', DataView);
+app.component('Carousel', Carousel);
 app.component('MultiSelect', MultiSelect);
 app.component('Toolbar', Toolbar);
 app.component('SelectButton', SelectButton);
@@ -129,6 +143,10 @@ app.directive('badge', BadgeDirective);
 
 const pinia = createPinia()
 pinia.use(piniaPersist)
-
 app.use(pinia)
+
+app.use(PrimeVue);
+app.use(router);
+app.use(ToastService);
+app.use(i18n);
 app.mount('#app')
