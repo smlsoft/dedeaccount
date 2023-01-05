@@ -12,9 +12,9 @@ function openSelectShop() {
 
 <template>
   <div
-    class="bg-primary-900 flex justify-content-between align-items-center  px-2 relative lg:static sm:h-4rem lg:h-2rem"
+    class="bg-primary-900 flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
   >
-    <div class="flex align-items-center">
+    <div class="align-items-center">
       <a
         v-ripple
         class="cursor-pointer block lg:hidden text-700 text-white mr-3 mt-1 p-ripple"
@@ -35,11 +35,11 @@ function openSelectShop() {
     </div>
     <div
       class="font-medium text-1xl text-right text-white flex align-items-center"
-      style="width: 300px"
     >
       <div
         class="ml-2 cursor-pointer white-space-nowrap overflow-hidden text-overflow-ellipsis"
         @click="openSelectShop()"
+        style="width: 300px"
       >
         {{ shopName }}
       </div>

@@ -4,14 +4,22 @@
     --primary-hold-500: #68C1D2;
     --primary-500: #0397B4;
     --primary-700: #025A86;
-    --primary-hold-700: #025A86;
+    --primary-hold-700: #4E8BAA;
     --primary-900: #011838;
 }
 
-.p-button.primary500 {
+.p-button.primary-500 {
     background: var(--primary-500);
 }
 
-.p-button.primary500:enabled:hover {
+.p-button.primary-500:enabled:hover {
     background: var(--primary-hold-500);
+}
+
+.p-button.primary-700 {
+    background: var(--primary-700);
+}
+
+.p-button.primary-700:enabled:hover {
+    background: var(--primary-hold-700);
 }

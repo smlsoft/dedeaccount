@@ -4,11 +4,9 @@ import { ref, onMounted, computed } from "vue";
 import { useAuthen } from "@/stores/authen.js";
 import AuthenService from "@/services/AuthenService";
 import { useApp } from "@/stores/app.js";
-import { useToast } from "primevue/usetoast";
 
 import getListShop from "@/components/ListShop.vue";
 
-const toast = useToast();
 const storeApp = useApp();
 const store = useAuthen();
 const username = ref("");
@@ -179,27 +177,15 @@ async function isFavorite(data, favorite) {
     const res = await AuthenService.putFavorite(data);
     //console.log(res);
     if (res.success) {
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
+      console.log(res);
     }
   } catch (err) {
     console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
   }
 }
 </script>
 
 <template>
-  <Toast />
   <div
     class="surface-0 flex justify-content-center min-h-screen min-w-screen overflow-hidden"
   >
@@ -328,12 +314,12 @@ async function isFavorite(data, favorite) {
           >
           <Button
             label="Login"
-            class="w-full py-3 font-medium primary500"
+            class="w-full py-3 font-medium primary-700"
             v-if="loading == false"
             @click="handleLogin()"
           ></Button>
           <Button
-            class="w-full py-3 font-medium primary500"
+            class="w-full py-3 font-medium primary-700"
             icon="pi pi-spin pi-spinner "
             v-if="loading == true"
           ></Button>

@@ -70,30 +70,17 @@ async function selectShop(data) {
 }
 
 async function isFavorite(data, favorite) {
-  console.log("sssss");
   data = {
     isfavorite: favorite,
     shopid: data.shopid,
   };
   try {
     const res = await AuthenService.putFavorite(data);
-    console.log(res);
     if (res.success) {
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
+      console.log(res);
     }
   } catch (err) {
     console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
   }
 }
 
