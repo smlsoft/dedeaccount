@@ -66,7 +66,7 @@ import { createI18n } from 'vue-i18n';
 import messages from '@/assets/i18n';
 
 //theme https://primefaces.org/primevue/setup
-import 'primevue/resources/themes/md-light-indigo/theme.css'
+import '@/assets/theme/theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'

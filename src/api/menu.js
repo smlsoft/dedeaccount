@@ -6,6 +6,13 @@ export const menus = [
     to: "/",
     children: [],
   },
+  {
+    title: "คลังรูปภาพ",
+    icon: "pi pi-image",
+    to: "/images_group/list",
+    name: "pic_group_docref",
+    children: [],
+  },
 
   /*
     {
@@ -71,53 +78,6 @@ export const menus = [
     ],
   },
 
-  /*
-  {
-    title: "ข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/list",
-    name: "daily_list",
-    children: [],
-  },
-  {
-    title: "นำเข้าข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/import",
-    name: "daily_import",
-    children: [],
-  },
-  */
-
-
-  // {
-  //   title: "รูปภาพเอกสาร",
-  //   icon: "pi pi-image",
-  //   to: "/images/list",
-  //   name: "pic_group",
-  //   children: [
-  //     // {
-  //     //   title: "อัพโหลดรูปเอกสาร",
-  //     //   icon: "pi pi-images",
-  //     //   to: "/images/gallery",
-  //     //   name: "images_upload",
-  //     // },
-  //     // {
-  //     //   title: "รูปภาพเอกสาร",
-  //     //   icon: "pi pi-folder-open",
-  //     //   to: "/images/list",
-  //     //   name: "images_list",
-  //     // },
-
-
-  //   ],
-  // },
-  {
-    title: "คลังรูปภาพ",
-    icon: "pi pi-image",
-    to: "/images_group/list",
-    name: "pic_group_docref",
-    children: [],
-  },
 
   {
     title: "รายงานทางการเงิน",
@@ -164,6 +124,48 @@ export const menus = [
 
     ],
   },
+
+  /*
+  {
+    title: "ข้อมูลรายวัน",
+    icon: "pi pi-file",
+    to: "/daily/list",
+    name: "daily_list",
+    children: [],
+  },
+  {
+    title: "นำเข้าข้อมูลรายวัน",
+    icon: "pi pi-file",
+    to: "/daily/import",
+    name: "daily_import",
+    children: [],
+  },
+  */
+
+
+  // {
+  //   title: "รูปภาพเอกสาร",
+  //   icon: "pi pi-image",
+  //   to: "/images/list",
+  //   name: "pic_group",
+  //   children: [
+  //     // {
+  //     //   title: "อัพโหลดรูปเอกสาร",
+  //     //   icon: "pi pi-images",
+  //     //   to: "/images/gallery",
+  //     //   name: "images_upload",
+  //     // },
+  //     // {
+  //     //   title: "รูปภาพเอกสาร",
+  //     //   icon: "pi pi-folder-open",
+  //     //   to: "/images/list",
+  //     //   name: "images_list",
+  //     // },
+
+
+  //   ],
+  // },
+
   {
     title: "กำหนดค่า",
     icon: "pi pi-cog",
@@ -202,33 +204,33 @@ export const menus = [
       },
     ],
   },
-  {
-    title: "แนะนำการใช้งาน",
-    icon: "pi pi-exclamation-circle",
-    to: "",
-    name: "manual_list",
-    children: [
-      {
-        title: "วิธีใช้งานรูปภาพและเอกสาร",
-        icon: "pi pi-exclamation-circle",
-        name: "photoanddoc",
-        to: "/manual/photoanddoc",
-      },
-      {
-        title: "วิธีนำเข้าผังบัญชี",
-        icon: "pi pi-exclamation-circle",
-        name: "manual_chart",
-        to: "/manual/import_chart",
-      },
-      {
-        title: "วิธีนำเข้ารายการบัญชี",
-        icon: "pi pi-exclamation-circle",
-        name: "manual_daily",
-        to: "/manual/import_daily",
-      },
+  // {
+  //   title: "แนะนำการใช้งาน",
+  //   icon: "pi pi-exclamation-circle",
+  //   to: "",
+  //   name: "manual_list",
+  //   children: [
+  //     {
+  //       title: "วิธีใช้งานรูปภาพและเอกสาร",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "photoanddoc",
+  //       to: "/manual/photoanddoc",
+  //     },
+  //     {
+  //       title: "วิธีนำเข้าผังบัญชี",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "manual_chart",
+  //       to: "/manual/import_chart",
+  //     },
+  //     {
+  //       title: "วิธีนำเข้ารายการบัญชี",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "manual_daily",
+  //       to: "/manual/import_daily",
+  //     },
 
-    ],
-  },
+  //   ],
+  // },
 
   // {
   //   title: "Logout",
