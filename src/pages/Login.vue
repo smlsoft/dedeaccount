@@ -199,7 +199,7 @@ async function isFavorite(data, favorite) {
 </script>
 
 <template>
-   <Toast />
+  <Toast />
   <div
     class="surface-0 flex justify-content-center min-h-screen min-w-screen overflow-hidden"
   >
@@ -328,14 +328,14 @@ async function isFavorite(data, favorite) {
           >
           <Button
             label="Login"
-            class="w-full py-3 font-medium"
+            class="w-full py-3 font-medium primary500"
             v-if="loading == false"
             @click="handleLogin()"
           ></Button>
           <Button
+            class="w-full py-3 font-medium primary500"
             icon="pi pi-spin pi-spinner "
             v-if="loading == true"
-            class="w-full py-3 font-medium"
           ></Button>
         </div>
       </div>

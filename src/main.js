@@ -67,6 +67,7 @@ import messages from '@/assets/i18n';
 
 //theme https://primefaces.org/primevue/setup
 import '@/assets/theme/theme.css'
+import '@/assets/theme/custom-theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'

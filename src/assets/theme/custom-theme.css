@@ -1,0 +1,17 @@
+:root {
+    --primary-50: #EDF5F8;
+    --primary-300: #2894C3;
+    --primary-hold-500: #68C1D2;
+    --primary-500: #0397B4;
+    --primary-700: #025A86;
+    --primary-hold-700: #025A86;
+    --primary-900: #011838;
+}
+
+.p-button.primary500 {
+    background: var(--primary-500);
+}
+
+.p-button.primary500:enabled:hover {
+    background: var(--primary-hold-500);
+}

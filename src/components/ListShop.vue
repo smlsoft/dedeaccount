@@ -166,7 +166,7 @@ function goLogout() {
             <Button
               :disabled="slotProps.data.disable"
               label="เลือกข้อมูล"
-              class="w-full p-button-sm"
+              class="w-full p-button-sm primary500"
               @click="selectShop(slotProps.data)"
             ></Button>
           </div>

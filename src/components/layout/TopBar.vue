@@ -12,7 +12,7 @@ function openSelectShop() {
 
 <template>
   <div
-    class="flex justify-content-between align-items-center bg-indigo-900 px-2 relative lg:static sm:h-4rem lg:h-2rem"
+    class="bg-primary-900 flex justify-content-between align-items-center  px-2 relative lg:static sm:h-4rem lg:h-2rem"
   >
     <div class="flex align-items-center">
       <a

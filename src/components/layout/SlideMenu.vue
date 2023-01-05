@@ -9,7 +9,7 @@ const props = defineProps({
 <template>
   <div
     id="app-sidebar-4"
-    class="bg-blue-900 h-screen hidden lg:block flex-shrink-0 absolute lg:static left-0 top-0 z-1 border-right-0 border-gray-800 w-18rem lg:w-4rem select-none"
+    class="bg-primary-700 h-screen hidden lg:block flex-shrink-0 absolute lg:static left-0 top-0 z-1 border-right-0 border-gray-800 w-18rem lg:w-4rem select-none"
   >
     <div class="flex flex-column h-full">
       <div class="mt-0 select-none">
@@ -52,7 +52,8 @@ const props = defineProps({
               <i
                 :class="menu.icon"
                 class="mr-2 lg:mr-0 text-base lg:text-xl"
-                v-badge
+                v-badge.warning
+                
               ></i>
               <span class="font-medium inline lg:hidden">{{ menu.title }}</span>
               <i class="pi pi-chevron-down ml-auto lg:hidden"></i>
