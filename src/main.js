@@ -73,7 +73,7 @@ import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
 
-const language = localStorage.getItem('language') || 'th';
+const language = localStorage.getItem('activeLang') || 'th';
 
 const i18n = createI18n({
     messages,

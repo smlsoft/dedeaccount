@@ -70,6 +70,7 @@ async function selectShop(data) {
 }
 
 async function isFavorite(data, favorite) {
+  console.log("sssss");
   data = {
     isfavorite: favorite,
     shopid: data.shopid,
@@ -111,7 +112,7 @@ function goLogout() {
     <div class="min-h-screen flex flex-column relative flex-auto">
       <!-- top menu -->
       <topMenu v-on:openSelectShop="openSelectShop()" />
-
+      <Toast />
       <!-- content -->
       <div class="p-1 flex flex-column flex-auto">
         <div class="surface-section flex-auto">

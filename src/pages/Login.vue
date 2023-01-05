@@ -98,22 +98,6 @@ const languages = ref([
   },
 ]);
 
-const imgWithbaseUrl = (uri) => {
-  let baseUrl =
-    process.env.NODE_ENV == "development"
-      ? import.meta.url
-      : process.env.VUE_APP_URL;
-  //console.log("Mode :", process.env.NODE_ENV, baseUrl);
-
-  if (process.env.NODE_ENV != "development") {
-    uri = uri.replace("@/", import.meta.env.BASE_URL);
-  } else {
-    uri = uri.replace("@/", import.meta.env.BASE_URL);
-  }
-
-  return new URL(uri, baseUrl).href;
-};
-
 async function handleLogin() {
   loading.value = true;
   //console.log(username, password);
@@ -180,13 +164,10 @@ onMounted(() => {
 });
 
 const chooseLanguage = (data) => {
-  console.log(data);
-
   let ele = [];
   ele = languages.value.filter((val) => val.code == data);
   selectLanguage.value = ele[0].image;
   storeApp.activeLang = data;
-  // location.reload();
 };
 
 async function isFavorite(data, favorite) {
@@ -196,7 +177,7 @@ async function isFavorite(data, favorite) {
   };
   try {
     const res = await AuthenService.putFavorite(data);
-    console.log(res);
+    //console.log(res);
     if (res.success) {
       toast.add({
         severity: "success",
@@ -218,10 +199,15 @@ async function isFavorite(data, favorite) {
 </script>
 
 <template>
+   <Toast />
   <div
-    class="surface-0 flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden"
+    class="surface-0 flex justify-content-center min-h-screen min-w-screen overflow-hidden"
   >
-    <div class="px-4 py-7 md:px-6 lg:px-8" v-if="!showShopList">
+    <div
+      class="px-4 py-7 md:px-6 lg:px-8 flex align-items-center"
+      v-if="!showShopList"
+      style="width: 1366px"
+    >
       <div class="flex flex-wrap shadow-2">
         <div class="w-full lg:w-6 px-0 py-4 lg:p-7 bg-blue-50">
           <Carousel :value="features">
@@ -262,9 +248,10 @@ async function isFavorite(data, favorite) {
                   hideOnOutsideClick: true,
                 }"
               >
-                <Avatar
-                  :image="'/images/flags/' + selectLanguage"
-                  shape="circle"
+                <img
+                  :src="'./images/flags/' + selectLanguage"
+                  alt="Flag"
+                  style="width: 30px"
                 />
               </a>
               <div
@@ -346,7 +333,7 @@ async function isFavorite(data, favorite) {
             @click="handleLogin()"
           ></Button>
           <Button
-            icon="pi pi-spin pi-spinner"
+            icon="pi pi-spin pi-spinner "
             v-if="loading == true"
             class="w-full py-3 font-medium"
           ></Button>

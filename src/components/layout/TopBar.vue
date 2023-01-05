@@ -33,7 +33,10 @@ function openSelectShop() {
         {{ storeApp.PageTitle }}
       </div>
     </div>
-    <div class="font-medium text-1xl text-right text-white" style="width: 300px">
+    <div
+      class="font-medium text-1xl text-right text-white flex align-items-center"
+      style="width: 300px"
+    >
       <div
         class="ml-2 cursor-pointer white-space-nowrap overflow-hidden text-overflow-ellipsis"
         @click="openSelectShop()"

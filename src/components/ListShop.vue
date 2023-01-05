@@ -8,29 +8,32 @@ const props = defineProps({
 const emit = defineEmits(["isFavorite", "selectShop", "goLogout"]);
 
 const layout = ref("grid");
-const sortOrder = ref(-1);
-const sortField = ref();
 
 const favorite = ref(false);
 const searchShop = ref("");
+
 const searchResults = computed(() => {
   return props.listShop.filter((shop) => {
     return shop.name.toLowerCase().includes(searchShop.value.toLowerCase());
   });
 });
 
+const searchFavorite = computed(() => {
+  return searchResults.value.filter((shop) => shop.isfavorite);
+});
+
 function filterFavorite() {
-  if (favorite.value) {
-    sortField.value = "isfavorite";
-  } else {
-    sortField.value = "";
-  }
+  console.log(searchResults.value.filter((item) => item.isfavorite));
 }
 
-function isFavorite(slotProps, favorite) {
-  searchResults.value[slotProps.index].isfavorite = favorite;
+function isFavorite(slotProps, mode) {
+  if (!favorite.value) {
+    searchResults.value[slotProps.index].isfavorite = mode;
+  } else {
+    searchFavorite.value[slotProps.index].isfavorite = mode;
+  }
 
-  emit("isFavorite", slotProps.data, favorite);
+  emit("isFavorite", slotProps.data, mode);
 }
 
 function selectShop(data) {
@@ -43,12 +46,10 @@ function goLogout() {
 </script>
 <template>
   <DataView
-    :value="searchResults"
+    :value="!favorite ? searchResults : searchFavorite"
     :layout="layout"
     :paginator="false"
     :rows="100"
-    :sortOrder="sortOrder"
-    :sortField="sortField"
   >
     <template #header>
       <div class="surface-section px-4 py-2 md:px-6 lg:px-0">
@@ -73,7 +74,6 @@ function goLogout() {
             </div>
             <div class="flex justify-content-end mb-0">
               <div class="flex align-items-center mt-3 md:mt-0">
-               
                 <span class="p-input-icon-left">
                   <i class="pi pi-search"></i>
                   <InputText
