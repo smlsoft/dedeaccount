@@ -118,7 +118,7 @@
                   </div>
                 </template>
                 <template #item="slotProps">
-                  <div style="margin: 0px; padding: 0px;width: 100%;height: 60vh;" >
+                  <div>
                     <iframe
                       :name="slotProps.item.imageuri"
                       :src="

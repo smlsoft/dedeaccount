@@ -21,6 +21,7 @@
         selectionMode="single"
         @row-click="rowClick"
         :loading="props.loading"
+        style="z-index: 0"
       >
         <ColumnGroup type="header">
           <Row>

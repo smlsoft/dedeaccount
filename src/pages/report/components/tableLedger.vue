@@ -31,6 +31,7 @@
         selectionMode="single"
         @row-click="rowClick"
         :loading="props.loading"
+        style="z-index: 0"
       >
         <template #header>
           <div class="flex justify-content-between">
@@ -82,7 +83,7 @@
                     :label="slotProps.data.countimage.toString()"
                     icon="pi pi-image "
                     v-tooltip="'รูปภาพ'"
-                    class="text-cyan-500 "
+                    class="text-cyan-500"
                   />
                   <!-- <span class="mr-3 text-teal-500">
                     <i class="pi pi-bookmark text-teal-500"></i>
