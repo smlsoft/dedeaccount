@@ -14,5 +14,8 @@ export default {
     register(name, username, password) {
         return instanceApi(false).post(`/register`, { "name": name, "username": username, "password": password });
     },
+    putFavorite(data) {
+        return instanceApi(true).put(`/favorite-shop`, data).then(res => res.data);
+    },
 }
 

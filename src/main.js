@@ -66,14 +66,15 @@ import { createI18n } from 'vue-i18n';
 import messages from '@/assets/i18n';
 
 //theme https://primefaces.org/primevue/setup
-import 'primevue/resources/themes/md-light-indigo/theme.css'
+import '@/assets/theme/theme.css'
+import '@/assets/theme/custom-theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
 
-const language = localStorage.getItem('language') || 'th';
+const language = localStorage.getItem('activeLang') || 'th';
 
 const i18n = createI18n({
     messages,

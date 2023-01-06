@@ -6,6 +6,7 @@ export const useApp = defineStore("app", {
     pageActive: "dashboard",
     childActive: "",
     showToggle: true,
+    activeLang: "th"
   })
   ,
   actions: {
