@@ -8,12 +8,35 @@
               รายงานทางการเงิน / รายงานบัญชีแยกประเภท</i
             >
           </span>
+
           <Button
             label="ค้นหา"
             icon="pi pi-cog"
             @click="reloadRoute()"
             class="p-button-rounded mr-2"
           ></Button>
+        </div>
+        <div class="flex" v-if="isvisible">
+          <div class="flex">
+            <Button
+              label="ส่งออก Excel"
+              class="p-button-primary"
+              icon="pi pi-file-excel"
+              v-model="Dswitch"
+              @click="dswitch(1)"
+              :disabled="isvisible === false"
+            />
+          </div>
+          <div class="flex ml-2">
+            <Button
+              label="ส่งออก PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-primary"
+              v-model="Dswitch"
+              @click="dswitch(2)"
+              :disabled="isvisible === false"
+            />
+          </div>
         </div>
         <div class="p-2 surface-section flex-auto">
           <div class="card p-2">
@@ -628,6 +651,7 @@ const vats_valid = ref([
 const dailynum = ref("");
 const head_example = ref([]);
 const detail_example = ref([]);
+const Dswitch = ref(false);
 const detail_examplenumbertwo = ref([]);
 const daily_form = ref([]);
 const textChart = ref("");
@@ -927,6 +951,15 @@ function getDocumentImageByDocNo(docno) {
       console.log(err);
       showTabImage.value = false;
     });
+}
+function dswitch(data) {
+  console.log(data);
+  if (data == 1) {
+    return (Dswitch.value = false), exreportpdf();
+  } else if (data == 2) {
+    return (Dswitch.value = true), exreportpdf();
+  }
+  exreportpdf();
 }
 function getGLDetail(docno) {
   console.log(docno);
@@ -1406,10 +1439,15 @@ function exreportpdf() {
 
     .then((res) => {
       loading.value = true;
-
+      console.log(Dswitch.value);
       if (res.success) {
         data_listPdf.value = res.data;
-        exportdowloadPDF();
+        if (Dswitch.value == false) {
+          checkadExceldll();
+        } else {
+          exportdowloadPDF();
+        }
+
         setTimeout(() => {}, 100);
 
         console.log(res);
@@ -1757,7 +1795,6 @@ function buildFromJson() {
         {
           text: data.accountcode,
           fillColor: "#d8eaf2",
-          style: ["header", "textdecoration"],
         },
 
         { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
@@ -1822,7 +1859,7 @@ function DownloadExampleExcel() {
   result.value == false;
   console.log("DownloadExampleExcel");
 
-  data_list.value.forEach((data) => {
+  data_listPdf.value.forEach((data) => {
     if (
       data.balance == data.nextbalance &&
       data.balance == 0 &&
@@ -1943,7 +1980,7 @@ function DownloadExampleExcel() {
 function DownloadExampleExcelAll() {
   console.log("DownloadExampleExcelAll");
 
-  data_list.value.forEach((data) => {
+  data_listPdf.value.forEach((data) => {
     detail_examplenumbertwo.value.push(
       {
         1: "รหัสบัญชี",

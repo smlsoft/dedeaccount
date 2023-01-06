@@ -105,7 +105,7 @@
             />
             <Column
               :footer="
-                Utils.formatNumberReport(props.dataReport.totalbalancecredit)
+                Utils.formatNumberReport(props.dataReport.totalamountcredit)
               "
               footerStyle="text-align:right"
             />

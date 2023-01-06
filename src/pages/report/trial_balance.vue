@@ -15,6 +15,26 @@
             class="p-button-rounded mr-2"
           ></Button>
         </div>
+        <div class="flex" v-if="isvisible">
+          <div class="flex">
+            <Button
+              label="ส่งออก Excel"
+              class="p-button-primary"
+              icon="pi pi-file-excel"
+              @click="DownloadExampleExcel()"
+              :disabled="isvisible === false"
+            />
+          </div>
+          <div class="flex ml-2">
+            <Button
+              label="ส่งออก PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-primary"
+              @click="exportPDF()"
+              :disabled="isvisible === false"
+            />
+          </div>
+        </div>
         <div class="p-2 surface-section flex-auto">
           <Splitter v-if="isvisible" :style="screenHeight">
             <SplitterPanel id="panelForm1">
@@ -244,10 +264,14 @@ import { useToast } from "primevue/usetoast";
 import TrialBalance from "./components/tableTrialBalance.vue";
 import Ledger from "./components/tableLedger.vue";
 import dayjs from "dayjs";
+import XLSX from "xlsx";
 import JournalForm from "../daily/components/journal_form.vue";
 import VatForm from "../daily/components/vat_form.vue";
 import TaxForm from "../daily/components/tax_form.vue";
+const head_example = ref([]);
+const detail_example = ref([]);
 
+const detail_examplenumbertwo = ref([]);
 const storeApp = useApp();
 const isvisible = ref(false);
 const toast = useToast();
@@ -441,6 +465,192 @@ async function getDataReport() {
     });
   }
 }
+async function buildFromJson() {
+  let body = [];
+  let listTrialBalanceSheet = [];
+
+  let totalnextbalancedebit = "";
+  let totalnextbalancecredit = "";
+
+  let accountgroup = accountGroup.value;
+  let startdate = Utils.getDateFromYear(startDate.value);
+  let enddate = Utils.getDateFromYear(endDate.value);
+  console.log("ica", ica.value);
+
+  listTrialBalanceSheet.value = dataReport.value;
+  console.log(dataReport.value);
+
+  // totalnextbalancedebit = res.data.totalnextbalancedebit;
+  // totalnextbalancecredit = res.data.totalnextbalancecredit;
+  body.push([
+    { rowSpan: 2, text: "ชื่อบัญชี", style: "header" },
+    { rowSpan: 2, text: "เลขที่บัญชี", style: "header" },
+    { colSpan: 2, text: "ยอดยกมา", style: "header" },
+    {},
+    { colSpan: 2, text: "ยอดประจำงวด", style: "header" },
+    {},
+    { colSpan: 2, text: "ยอดสะสม", style: "header" },
+    {},
+  ]);
+
+  body.push([
+    {},
+    {},
+
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+  ]);
+
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    body.push([
+      { text: detailAccount.accountname },
+      { text: detailAccount.accountcode, alignment: "center" },
+      {
+        text: Utils.formatNumberReport(detailAccount.balancedebitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.balancecreditamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.debitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.creditamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.nextbalancedebitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.nextbalancecreditamount),
+        alignment: "right",
+      },
+    ]);
+  }
+  body.push([
+    { colSpan: 2, text: "รวม", alignment: "center" },
+    {},
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalbalancedebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalbalancecredit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalamountdebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalamountcredit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalnextbalancedebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalnextbalancecredit
+      ),
+      alignment: "right",
+    },
+  ]);
+  // body.push([
+  //   { colSpan: 2, text: "รวม", bold: true, alignment: "center" },
+  //   {},
+  //   {
+  //     text: Utils.formatNumber(totalnextbalancedebit),
+  //     bold: true,
+  //     alignment: "right",
+  //   },
+  //   {
+  //     text: Utils.formatNumber(totalnextbalancecredit),
+  //     bold: true,
+  //     alignment: "right",
+  //   },
+  // ]);
+
+  return body;
+}
+
+function DownloadExampleExcel() {
+  console.log("DownloadExampleExcel");
+  let listTrialBalanceSheet = [];
+  listTrialBalanceSheet.value = dataReport.value;
+  detail_example.value.push({
+    1: "ชื่อบัญชี",
+    2: "รหัสบัญชี",
+    3: "ยอดยกมา",
+    4: "",
+    5: "ยอดประจำงวด",
+    6: "",
+    7: "ยอดสะสม",
+    8: "",
+  });
+  detail_example.value.push({
+    1: "",
+    2: "",
+    3: "เดบิต",
+    4: "เครดิต",
+    5: "เดบิต",
+    6: "เครดิต",
+    7: "เดบิต",
+    8: "เครดิต",
+  });
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    detail_example.value.push({
+      1: detailAccount.accountname,
+      2: detailAccount.accountname,
+      3: Utils.formatNumber(detailAccount.balancedebitamount),
+      4: Utils.formatNumber(detailAccount.balancecreditamount),
+      5: Utils.formatNumber(detailAccount.debitamount),
+      6: Utils.formatNumber(detailAccount.creditamount),
+      7: Utils.formatNumber(detailAccount.nextbalancedebitamount),
+      8: Utils.formatNumber(detailAccount.nextbalancreditamount),
+    });
+  }
+  // dataReport.value.forEach((data) => {
+  //   detail_example.value.push({
+  //     รหัสบัญชี: data.accountdetails.tot,
+
+  //     ชื่อผังบัญชี: data.accountname,
+  //     รหัสผังบัญชีคุม: data.consolidateaccountcode,
+  //     สถานะ: data.accountgroup,
+  //   });
+  // });
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+    detail_examplenumbertwo.value,
+    head_example.value,
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานรหัสบัญชี");
+  XLSX.writeFile(wb, "รายงานรหัสบัญชี.xlsx");
+}
 
 async function exportPDF() {
   isvisible.value = true;
@@ -452,12 +662,7 @@ async function exportPDF() {
   startdate = Utils.getYearBuddhist(startDate.value);
   enddate = Utils.getYearBuddhist(endDate.value);
   var docDefinition = pageSetup(body, startdate, enddate);
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  pdfDocGenerator.getDataUrl((dataUrl) => {
-    const targetElement = document.querySelector("#iframeContainer");
-
-    targetElement.src = dataUrl;
-  });
+  pdfMake.createPdf(docDefinition).download("บัญชีแยกประเภท.pdf");
 }
 
 function getDate() {
@@ -492,16 +697,17 @@ function pageSetup(data, startdate, enddate) {
         style: "tableExample",
         table: {
           heights: "auto",
-          widths: ["46%", "10%", "22%", "22%"],
+          widths: ["19%", "9%", "12%", "12%", "12%", "12%", "12%", "12%"],
           body: data,
         },
+        // layout: "noBorders",
       },
     ],
     pageOrientation: "portrait",
-    pageMargins: [8, 8, 8, 8],
+    pageMargins: [12, 12, 12, 12],
     defaultStyle: {
       font: "Sarabun",
-      fontSize: 12,
+      fontSize: 10,
       columnGap: 20,
       color: "#0A065D",
     },
@@ -528,88 +734,6 @@ function getAccountGroupList() {
     .catch((err) => {
       console.log(err);
     });
-}
-
-async function buildFromJson() {
-  let body = [];
-  let listTrialBalanceSheet = [];
-
-  let totalnextbalancedebit = "";
-  let totalnextbalancecredit = "";
-
-  let accountgroup = accountGroup.value;
-  let startdate = Utils.getDateFromYear(startDate.value);
-  let enddate = Utils.getDateFromYear(endDate.value);
-  console.log("ica", ica.value);
-
-  let icax = "0";
-  if (ica.value) {
-    icax = "1";
-  }
-  try {
-    const res = await ReportService.getTrialBalanceSheet(
-      accountgroup,
-      startdate,
-      enddate,
-      icax
-    );
-    if (res.success) {
-      console.log(res.data);
-      listTrialBalanceSheet.value = res.data;
-      totalnextbalancedebit = res.data.totalnextbalancedebit;
-      totalnextbalancecredit = res.data.totalnextbalancecredit;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  body.push([
-    { text: "ชื่อบัญชี", style: "header", margin: [0, 9, 0, 0] },
-    { text: "เลขที่บัญชี", style: "header", margin: [0, 9, 0, 0] },
-    { text: "ยอดคงเหลือบัญชีหมวด\nสินทรัพย์ / ค่าใช้จ่าย", style: "header" },
-    { text: "ยอดคงเหลือบัญชีหมวด\nหนี้สิ้น / ทุน / รายได้", style: "header" },
-  ]);
-
-  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
-    body.push([
-      { text: detailAccount.accountname },
-      { text: detailAccount.accountcode, alignment: "center" },
-      {
-        text:
-          detailAccount.accountcategory == 1 ||
-          detailAccount.accountcategory == 5
-            ? Utils.formatNumber(detailAccount.nextbalanceamount)
-            : "",
-        alignment: "right",
-      },
-      {
-        text:
-          detailAccount.accountcategory == 2 ||
-          detailAccount.accountcategory == 3 ||
-          detailAccount.accountcategory == 4
-            ? Utils.formatNumber(detailAccount.nextbalanceamount)
-            : "",
-        alignment: "right",
-      },
-    ]);
-  }
-
-  body.push([
-    { colSpan: 2, text: "รวม", bold: true, alignment: "center" },
-    {},
-    {
-      text: Utils.formatNumber(totalnextbalancedebit),
-      bold: true,
-      alignment: "right",
-    },
-    {
-      text: Utils.formatNumber(totalnextbalancecredit),
-      bold: true,
-      alignment: "right",
-    },
-  ]);
-
-  return body;
 }
 
 function formatCurrency(value) {
