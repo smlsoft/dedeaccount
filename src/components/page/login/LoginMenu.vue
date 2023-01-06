@@ -1,0 +1,78 @@
+<script setup>
+import { ref, onMounted, computed } from "vue";
+import languageButton from "@/components/page/LanguageButton.vue";
+
+const emit = defineEmits(["loginMode", "registerMode"]);
+
+function loginMode() {
+  emit("loginMode", "login");
+}
+
+function registerMode() {
+  emit("registerMode", "registerMenu");
+}
+</script>
+
+<template>
+  <div class="flex align-items-center justify-content-between mb-5">
+    <div class="mb-3 lg:mb-0">
+      <div class="text-2xl font-medium text-900 mb-2">ลงชื่อเข้าใช้</div>
+      <div class="text-500 mr-0 md:mr-3">
+        ใช้อีเมลหรือบริการอื่นของคุณเพื่อใช้งาน Dede Account
+      </div>
+    </div>
+    <languageButton />
+  </div>
+  <div class="flex flex-column">
+    <Button
+      class="w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
+    >
+      <i class="pi pi-google text-red-500" style="font-size: 20px"></i>
+      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Google</span>
+    </Button>
+    <Button
+      class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
+    >
+      <img src="@/assets/img/iconline.svg" width="20" height="20" />
+      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Line</span>
+    </Button>
+    <Button
+      class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
+    >
+      <i class="pi pi-facebook text-blue-500" style="font-size: 20px"></i>
+      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Facebook</span>
+    </Button>
+    <Button
+      class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
+    >
+      <i class="pi pi-apple text-gray-700" style="font-size: 20px"></i>
+      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Apple</span>
+    </Button>
+    <Button
+      class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
+    >
+      <i class="pi pi-phone text-teal-900" style="font-size: 20px"></i>
+      <span class="ml-2">ลงชื่อเข้าใช้ด้วยหมายเลขโทรศัพท์มือถือ</span>
+    </Button>
+    <div class="flex align-items-center justify-content-end mt-2">
+      <a
+        @click="loginMode()"
+        class="font-medium text-blue-500 hover:text-blue-700 cursor-pointer transition-colors transition-duration-150"
+        >User login</a
+      >
+    </div>
+  </div>
+  <div class="mt-6 text-center text-600">
+    Don't have an account ?
+    <a @click="registerMode()" tabindex="0" class="cursor-pointer font-medium text-primary-500"
+      >Sign up</a
+    >
+  </div>
+  <div class="mt-3 text-center text-600" style="font-size: 12px">
+    เมื่อดำเนินการต่อไป คุณได้ยอมรับ
+    <span style="text-decoration: underline">ข้อตกลงในการใช้งาน</span>
+    อ่าน
+    <span style="text-decoration: underline">นโยบายความเป็นส่วนตัว</span>
+    ของเรา
+  </div>
+</template>

@@ -1,5 +1,4 @@
 import { instanceApi } from '@/services/ProviderService'
-import { register } from 'numeral';
 
 export default {
     login(username, password) {
