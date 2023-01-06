@@ -62,6 +62,7 @@ import MultiSelect from 'primevue/multiselect';
 import Carousel from 'primevue/carousel';
 import DataView from 'primevue/dataview';
 import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
+import Password from 'primevue/password';
 import { createI18n } from 'vue-i18n';
 import messages from '@/assets/i18n';
 
@@ -84,6 +85,7 @@ const i18n = createI18n({
 
 const app = createApp(App)
 
+app.component('Password', Password);
 app.component('DataViewLayoutOptions', DataViewLayoutOptions);
 app.component('DataView', DataView);
 app.component('Carousel', Carousel);
