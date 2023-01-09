@@ -13,6 +13,7 @@ const router = useRouter();
 const toast = useToast();
 const displaySelectShop = ref(false);
 const listShop = ref();
+const showSlideBarTab = ref(false);
 const openSelectShop = () => {
   AuthenService.getListShop()
     .then((res) => {
@@ -89,19 +90,25 @@ function goLogout() {
     name: "logout",
   });
 }
+
+function showSlideBar(data) {
+  showSlideBarTab.value = data;
+}
 </script>
 
 <template>
   <div class="min-h-screen flex relative lg:static surface-ground">
     <!-- slide menu -->
-    <slideMenu :menus="menus" />
-
+    <slideMenu :menus="menus" :showSlideBarTab="showSlideBarTab" />
     <div class="min-h-screen flex flex-column relative flex-auto">
       <!-- top menu -->
-      <topMenu v-on:openSelectShop="openSelectShop()" />
+      <topMenu
+        v-on:openSelectShop="openSelectShop()"
+        v-on:showSlideBar="showSlideBar"
+      />
       <Toast />
       <!-- content -->
-      <div class="p-1 flex flex-column flex-auto">
+      <div class="p-0 flex flex-column flex-auto">
         <div class="surface-section flex-auto">
           <slot></slot>
         </div>

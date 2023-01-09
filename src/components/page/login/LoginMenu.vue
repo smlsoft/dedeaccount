@@ -57,14 +57,17 @@ function registerMode() {
     <div class="flex align-items-center justify-content-end mt-2">
       <a
         @click="loginMode()"
-        class="font-medium text-blue-500 hover:text-blue-700 cursor-pointer transition-colors transition-duration-150"
+        class="font-medium text-primary-500 cursor-pointer"
         >User login</a
       >
     </div>
   </div>
   <div class="mt-6 text-center text-600">
     Don't have an account ?
-    <a @click="registerMode()" tabindex="0" class="cursor-pointer font-medium text-primary-500"
+    <a
+      @click="registerMode()"
+      tabindex="0"
+      class="cursor-pointer font-medium text-primary-700"
       >Sign up</a
     >
   </div>

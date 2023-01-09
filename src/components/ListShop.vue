@@ -166,7 +166,7 @@ function goLogout() {
             <Button
               :disabled="slotProps.data.disable"
               label="เลือกข้อมูล"
-              class="w-full  primary-500"
+              class="px-6 primary-500"
               @click="selectShop(slotProps.data)"
             ></Button>
           </div>
@@ -227,11 +227,15 @@ function goLogout() {
   margin: 0.5rem;
   border: 1px solid var(--surface-border);
 
-  .shop-grid-item-top,
-  .shop-grid-item-bottom {
+  .shop-grid-item-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  } 
+  .shop-grid-item-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   img {

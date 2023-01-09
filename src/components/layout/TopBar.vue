@@ -3,21 +3,32 @@ import { useApp } from "@/stores/app.js";
 const storeApp = useApp();
 const shopName = localStorage.shop_name;
 
-const emit = defineEmits(["openSelectShop"]);
+const emit = defineEmits(["openSelectShop", "showSlideBar"]);
 
 function openSelectShop() {
   emit("openSelectShop");
+}
+
+function showSlideBar() {
+  emit("showSlideBar", true);
 }
 </script>
 
 <template>
   <div
+    style="
+      background: linear-gradient(
+        90deg,
+        #025a86 40.56%,
+        rgba(3, 151, 180, 0.45) 98.79%
+      );
+    "
     class="bg-primary-900 flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
   >
-    <div class="align-items-center">
+    <div class="flex align-items-center justify-content-center">
       <a
         v-ripple
-        class="cursor-pointer block lg:hidden text-700 text-white mr-3 mt-1 p-ripple"
+        class="cursor-pointer block lg:hidden text-700 mr-3 mt-1 p-ripple"
         v-styleclass="{
           selector: '#app-sidebar-4',
           enterClass: 'hidden',
