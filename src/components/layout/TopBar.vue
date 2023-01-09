@@ -16,14 +16,10 @@ function showSlideBar() {
 
 <template>
   <div
+    class="flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
     style="
-      background: linear-gradient(
-        90deg,
-        #025a86 40.56%,
-        rgba(3, 151, 180, 0.45) 98.79%
-      );
+      background: linear-gradient(90deg, #025A86 35.86%, rgb(77 153 168) 97.37%);
     "
-    class="bg-primary-900 flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
   >
     <div class="flex align-items-center justify-content-center">
       <a

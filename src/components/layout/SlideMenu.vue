@@ -128,6 +128,21 @@ function hideSlideBar() {
     class="main-menu h-screen hidden lg:block flex-shrink-0 absolute lg:static left-0 top-0"
     style="overflow: scroll"
   >
+    <header>
+      <div class="image-text">
+        <span class="image">
+          <img
+            :src="'./images/newlogo.svg'"
+            :class="!slideBar ? 'show-headerimage' : 'pin-headerimage'"
+          />
+        </span>
+        <div class="text logo-text">
+          <span class="name">DEDE</span>
+          <span class="profession">Account</span>
+        </div>
+      </div>
+    </header>
+
     <ul>
       <li v-for="menu in props.menus" :key="menu.title">
         <RouterLink
@@ -187,13 +202,13 @@ function hideSlideBar() {
       </li>
       <li v-if="!slideBar">
         <a href="#" @click="showSlideBar">
-          <i class="pi pi-bookmark pi-2x"></i>
+          <i class="pi pi-lock pi-2x"></i>
           <span class="nav-text"> PIN </span>
         </a>
       </li>
       <li v-if="slideBar">
         <a href="#" @click="hideSlideBar">
-          <i class="pi pi-bookmark pi-2x"></i>
+          <i class="pi pi-lock-open pi-2x"></i>
           <span class="nav-text"> UNPIN </span>
         </a>
       </li>
@@ -201,6 +216,27 @@ function hideSlideBar() {
   </nav>
 </template>
 <style scoped>
+header .image-text {
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
+header .logo-text {
+  display: flex;
+  flex-direction: column;
+}
+header .image-text .name {
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+header .image-text .profession {
+  font-size: 18px;
+  margin-top: -2px;
+  display: block;
+}
+
 .pi-2x {
   font-size: 2em;
 }
@@ -212,6 +248,26 @@ function hideSlideBar() {
   text-align: center;
   vertical-align: middle;
   font-size: 20px;
+}
+
+.main-menu:hover {
+  width: 120px;
+}
+
+.show-headerimage {
+  margin-top: 20px;
+  width: 60px;
+  transition: width 1s;
+}
+
+.pin-headerimage {
+  margin-top: 20px;
+  width: 120px;
+  transition: width 1s;
+}
+
+.main-menu:hover .show-headerimage {
+  width: 120px;
 }
 
 .main-menu:hover,

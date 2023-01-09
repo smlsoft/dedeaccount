@@ -103,6 +103,7 @@ function showSlideBar(data) {
     <div class="min-h-screen flex flex-column relative flex-auto">
       <!-- top menu -->
       <topMenu
+      style=""
         v-on:openSelectShop="openSelectShop()"
         v-on:showSlideBar="showSlideBar"
       />
