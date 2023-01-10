@@ -626,7 +626,7 @@ function DownloadExampleExcel() {
       5: Utils.formatNumber(detailAccount.debitamount),
       6: Utils.formatNumber(detailAccount.creditamount),
       7: Utils.formatNumber(detailAccount.nextbalancedebitamount),
-      8: Utils.formatNumber(detailAccount.nextbalancreditamount),
+      8: Utils.formatNumber(detailAccount.nextbalancecreditamount),
     });
   }
   // dataReport.value.forEach((data) => {

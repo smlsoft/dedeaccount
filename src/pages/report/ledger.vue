@@ -42,14 +42,21 @@
           <div class="card p-2">
             <div class="flex flex-column" v-if="isvisible">
               <div class="flex align-items-center justify-content-center m-1">
-                รายงานบัญชีแยกประเภท
+                <span style="font-weight: bold">รายงานบัญชีแยกประเภท</span>
               </div>
               <div class="flex align-items-center justify-content-center m-1">
-                ประจำวันที่ : {{ startDateShow }} ถึงวันที่ : {{ endDateShow }}
+                <span style="font-weight: bold"> ประจำวันที่ : </span> &nbsp;
+                {{ startDateShow }}
+                &nbsp; <span style="font-weight: bold">ถึงวันที่ : </span>&nbsp;
+                {{ endDateShow }}
               </div>
               <div class="flex align-items-center justify-content-center m-1">
-                {{ nameCheck(accountcode1) }}
-                {{ nameCheck2(accountcode2) }}
+                <span style="font-weight: bold">
+                  &nbsp; {{ nameCheck(accountcode1) }}&nbsp;
+                </span>
+                <span style="font-weight: bold">
+                  &nbsp; {{ nameCheck2(accountcode2) }}&nbsp;
+                </span>
               </div>
             </div>
           </div>
@@ -61,7 +68,6 @@
             sortMode="single"
             :sortOrder="1"
             scrollable
-            showGridlines
             :loading="loading"
             scrollHeight="80vh"
             class="p-datatable-sm"
@@ -79,19 +85,20 @@
             <ColumnGroup type="header">
               <Row>
                 <Column
-                  header="รหัสบัญชี"
                   style="
                     flex-direction: column !important;
-                    font-weight: 700;
+
                     background-color: rgb(234, 234, 234);
                     border-width: 1px;
                     border-bottom-color: white;
                     width: 8%;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">รหัสบัญชี</span></template
+                  >
                 </Column>
                 <Column
-                  header="ชื่อบัญชี"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -101,6 +108,9 @@
                     width: 15%;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">ชื่อบัญชี</span></template
+                  >
                 </Column>
                 <Column
                   :colspan="5"
@@ -117,7 +127,6 @@
               </Row>
               <Row>
                 <Column
-                  header="วันที่"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -127,9 +136,11 @@
                     width: 10%;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">วันที่</span></template
+                  >
                 </Column>
                 <Column
-                  header="เลขที่เอกสาร"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -139,9 +150,11 @@
                     max-width: 15%;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">เลขที่เอกสาร</span></template
+                  >
                 </Column>
                 <Column
-                  header="รายละเอียด"
                   :colspan="2"
                   style="
                     flex-direction: column !important;
@@ -152,10 +165,12 @@
                     max-width: 80%;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">รายละเอียด</span></template
+                  >
                 </Column>
 
                 <Column
-                  header="เดบิต"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -165,9 +180,11 @@
                     max-width: 10px;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">เดบิต</span></template
+                  >
                 </Column>
                 <Column
-                  header="เตรดิต"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -177,9 +194,11 @@
                     max-width: 10px;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">เตรดิต</span></template
+                  >
                 </Column>
                 <Column
-                  header="ยอดรวม"
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
@@ -189,6 +208,9 @@
                     max-width: 10px;
                   "
                 >
+                  <template #header>
+                    <span style="font-size: 20px">ยอดรวม</span></template
+                  >
                 </Column>
               </Row>
             </ColumnGroup>
@@ -211,14 +233,38 @@
             </Column>
             <Column field="docno" style="border-width: 1px; max-width: 14.5%">
               <template #body="slotProps">
-                <span
-                  v-if="
-                    slotProps.data.docno != '' &&
-                    slotProps.data.docno != undefined
-                  "
-                >
-                  {{ slotProps.data.docno }}</span
-                >
+                <div class="card" style="width: 100%">
+                  <div>
+                    <div class="flex-container space-between">
+                      <span class="flex-item"
+                        >{{ slotProps.data.docno }}
+
+                        <Chip
+                          v-if="slotProps.data.countvat > 0"
+                          :label="slotProps.data.countvat.toString()"
+                          icon="pi pi-file"
+                          class="mr-1 text-primary-700"
+                          v-tooltip="'ภาษีมูลค่าเพิ่ม'"
+                        />
+
+                        <Chip
+                          v-if="slotProps.data.counttax > 0"
+                          :label="slotProps.data.counttax.toString()"
+                          class="mr-1 text-yellow-700"
+                          icon="pi pi-file"
+                          v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                        />
+                        <Chip
+                          v-if="slotProps.data.countimage > 0"
+                          :label="slotProps.data.countimage.toString()"
+                          v-tooltip="'รูปภาพ'"
+                          icon="pi pi-image "
+                        />
+                      </span>
+                      <!-- <div class="flex-item"></div> -->
+                    </div>
+                  </div>
+                </div>
               </template></Column
             >
             <Column
@@ -270,13 +316,7 @@
               style="border-width: 1px; max-width: 15.5%"
               bodyStyle="text-align: right;flex-direction: row-reverse; "
               ><template #body="slotProps">
-                <span
-                  v-if="
-                    slotProps.data.amount != '' &&
-                    slotProps.data.amount != undefined
-                  "
-                  >{{ utils.formatNumber(slotProps.data.amount) }}</span
-                >
+                <span>{{ read55(slotProps.data.amount) }}</span>
               </template></Column
             >
             <template #groupheader="slotProps">
@@ -286,8 +326,9 @@
                   slotProps.data.accountcodegroup != undefined
                 "
                 style="
-                  font-size: 20px;
+                  font-size: 18px;
                   min-width: 8%;
+                  font-weight: 600;
                   min-height: 1000;
                   width: fit-content;
                 "
@@ -301,9 +342,9 @@
                   slotProps.data.accountnamegroup != undefined
                 "
                 style="
-                  font-size: 20px;
+                  font-size: 18px;
                   min-width: 83%;
-
+                  font-weight: 600;
                   min-height: 99%;
                   border-top: 10cm;
                 "
@@ -863,11 +904,12 @@ function onRowGroupCollapse(event) {
 }
 function nameCheck(data) {
   if (data == "") {
-    return (data = "รหัสผังบัญชีทั้งหมด");
+    return (data = " รหัสผังบัญชีทั้งหมด");
   } else if (data == accountcode1.value && accountcode2.value == "") {
-    return (data = "ผังบัญชีที่" + accountcode1.value);
+    return (data = "ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value);
   } else {
-    return (data = "ตั้งแต่ผังบัญชีที่" + accountcode1.value);
+    return (data =
+      "ตั้งแต่ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value);
   }
 }
 function goTo(path) {
@@ -877,7 +919,7 @@ function nameCheck2(data) {
   if (data == "") {
     return (data = "");
   } else if (data == accountcode2.value) {
-    return (data = "ถึงผังบัญชีที่" + accountcode2.value);
+    return (data = "ถึงผังบัญชีที่" + "\n" + ":" + "\n" + accountcode2.value);
   }
 }
 async function getAccountChart() {
@@ -1089,6 +1131,29 @@ function getGLDetail(docno) {
       });
     });
 }
+function puttaxValid() {
+  taxes_valid.value.push({
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  });
+}
+function putvatValid() {
+  vats_valid.value.push({
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  });
+}
 function addall() {
   // result.value = true;
   console.log(result.value);
@@ -1167,6 +1232,14 @@ function exportreport() {
 function reloadRoute() {
   location.reload();
 }
+function read55(data) {
+  if (result.value == false) {
+    return utils.formatNumberforamount(data);
+  }
+  {
+    return utils.formatNumber(data);
+  }
+}
 function exreport2() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
@@ -1194,7 +1267,7 @@ function exreport2() {
           element.balance == element.nextbalance &&
           element.details.length > 0
         ) {
-          console.log("1");
+          // console.log("1");
           data_list.value.push(element);
 
           // console.log(data_list.value);
@@ -1209,13 +1282,9 @@ function exreport2() {
             element.nextbalance == 0 &&
             element.details.length > 0)
         ) {
-          console.log("2");
           data_list.value.push(element);
-          // console.log(data_list.value);
         } else if (element.balance != 0 && element.nextbalance != 0) {
-          console.log("3");
           data_list.value.push(element);
-          // console.log(data_list.value);
         } else if (
           (element.balance == 0 &&
             element.nextbalance != 0 &&
@@ -1224,19 +1293,19 @@ function exreport2() {
             element.nextbalance == 0 &&
             element.details.length == 0)
         ) {
-          console.log("4");
         } else if (
           element.balance == 0 &&
           element.nextbalance == 0 &&
           element.balance == element.nextbalance &&
-          element.details.length == 0
+          element.details.length == 0 &&
+          result.value == true
         ) {
           console.log("5");
+          data_list.value.push(element);
         }
       });
       if (res.success) {
         res.data.forEach((data) => {
-          // console.log(data);
           group.value = data.details;
 
           if (
@@ -1244,16 +1313,13 @@ function exreport2() {
             data.nextbalance != 0 &&
             result.value == false
           ) {
-            console.log(data.accountcode + " เงื่อนไข1");
-            // console.log(data);
-
             data.details.unshift({
               docdate: "",
               docno: "",
               accountdescription: "",
               credit: "",
               debit: "",
-              amount: "",
+              amount: utils.formatNumberforamount(data.amount),
               accountcodegroup: data.accountcode,
               accountnamegroup: data.accountname,
             });
@@ -1264,20 +1330,18 @@ function exreport2() {
               accountdescription: "",
               credit: "",
               debit: "",
-              amount: data.nextbalance,
+              amount: utils.formatNumberforamount(data.nextbalance),
               // accountcodegroup: data.accountcode,
               // accountnamegroup: data.accountname,
             });
           } else if (result.value == true && data.balance == 0) {
-            console.log(data.accountcode + "เงื่อนไข2");
-
             data.details.unshift({
               docdate: "",
               docno: "ยกมา ",
               accountdescription: "",
               credit: "",
-              debit: "",
-              amount: data.balance,
+              debit: data.balance,
+              amount: utils.formatNumber(data.amount),
               accountcodegroup: data.accountcode,
               accountnamegroup: data.accountname,
             });
@@ -1296,8 +1360,6 @@ function exreport2() {
             data.details.length == 0
           ) {
           } else if (data.balance != 0 && data.nextbalance != 0) {
-            console.log(data.accountcode + "เงื่อนไข 1919191");
-
             data.details.unshift({
               docdate: "",
               docno: "ยกมา",
@@ -1336,7 +1398,7 @@ function exreport2() {
               accountdescription: "",
               credit: "",
               debit: "",
-              amount: "",
+              amount: utils.formatNumberforamount(data.amount),
               accountcodegroup: data.accountcode,
               accountnamegroup: data.accountname,
             });
@@ -1357,13 +1419,13 @@ function exreport2() {
         });
 
         setTimeout(() => {
-          console.log("newData", newData.value);
+          // console.log("newData", newData.value);
 
           var html = $("tr.p-rowgroup-header td "); //.html();
 
           for (var i = 0; i < html.length; i++) {
             if (!html[i].innerHTML.includes("span")) {
-              console.log(html[i].innerHTML);
+              // console.log(html[i].innerHTML);
               html[i].style.display = "none";
             }
 
@@ -1392,7 +1454,7 @@ function exreport2() {
         if (result.value == true) {
           data_list.value = res.data;
         }
-        console.log(data_list.value);
+        // console.log(data_list.value);
 
         console.log(res);
         toast.add({
@@ -1974,8 +2036,8 @@ function DownloadExampleExcel() {
   );
 
   var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, Example, "รายงานข้อมูลผังบัญชี");
-  XLSX.writeFile(wb, "รายงานข้อมูลผังบัญชี.xlsx");
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานบัญชีแยกประเภท");
+  XLSX.writeFile(wb, "รายงานบัญชีแยกประเภท.xlsx");
 }
 function DownloadExampleExcelAll() {
   console.log("DownloadExampleExcelAll");
@@ -2132,6 +2194,7 @@ function newResultmain(data) {
 }
 
 function checkzero(data) {
+  console.log(data);
   if (data == 0) {
     return "";
   } else {
@@ -2377,6 +2440,7 @@ function getSumCreditAmount(data) {
   th {
     flex-direction: column !important;
     font-weight: 700;
+
     background-color: rgb(234, 234, 234);
     border-width: 1px;
     border-bottom-color: white;
@@ -2387,11 +2451,9 @@ function getSumCreditAmount(data) {
     background-color: rgb(240, 240, 240);
   }
   span {
-    flex-direction: column !important;
-    font-weight: 700;
-
+    font-size: 12em;
     background-color: rgb(240, 240, 240);
-    border-width: 1px;
+
     border-bottom-color: rgb(0, 0, 0);
   }
 }
@@ -2402,6 +2464,7 @@ iframe {
   height: 100%; /* Viewport-relative units */
   width: 100%;
 }
+
 .p-datatable .p-column-header-content {
   flex-direction: column !important;
   font-weight: bold;
