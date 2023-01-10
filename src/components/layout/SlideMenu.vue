@@ -9,19 +9,13 @@ const props = defineProps({
   menus: Object,
   lockSlideBar: Boolean,
 });
-const slideBar = ref(false);
 
 onMounted(() => {
   widthscreen.value = screen.width;
 });
 
-function showSlideBar() {
-  slideBar.value = true;
-  emit("lockSlideBar", true);
-}
-function hideSlideBar() {
-  slideBar.value = false;
-  emit("lockSlideBar", false);
+function lockSlideBar(data) {
+  emit("lockSlideBar", data);
 }
 </script>
 
@@ -33,13 +27,13 @@ function hideSlideBar() {
       widthscreen < 992 ? 'w-18rem' : '',
     ]"
     class="main-menu h-screen hidden lg:block flex-shrink-0 absolute left-0 top-0"
-    style="overflow-x: hidden;overflow-y: auto;"
+    style="overflow-x: hidden; overflow-y: auto"
   >
     <header>
       <div class="image-text">
         <span class="image">
           <img
-            :src="'./images/newlogo.svg'"
+            src="/images/newlogo.svg"
             :class="
               !props.lockSlideBar ? 'show-headerimage' : 'pin-headerimage'
             "
@@ -107,10 +101,11 @@ function hideSlideBar() {
         </ul>
       </li>
     </ul>
+
     <li v-if="!props.lockSlideBar">
       <a
         href="#"
-        @click="showSlideBar"
+        @click="lockSlideBar(true)"
         class="flex align-items-center cursor-pointer pt-3 pb-3"
       >
         <i class="pi pi-lock pi-2x pt-2"></i>
@@ -120,7 +115,7 @@ function hideSlideBar() {
     <li v-if="props.lockSlideBar">
       <a
         href="#"
-        @click="hideSlideBar"
+        @click="lockSlideBar(false)"
         class="flex align-items-center cursor-pointer pt-3 pb-3"
       >
         <i class="pi pi-lock-open pi-2x pt-2"></i>
@@ -176,7 +171,7 @@ header .image-text .profession {
 .show-headerimage {
   margin-top: 20px;
   width: 60px;
-  transition: width 1s;
+  transition: width 0.2s;
 }
 
 .pin-headerimage {
@@ -297,26 +292,20 @@ nav.main-menu li.active > a,
   background: rgba(78, 139, 170, 0.5);
 }
 
-
-#style-1::-webkit-scrollbar-track
-{
-	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
-	border-radius: 5px;
-	background-color: #B9B9B9;
+#style-1::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  background-color: #b9b9b9;
 }
 
-#style-1::-webkit-scrollbar
-{
-	width: 5px;
-	background-color: #B9B9B9;
-
+#style-1::-webkit-scrollbar {
+  width: 5px;
+  background-color: #b9b9b9;
 }
 
-#style-1::-webkit-scrollbar-thumb
-{
-	border-radius: 5px;
-	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
-	background-color: #B9B9B9;
-
+#style-1::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+  background-color: #b9b9b9;
 }
 </style>

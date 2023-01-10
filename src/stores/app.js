@@ -6,7 +6,7 @@ export const useApp = defineStore("app", {
     pageActive: "dashboard",
     childActive: "",
     showToggle: true,
-    activeLang: localStorage.getItem('activeLang') || 'th'
+    activeLang: localStorage.getItem('activeLang') || 'th',
   })
   ,
   actions: {
@@ -28,7 +28,7 @@ export const useApp = defineStore("app", {
       }
     },
     async setActiveLang(lang) {
-      localStorage.setItem("activeLang",lang)
+      localStorage.setItem("activeLang", lang)
       this.activeLang = lang;
 
     },

@@ -28,6 +28,8 @@ function selectShop(data) {
   localStorage.shopid = data.shopid;
   localStorage.shop_name = data.name;
   localStorage.shop_role = data.role;
+  localStorage.setLockSlideBar = false;
+
   AuthenService.selectShop().then((res) => {
     if (res.success) {
       // this.showSnackBar("เข้าสู่ระบบสำเร็จ", "success");
