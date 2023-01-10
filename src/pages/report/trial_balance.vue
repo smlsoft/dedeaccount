@@ -608,8 +608,8 @@ function DownloadExampleExcel() {
     8: "",
   });
   detail_example.value.push({
-    1: "",
-    2: "",
+    1: "วันที่",
+    2: "เลขที่เอกสาร",
     3: "เดบิต",
     4: "เครดิต",
     5: "เดบิต",
@@ -620,7 +620,7 @@ function DownloadExampleExcel() {
   for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
     detail_example.value.push({
       1: detailAccount.accountname,
-      2: detailAccount.accountname,
+      2: detailAccount.accountcode,
       3: Utils.formatNumber(detailAccount.balancedebitamount),
       4: Utils.formatNumber(detailAccount.balancecreditamount),
       5: Utils.formatNumber(detailAccount.debitamount),
@@ -629,6 +629,16 @@ function DownloadExampleExcel() {
       8: Utils.formatNumber(detailAccount.nextbalancecreditamount),
     });
   }
+  detail_example.value.push({
+    1: "",
+    2: "ยอดรวม",
+    3: listTrialBalanceSheet.value.totalbalancedebit,
+    4: listTrialBalanceSheet.value.totalbalancecredit,
+    5: listTrialBalanceSheet.value.totalamountdebit,
+    6: listTrialBalanceSheet.value.totalamountcredit,
+    7: listTrialBalanceSheet.value.totalnextbalancedebit,
+    8: listTrialBalanceSheet.value.totalnextbalancecredit,
+  });
   // dataReport.value.forEach((data) => {
   //   detail_example.value.push({
   //     รหัสบัญชี: data.accountdetails.tot,
@@ -648,8 +658,8 @@ function DownloadExampleExcel() {
   );
 
   var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, Example, "รายงานรหัสบัญชี");
-  XLSX.writeFile(wb, "รายงานรหัสบัญชี.xlsx");
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานงบทดลอง");
+  XLSX.writeFile(wb, "รายงานงบทดลอง.xlsx");
 }
 
 async function exportPDF() {
@@ -662,7 +672,7 @@ async function exportPDF() {
   startdate = Utils.getYearBuddhist(startDate.value);
   enddate = Utils.getYearBuddhist(endDate.value);
   var docDefinition = pageSetup(body, startdate, enddate);
-  pdfMake.createPdf(docDefinition).download("บัญชีแยกประเภท.pdf");
+  pdfMake.createPdf(docDefinition).download("รายงานงบทดลอง.pdf");
 }
 
 function getDate() {
