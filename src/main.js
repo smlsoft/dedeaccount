@@ -77,7 +77,9 @@ import 'vue-advanced-cropper/dist/style.css';
 
 const language = localStorage.getItem('activeLang') || 'th';
 
+
 const i18n = createI18n({
+    legacy:false,
     messages,
     locale: language,
 });

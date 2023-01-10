@@ -27,13 +27,13 @@ function hideSlideBar() {
 
 <template>
   <nav
-    id="app-sidebar-4"
+    id="style-1"
     :class="[
       !props.lockSlideBar ? 'showSlideBar ' : ' lockSlideBar',
       widthscreen < 992 ? 'w-18rem' : '',
     ]"
     class="main-menu h-screen hidden lg:block flex-shrink-0 absolute left-0 top-0"
-    style="overflow-x: hidden"
+    style="overflow-x: hidden;overflow-y: auto;"
   >
     <header>
       <div class="image-text">
@@ -51,26 +51,6 @@ function hideSlideBar() {
         </div>
       </div>
     </header>
-    <li v-if="!props.lockSlideBar">
-      <a
-        href="#"
-        @click="showSlideBar"
-        class="flex align-items-center cursor-pointer pt-3 pb-3"
-      >
-        <i class="pi pi-lock pi-2x pt-2"></i>
-        <span class="nav-text"> LOCK MENU</span>
-      </a>
-    </li>
-    <li v-if="props.lockSlideBar">
-      <a
-        href="#"
-        @click="hideSlideBar"
-        class="flex align-items-center cursor-pointer pt-3 pb-3"
-      >
-        <i class="pi pi-lock-open pi-2x pt-2"></i>
-        <span class="nav-text"> UNLCOK MENU</span>
-      </a>
-    </li>
     <ul>
       <li v-for="menu in props.menus" :key="menu.title">
         <RouterLink
@@ -127,6 +107,26 @@ function hideSlideBar() {
         </ul>
       </li>
     </ul>
+    <li v-if="!props.lockSlideBar">
+      <a
+        href="#"
+        @click="showSlideBar"
+        class="flex align-items-center cursor-pointer pt-3 pb-3"
+      >
+        <i class="pi pi-lock pi-2x pt-2"></i>
+        <span class="nav-text"> LOCK MENU</span>
+      </a>
+    </li>
+    <li v-if="props.lockSlideBar">
+      <a
+        href="#"
+        @click="hideSlideBar"
+        class="flex align-items-center cursor-pointer pt-3 pb-3"
+      >
+        <i class="pi pi-lock-open pi-2x pt-2"></i>
+        <span class="nav-text"> UNLCOK MENU</span>
+      </a>
+    </li>
   </nav>
 </template>
 <style scoped>
@@ -182,7 +182,7 @@ header .image-text .profession {
 .pin-headerimage {
   margin-top: 20px;
   width: 120px;
-  transition: width 1s;
+  transition: width 0.5s;
 }
 
 .main-menu:hover .show-headerimage {
@@ -191,7 +191,7 @@ header .image-text .profession {
 
 .main-menu:hover,
 nav.main-menu.expanded {
-  width: 250px;
+  width: 280px;
   overflow: visible;
 }
 
@@ -220,7 +220,7 @@ nav.main-menu.expanded {
 .main-menu li {
   position: relative;
   display: block;
-  width: 250px;
+  width: 280px;
 }
 
 .main-menu li > a {
@@ -295,5 +295,28 @@ nav.main-menu li.active > a,
 .dashboard-page nav.dashboard-menu ul li.active a {
   color: #fff;
   background: rgba(78, 139, 170, 0.5);
+}
+
+
+#style-1::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
+	border-radius: 5px;
+	background-color: #B9B9B9;
+}
+
+#style-1::-webkit-scrollbar
+{
+	width: 5px;
+	background-color: #B9B9B9;
+
+}
+
+#style-1::-webkit-scrollbar-thumb
+{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
+	background-color: #B9B9B9;
+
 }
 </style>

@@ -117,7 +117,7 @@ async function signUp(name, username, password) {
       if (res.data.success) {
         loadingSignUp.value = false;
         registerSuccess.value = true;
-      } 
+      }
     })
     .catch((err) => {
       console.log(err);
@@ -139,7 +139,7 @@ async function signUp(name, username, password) {
     class="surface-0 flex justify-content-center min-h-screen min-w-screen overflow-hidden"
   >
     <div
-      class="px-4 py-7 md:px-6 lg:px-8 flex align-items-center"
+      class="px-4 md:px-6 lg:px-8 flex align-items-center"
       v-if="!showShopList"
       style="width: 1366px"
     >
