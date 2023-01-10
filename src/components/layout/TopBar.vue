@@ -8,16 +8,20 @@ const emit = defineEmits(["openSelectShop"]);
 function openSelectShop() {
   emit("openSelectShop");
 }
+
 </script>
 
 <template>
   <div
-    class="bg-primary-900 flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
+    class="flex justify-content-between align-items-center px-2 relative lg:static sm:h-4rem lg:h-2rem"
+    style="
+      background: linear-gradient(90deg, #025A86 35.86%, rgb(77 153 168) 97.37%);
+    "
   >
-    <div class="align-items-center">
+    <div class="flex align-items-center justify-content-center">
       <a
         v-ripple
-        class="cursor-pointer block lg:hidden text-700 text-white mr-3 mt-1 p-ripple"
+        class="cursor-pointer block lg:hidden text-700 mr-3 mt-1 p-ripple"
         v-styleclass="{
           selector: '#app-sidebar-4',
           enterClass: 'hidden',

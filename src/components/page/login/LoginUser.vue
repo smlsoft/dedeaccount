@@ -61,7 +61,7 @@ function loginButton() {
       <label for="rememberme4">Remember me</label>
     </div>
     <a
-      class="font-medium text-blue-500 hover:text-blue-700 cursor-pointer transition-colors transition-duration-150"
+      class="font-medium text-primary-500  cursor-pointer "
       >Forgot password?</a
     >
   </div>
@@ -94,7 +94,7 @@ function loginButton() {
 
   <div class="mt-6 text-center text-600">
     Don't have an account ?
-    <a @click="registerMode" tabindex="0" class="cursor-pointer font-medium text-primary-500">Sign up</a>
+    <a @click="registerMode" tabindex="0" class="cursor-pointer font-medium text-primary-700">Sign up</a>
   </div>
 </template>
 <style scoped>

@@ -71,7 +71,7 @@ function registerMode() {
     <a
       @click="loginMode()"
       tabindex="0"
-      class="cursor-pointer font-medium text-primary-500"
+      class="cursor-pointer font-medium text-primary-700"
       >ลงชื่อเข้าใช้ที่นี่</a
     >
   </div>

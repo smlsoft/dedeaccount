@@ -1,6 +1,6 @@
 <script setup>
 import AuthenService from "@/services/AuthenService";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { menus } from "@/api/menu";
 import { useToast } from "primevue/usetoast";
 import { useRouter } from "vue-router";
@@ -13,6 +13,12 @@ const router = useRouter();
 const toast = useToast();
 const displaySelectShop = ref(false);
 const listShop = ref();
+const lockSlideBar = ref(false);
+const widthscreen = ref();
+onMounted(() => {
+  widthscreen.value = screen.width;
+});
+
 const openSelectShop = () => {
   AuthenService.getListShop()
     .then((res) => {
@@ -89,19 +95,33 @@ function goLogout() {
     name: "logout",
   });
 }
+
+function lockShowSlideBar(data) {
+  lockSlideBar.value = data;
+  console.log(lockSlideBar.value);
+}
 </script>
 
 <template>
   <div class="min-h-screen flex relative lg:static surface-ground">
     <!-- slide menu -->
-    <slideMenu :menus="menus" />
-
-    <div class="min-h-screen flex flex-column relative flex-auto">
+    <slideMenu
+      :menus="menus"
+      :lockSlideBar="lockSlideBar"
+      v-on:lockSlideBar="lockShowSlideBar"
+    />
+    <div
+      class="min-h-screen flex flex-column relative flex-auto"
+      :style="[
+        !lockSlideBar ? 'padding-left: 60px;' : '',
+        widthscreen < 992 ? 'padding-left: 0px;' : '',
+      ]"
+    >
       <!-- top menu -->
-      <topMenu v-on:openSelectShop="openSelectShop()" />
+      <topMenu style="" v-on:openSelectShop="openSelectShop()" />
       <Toast />
       <!-- content -->
-      <div class="p-1 flex flex-column flex-auto">
+      <div class="p-0 flex flex-column flex-auto">
         <div class="surface-section flex-auto">
           <slot></slot>
         </div>
