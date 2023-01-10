@@ -3,15 +3,12 @@ import { useApp } from "@/stores/app.js";
 const storeApp = useApp();
 const shopName = localStorage.shop_name;
 
-const emit = defineEmits(["openSelectShop", "showSlideBar"]);
+const emit = defineEmits(["openSelectShop"]);
 
 function openSelectShop() {
   emit("openSelectShop");
 }
 
-function showSlideBar() {
-  emit("showSlideBar", true);
-}
 </script>
 
 <template>
