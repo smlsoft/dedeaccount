@@ -16,7 +16,7 @@ function registerMode() {
 <template>
   <div class="flex align-items-center justify-content-between mb-5">
     <div class="mb-3 lg:mb-0">
-      <div class="text-2xl font-medium text-900 mb-2">ลงชื่อเข้าใช้</div>
+      <div class="text-2xl font-medium text-900 mb-2">ลงชื่อเข้าใช้    <div>{{ $t('hello') }}</div></div>
       <div class="text-500 mr-0 md:mr-3">
         ใช้อีเมลหรือบริการอื่นของคุณเพื่อใช้งาน Dede Account
       </div>
