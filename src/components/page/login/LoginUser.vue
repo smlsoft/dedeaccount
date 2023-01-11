@@ -11,14 +11,14 @@ const props = defineProps({
   loginFailed: Boolean,
 });
 
-const emit = defineEmits(["loginMode", "loginButton" ,"registerMode"]);
+const emit = defineEmits(["loginMode", "loginButton", "registerMode"]);
 
 function loginMode() {
   emit("loginMode", "loginMenu");
 }
 
-function registerMode(){
-    emit("registerMode", "registerMenu");
+function registerMode() {
+  emit("registerMode", "registerMenu");
 }
 
 function loginButton() {
@@ -28,7 +28,7 @@ function loginButton() {
 <template>
   <div class="flex align-items-center justify-content-between mb-5">
     <div class="text-2xl align-items-center font-medium text-900">
-      ลงชื่อเข้าใช้
+      {{ $t("signin") }}
     </div>
     <languageButton />
   </div>
@@ -60,13 +60,10 @@ function loginButton() {
       ></Checkbox>
       <label for="rememberme4">Remember me</label>
     </div>
-    <a
-      class="font-medium text-primary-500  cursor-pointer "
-      >Forgot password?</a
-    >
+    <a class="font-medium text-primary-500 cursor-pointer">Forgot password?</a>
   </div>
 
-  <span v-if="props.loginFailed"  class="text-xs text-red-500"
+  <span v-if="props.loginFailed" class="text-xs text-red-500"
     >*Invalid Username or Password.</span
   >
   <Button
@@ -89,12 +86,17 @@ function loginButton() {
     @click="loginMode()"
     class="w-12 font-medium border-1 surface-border surface-100 py-2 px-2 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center justify-content-center"
   >
-    <span>ลงชื่อเข้าใช้ด้วยวิธีอื่น</span>
+    <span>{{ $t("another_login") }}</span>
   </Button>
 
   <div class="mt-6 text-center text-600">
     Don't have an account ?
-    <a @click="registerMode" tabindex="0" class="cursor-pointer font-medium text-primary-700">Sign up</a>
+    <a
+      @click="registerMode"
+      tabindex="0"
+      class="cursor-pointer font-medium text-primary-700"
+      >Sign up</a
+    >
   </div>
 </template>
 <style scoped>

@@ -19,19 +19,21 @@
             <div class="flex flex-column" v-if="isvisible">
               <div id="textbox">
                 <div>
-                  <span style="font-weight: bold; font-size: 30px"
-                    >รายงานบัญชีแยกประเภท</span
-                  >
+                  <span style="font-weight: bold; font-size: 30px">{{
+                    $t("ledger")
+                  }}</span>
                   <br />
                   <br />
+                  <span style="font-weight: bold" class="alignleft"
+                    >{{ $t("sincetime") }} : &nbsp; {{ startDateShow }}</span
+                  >&nbsp; &nbsp;
+
                   <span style="font-weight: bold">
-                    ประจำวันที่ : &nbsp; {{ startDateShow }}</span
+                    {{ $t("totime") }} : &nbsp; {{ endDateShow }}</span
                   >
                   &nbsp;
 
-                  <span style="font-weight: bold" class="alignleft"
-                    >ถึงวันที่ : &nbsp; {{ endDateShow }}</span
-                  >&nbsp; <br />
+                  <br />
                   <span style="font-weight: bold" class="alignleft">
                     <br />
                     {{ nameCheck(accountcode1) }}&nbsp;
@@ -43,28 +45,45 @@
                   <div class="alignright">
                     <Button
                       label="ส่งออก Excel"
-                      class="p-button-primary"
                       icon="pi pi-file-excel"
-                      v-model="Dswitch"
+                      class="p-button-primary"
                       @click="dswitch(1)"
                       :disabled="isvisible === false"
-                    />
+                    >
+                      <i class="pi pi-file-excel"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} Excel</label
+                      ></Button
+                    >
                     &nbsp;
+
                     <Button
                       label="ส่งออก PDF"
                       icon="pi pi-file-pdf"
                       class="p-button-primary"
-                      v-model="Dswitch"
                       @click="dswitch(2)"
                       :disabled="isvisible === false"
-                    />
+                    >
+                      <i class="pi pi-file-pdf"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} PDF</label
+                      ></Button
+                    >
                     &nbsp;
                     <Button
                       label="ค้นหา"
                       icon="pi pi-cog"
                       @click="reloadRoute()"
                       class="p-button-rounded mr-2"
-                    ></Button>
+                    >
+                      <i class="pi pi-cog"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("search") }}
+                      </label></Button
+                    >
                   </div>
                 </div>
               </div>
@@ -106,7 +125,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">รหัสบัญชี</span></template
+                    <span style="font-size: 18px">{{
+                      $t("account_code")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -120,7 +141,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">ชื่อบัญชี</span></template
+                    <span style="font-size: 18px">{{
+                      $t("account_name")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -148,7 +171,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">วันที่</span></template
+                    <span style="font-size: 18px">{{
+                      $t("date")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -162,7 +187,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">เลขที่เอกสาร</span></template
+                    <span style="font-size: 18px">{{
+                      $t("docno")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -177,7 +204,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">รายละเอียด</span></template
+                    <span style="font-size: 18px">{{
+                      $t("description")
+                    }}</span></template
                   >
                 </Column>
 
@@ -192,7 +221,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">เดบิต</span></template
+                    <span style="font-size: 18px">{{
+                      $t("debit")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -206,7 +237,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">เตรดิต</span></template
+                    <span style="font-size: 18px">{{
+                      $t("credit")
+                    }}</span></template
                   >
                 </Column>
                 <Column
@@ -220,7 +253,9 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">ยอดรวม</span></template
+                    <span style="font-size: 18px">{{
+                      $t("amount")
+                    }}</span></template
                   >
                 </Column>
               </Row>
@@ -457,7 +492,7 @@
         <div class="grid p-fluid formgrid">
           <div class="field mb-4 col-6 md:col-3 ml-0">
             <label for="startDate" class="font-medium text-900"
-              >ผังบัญชีที่
+              >{{ $t("from_acc_code") }}
             </label>
 
             <Dropdown
@@ -477,7 +512,7 @@
           </div>
           <div class="field mb-4 col-6 md:col-3 ml-0">
             <label for="endDate" class="font-medium text-900"
-              >ถึงผังบัญชีที่
+              >{{ $t("to_acc_code") }}
             </label>
             <Dropdown
               :disabled="state == false"
@@ -497,17 +532,17 @@
           <div class="field mb-4 col-6 md:col-3">
             <div class="field-checkbox">
               <Checkbox v-model="result" :binary="true" @change="addall()" />
-              <label>แสดงผังที่ไม่เคลื่อนไหว:</label>
+              <label>{{ $t("acctive_ac") }}</label>
             </div>
             <div class="field-checkbox">
               <Checkbox v-model="state" :binary="true" @change="switchOn()" />
-              <label>เลือกช่วงผังบัญชี:</label>
+              <label>{{ $t("range_acc") }}</label>
             </div>
           </div>
 
           <div class="field col-12 md:col-6">
             <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
+              >{{ $t("sincetime") }} :</label
             >
             <DatePicker
               class="field mb-12 col-12 md:col-12"
@@ -522,7 +557,7 @@
           </div>
           <div class="field col-12 md:col-6">
             <label for="endDate" class="font-medium text-900"
-              >ถึงวันที่ :</label
+              >{{ $t("totime") }} :</label
             >
             <DatePicker
               class="field mb-10 col-12 md:col-12"
@@ -538,11 +573,17 @@
 
           <div class="field-checkbox col-12 md:col-12 p-button-outlined">
             <Button
+              class="text-center"
               label="จัดทำรายงาน"
               icon="pi pi-book"
               iconPos="left"
               @click="exportreport()"
-            />
+              ><i class="pi pi-book"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("process") }}
+              </label></Button
+            >
           </div>
         </div>
       </Dialog>
@@ -557,7 +598,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-book mr-1"></i>
-                <span> ข้อมูลรายวัน</span>
+                <span> {{ $t("journal") }}</span>
               </template>
               <JournalForm
                 :isUpdate="readMode"
@@ -569,7 +610,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ข้อมูลภาษี</span>
+                <span> {{ $t("vat") }}</span>
               </template>
               <VatForm
                 :isUpdate="readMode"
@@ -580,7 +621,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                <span> {{ $t("taxes") }}</span>
               </template>
               <TaxForm
                 :isUpdate="readMode"
@@ -591,7 +632,7 @@
             <TabPanel v-if="showTabImage">
               <template #header>
                 <i class="pi pi-image mr-1"></i>
-                <span> รูปภาพ</span>
+                <span> {{ $t("img") }}</span>
               </template>
               <Galleria
                 :value="dataImage.imagereferences"
@@ -608,17 +649,17 @@
                 <template #header>
                   <div class="flex justify-content-between mb-2">
                     <div class="flex">
-                      ชื่อรูป :
+                      {{ $t("img_name") }} :
                       {{ dataImage.imagereferences[[activeIndexList]].name }}
                     </div>
                     <div class="flex">
-                      วันที่ :{{
+                      {{ $t("date") }} :{{
                         Utils.getDateTimeFormat(
                           dataImage.imagereferences[[activeIndexList]]
                             .uploadedat
                         )
                       }}
-                      โดย
+                      {{ $t("by") }}
                       {{
                         dataImage.imagereferences[[activeIndexList]].uploadedby
                       }}

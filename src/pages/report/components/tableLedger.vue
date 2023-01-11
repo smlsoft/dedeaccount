@@ -5,8 +5,8 @@
         <div class="flex justify-content-between">
           <div class="flex align-items-center justify-content-center"></div>
           <div class="flex align-items-center justify-content-center m-1">
-            บัญชีแยกประเภท ประจำวันที่ :
-            {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+            {{ $t("ledger") }} {{ $t("sincetime") }} :
+            {{ props.headDataReport.startDateShow }} {{ $t("totime") }} :
             {{ props.headDataReport.endDateShow }}
           </div>
           <div class="flex align-items-center justify-content-center">
@@ -49,12 +49,14 @@
             </div> -->
           </div>
         </template>
-        <Column field="docdate" header="วันที่">
+        <Column field="docdate" header="">
+          <template #header>{{ $t("date") }}</template>
           <template #body="slotProps">
             {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
           </template>
         </Column>
-        <Column field="docno" header="เลขที่เอกสาร" class="padding-docno">
+        <Column field="docno" header="" class="padding-docno">
+          <template #header>{{ $t("docno") }}</template>
           <template #body="slotProps">
             <div class="card" style="width: 100%">
               <div class="flex justify-content-start">
@@ -106,30 +108,35 @@
             </div>
           </template>
         </Column>
-        <Column field="accountdescription" header="รายละเอียด"> </Column>
+        <Column field="accountdescription" header="">
+          <template #header>{{ $t("description") }}</template></Column
+        >
         <Column
           field="debit"
-          header="เดบิต"
+          header=""
           bodyStyle="text-align: right;flex-direction: row-reverse;"
         >
+          <template #header>{{ $t("debit") }}</template>
           <template #body="{ data, field }">
             {{ Utils.formatNumberReport(data[field]) }}
           </template>
         </Column>
         <Column
           field="credit"
-          header="เครดิต"
+          header=""
           bodyStyle="text-align: right;flex-direction: row-reverse;"
         >
+          <template #header>{{ $t("credit") }}</template>
           <template #body="{ data, field }">
             {{ Utils.formatNumberReport(data[field]) }}
           </template>
         </Column>
         <Column
           field="amount"
-          header="ยอดรวม"
+          header=""
           bodyStyle="text-align: right;flex-direction: row-reverse;"
         >
+          <template #header>{{ $t("amount") }}</template>
           <template #body="{ data, field }">
             {{ Utils.formatNumberReport(data[field]) }}
           </template>

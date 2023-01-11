@@ -17,10 +17,10 @@ function registerMode() {
   <div class="flex align-items-center justify-content-between mb-5">
     <div class="mb-3 lg:mb-0">
       <div class="text-2xl font-medium text-900 mb-2">
-        ลงทะเบียนเพื่อสมัครเข้าใช้งาน
+        {{ $t("signup") }}
       </div>
       <div class="text-500 mr-0 md:mr-3">
-        ใช้อีเมลหรือบริการอื่นของคุณเพื่อใช้งาน Dede Account
+        {{ $t("signin_desciption") }}
       </div>
     </div>
     <languageButton />
@@ -30,31 +30,31 @@ function registerMode() {
       class="w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-google text-red-500" style="font-size: 20px"></i>
-      <span class="ml-2">สมัครใช้งานด้วย Google</span>
+      <span class="ml-2">{{ $t("signUp_with") }} Google</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <img src="@/assets/img/iconline.svg" width="20" height="20" />
-      <span class="ml-2">สมัครใช้งานด้วย Line</span>
+      <span class="ml-2">{{ $t("signUp_with") }} Line</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-facebook text-blue-500" style="font-size: 20px"></i>
-      <span class="ml-2">สมัครใช้งานด้วย Facebook</span>
+      <span class="ml-2">{{ $t("signUp_with") }} Facebook</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-apple text-gray-700" style="font-size: 20px"></i>
-      <span class="ml-2">สมัครใช้งานด้วย Apple</span>
+      <span class="ml-2">{{ $t("signUp_with") }} Apple</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-phone text-teal-900" style="font-size: 20px"></i>
-      <span class="ml-2">สมัครใช้งานด้วยหมายเลขโทรศัพท์มือถือ</span>
+      <span class="ml-2">{{ $t("signUp_with_telephone") }}</span>
     </Button>
   </div>
   <Divider align="center" class="my-4">
@@ -64,15 +64,16 @@ function registerMode() {
     @click="registerMode()"
     class="w-12 font-medium border-1 surface-border surface-100 py-2 px-2 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center justify-content-center"
   >
-    <span>สมัครใช้งานด้วยวิธีอื่น</span>
+    <span>{{ $t("signUp_with") }}</span>
   </Button>
   <div class="mt-6 text-center text-600">
-    หากคุณมีบัญชีอยู่แล้วสามารถ
+    {{ $t("userif_have") }}
     <a
       @click="loginMode()"
       tabindex="0"
       class="cursor-pointer font-medium text-primary-700"
-      >ลงชื่อเข้าใช้ที่นี่</a
+    >
+      {{ $t("signin") }}</a
     >
   </div>
 

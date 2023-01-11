@@ -3,8 +3,8 @@
     <div class="card p-2">
       <div class="flex flex-column">
         <div class="flex align-items-center justify-content-center m-1">
-          งบทดลอง ประจำวันที่ :
-          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+          {{ $t("trial") }} {{ $t("sincetime") }} :
+          {{ props.headDataReport.startDateShow }} {{ $t("totime") }} :
           {{ props.headDataReport.endDateShow }}
         </div>
       </div>
@@ -25,20 +25,46 @@
       >
         <ColumnGroup type="header">
           <Row>
-            <Column header="ชื่อบัญชี" :rowspan="2" />
-            <Column header="เลขที่บัญชี" :rowspan="2" />
-            <Column header="ยอดยกมา" :colspan="2" />
-            <Column header="ยอดประจำงวด" :colspan="2" />
-            <Column header="ยอดสะสม" :colspan="2" />
+            <Column header="" :rowspan="2">
+              <template #header>{{ $t("account_name") }}</template></Column
+            >
+
+            <Column header="" :rowspan="2">
+              <template #header>{{ $t("account_code") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("balanceamount") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("monthly_statement") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("nextbalanceamount") }}</template></Column
+            >
           </Row>
 
           <Row>
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
           </Row>
         </ColumnGroup>
         <Column field="accountcode" />

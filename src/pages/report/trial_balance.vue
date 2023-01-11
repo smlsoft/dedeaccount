@@ -5,15 +5,21 @@
         <div class="mb-2 flex align-items-center justify-content-between">
           <span class="text-xl font-medium text-900">
             <i class="pi pi-book" style="font-size: 1.5rem">
-              รายงานทางการเงิน / งบทดลอง</i
-            >
+              {{ $t("statement") }} / {{ $t("trial") }}
+            </i>
           </span>
           <Button
             label="ค้นหา"
             icon="pi pi-cog"
-            @click="showSearch = true"
+            @click="reloadRoute()"
             class="p-button-rounded mr-2"
-          ></Button>
+          >
+            <i class="pi pi-cog"></i>
+
+            <label style="text-align: center; margin: auto"
+              >{{ $t("search") }}
+            </label></Button
+          >
         </div>
         <div class="flex" v-if="isvisible">
           <div class="flex">
@@ -23,7 +29,13 @@
               icon="pi pi-file-excel"
               @click="DownloadExampleExcel()"
               :disabled="isvisible === false"
-            />
+            >
+              <i class="pi pi-file-excel"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("export") }} Excel</label
+              ></Button
+            >
           </div>
           <div class="flex ml-2">
             <Button
@@ -32,7 +44,13 @@
               class="p-button-primary"
               @click="exportPDF()"
               :disabled="isvisible === false"
-            />
+            >
+              <i class="pi pi-file-pdf"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("export") }} PDF</label
+              ></Button
+            >
           </div>
         </div>
         <div class="p-2 surface-section flex-auto">
@@ -69,7 +87,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-book mr-1"></i>
-                <span> ข้อมูลรายวัน</span>
+                <span> {{ $t("journal") }}</span>
               </template>
               <JournalForm
                 :isUpdate="readMode"
@@ -81,7 +99,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ข้อมูลภาษี</span>
+                <span> {{ $t("vats") }}</span>
               </template>
               <VatForm
                 :isUpdate="readMode"
@@ -92,7 +110,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                <span> {{ $t("vat") }}</span>
               </template>
               <TaxForm
                 :isUpdate="readMode"
@@ -103,7 +121,7 @@
             <TabPanel v-if="showTabImage">
               <template #header>
                 <i class="pi pi-image mr-1"></i>
-                <span> รูปภาพ</span>
+                <span> {{ $t("img") }}</span>
               </template>
               <Galleria
                 :value="dataImage.imagereferences"
@@ -120,17 +138,17 @@
                 <template #header>
                   <div class="flex justify-content-between mb-2">
                     <div class="flex">
-                      ชื่อรูป :
+                      {{ $t("img_name") }} :
                       {{ dataImage.imagereferences[[activeIndexList]].name }}
                     </div>
                     <div class="flex">
-                      วันที่ :{{
+                      {{ $t("date") }} :{{
                         Utils.getDateTimeFormat(
                           dataImage.imagereferences[[activeIndexList]]
                             .uploadedat
                         )
                       }}
-                      โดย
+                      {{ $t("by") }}
                       {{
                         dataImage.imagereferences[[activeIndexList]].uploadedby
                       }}
@@ -168,13 +186,15 @@
         :modal="true"
       >
         <template #header>
-          <i class="pi pi-cog" style="font-size: 1.5rem"> ค้นหา</i>
+          <i class="pi pi-cog" style="font-size: 1.5rem">
+            {{ $t("search") }}
+          </i>
         </template>
         <div class="grid p-fluid formgrid">
           <div class="field col-12 md:col-6">
             <label for="startDate" class="font-medium text-900"
-              >สำหรับชุดบัญชี :</label
-            >
+              >{{ $t("accGroup") }}
+            </label>
             <Dropdown
               v-model="accountGroup"
               :options="groups"
@@ -184,17 +204,17 @@
             />
           </div>
           <div class="field col-12 md:col-6">
-            <label for="closeyear" class="font-medium text-900"
-              >รวมรายการปิดบัญชีสิ้นปี :</label
+            <label for="closeyear" class="font-medium text-900">
+              {{ $t("closing_entry") }} :</label
             >
             <div class="field-checkbox mt-2">
               <Checkbox :binary="true" v-model="ica" />
-              <label>รวมรายการปิดบัญชีสิ้นปี</label>
+              <label>{{ $t("closing_entry") }} </label>
             </div>
           </div>
           <div class="field col-12 md:col-6">
             <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
+              >{{ $t("sincetime") }} :</label
             >
             <DatePicker
               dateFormat="d/m/yy"
@@ -208,7 +228,7 @@
           </div>
           <div class="field col-12 md:col-6">
             <label for="endDate" class="font-medium text-900"
-              >ถึงวันที่ :</label
+              >{{ $t("totime") }} :</label
             >
             <DatePicker
               dateFormat="d/m/yy"
@@ -223,6 +243,7 @@
 
           <div class="field-checkbox col-12 md:col-12 p-button-outlined">
             <Button
+              class="text-center"
               label="จัดทำรายงาน"
               icon="pi pi-book"
               iconPos="left"
@@ -232,7 +253,12 @@
                 endDate === null ||
                 accountGroup.length == 0
               "
-            />
+              ><i class="pi pi-book"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("process") }}
+              </label></Button
+            >
           </div>
         </div>
       </Dialog>

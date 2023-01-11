@@ -88,7 +88,9 @@ function verifyData() {
 </script>
 <template>
   <div class="flex align-items-center justify-content-between mb-5">
-    <div class="text-2xl align-items-center font-medium text-900">Sign Up</div>
+    <div class="text-2xl align-items-center font-medium text-900">
+      {{ $t("signup") }}
+    </div>
     <languageButton />
   </div>
   <div v-if="!props.registerSuccess">
