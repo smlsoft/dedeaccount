@@ -13,56 +13,59 @@
             ></Button>
           </div>
         </div> -->
-        <div class="box">
-          <div class="flex flex-column" v-if="isvisible">
-            <div class="flex align-items-left justify-content-left m-1">
-              <Button
-                label="ค้นหา"
-                icon="pi pi-cog"
-                @click="reloadRoute()"
-                class="p-button-rounded mr-2"
-              ></Button>
-            </div>
-          </div>
-        </div>
-        <div class="p-2 surface-section flex-auto">
+
+        <div class="px-1 surface-section flex-auto">
           <div class="card p-2">
             <div class="flex flex-column" v-if="isvisible">
-              <div class="flex align-items-center justify-content-center m-1">
-                <span style="font-weight: bold">รายงานบัญชีแยกประเภท</span>
-              </div>
-              <div class="flex align-items-center justify-content-center m-1">
-                <span style="font-weight: bold"> ประจำวันที่ : </span> &nbsp;
-                {{ startDateShow }}
-                &nbsp; <span style="font-weight: bold">ถึงวันที่ : </span>&nbsp;
-                {{ endDateShow }}
-              </div>
-              <div class="flex align-items-center justify-content-center m-1">
-                <div class="flex">
+              <div id="textbox">
+                <div>
+                  <span style="font-weight: bold; font-size: 30px"
+                    >รายงานบัญชีแยกประเภท</span
+                  >
+                  <br />
+                  <br />
                   <span style="font-weight: bold">
-                    &nbsp; {{ nameCheck(accountcode1) }}&nbsp;
+                    ประจำวันที่ : &nbsp; {{ startDateShow }}</span
+                  >
+                  &nbsp;
+
+                  <span style="font-weight: bold"
+                    >ถึงวันที่ : &nbsp; {{ endDateShow }}</span
+                  >&nbsp; <br />
+                  <span style="font-weight: bold">
+                    <br />
+                    {{ nameCheck(accountcode1) }}&nbsp;
                   </span>
-                </div>
-                <span style="font-weight: bold">
-                  &nbsp; {{ nameCheck2(accountcode2) }}&nbsp;
-                </span>
-                <div class="box">
-                  <Button
-                    label="ส่งออก Excel"
-                    class="p-button-primary"
-                    icon="pi pi-file-excel"
-                    v-model="Dswitch"
-                    @click="dswitch(1)"
-                    :disabled="isvisible === false"
-                  />
-                  <Button
-                    label="ส่งออก PDF"
-                    icon="pi pi-file-pdf"
-                    class="p-button-primary"
-                    v-model="Dswitch"
-                    @click="dswitch(2)"
-                    :disabled="isvisible === false"
-                  />
+
+                  <span style="font-weight: bold" class="alignleft">
+                    {{ nameCheck2(accountcode2) }}&nbsp;
+                  </span>
+                  <div class="alignright">
+                    <Button
+                      label="ส่งออก Excel"
+                      class="p-button-primary"
+                      icon="pi pi-file-excel"
+                      v-model="Dswitch"
+                      @click="dswitch(1)"
+                      :disabled="isvisible === false"
+                    />
+                    &nbsp;
+                    <Button
+                      label="ส่งออก PDF"
+                      icon="pi pi-file-pdf"
+                      class="p-button-primary"
+                      v-model="Dswitch"
+                      @click="dswitch(2)"
+                      :disabled="isvisible === false"
+                    />
+                    &nbsp;
+                    <Button
+                      label="ค้นหา"
+                      icon="pi pi-cog"
+                      @click="reloadRoute()"
+                      class="p-button-rounded mr-2"
+                    ></Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -94,15 +97,16 @@
                 <Column
                   style="
                     flex-direction: column !important;
-
+                    font-weight: 700;
                     background-color: rgb(234, 234, 234);
                     border-width: 1px;
                     border-bottom-color: white;
                     width: 8%;
+                    align-items: top;
                   "
                 >
                   <template #header>
-                    <span style="font-size: 20px">รหัสบัญชี</span></template
+                    <span style="font-size: 18px">รหัสบัญชี</span></template
                   >
                 </Column>
                 <Column
@@ -223,6 +227,7 @@
             </ColumnGroup>
 
             <Column
+              class="align-items-start"
               field="docdate"
               header="accountcodegroup"
               style="border-width: 1px; max-width: 7.8%"
@@ -238,15 +243,65 @@
                 >
               </template>
             </Column>
-            <Column field="docno" style="border-width: 1px; max-width: 14.5%">
+            <Column
+              class="align-items-start"
+              field="docno"
+              style="border-width: 1px; max-width: 14.5%"
+            >
               <template #body="slotProps">
                 <div class="card" style="width: 100%">
                   <div>
-                    <div class="flex-container space-between">
-                      <span class="flex-item"
+                    <span class="flex-item">
+                      <span style="margim-bottom: 10px"
                         >{{ slotProps.data.docno }}
-
-                        <Chip
+                      </span>
+                      <i
+                        class="pi pi-file mr-1 text-primary-700 alignright"
+                        v-if="slotProps.data.countvat > 0"
+                        :label="slotProps.data.countvat.toString()"
+                        icon="pi pi-file"
+                        v-tooltip="
+                          'ภาษีมูลค่าเพิ่ม' +
+                          '(' +
+                          slotProps.data.countvat.toString() +
+                          ')'
+                        "
+                      ></i>
+                      <i
+                        class="pi pi-file mr-1 text-yellow-700 alignright"
+                        v-if="slotProps.data.counttax > 0"
+                        :label="slotProps.data.counttax.toString() + ')'"
+                        icon="pi pi-file"
+                        v-tooltip="
+                          'ภาษีหัก ณ ที่จ่าย' +
+                          '(' +
+                          slotProps.data.counttax.toString() +
+                          ')'
+                        "
+                      ></i>
+                      <i
+                        class="pi pi-image mr-1 text-green-700 alignright"
+                        v-if="slotProps.data.countimage == 1"
+                        :label="slotProps.data.countimage.toString()"
+                        v-tooltip="
+                          'รูปภาพ' +
+                          '(' +
+                          slotProps.data.countimage.toString() +
+                          ')'
+                        "
+                      ></i>
+                      <i
+                        class="pi pi-images mr-1 text-yellow-700 alignright"
+                        v-if="slotProps.data.countimage > 1"
+                        :label="slotProps.data.countimage.toString()"
+                        v-tooltip="
+                          'รูปภาพ' +
+                          '(' +
+                          slotProps.data.countimage.toString() +
+                          ')'
+                        "
+                      ></i>
+                      <!-- <Chip
                           v-if="slotProps.data.countvat > 0"
                           :label="slotProps.data.countvat.toString()"
                           icon="pi pi-file"
@@ -266,15 +321,38 @@
                           :label="slotProps.data.countimage.toString()"
                           v-tooltip="'รูปภาพ'"
                           icon="pi pi-image "
+                        /> -->
+                    </span>
+                    <span class="flex-item">
+                      <!-- <Chip
+                          v-if="slotProps.data.countvat > 0"
+                          :label="slotProps.data.countvat.toString()"
+                          icon="pi pi-file"
+                          class="mr-1 text-primary-700"
+                          v-tooltip="'ภาษีมูลค่าเพิ่ม'"
                         />
-                      </span>
-                      <!-- <div class="flex-item"></div> -->
-                    </div>
+
+                        <Chip
+                          v-if="slotProps.data.counttax > 0"
+                          :label="slotProps.data.counttax.toString()"
+                          class="mr-1 text-yellow-700"
+                          icon="pi pi-file"
+                          v-tooltip="'ภาษีหัก ณ ที่จ่าย'"
+                        />
+                        <Chip
+                          v-if="slotProps.data.countimage > 0"
+                          :label="slotProps.data.countimage.toString()"
+                          v-tooltip="'รูปภาพ'"
+                          icon="pi pi-image "
+                        /> -->
+                    </span>
+                    <!-- <div class="flex-item"></div> -->
                   </div>
                 </div>
               </template></Column
             >
             <Column
+              class="align-items-start"
               field="accountdescription"
               style="border-width: 1px; max-width: 31.2%"
               ><template #body="slotProps">
@@ -291,6 +369,7 @@
 
             <Column
               style="border-width: 1px; max-width: 15.5%"
+              class="align-items-start"
               field="debit"
               bodyStyle="text-align: right;flex-direction: row-reverse; "
               ><template #body="slotProps">
@@ -304,6 +383,7 @@
               </template></Column
             >
             <Column
+              class="align-items-start"
               style="border-width: 1px; max-width: 15.5%"
               field="credit"
               bodyStyle="text-align: right;flex-direction: row-reverse;"
@@ -319,6 +399,7 @@
               </template></Column
             >
             <Column
+              class="align-items-start"
               field="amount"
               style="border-width: 1px; max-width: 15.5%"
               bodyStyle="text-align: right;flex-direction: row-reverse; "
@@ -362,66 +443,7 @@
           </DataTable>
         </div>
       </div>
-      <!-- <div class="p-2 surface-section flex-auto">
-        <div class="grid p-fluid formgrid"></div>
 
-        <div class="surface-card p-3 shadow-2 border-round">
-          <div class="mb-2 flex align-items-center justify-content-between">
-            <span class="text-xl font-medium text-900">
-              <i class="pi pi-book" style="font-size: 1.5rem">
-                รายงานทางการเงิน / รายงานรหัสผังบัญชี</i
-              >
-            </span>
-            <Button
-              label="ค้นหา"
-              icon="pi pi-cog"
-              @click="reloadRoute()"
-              class="p-button-rounded mr-2"
-            ></Button>
-          </div>
-          <div class="p-2 surface-section flex-auto">
-            <div class="p-2 surface-section flex-auto" v-if="isvisible">
-              <div class="card p-2">
-                <div class="flex flex-column">
-                  <div
-                    class="flex align-items-center justify-content-center m-1"
-                  >
-                    รายงานบัญชีแยกประเภท ประจำวันที่ :
-                    {{ startDateShow }} ถึงวันที่ : {{ endDateShow }}
-                  </div>
-                  <div
-                    class="flex align-items-center justify-content-center m-1"
-                  >
-                    {{ nameCheck(accountcode1) }}
-                    {{ nameCheck2(accountcode2) }}
-                  </div>
-                </div>
-                <div class="flex">
-                  <div class="flex">
-                    <Button
-                      label="ส่งออก Excel"
-                      class="p-button-primary"
-                      icon="pi pi-file-excel"
-                      @click="DownloadExampleExcel()"
-                      :disabled="isvisible === false"
-                    />
-                  </div>
-                  <div class="flex ml-2">
-                    <Button
-                      label="ส่งออก PDF"
-                      icon="pi pi-file-pdf"
-                      class="p-button-primary"
-                      @click="exportdowloadPDF()"
-                      :disabled="isvisible === false"
-                    />
-                  </div>
-                </div>
-              </div>
-            
-            </div>
-          </div>
-        </div>
-      </div> -->
       <Dialog
         v-model:visible="showSearch"
         :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
@@ -433,7 +455,7 @@
         </template>
 
         <div class="grid p-fluid formgrid">
-          <div class="field mb-4 col-6 md:col-3 ml-3">
+          <div class="field mb-4 col-6 md:col-3 ml-0">
             <label for="startDate" class="font-medium text-900"
               >ผังบัญชีที่
             </label>
@@ -451,20 +473,9 @@
               optionLabel="label"
               optionValue="accountcode"
             >
-              <!-- <template #footer>
-                    <div class="align-right">
-                      <Button
-                        style="font-size: 0.9rem"
-                        label="เคลียร์ข้อความ"
-                        icon="pi pi-times"
-                        class="p-button-danger-sm"
-                        @click="cleartext($event)"
-                      />
-                    </div>
-                  </template> -->
             </Dropdown>
           </div>
-          <div class="field mb-4 col-6 md:col-3">
+          <div class="field mb-4 col-6 md:col-3 ml-0">
             <label for="endDate" class="font-medium text-900"
               >ถึงผังบัญชีที่
             </label>
@@ -2677,5 +2688,12 @@ iframe {
 }
 .hide {
   display: none;
+}
+.alignleft {
+  float: left;
+}
+.alignright {
+  align-items: flex-end;
+  float: right;
 }
 </style>
