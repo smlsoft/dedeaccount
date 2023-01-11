@@ -1,5 +1,6 @@
 <script setup>
 import AuthenService from "@/services/AuthenService";
+import { useApp } from "@/stores/app.js";
 import { ref, onMounted } from "vue";
 import { menus } from "@/api/menu";
 import { useToast } from "primevue/usetoast";
@@ -9,6 +10,7 @@ import slideMenu from "@/components/layout/SlideMenu.vue";
 import topMenu from "@/components/layout/TopBar.vue";
 import getListShop from "@/components/ListShop.vue";
 
+const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
 const displaySelectShop = ref(false);
@@ -16,6 +18,15 @@ const listShop = ref();
 const lockSlideBar = ref(false);
 const widthscreen = ref();
 onMounted(() => {
+  lockSlideBar.value = localStorage.setLockSlideBar;
+  if (localStorage.setLockSlideBar == "true") {
+    lockSlideBar.value = true;
+  } else {
+    lockSlideBar.value = false;
+  }
+
+  console.log(lockSlideBar.value);
+
   widthscreen.value = screen.width;
 });
 
@@ -97,8 +108,8 @@ function goLogout() {
 }
 
 function lockShowSlideBar(data) {
+  localStorage.setLockSlideBar = data;
   lockSlideBar.value = data;
-  console.log(lockSlideBar.value);
 }
 </script>
 

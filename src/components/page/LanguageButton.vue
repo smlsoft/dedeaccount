@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from "vue";
 import { useApp } from "@/stores/app.js";
 import { useI18n } from 'vue-i18n'
 const storeApp = useApp();
-const { locale } = useI18n()
+const { locale  } = useI18n()
 onMounted(() => {
   chooseLanguage(storeApp.activeLang);
 });

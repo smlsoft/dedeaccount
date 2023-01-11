@@ -16,9 +16,11 @@ function registerMode() {
 <template>
   <div class="flex align-items-center justify-content-between mb-5">
     <div class="mb-3 lg:mb-0">
-      <div class="text-2xl font-medium text-900 mb-2">ลงชื่อเข้าใช้    <div>{{ $t('hello') }}</div></div>
+      <div class="text-2xl font-medium text-900 mb-2">
+        <div>{{ $t("signin") }}</div>
+      </div>
       <div class="text-500 mr-0 md:mr-3">
-        ใช้อีเมลหรือบริการอื่นของคุณเพื่อใช้งาน Dede Account
+        {{ $t("signin_desciption") }}
       </div>
     </div>
     <languageButton />
@@ -28,31 +30,31 @@ function registerMode() {
       class="w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-google text-red-500" style="font-size: 20px"></i>
-      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Google</span>
+      <span class="ml-2">{{ $t("singin_with") }} Google</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <img src="@/assets/img/iconline.svg" width="20" height="20" />
-      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Line</span>
+      <span class="ml-2">{{ $t("singin_with") }} Line</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-facebook text-blue-500" style="font-size: 20px"></i>
-      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Facebook</span>
+      <span class="ml-2">{{ $t("singin_with") }} Facebook</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-apple text-gray-700" style="font-size: 20px"></i>
-      <span class="ml-2">ลงชื่อเข้าใช้ด้วย Apple</span>
+      <span class="ml-2">{{ $t("singin_with") }} Apple</span>
     </Button>
     <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-phone text-teal-900" style="font-size: 20px"></i>
-      <span class="ml-2">ลงชื่อเข้าใช้ด้วยหมายเลขโทรศัพท์มือถือ</span>
+      <span class="ml-2">{{ $t("singin_with_telephone") }}</span>
     </Button>
     <div class="flex align-items-center justify-content-end mt-2">
       <a
