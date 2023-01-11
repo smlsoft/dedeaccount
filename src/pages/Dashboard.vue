@@ -22,7 +22,7 @@ const showSkeletonUser = ref(false);
 
 onMounted(() => {
   storeApp.setActivePage("dashboard");
-  storeApp.setActiveChild('');
+  storeApp.setActiveChild("");
   storeApp.setPageTitle("แดรชบอร์ด");
 
   getAccountChart();
@@ -67,7 +67,6 @@ function getGLJournalList() {
     });
 }
 
-
 function getDocImageList() {
   showSkeletonImage.value = true;
   ImageDataService.getDocumentImageGroup()
@@ -104,7 +103,7 @@ function getUserShop() {
     });
 }
 
-function goTo(path,) {
+function goTo(path) {
   router.push({ name: path });
 }
 </script>
@@ -114,42 +113,88 @@ function goTo(path,) {
     <MainContentWarp>
       <div class="grid">
         <div class="col-12">
-          <div class="surface-card shadow-2 border-round flex p-3 flex-column md:flex-row">
-            <div @click="goTo('chartList')"
-              class="cursor-pointer  border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+          <div
+            class="surface-card shadow-2 border-round flex p-3 flex-column md:flex-row"
+          >
+            <div
+              @click="goTo('chartList')"
+              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-microsoft text-blue-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">ผังบัญชี</span>
+                <span class="text-500 font-medium">{{
+                  $t("account_code")
+                }}</span>
               </div>
-              <Skeleton width="4rem" height="1.5rem" v-if="showSkeletonAccount"></Skeleton>
-              <span class="block text-900 font-medium  text-xl" v-if="!showSkeletonAccount">{{ dataAccountChart}} </span>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonAccount"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonAccount"
+                >{{ dataAccountChart }}
+              </span>
             </div>
-            <div @click="goTo('dailyList')"
-              class="cursor-pointer  border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+            <div
+              @click="goTo('dailyList')"
+              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-list text-orange-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">บันทึกรายการบัญชี</span>
+                <span class="text-500 font-medium">{{
+                  $t("account_entry")
+                }}</span>
               </div>
-              <Skeleton width="4rem" height="1.5rem" v-if="showSkeletonJourna"></Skeleton>
-              <span class="block text-900 font-medium text-xl" v-if="!showSkeletonJourna">{{ dataJournal}} </span>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonJourna"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonJourna"
+                >{{ dataJournal }}
+              </span>
             </div>
-            <div @click="goTo('pic_group_docref')"
-              class="cursor-pointer  border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+            <div
+              @click="goTo('pic_group_docref')"
+              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-image text-cyan-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">รูปภาพ</span>
+                <span class="text-500 font-medium">{{ $t("img") }}</span>
               </div>
-              <Skeleton width="4rem" height="1.5rem" v-if="showSkeletonImage"></Skeleton>
-              <span class="block text-900 font-medium  text-xl" v-if="!showSkeletonImage">{{ dataImages}}</span>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonImage"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonImage"
+                >{{ dataImages }}</span
+              >
             </div>
-            <div class="cursor-pointer  flex-auto p-3" @click="goTo('user_list')">
+            <div
+              class="cursor-pointer flex-auto p-3"
+              @click="goTo('user_list')"
+            >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-users text-purple-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">ผู้ใช้งาน</span>
+                <span class="text-500 font-medium">{{ $t("user") }}</span>
               </div>
-              <Skeleton width="4rem" height="1.5rem" v-if="showSkeletonUser"></Skeleton>
-              <span class="block text-900 font-medium  text-xl" v-if="!showSkeletonUser">{{ dataUser}}</span>
-
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonUser"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonUser"
+                >{{ dataUser }}</span
+              >
             </div>
           </div>
         </div>
