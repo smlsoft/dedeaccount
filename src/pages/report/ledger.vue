@@ -29,10 +29,10 @@
                   >
                   &nbsp;
 
-                  <span style="font-weight: bold"
+                  <span style="font-weight: bold" class="alignleft"
                     >ถึงวันที่ : &nbsp; {{ endDateShow }}</span
                   >&nbsp; <br />
-                  <span style="font-weight: bold">
+                  <span style="font-weight: bold" class="alignleft">
                     <br />
                     {{ nameCheck(accountcode1) }}&nbsp;
                   </span>
