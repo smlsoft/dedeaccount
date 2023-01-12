@@ -60,24 +60,24 @@ function registerMode() {
       <a
         @click="loginMode()"
         class="font-medium text-primary-500 cursor-pointer"
-        >User login</a
+        >{{ $t("login_user") }}</a
       >
     </div>
   </div>
   <div class="mt-6 text-center text-600">
-    Don't have an account ?
+    {{ $t("user_have_account") }}
     <a
       @click="registerMode()"
       tabindex="0"
       class="cursor-pointer font-medium text-primary-700"
-      >Sign up</a
+    >
+      {{ $t("signup") }}</a
     >
   </div>
   <div class="mt-3 text-center text-600" style="font-size: 12px">
-    เมื่อดำเนินการต่อไป คุณได้ยอมรับ
-    <span style="text-decoration: underline">ข้อตกลงในการใช้งาน</span>
-    อ่าน
-    <span style="text-decoration: underline">นโยบายความเป็นส่วนตัว</span>
-    ของเรา
+    {{ $t("accept_term") }}
+    <span style="text-decoration: underline"> {{ $t("terms") }}</span>
+    {{ $t("Read") }}
+    <span style="text-decoration: underline"> {{ $t("privacy") }}</span>
   </div>
 </template>

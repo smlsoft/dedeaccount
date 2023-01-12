@@ -58,9 +58,11 @@ function loginButton() {
         :binary="true"
         class="mr-2"
       ></Checkbox>
-      <label for="rememberme4">Remember me</label>
+      <label for="rememberme4">{{ $t("remember") }}</label>
     </div>
-    <a class="font-medium text-primary-500 cursor-pointer">Forgot password?</a>
+    <a class="font-medium text-primary-500 cursor-pointer">{{
+      $t("forgot_pass")
+    }}</a>
   </div>
 
   <span v-if="props.loginFailed" class="text-xs text-red-500"
@@ -90,12 +92,13 @@ function loginButton() {
   </Button>
 
   <div class="mt-6 text-center text-600">
-    Don't have an account ?
+    {{ $t("user_have_account") }}
     <a
       @click="registerMode"
       tabindex="0"
       class="cursor-pointer font-medium text-primary-700"
-      >Sign up</a
+    >
+      {{ $t("signup") }}</a
     >
   </div>
 </template>

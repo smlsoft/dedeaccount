@@ -11,7 +11,7 @@
           <Button
             label="ค้นหา"
             icon="pi pi-cog"
-            @click="reloadRoute()"
+            @click="showSearch = true"
             class="p-button-rounded mr-2"
           >
             <i class="pi pi-cog"></i>
@@ -78,10 +78,12 @@
 
       <Dialog
         v-model:visible="openDetailDocNo"
-        :header="'เอกสาร : ' + daily_form.docno"
         :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
         :style="{ width: '50vw' }"
       >
+        <template #header>
+          <h3>{{ $t("docno") }} : {{ daily_form.docno }}</h3>
+        </template>
         <div class="confirmation-content" id="boxconfirm" style="height: 70vh">
           <TabView class="tabview-custom" ref="tabview">
             <TabPanel>

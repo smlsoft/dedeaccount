@@ -10,13 +10,15 @@
             :modal="true"
           >
             <template #header>
-              <i class="pi pi-cog" style="font-size: 1.5rem"> ค้นหา</i>
+              <i class="pi pi-cog" style="font-size: 1.5rem">
+                {{ $t("search") }}</i
+              >
             </template>
 
             <div class="grid p-fluid formgrid">
               <div class="field mb-4 col-6 md:col-3 ml-3">
                 <label for="startDate" class="font-medium text-900"
-                  >ผังบัญชีที่
+                  >{{ $t("from_acc_code") }}
                 </label>
 
                 <Dropdown
@@ -53,8 +55,8 @@
                 </Dropdown>
               </div>
               <div class="field mb-4 col-6 md:col-3">
-                <label for="endDate" class="font-medium text-900"
-                  >ถึงผังบัญชีที่
+                <label for="endDate" class="font-medium text-900">
+                  {{ $t("to_acc_code") }}
                 </label>
                 <Dropdown
                   :disabled="state == true"
@@ -73,11 +75,11 @@
               </div>
               <div class="field col-2 md:col-3">
                 <label for="closeyear" class="font-medium text-900"
-                  >แสดงผังบัญชีทั้งหมด :</label
+                  >{{ $t("all_acc") }} :</label
                 >
                 <div class="field-checkbox mt-2">
                   <Checkbox :binary="true" v-model="state" />
-                  <label>แสดงผังบัญชีทั้งหมด</label>
+                  <label>{{ $t("all_acc") }}</label>
                 </div>
               </div>
 
@@ -87,7 +89,12 @@
                   icon="pi pi-book"
                   iconPos="left"
                   @click="exreport2()"
-                />
+                  ><i class="pi pi-book"></i>
+
+                  <label style="text-align: center; margin: auto"
+                    >{{ $t("process") }}
+                  </label></Button
+                >
               </div>
             </div>
           </Dialog>
@@ -96,7 +103,7 @@
           <div class="mb-2 flex align-items-center justify-content-between">
             <span class="text-xl font-medium text-900">
               <i class="pi pi-book" style="font-size: 1.5rem">
-                รายงานทางการเงิน / รายงานรหัสผังบัญชี</i
+                {{ $t("statement") }} / {{ $t("chart_of_acc") }}</i
               >
             </span>
             <Button
@@ -113,7 +120,7 @@
                   <div
                     class="flex align-items-center justify-content-center m-1"
                   >
-                    รายงานรหัสบัญชี {{ nameCheck(accountcode1) }}
+                    {{ $t("chart_of_acc") }} {{ nameCheck(accountcode1) }}
                     {{ nameCheck2(accountcode2) }}
                   </div>
                 </div>
@@ -125,7 +132,13 @@
                       icon="pi pi-file-excel"
                       @click="DownloadExampleExcel()"
                       :disabled="isvisible === false"
-                    />
+                    >
+                      <i class="pi pi-file-excel"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} Excel</label
+                      ></Button
+                    >
                   </div>
                   <div class="flex ml-2">
                     <Button
@@ -134,7 +147,13 @@
                       class="p-button-primary"
                       @click="exportdowloadPDF()"
                       :disabled="isvisible === false"
-                    />
+                    >
+                      <i class="pi pi-file-pdf"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} PDF</label
+                      ></Button
+                    >
                   </div>
                 </div>
               </div>
@@ -184,17 +203,19 @@
                 </template>
                 <template #loading :loading="loading"> กำลังประมวลผล </template>
 
-                <Column field="accountcode" header="รหัสผังบัญชี"></Column>
-                <Column
-                  field="accountname"
-                  header="ชื่อผังบัญชี"
-                  class="accountname"
-                ></Column>
-                <Column
-                  field="consolidateaccountcode"
-                  header="รหัสผังบัญชีคุม"
-                ></Column>
-                <Column field="accountgroup" header="สถานะ">
+                <Column field="accountcode" header=""
+                  ><template #header>{{ $t("accountcode") }}</template></Column
+                >
+                <Column field="accountname" header="" class="accountname"
+                  ><template #header>{{ $t("accountname") }}</template></Column
+                >
+                <Column field="consolidateaccountcode" header=""
+                  ><template #header>{{
+                    $t("consolidate_acc")
+                  }}</template></Column
+                >
+                <Column field="accountgroup" header="">
+                  <template #header>{{ $t("status") }}</template>
                   <template #body="{ data, field }">
                     {{ newResultmainClose(data[field]) }}
                   </template></Column

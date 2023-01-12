@@ -55,7 +55,7 @@
             {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
           </template>
         </Column>
-        <Column field="docno" header="" class="padding-docno">
+        <Column field="docno" header="">
           <template #header>{{ $t("docno") }}</template>
           <template #body="slotProps">
             <div class="card" style="width: 100%">

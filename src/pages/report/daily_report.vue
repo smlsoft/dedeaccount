@@ -97,7 +97,7 @@
           <div class="mb-2 flex align-items-center justify-content-between">
             <span class="text-xl font-medium text-900">
               <i class="pi pi-book" style="font-size: 1.5rem">
-                รายงานทางการเงิน / รายงานรหัสผังบัญชี</i
+                {{ $t("statement") }} / {{ $t("journal") }}</i
               >
             </span>
             <Button
@@ -144,8 +144,6 @@
                 dataKey="docno"
                 class="p-datatable-sm"
                 :loading="loading"
-                stripedRows
-                responsiveLayout="scroll"
                 @sort="sortBy"
                 scrollHeight="69vh"
                 v-model:expandedRows="expandedRows"
@@ -154,22 +152,34 @@
                 <template #empty> ไม่พบข้อมูล </template>
                 <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
                 <Column :expander="true" headerStyle="width: 3rem" />
-                <Column field="docno" header="เลขที่เอกสาร"></Column>
-                <Column field="docdate" header="วันที่" dataType="date">
+                <Column field="docno" header=""
+                  ><template #header>{{ $t("docno") }}</template></Column
+                >
+                <Column field="docdate" header="" dataType="date">
+                  <template #header>{{ $t("date") }}</template>
                   <template #body="slotProps">
                     {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
                   </template>
                 </Column>
-                <Column field="accountyear" header="ปีบัญชี"></Column>
-                <Column field="accountperiod" header="งวดบัญชี"></Column>
-                <Column field="accountgroup" header="กลุ่มบัญชี"></Column>
-                <Column field="accountdescription" header="รายละเอียด"></Column>
+                <Column field="accountyear" header="">
+                  <template #header>{{ $t("acc_years") }}</template></Column
+                >
+                <Column field="accountperiod" header=""
+                  ><template #header>{{ $t("acc_period") }}</template></Column
+                >
+                <Column field="accountgroup" header="">
+                  <template #header>{{ $t("accountgroup") }}</template>
+                </Column>
+                <Column field="accountdescription" header="">
+                  <template #header>{{ $t("description") }} </template></Column
+                >
                 <Column
                   field="amount"
                   header="มูลค่า"
                   class="text-header-right"
                   headerStyle="text-align: right;"
                 >
+                  <template #header>{{ $t("amount") }} </template>
                   <template #body="{ data, field }">
                     {{ Utils.formatCurrency(data[field]) }}
                   </template>
@@ -200,22 +210,14 @@
                       responsiveLayout="scroll"
                       dataKey="guidfixed"
                     >
-                      <Column
-                        field="accountcode"
-                        header="รหัสบัญชี"
-                        style="width: 20%"
-                      ></Column>
+                      <Column field="accountcode" header="รหัสบัญชี"></Column>
                       <Column
                         field="accountname"
                         header="ชื่อบัญชี"
                         footerStyle="text-align: right "
                         footer="รวม"
                       ></Column>
-                      <Column
-                        field="debitamount"
-                        header="เดบิต"
-                        style="width: 20%"
-                      >
+                      <Column field="debitamount" header="เดบิต">
                         <template #footer>
                           {{
                             Utils.formatCurrency(
@@ -227,11 +229,7 @@
                           {{ Utils.formatCurrency(data[field]) }}
                         </template>
                       </Column>
-                      <Column
-                        field="creditamount"
-                        header="เครดิต"
-                        style="width: 20%"
-                      >
+                      <Column field="creditamount" header="เครดิต">
                         <template #footer>
                           {{
                             Utils.formatCurrency(
@@ -616,6 +614,7 @@ function getGLJournalList() {
         data_list.value = res.data;
         totalItemsCount.value = res.pagination.total;
         // console.log(totalItemsCount.value);
+        showSearch.value = false;
       }
       loading.value = false;
     })
@@ -626,9 +625,9 @@ function getGLJournalList() {
 }
 
 function exreport() {
-  getGLJournalList();
   // expandAll();
   isvisible.value = true;
+  getGLJournalList();
 }
 
 function goDetail(data) {

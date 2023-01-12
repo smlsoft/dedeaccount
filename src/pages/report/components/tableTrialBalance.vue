@@ -106,11 +106,10 @@
 
         <ColumnGroup type="footer">
           <Row>
-            <Column
-              footer="ยอดรวม :"
-              :colspan="2"
-              footerStyle="text-align:right"
-            />
+            <Column footer="" :colspan="2" footerStyle="text-align:right">
+              <template #footer>{{ $t("amount") }}</template>
+            </Column>
+
             <Column
               :footer="
                 Utils.formatNumberReport(props.dataReport.totalbalancedebit)
