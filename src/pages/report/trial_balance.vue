@@ -333,7 +333,8 @@ async function exportReport() {
 async function getDataReport() {
   loadingTrialBalance.value = true;
 
-  let accountgroup = (accountGroup.value == "gruupAll" ? null : accountGroup.value);
+  let accountgroup =
+    accountGroup.value == "gruupAll" ? null : accountGroup.value;
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 
@@ -760,7 +761,7 @@ function getDocumentImageByDocNo(docno) {
       if (res.success) {
         console.log(res);
         showTabImage.value = true;
-        dataImage.value = res.data;
+        dataImage.value = res.data.imagereferences[0];
       }
     })
     .catch((err) => {
