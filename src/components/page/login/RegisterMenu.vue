@@ -58,7 +58,7 @@ function registerMode() {
     </Button>
   </div>
   <Divider align="center" class="my-4">
-    <span class="text-600 font-normal text-sm">OR</span>
+    <span class="text-600 font-normal text-sm"> {{ $t("or") }}</span>
   </Divider>
   <Button
     @click="registerMode()"
@@ -78,11 +78,10 @@ function registerMode() {
   </div>
 
   <div class="mt-3 text-center text-600" style="font-size: 12px">
-    เมื่อดำเนินการต่อไป คุณได้ยอมรับ
-    <span style="text-decoration: underline">ข้อตกลงในการใช้งาน</span>
-    อ่าน
-    <span style="text-decoration: underline">นโยบายความเป็นส่วนตัว</span>
-    ของเรา
+    {{ $t("accept_term") }}
+    <span style="text-decoration: underline"> {{ $t("terms") }}</span>
+    {{ $t("Read") }}
+    <span style="text-decoration: underline"> {{ $t("privacy") }}</span>
   </div>
 </template>
 

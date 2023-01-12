@@ -56,10 +56,11 @@ function goLogout() {
         <div class="flex flex-column md:flex-row md:justify-content-between">
           <div class="mb-3 lg:mb-0">
             <div class="text-3xl font-medium text-900 mb-3">
-              เลือกกิจการที่ต้องการทำรายการ
+              {{ $t("select_shop") }}
             </div>
             <div class="text-500 mr-0 md:mr-3">
-              จำนวนกิจการทั้งหมด ({{ props.listShop.length }}) กิจการ
+              {{ $t("shop_count") }} ({{ props.listShop.length }})
+              {{ $t("shop") }}
             </div>
           </div>
           <div class="mb-3 lg:mb-0">
@@ -168,7 +169,11 @@ function goLogout() {
               label="เลือกข้อมูล"
               class="px-6 primary-500"
               @click="selectShop(slotProps.data)"
-            ></Button>
+            >
+              <label style="text-align: center; margin: auto"
+                >{{ $t("select_shop") }}
+              </label></Button
+            >
           </div>
         </div>
       </div>
@@ -231,7 +236,7 @@ function goLogout() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-  } 
+  }
   .shop-grid-item-bottom {
     display: flex;
     align-items: center;

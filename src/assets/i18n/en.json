@@ -291,5 +291,9 @@
   "Read": "Read our",
   "privacy": "Privacy Policy",
   "remember": "remember me",
-  "forgot_pass": "Forgot password ?"
+  "forgot_pass": "Forgot password ?",
+  "or": "or ",
+  "email": "Email ",
+  "username": "Username ",
+  "con_password": "Confirm password"
 }

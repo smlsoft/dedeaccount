@@ -94,7 +94,9 @@ function verifyData() {
     <languageButton />
   </div>
   <div v-if="!props.registerSuccess">
-    <label for="name" class="block text-900 font-medium mb-2">Your name</label>
+    <label for="name" class="block text-900 font-medium mb-2">{{
+      $t("username")
+    }}</label>
     <InputText
       id="name"
       type="text"
@@ -103,7 +105,9 @@ function verifyData() {
       v-model="yourname"
       :class="!form_valid.yourname ? 'p-invalid' : ''"
     />
-    <label for="email" class="block text-900 font-medium mb-2">Email</label>
+    <label for="email" class="block text-900 font-medium mb-2">{{
+      $t("email")
+    }}</label>
     <InputText
       id="email"
       type="text"
@@ -112,9 +116,9 @@ function verifyData() {
       v-model="username"
       :class="!form_valid.username ? 'p-invalid' : ''"
     />
-    <label for="password" class="block text-900 font-medium mb-2"
-      >Password</label
-    >
+    <label for="password" class="block text-900 font-medium mb-2">{{
+      $t("password")
+    }}</label>
     <Password
       id="password"
       class="w-full mb-3"
@@ -125,9 +129,9 @@ function verifyData() {
       :feedback="false"
       :class="!form_valid.password ? 'p-invalid' : ''"
     />
-    <label for="confirmPassword" class="block text-900 font-medium mb-2"
-      >Confirm Password</label
-    >
+    <label for="confirmPassword" class="block text-900 font-medium mb-2">{{
+      $t("con_password")
+    }}</label>
     <Password
       id="password"
       class="w-full mb-3"
@@ -144,7 +148,11 @@ function verifyData() {
       label="Sign up"
       class="w-full py-3 font-medium primary-700"
       @click="signUpButton()"
-    ></Button>
+    >
+      <label style="text-align: center; margin: auto"
+        >{{ $t("signup") }}
+      </label></Button
+    >
 
     <Button
       class="w-full py-3 font-medium primary-700"
@@ -152,12 +160,13 @@ function verifyData() {
       v-if="props.loadingSignUp == true"
     ></Button>
     <div class="mt-6 text-center text-600">
-      Already have an account ?
+      {{ $t("userif_have") }}
       <a
         @click="loginMode()"
         tabindex="0"
         class="cursor-pointer font-medium text-primary-500"
-        >Login now</a
+      >
+        {{ $t("signin") }}</a
       >
     </div>
   </div>

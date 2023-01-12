@@ -73,7 +73,11 @@ function loginButton() {
     class="w-full py-3 font-medium primary-700"
     v-if="props.loading == false"
     @click="loginButton()"
-  ></Button>
+  >
+    <label style="text-align: center; margin: auto"
+      >{{ $t("signin") }}
+    </label></Button
+  >
   <Button
     class="w-full py-3 font-medium primary-700"
     icon="pi pi-spin pi-spinner "
@@ -81,7 +85,7 @@ function loginButton() {
   ></Button>
 
   <Divider align="center" class="my-4">
-    <span class="text-600 font-normal text-sm">OR</span>
+    <span class="text-600 font-normal text-sm"> {{ $t("or") }}</span>
   </Divider>
 
   <Button
