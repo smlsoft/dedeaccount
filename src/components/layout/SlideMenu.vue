@@ -21,7 +21,7 @@ function lockSlideBar(data) {
 
 <template>
   <nav
-    id="style-1"
+    id="app-sidebar"
     :class="[
       !props.lockSlideBar ? 'showSlideBar ' : ' lockSlideBar',
       widthscreen < 992 ? 'w-18rem' : '',
@@ -186,8 +186,9 @@ header .image-text .profession {
 
 .main-menu:hover,
 nav.main-menu.expanded {
-  width: 280px;
+  width: 230px;
   overflow: visible;
+  transition: width 0.2s;
 }
 
 .showSlideBar {
@@ -215,7 +216,7 @@ nav.main-menu.expanded {
 .main-menu li {
   position: relative;
   display: block;
-  width: 280px;
+  width: 230px;
 }
 
 .main-menu li > a {
@@ -246,7 +247,7 @@ nav.main-menu.expanded {
   position: relative;
   display: table-cell;
   vertical-align: middle;
-  width: 190px;
+  width: 170px;
   font-family: "Titillium Web", sans-serif;
 }
 
@@ -292,18 +293,18 @@ nav.main-menu li.active > a,
   background: rgba(78, 139, 170, 0.5);
 }
 
-#style-1::-webkit-scrollbar-track {
+#app-sidebar::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   background-color: #b9b9b9;
 }
 
-#style-1::-webkit-scrollbar {
+#app-sidebar::-webkit-scrollbar {
   width: 5px;
   background-color: #b9b9b9;
 }
 
-#style-1::-webkit-scrollbar-thumb {
+#app-sidebar::-webkit-scrollbar-thumb {
   border-radius: 5px;
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
   background-color: #b9b9b9;

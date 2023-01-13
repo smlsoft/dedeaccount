@@ -25,7 +25,7 @@ onMounted(() => {
     lockSlideBar.value = false;
   }
 
-  console.log(lockSlideBar.value);
+  // console.log(lockSlideBar.value);
 
   widthscreen.value = screen.width;
 });
