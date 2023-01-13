@@ -1,6 +1,4 @@
 <template>
-  <!--    @click="selectModeImage()" -->
-
   <div
     class="relative cursor-pointer text-center m-3"
     style="width: 90px; height: 90px"
@@ -22,12 +20,27 @@
         type="text"
         v-ripple
         class="absolute p-link w-2rem h-2rem bg-primary-500 border-circle inline-flex align-items-center justify-content-center"
-        style="top: 0rem; right: 0rem"
+        style="top: 0rem; left: 0rem"
       >
         <span class="font-bold text-white">{{
           props.images_data.imagereferences.length
         }}</span>
       </button>
+      <Checkbox
+        v-if="
+          isSelectedDocument &&
+          props.images_data.imagereferences.length === 1 &&
+          props.images_data.references.length === 0 &&
+          props.images_data.isreject == false &&
+          !checkUseImg(props.images_data.guidfixed)
+        "
+        style="top: 0rem; right: 0rem"
+        class="absolute"
+        inputId="binary"
+        v-model="props.images_data.ischecked"
+        :binary="true"
+        @click="selectModeImage()"
+      />
     </div>
     <div class="white-space-nowrap overflow-hidden text-overflow-ellipsis">
       <span class="text-900" style="font-size: 12px">{{
@@ -35,139 +48,7 @@
       }}</span>
     </div>
   </div>
-  <Dialog
-    :dismissableMask="true"
-    :close-on-escape="false"
-    :closeOnEscape="true"
-    v-model:visible="showImgDialog"
-    @update:visible="exitDialog"
-    :header="'รายละเอียด ' + props.images_data.title"
-    :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
-    :style="{ width: '60vw' }"
-    :modal="true"
-  >
-    <div class="confirmation-content" id="boxconfirm" style="height: 80vh">
-      <div class="flex justify-content-between mb-2">
-        <div class="flex">
-          ชื่อรูป : {{ showImgData[activeIndexList].name }}
-        </div>
-        <div class="flex">
-          วันที่ :{{
-            Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat)
-          }}
-          โดย {{ showImgData[activeIndexList].uploadedby }}
-        </div>
-      </div>
-      <div class="flex justify-content-between pt-2 pb-2">
-        <div class="flex">
-          <Button
-            class="p-button-warning"
-            icon="pi pi-images"
-            label="แก้ไขชุดเอกสาร"
-            @click="confirmEditGroup = true"
-            v-if="
-              showImgData.length > 1 &&
-              !checkUseImg(props.images_data.guidfixed) &&
-              props.images_data.references.length == 0 &&
-              props.images_data.isreject != true &&
-              props.mode == 1
-            "
-          />
-          <Button
-            class="p-button-danger text-white ml-1"
-            icon="pi pi-file-excel"
-            label="ยกเลิกชุดเอกสาร"
-            @click="confirmUnGroup = true"
-            v-if="
-              showImgData.length > 1 &&
-              !checkUseImg(props.images_data.guidfixed) &&
-              props.images_data.references.length == 0 &&
-              props.mode == 1
-            "
-          />
-          <Button
-            v-if="props.mode != 4"
-            class="p-button-info ml-1"
-            icon="pi pi-print"
-            @click="printImg(showImgData)"
-            label="ปริ้นเอกสาร"
-          />
-        </div>
-        <div
-          class="flex"
-          v-if="
-            props.mode == 1 &&
-            !checkUseImg(props.images_data.guidfixed) &&
-            props.images_data.references.length == 0
-          "
-        >
-          <Button
-            class="p-button-outlined p-button-danger"
-            icon="pi pi-trash"
-            label="ยกเลิกรูปเอกสาร"
-            @click="selectRejectImage(true)"
-            v-if="!showImgData[activeIndexList].isreject"
-          />
-          <Button
-            class="p-button-outlined p-button-success mr-1"
-            icon="pi pi-refresh"
-            label="นำรูปกลับมาใช้"
-            @click="selectRejectImage(false)"
-            v-if="showImgData[activeIndexList].isreject"
-          />
-          <Button
-            class="p-button-outlined"
-            icon="pi pi-upload"
-            label="อัพโหลดรูปใหม่"
-            @click="chooseFile()"
-            v-if="showImgData[activeIndexList].isreject"
-          />
-          <input
-            id="chooseFile"
-            ref="fileInput"
-            type="file"
-            @change="onFileSelect"
-            :multiple="false"
-            accept="image/*"
-            style="display: none"
-          />
-        </div>
-      </div>
-      <div style="margin: 0px; padding: 0px">
-        <Message severity="warn" v-if="showImgData[activeIndexList].isreject"
-          >รูป {{ showImgData[activeIndexList].name }} โดนยกเลิก</Message
-        >
-      </div>
-      <Galleria
-        :value="showImgData"
-        :circular="true"
-        containerStyle="max-width: 100%"
-        thumbnailsPosition="top"
-        :show-thumbnails="showImgData.length > 1"
-        v-model:activeIndex="activeIndexList"
-        :numVisible="showImgData.length > 10 ? 10 : showImgData.length"
-      >
-        <template #header="slotProps"> </template>
-        <template #item="slotProps">
-          <div style="margin: 0px; padding: 0px; width: 100%; height: 65vh">
-            <iframe
-              :name="slotProps.item.imageuri"
-              :src="
-                '/images_group/components/zoom?uri=' + slotProps.item.imageuri
-              "
-            >
-            </iframe>
-          </div>
-        </template>
-        <template #thumbnail="slotProps">
-          <img
-            :src="slotProps.item.imageuri"
-            style="width: 50px; height: 50px"
-          />
-        </template>
-      </Galleria>
-    </div>
-  </Dialog>
+
   <DialogForm
     :confirmDialog="confirmSaveImg"
     :textContent="'ต้องการบันทึกรูปภาพ'"
@@ -196,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import Utils from "@/utils/";
 import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
@@ -218,11 +99,22 @@ const isReject = ref(true);
 const contentOnfirmRejectDialog = ref("");
 const confirmEditGroup = ref(false);
 
+const checkSelected = ref(false);
+
+// const checkSelected = computed({
+//   get() {
+//     if (props.images_selete.length == 0) {
+//       return false;
+//     }
+//   },
+// });
+
 const props = defineProps({
   images_data: Object,
   images_selete: Array,
   mode: Number,
   allimage_used: Array,
+  isSelectedDocument: Boolean,
 });
 const emit = defineEmits([
   "selectImg",

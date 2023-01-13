@@ -1,12 +1,36 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
+import Utils from "@/utils/";
 const activeIndexList = ref(0);
 const props = defineProps({
   showImgData: Object,
   showOveray: Boolean,
 });
+
+const emit = defineEmits(["closeDocumentPreview"]);
+
+function closeDocumentPreview() {
+  emit("closeDocumentPreview");
+}
 </script>
 <template>
+  <div class="flex align-items-center justify-content-end">
+    <Button
+      icon="pi pi-times"
+      class="p-button-rounded p-button-danger p-button-text"
+      @click="closeDocumentPreview"
+    />
+  </div>
+  
+  <div class="flex justify-content-between m-2">
+    <div class="flex">ชื่อรูป : {{ showImgData[activeIndexList].name }}</div>
+    <div class="flex">
+      วันที่ :{{
+        Utils.getDateTimeFormat(showImgData[activeIndexList].uploadedat)
+      }}
+      โดย {{ showImgData[activeIndexList].uploadedby }}
+    </div>
+  </div>
   <Galleria
     :value="props.showImgData"
     :circular="true"
@@ -19,7 +43,10 @@ const props = defineProps({
     <template #item="slotProps">
       <div
         class="relative"
-        style="margin: 0px; padding: 0px; width: 100%; height: 75vh"
+        style="margin: 0px; padding: 0px; width: 100%"
+        :style="
+          props.showImgData.length === 1 ? 'height: 70vh' : 'height: 65vh'
+        "
       >
         <iframe
           :name="slotProps.item.imageuri"

@@ -4,6 +4,7 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
+import FolderService from "@/services/FolderService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useToast } from "primevue/usetoast";
@@ -12,7 +13,7 @@ import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import ImageUpload from "./components/ImagesUpload.vue";
 import ImageBlock from "./components/ImagesBlock.vue";
-import ImagesGallery from "./components/ImagesGallery.vue";
+import ImagesFolder from "./components/ImagesFolder.vue";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import $ from "jquery";
 
@@ -116,6 +117,15 @@ const fromDate = ref("");
 const toDate = ref("");
 const showOveray = ref(false);
 const showImgData = ref();
+const showDocumentPreview = ref(true);
+const isSelectedDocument = ref(false);
+
+const data_folder = ref([]);
+const selectedFolder = ref({
+  guidfixed: "all",
+  name: "",
+  status: 0,
+});
 
 onUnmounted(() => {
   console.log(
@@ -128,6 +138,7 @@ onUnmounted(() => {
 });
 onMounted(() => {
   getDocumentImageGroup();
+  getFolderList();
   getImageAll();
 
   storeApp.setActivePage("document_images");
@@ -350,6 +361,7 @@ function getDocumentImageGroupScroll() {
         setTimeout(() => {
           res.data.forEach((ele) => {
             ele.isUpdate = false;
+            ele.ischecked = false;
 
             let references = ele.references ?? [];
             if (ele.references == undefined) {
@@ -529,10 +541,8 @@ function getDocumentImageGroup() {
           return element;
         });
 
-        data_list.value.forEach((element, index) => {
-          element.imagereferences.sort(function (a, b) {
-            return a.xorder - b.xorder;
-          });
+        data_list.value.forEach((element) => {
+          element.ischecked = false;
         });
 
         loading.value = false;
@@ -1239,14 +1249,6 @@ function onScroll() {
       nextPage();
     }
   }
-
-  let header = document.getElementById("headMenu");
-
-  if (div.scrollTop > 0) {
-    header.classList.add("sticky-custom");
-  } else {
-    header.classList.remove("sticky-custom");
-  }
 }
 
 function closeDialogUpload() {
@@ -1658,59 +1660,132 @@ function resizeSplitter(isOveray) {
 
 function showImg(data) {
   showImgData.value = data;
+  showDocumentPreview.value = true;
+}
+
+function closeDocumentPreview() {
+  showDocumentPreview.value = false;
+}
+
+function selectedDocument(isSelectedDoc) {
+  isSelectedDocument.value = isSelectedDoc;
+
+  if (!isSelectedDoc) {
+    removeSelectedImg();
+  }
+}
+
+function removeSelectedImg() {
+  selectedImg.value = [];
+  data_list.value.forEach((element) => {
+    element.ischecked = false;
+  });
+}
+
+function getFolderList() {
+  FolderService.getFolderList()
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        data_folder.value = res.data;
+      }
+    })
+    .catch((err) => {
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+}
+
+function saveFolderSuccess(status) {
+  if (status) {
+    getFolderList();
+  }
+}
+
+function selectFolder(data) {
+  let newData = {};
+  if (data == "all") {
+    newData = {
+      guidfixed: "all",
+      name: "",
+      status: 0,
+    };
+  } else {
+    newData = {
+      guidfixed: data.guidfixed,
+      name: data.name,
+      status: data.status == 0 ? false : true,
+    };
+  }
+  selectedFolder.value = newData;
 }
 </script>
 <template>
   <AppLayout>
-    <div id="headMenu">
-      <div class="flex p-2 bg-primary-50">
-        <div class="flex ml-0">
-          <Button
-            class="ml-0"
-            label="Upload รูปภาพ"
-            icon="pi pi-upload"
-            @click="openModal()"
-          />
-        </div>
-        <div class="flex ml-2">
-          <Button
-            :disabled="selectedImg.length <= 1"
-            class="p-button-info text-white"
-            icon="pi pi-pencil"
-            label="กำหนดชุดเอกสาร"
-            @click="updateRefDialog = true"
-          />
-        </div>
-        <div class="flex ml-2">
-          <Button
-            class="bg-primary-700 text-white"
-            icon="pi pi-check-square"
-            label="เลือกเอกสาร"
-            @click="updateRefDialog = true"
-          />
-        </div>
-        <div class="flex ml-2">
-          <Button
-            class="ml-0 p-button-secondary"
-            :label="searchDate == '' ? ' ค้นหาตามวันที่' : searchDate"
-            icon="pi pi-search"
-            @click="searchImageDateToDate($event)"
-          />
-        </div>
-        <div class="flex ml-2">
+    <div class="flex bg-primary-50 p-1">
+      <div class="flex ml-1">
+        <Button
+          class="p-button-sm"
+          label="Upload รูปภาพ"
+          icon="pi pi-upload"
+          @click="openModal()"
+        />
+      </div>
+      <div class="flex ml-1">
+        <Button
+          :disabled="selectedImg.length <= 1"
+          class="p-button-info text-white p-button-sm"
+          icon="pi pi-pencil"
+          label="กำหนดชุดเอกสาร"
+          @click="updateRefDialog = true"
+        />
+      </div>
+      <div class="flex ml-1">
+        <Button
+          class="p-button-secondary p-button-sm"
+          :label="searchDate == '' ? ' ค้นหาตามวันที่' : searchDate"
+          icon="pi pi-search"
+          @click="searchImageDateToDate($event)"
+        />
+      </div>
+      <div class="flex ml-1">
+        <Button
+          :class="!isSelectedDocument ? 'bg-primary-700' : 'bg-red-600'"
+          class="text-white p-button-sm"
+          :icon="
+            !isSelectedDocument ? 'pi pi-check-square' : 'pi pi-file-excel'
+          "
+          :label="!isSelectedDocument ? 'เลือกเอกสาร' : 'ยกเลิกเลือกเอกสาร'"
+          @click="
+            !isSelectedDocument
+              ? selectedDocument(true)
+              : selectedDocument(false)
+          "
+        />
+        <div class="flex ml-1">
           <Button
             v-if="selectedImg.length > 0"
-            class="p-button-danger text-white"
+            class="p-button-warning p-button-sm"
             icon="pi pi-times"
             :label="selectedImg.length.toString()"
-            @click="selectedImg = []"
+            @click="removeSelectedImg"
           />
         </div>
       </div>
     </div>
-    <div class="flex h-full bg-primary-50">
-      <div style="width: 200px">All Foler</div>
-
+    <div class="flex bg-primary-50">
+      <div style="height: 90vh; width: 200px; overflow-y: auto">
+        <ImagesFolder
+          :data_folder="data_folder"
+          :selectedFolder="selectedFolder"
+          v-on:saveFolderSuccess="saveFolderSuccess"
+          v-on:selectFolder="selectFolder"
+        />
+      </div>
       <div class="flex-1 flex">
         <Splitter
           class="w-full"
@@ -1719,7 +1794,7 @@ function showImg(data) {
         >
           <SplitterPanel :size="50">
             <div
-              style="height: 95.5vh; overflow-y: auto"
+              style="height: 90vh; overflow-y: auto"
               @scroll="onScroll"
               id="content"
             >
@@ -1761,6 +1836,7 @@ function showImg(data) {
                       :images_selete="selectedImg"
                       :allimage_used="AllImageUsed"
                       :mode="1"
+                      :isSelectedDocument="isSelectedDocument"
                       v-on:selectImg="selectImg"
                       v-on:useImage="useImage"
                       v-on:createform="createform"
@@ -1794,35 +1870,172 @@ function showImg(data) {
               </div>
             </div>
           </SplitterPanel>
-          <SplitterPanel :size="50">
+          <SplitterPanel :size="50" v-if="showDocumentPreview">
             <DocumentPreview
+              v-if="showImgData != null"
               :showOveray="showOveray"
               :showImgData="showImgData"
-              v-if="showImgData != null"
+              v-on:closeDocumentPreview="closeDocumentPreview"
             />
           </SplitterPanel>
         </Splitter>
       </div>
     </div>
+    <OverlayPanel
+      ref="searchImageDate"
+      :showCloseIcon="true"
+      style="width: 450px"
+      :breakpoints="{ '960px': '75vw' }"
+    >
+      <div class="grid formgrid p-fluid">
+        <div class="field mb-4 col-12 md:col-6">
+          <label class="font-medium text-900">จากวันที่</label>
+          <DatePicker
+            :disabled="imageGroup != null"
+            v-model="searchFromDate"
+            dateFormat="d/m/yy"
+            :showIcon="true"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="false"
+            :hiddenTime="true"
+          />
+        </div>
+        <div class="field mb-4 col-12 md:col-6">
+          <label class="font-medium text-900">ถึงวันที่</label>
+          <DatePicker
+            :disabled="imageGroup != null"
+            v-model="searchToDate"
+            dateFormat="d/m/yy"
+            :showIcon="true"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="false"
+            :hiddenTime="true"
+          />
+        </div>
+        <Button
+          @click="filterDatetoDate()"
+          label="ค้นหา"
+          class="p-button-raised p-button-secondary mb-2"
+        />
+        <Button
+          @click="clearFilterDatetoDate()"
+          label="ล้างการค้นหา"
+          class="p-button-raised p-button-danger"
+        />
+      </div>
+    </OverlayPanel>
+
+    <Dialog
+      :dismissableMask="true"
+      :close-on-escape="false"
+      :closeOnEscape="true"
+      v-model:visible="imageDialog"
+      :header="'รายละเอียด ' + dataImageDialog.name"
+      :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
+      :style="{ width: '60vw' }"
+      :modal="true"
+    >
+      <div class="confirmation-content" id="boxconfirm" style="height: 80vh">
+        <div class="flex justify-content-between mb-2">
+          <div class="flex">ชื่อรูป : {{ dataImageDialog.name }}</div>
+          <div class="flex">
+            วันที่ :{{
+              Utils.getDateTimeFormat(dataImageDialog.uploadedat)
+            }}
+            โดย {{ dataImageDialog.uploadedby }}
+          </div>
+        </div>
+        <div style="margin: 0px; padding: 0px">
+          <iframe
+            :src="
+              '/images_group/components/zoom?uri=' + dataImageDialog.imageuri
+            "
+          >
+          </iframe>
+        </div>
+      </div>
+    </Dialog>
+
+    <DialogForm
+      :confirmDialog="createDialog"
+      :textContent="create"
+      v-on:close="onClose"
+      v-on:confirm="onSaveCreate"
+    >
+    </DialogForm>
+    <Dialog
+      v-model:visible="updateRefDialog"
+      :style="{ width: '450px' }"
+      header="กำหนดชุดเอกสาร"
+      :modal="true"
+    >
+      <div class="grid formgrid p-fluid">
+        <div class="field mb-12 col-12 md:col-12">
+          <label for="title" class="font-medium text-900">ชื่อชุดเอกสาร</label>
+          <InputText
+            id="title"
+            type="text"
+            v-model="title2"
+            :class="title2_valid ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field mb-12 col-12 md:col-12">
+          <label class="font-medium text-900">วันที่เอกสาร</label>
+          <DatePicker
+            v-model="uploadedat2"
+            dateFormat="d/m/yy"
+            :showIcon="true"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="false"
+            :hiddenTime="true"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          label="ยกเลิก"
+          icon="pi pi-times"
+          class="p-button-text"
+          @click="updateRefDialog = false"
+        />
+        <Button
+          label="บันทึก"
+          icon="pi pi-check"
+          class="p-button-text"
+          @click="saveGropImages(modeCreateImageGroup)"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      header="Upload รูปภาพ"
+      v-model:visible="uploadmodel"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+      :style="{ width: '80vw' }"
+      :modal="true"
+      :closable="false"
+    >
+      <ImageUpload
+        v-on:success="uploadSuccess()"
+        :data_ondrop="data_import"
+        v-on:closeDialogUpload="closeDialogUpload()"
+      ></ImageUpload>
+    </Dialog>
+    <DialogForm
+      :confirmDialog="confirmChangeImageDialog"
+      :textContent="confirmChangeImage"
+      v-on:close="onClose"
+      v-on:confirm="changeImage(newDocRefImage)"
+    ></DialogForm>
+    <DialogForm
+      :confirmDialog="confirmGroupImageDialog"
+      :textContent="'ต้องการรวมชุดรูป ' + addToGroup"
+      v-on:close="confirmGroupImageDialog = false"
+      v-on:confirm="addImageGroup()"
+    ></DialogForm>
   </AppLayout>
 </template>
 <style scoped>
-.sticky-custom {
-  z-index: 999;
-  margin-top: 35px;
-  position: fixed;
-  top: 0;
-  width: 100%;
-}
-
-@media only screen and (max-width: 991px) {
-  .sticky-custom {
-    z-index: 999;
-    position: fixed;
-    top: 0;
-    width: 100%;
-  }
-}
 .p-splitter {
   border-radius: 0px;
 }
