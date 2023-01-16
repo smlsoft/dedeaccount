@@ -55,7 +55,7 @@ function onConfirm() {
     appendTo="body"
     :modal="true"
     :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
-    :style="{ width: '30vw' }"
+    :style="{ width: '40vw' }"
   >
     <template #header>
       <div class="flex align-items-center">
@@ -86,7 +86,12 @@ function onConfirm() {
           label="ไม่"
           class="p-button-text"
         ></Button>
-        <Button icon="pi pi-check" @click="onConfirm" label="ใช่"></Button>
+        <Button
+          class="p-button-success"
+          icon="pi pi-save"
+          @click="onConfirm"
+          label="ใช่"
+        ></Button>
       </div>
     </template>
   </Dialog>

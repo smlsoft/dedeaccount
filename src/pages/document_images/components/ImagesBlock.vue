@@ -26,6 +26,12 @@
           props.images_data.imagereferences.length
         }}</span>
       </button>
+      <Avatar
+        v-if="checkUseImg(props.images_data.guidfixed)"
+        icon="pi pi-user "
+        class="mr-2 absolute bg-blue-100 text-primary-700"
+        style="bottom: 0rem; left: 0rem"
+      />
       <Checkbox
         v-if="
           isSelectedDocument &&
@@ -371,7 +377,7 @@ function zoomImg(data) {
   console.log(data);
 
   zoomImgData.value = data;
-  showImgData.value = data.imagereferences;
+  showImgData.value = data;
   showImageDocRef.value = data.documentref;
 
   //showImgDialog.value = true;

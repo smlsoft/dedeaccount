@@ -79,7 +79,7 @@ const language = localStorage.getItem('activeLang') || 'th';
 
 
 const i18n = createI18n({
-    legacy:false,
+    legacy: false,
     messages,
     locale: language,
 });
