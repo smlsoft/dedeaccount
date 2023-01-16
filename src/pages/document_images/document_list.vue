@@ -116,6 +116,7 @@ const searchDate = ref("");
 const fromDate = ref("");
 const toDate = ref("");
 const showOveray = ref(false);
+const selectedImag = ref("");
 const showImgData = ref();
 const showDocumentPreview = ref(true);
 const isSelectedDocument = ref(false);
@@ -1659,7 +1660,8 @@ function resizeSplitter(isOveray) {
 }
 
 function showImg(data) {
-  showImgData.value = data;
+  selectedImag.value = data;
+  showImgData.value = data.imagereferences;
   showDocumentPreview.value = true;
 }
 
@@ -1722,6 +1724,14 @@ function selectFolder(data) {
     };
   }
   selectedFolder.value = newData;
+}
+
+function rejectSuccess(status) {
+  if (status) {
+    showImgData.value = null;
+    selectedImag.value = "";
+    getDocumentImageGroup();
+  }
 }
 </script>
 <template>
@@ -1871,11 +1881,20 @@ function selectFolder(data) {
             </div>
           </SplitterPanel>
           <SplitterPanel :size="50" v-if="showDocumentPreview">
+            <div
+              v-if="showImgData == null"
+              class="flex align-items-center justify-content-center h-full"
+            >
+              <p class="text-600">เลือกเอกสารเพื่อแสดง</p>
+            </div>
             <DocumentPreview
               v-if="showImgData != null"
+              :allimage_used="AllImageUsed"
               :showOveray="showOveray"
               :showImgData="showImgData"
+              :selectedImag="selectedImag"
               v-on:closeDocumentPreview="closeDocumentPreview"
+              v-on:rejectSuccess="rejectSuccess"
             />
           </SplitterPanel>
         </Splitter>
