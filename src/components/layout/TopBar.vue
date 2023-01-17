@@ -23,7 +23,7 @@ function openSelectShop() {
         v-ripple
         class="cursor-pointer block lg:hidden text-700 mr-3 mt-1 p-ripple"
         v-styleclass="{
-          selector: '#app-sidebar-4',
+          selector: '#app-sidebar',
           enterClass: 'hidden',
           enterActiveClass: 'fadeinleft',
           leaveToClass: 'hidden',

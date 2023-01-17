@@ -133,6 +133,21 @@ async function signUp(name, username, password) {
       });
     });
 }
+
+function createShopScuuess(status) {
+  if (status) {
+    AuthenService.getListShop()
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          listShop.value = res.data;
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+}
 </script>
 
 <template>
@@ -192,6 +207,7 @@ async function signUp(name, username, password) {
         v-on:isFavorite="isFavorite"
         v-on:selectShop="selectShop"
         v-on:goLogout="goLogout"
+        v-on:createShopScuuess="createShopScuuess"
       />
     </div>
   </div>

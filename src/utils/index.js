@@ -282,6 +282,7 @@ const isImage = (file) => {
   return /^image\//.test(file.type);
 };
 
+
 export default {
   newGuid,
   isEmpty,

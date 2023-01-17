@@ -16,5 +16,8 @@ export default {
     putFavorite(data) {
         return instanceApi(true).put(`/favorite-shop`, data).then(res => res.data);
     },
+    createShop(data) {
+        return instanceApi(true).post(`/create-shop`, data).then(res => res.data);
+    },
 }
 

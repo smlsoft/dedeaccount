@@ -25,7 +25,7 @@ onMounted(() => {
     lockSlideBar.value = false;
   }
 
-  console.log(lockSlideBar.value);
+  // console.log(lockSlideBar.value);
 
   widthscreen.value = screen.width;
 });
@@ -144,7 +144,7 @@ function lockShowSlideBar(data) {
     :showHeader="false"
     v-model:visible="displaySelectShop"
     ::breakpoints="{'960px': '75vw', '640px': '90vw'}"
-    :style="{ width: '70vw' }"
+    :style="{ width: '90vw' }"
     position="top"
     :modal="true"
     :draggable="false"

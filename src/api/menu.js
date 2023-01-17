@@ -7,6 +7,13 @@ export const menus = [
     children: [],
   },
   {
+    title: "คลังเอกสาร",
+    icon: "pi pi-inbox",
+    to: "/document_images/list",
+    name: "document_images",
+    children: [],
+  },
+  {
     title: "คลังรูปภาพ",
     icon: "pi pi-image",
     to: "/images_group/list",
@@ -98,7 +105,7 @@ export const menus = [
         to: "/report/profitandloss",
       },
       {
-        title: "งบแสดงฐานะทางการเงิน (งบดุล)",
+        title: "งบแสดงฐานะทางการเงิน",
         icon: "pi pi-chart-line",
         name: "report_balancesheet",
         to: "/report/balancesheet",
