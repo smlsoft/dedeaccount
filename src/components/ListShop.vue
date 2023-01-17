@@ -1,16 +1,30 @@
 <script setup>
+import { useToast } from "primevue/usetoast";
+import AuthenService from "@/services/AuthenService";
 import { ref, onMounted, computed } from "vue";
 
+const toast = useToast();
 const props = defineProps({
   listShop: Object,
 });
 
-const emit = defineEmits(["isFavorite", "selectShop", "goLogout"]);
+const emit = defineEmits([
+  "isFavorite",
+  "selectShop",
+  "goLogout",
+  "createShopScuuess",
+]);
 
 const layout = ref("grid");
 
 const favorite = ref(false);
 const searchShop = ref("");
+
+const createShopModal = ref(false);
+const nameShop = ref("");
+const telShop = ref("");
+const nameShopInvalid = ref(false);
+const telShopInvalid = ref(false);
 
 const searchResults = computed(() => {
   return props.listShop.filter((shop) => {
@@ -42,6 +56,59 @@ function selectShop(data) {
 
 function goLogout() {
   emit("goLogout");
+}
+
+async function saveCreateShop() {
+  const isPass = await verifyData();
+
+  if (isPass) {
+    let data = {
+      name1: nameShop.value,
+      telephone: telShop.value,
+    };
+    try {
+      const res = await AuthenService.createShop(data);
+      if (res.success) {
+        nameShop.value = "";
+        telShop.value = "";
+        nameShopInvalid.value = false;
+        telShopInvalid.value = false;
+        createShopModal.value = false;
+        emit("createShopScuuess", true);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "error",
+        detail: "บันทึกไม่สำเร็จ " + err,
+        life: 3000,
+      });
+    }
+  }
+}
+
+function verifyData() {
+  let checkValid = 0;
+  if (nameShop.value == "") {
+    nameShopInvalid.value = false;
+    checkValid += 1;
+  } else {
+    nameShopInvalid.value = true;
+  }
+
+  if (telShop.value == "") {
+    telShopInvalid.value = false;
+    checkValid += 1;
+  } else {
+    telShopInvalid.value = true;
+  }
+
+  if (checkValid == 0) {
+    return true;
+  } else {
+    return false;
+  }
 }
 </script>
 <template>
@@ -75,7 +142,12 @@ function goLogout() {
             </div>
             <div class="flex justify-content-end mb-0">
               <div class="flex align-items-center mt-3 md:mt-0">
-                
+                <Button
+                  class="p-button-sm mr-3"
+                  label="สร้างกิจการ"
+                  icon="pi pi-plus "
+                  @click="createShopModal = true"
+                />
                 <span class="p-input-icon-left">
                   <i class="pi pi-search"></i>
                   <InputText
@@ -180,9 +252,56 @@ function goLogout() {
       </div>
     </template>
   </DataView>
+  <Dialog
+    header="สร้างกิจการ"
+    v-model:visible="createShopModal"
+    :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    :style="{ width: '50vw' }"
+    :modal="true"
+  >
+    <div class="field">
+      <label for="name">ชื่อกิจการ</label>
+      <InputText
+        id="name"
+        type="text"
+        class="w-full mb-3"
+        v-model="nameShop"
+        :class="!nameShopInvalid ? 'p-invalid' : ''"
+      />
+    </div>
+    <div class="field">
+      <label for="tel">เบอร์โทรศัพท์</label>
+      <InputText
+        v-model="telShop"
+        id="tel"
+        class="w-full mb-3"
+        type="number"
+        :class="!nameShopInvalid ? 'p-invalid' : ''"
+      />
+    </div>
+    <template #footer>
+      <Button
+        label="No"
+        icon="pi pi-times"
+        @click="createShopModal = false"
+        class="p-button-text"
+      />
+      <Button
+        class="p-button-success"
+        label="บันทึก"
+        icon="pi pi-save"
+        @click="saveCreateShop"
+        autofocus
+      />
+    </template>
+  </Dialog>
 </template>
 
 <style lang="scss" scoped>
+.p-dataview-content {
+  height: 75vh;
+  overflow-y: scroll;
+}
 .p-divider-solid.p-divider-horizontal:before {
   border-top-style: solid;
 }
