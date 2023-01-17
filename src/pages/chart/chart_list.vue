@@ -420,7 +420,10 @@ function rowClass(data) {
                     icon="pi pi-plus"
                     class="w-auto"
                     @click="goCreate()"
-                  ></Button>
+                  >
+                    <i class="pi pi-plus"> </i> &nbsp;
+                    <label for="">{{ $t("account_code") }}</label></Button
+                  >
                 </div>
                 <div
                   class="flex-1 flex align-items-center justify-content-center"
@@ -451,44 +454,50 @@ function rowClass(data) {
             </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-            <Column
-              field="accountcode"
-              header="รหัสผังบัญชี"
-              class="accountcode"
-            ></Column>
-            <Column
-              field="accountname"
-              header="ชื่อผังบัญชี"
-              class="accountname"
-            ></Column>
+            <Column field="accountcode" header="" class="accountcode">
+              <template #header>
+                {{ $t("account_code") }}
+              </template></Column
+            >
+            <Column field="accountname" header="" class="accountname">
+              <template #header>
+                {{ $t("account_name") }}
+              </template></Column
+            >
 
-            <Column field="accountcategory" header="หมวดบัญชี" >
+            <Column field="accountcategory" header="">
+              <template #header>
+                {{ $t("acc_cat") }}
+              </template>
               <template #body="{ data, field }">
                 {{ newResultCategory(data[field]) }}
               </template>
             </Column>
-            <Column
-              field="accountbalancetype"
-              header="ด้านบัญชี"
-            >
+            <Column field="accountbalancetype" header="">
+              <template #header>
+                {{ $t("acc_balance_type") }}
+              </template>
               <template #body="{ data, field }">
                 {{ newResultBalance(data[field]) }}
               </template>
             </Column>
-            <Column
-              field="accountgroup"
-              header="กลุ่มบัญชี"
-            ></Column>
+            <Column field="accountgroup" header="">
+              <template #header>
+                {{ $t("accountgroup") }}
+              </template></Column
+            >
 
-            <Column
-              field="accountlevel"
-              header="ระดับบัญชี"
-            ></Column>
-            <Column
-              field="consolidateaccountcode"
-              header="รหัสผังบัญชีกลาง"
-            ></Column>
-            <Column bodyStyle="text-align:center" style="width: 5%">
+            <Column field="accountlevel" header="">
+              <template #header>
+                {{ $t("acc_level") }}
+              </template></Column
+            >
+            <Column field="consolidateaccountcode" header="">
+              <template #header>
+                {{ $t("consolidate_acc") }}
+              </template></Column
+            >
+            <Column bodyStyle="text-align:center">
               <template #body="slotProps">
                 <Button
                   icon="pi pi-pencil"
@@ -497,7 +506,7 @@ function rowClass(data) {
                 />
               </template>
             </Column>
-            <Column bodyStyle="text-align:center" style="width: 5%">
+            <Column bodyStyle="text-align:center">
               <template #body="slotProps">
                 <Button
                   icon="pi pi-trash"

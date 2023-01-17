@@ -216,8 +216,8 @@ function checkAccountPeriod(event, mode) {
       const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
       keyDate = isoDate; // 2022-12-20
     }
-    console.log(dayjs(keyDate).format('YYYY-MM-DD'));
-    getAccountPeriodByDate(dayjs(keyDate).format('YYYY-MM-DD'));
+    console.log(dayjs(keyDate).format("YYYY-MM-DD"));
+    getAccountPeriodByDate(dayjs(keyDate).format("YYYY-MM-DD"));
   }, 100);
 }
 
@@ -267,7 +267,7 @@ function headerNextFocus(filedName) {
       $(".isUpdate").focus();
     } else if (filedName == "accountRow1") {
       $(".accountcode_" + 0 + " > input").focus();
-    } else if (filedName == "docno")  {
+    } else if (filedName == "docno") {
       $(".docno").focus();
     }
   }, 100);
@@ -278,7 +278,7 @@ function headerNextFocus(filedName) {
   <form>
     <div class="grid formgrid p-fluid">
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">เอกสารวันที่</label>
+        <label class="font-medium text-900">{{ $t("doc_date") }}</label>
         <DatePicker
           dateFormat="d/m/yy"
           v-model="props.daily_form.docdate"
@@ -296,7 +296,9 @@ function headerNextFocus(filedName) {
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
+        <label for="docNo" class="font-medium text-900">
+          {{ $t("docno") }}</label
+        >
         <InputText
           type="text"
           v-model="props.daily_form.docno"
@@ -318,7 +320,7 @@ function headerNextFocus(filedName) {
         />
       </div> -->
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">งวดบัญชี</label>
+        <label class="font-medium text-900"> {{ $t("acc_period") }}</label>
         <InputText
           type="number"
           :min="0"
@@ -329,7 +331,7 @@ function headerNextFocus(filedName) {
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">ปีบัญชี</label>
+        <label class="font-medium text-900"> {{ $t("acc_yesrs") }}</label>
         <InputText
           type="number"
           :min="0"
@@ -342,7 +344,7 @@ function headerNextFocus(filedName) {
       </div>
       <div class="col-12"></div>
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">เอกสารวันที่อ้างอิง</label>
+        <label class="font-medium text-900"> {{ $t("docdate_ref") }}</label>
         <DatePicker
           dateFormat="d/m/yy"
           v-model="props.daily_form.exdocrefdate"
@@ -357,9 +359,9 @@ function headerNextFocus(filedName) {
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label for="exdocrefno" class="font-medium text-900"
-          >เลขที่เอกสารอ้างอิง</label
-        >
+        <label for="exdocrefno" class="font-medium text-900">{{
+          $t("docno_ref")
+        }}</label>
         <InputText
           id="exdocrefno"
           type="text"
@@ -371,7 +373,9 @@ function headerNextFocus(filedName) {
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label for="bookcode" class="font-medium text-900">สมุดรายวัน</label>
+        <label for="bookcode" class="font-medium text-900">{{
+          $t("journal")
+        }}</label>
         <Dropdown
           v-model="props.daily_form.bookcode"
           :options="props.accountBook_detail"
@@ -395,9 +399,9 @@ function headerNextFocus(filedName) {
         </Dropdown>
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label for="accountgroup" class="font-medium text-900"
-          >กลุ่มบัญชี</label
-        >
+        <label for="accountgroup" class="font-medium text-900">{{
+          $t("accountgroup")
+        }}</label>
         <Dropdown
           v-model="props.daily_form.accountgroup"
           :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
@@ -422,7 +426,7 @@ function headerNextFocus(filedName) {
       </div>
 
       <div class="field mb-12 col-12 md:col-9">
-        <label class="font-medium text-900">คำอธิบาย</label>
+        <label class="font-medium text-900"> {{ $t("description") }}</label>
         <Textarea
           type="text"
           :disabled="props.isUpdate"
@@ -434,7 +438,7 @@ function headerNextFocus(filedName) {
         />
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">ประเภทรายการ</label>
+        <label class="font-medium text-900"> {{ $t("type") }}</label>
         <div class="grid mt-2 ml-2">
           <div class="flex field-checkbox">
             <RadioButton
@@ -445,7 +449,7 @@ function headerNextFocus(filedName) {
               inputClass="isUpdate"
               @keyup.enter="headerNextFocus('accountRow1')"
             />
-            <label>ทั่วไป</label>
+            <label> {{ $t("general") }}</label>
           </div>
           <div class="flex field-checkbox ml-3">
             <RadioButton
@@ -455,7 +459,7 @@ function headerNextFocus(filedName) {
               v-model="props.daily_form.journaltype"
               @keyup.enter="headerNextFocus('accountRow1')"
             />
-            <label>ปิดบัญชี</label>
+            <label> {{ $t("close_entry") }}</label>
           </div>
         </div>
       </div>
@@ -472,8 +476,9 @@ function headerNextFocus(filedName) {
         v-if="!props.isUpdate"
         @change="ImportFile()"
         class="p-button-plain p-button-primary p-button-sm"
-        chooseLabel="นำเข้าไฟล์"
+        chooseLabel="uploadfile"
       >
+        <label for=""></label>
       </FileUpload>
     </div>
     <div>
@@ -484,14 +489,11 @@ function headerNextFocus(filedName) {
         class="editable-cells-table"
         responsiveLayout="scroll"
       >
-        <Column
-          header="ย้าย"
-          :rowReorder="true"
-          style="width: 5%"
-          v-if="!props.isUpdate"
-        >
+        <Column :rowReorder="true" style="width: 5%" v-if="!props.isUpdate"
+          ><template #header>{{ $t("move") }}</template>
         </Column>
-        <Column field="accountcode" header="รหัสบัญชี" style="width: 20%">
+        <Column field="accountcode" style="width: 20%">
+          <template #header>{{ $t("account_code") }}</template>
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
             <TextAutoComplete
               v-model="data[field]"
@@ -524,22 +526,20 @@ function headerNextFocus(filedName) {
         </Column>
         <Column
           field="accountname"
-          header="ชื่อบัญชี"
           style="min-width: 300px"
           footerStyle="text-align: right !important"
           footer="รวม"
-        >
+          ><template #header>{{ $t("account_name") }}</template>
         </Column>
 
         <Column
           field="debitamount"
-          header="เดบิต"
           footerStyle="text-align: right !important"
           :footer="Utils.formatCurrency(sumTableDebit)"
           bodyStyle="text-align: right !important"
           headerStyle="text-align:center;width: 10%"
           style="width: 13%"
-        >
+          ><template #header>{{ $t("debit") }}</template>
           <!-- <template #body="{ data, field }">
             {{ Utils.formatCurrency(data[field]) }}
           </template> -->
@@ -557,13 +557,12 @@ function headerNextFocus(filedName) {
 
         <Column
           field="creditamount"
-          header="เครดิต"
           footerStyle="text-align: right !important"
           :footer="Utils.formatCurrency(sumTableCredit)"
           bodyStyle="text-align: right !important"
           headerStyle="text-align:center;width: 10%"
           style="width: 13%"
-        >
+          ><template #header>{{ $t("credit") }}</template>
           <!-- <template #body="{ data, field }">
             {{ Utils.formatCurrency(data[field]) }}
           </template> -->
@@ -579,11 +578,10 @@ function headerNextFocus(filedName) {
         </Column>
 
         <Column
-          header="ลบ"
           bodyStyle="text-align:center"
           style="width: 5%"
           v-if="!props.isUpdate"
-        >
+          ><template #header>{{ $t("remove") }}</template>
           <template #body="slotProps">
             <Button
               icon="pi pi-times"
@@ -593,11 +591,10 @@ function headerNextFocus(filedName) {
           </template>
         </Column>
         <Column
-          header="เพิ่ม"
           bodyStyle="text-align:center"
           style="width: 5%"
           v-if="!props.isUpdate"
-        >
+          ><template #header>{{ $t("add") }}</template>
           <template #body="slotProps">
             <Button
               icon="pi pi-plus"

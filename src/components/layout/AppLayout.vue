@@ -162,7 +162,10 @@ function lockShowSlideBar(data) {
           @click="displaySelectShop = false"
           label="ปิด"
           class="p-button-outlined"
-        ></Button>
+          ><i class="pi pi-times"> </i> &nbsp;<label for="">{{
+            $t("close")
+          }}</label></Button
+        >
       </div>
     </template>
   </Dialog>

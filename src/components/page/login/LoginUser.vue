@@ -32,7 +32,9 @@ function loginButton() {
     </div>
     <languageButton />
   </div>
-  <label for="user" class="block text-900 font-medium mb-2">Email</label>
+  <label for="user" class="block text-900 font-medium mb-2">
+    {{ $t("email") }}</label
+  >
   <InputText
     id="user"
     type="text"
@@ -41,7 +43,9 @@ function loginButton() {
     style="padding: 1rem"
     v-model="username"
   />
-  <label for="password" class="block text-900 font-medium mb-2">Password</label>
+  <label for="password" class="block text-900 font-medium mb-2">
+    {{ $t("password") }}</label
+  >
   <InputText
     id="password"
     type="password"

@@ -293,6 +293,7 @@ import TrialBalance from "./components/tableTrialBalance.vue";
 import Ledger from "./components/tableLedger.vue";
 import dayjs from "dayjs";
 import XLSX from "xlsx";
+
 import JournalForm from "../daily/components/journal_form.vue";
 import VatForm from "../daily/components/vat_form.vue";
 import TaxForm from "../daily/components/tax_form.vue";

@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useApp } from "@/stores/app.js";
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n";
 const storeApp = useApp();
-const { locale  } = useI18n()
+const { locale } = useI18n();
 onMounted(() => {
   chooseLanguage(storeApp.activeLang);
 });
@@ -69,16 +69,14 @@ const languages = ref([
   },
 ]);
 
-function chooseLanguage(data){
-
+function chooseLanguage(data) {
   let ele = [];
   ele = languages.value.filter((val) => val.code == data);
   selectLanguage.value = ele[0].image;
 
   storeApp.setActiveLang(data);
-  
-  locale.value = data;
 
+  locale.value = data;
 }
 </script>
 <template>
@@ -96,8 +94,8 @@ function chooseLanguage(data){
       }"
     >
       <img
-        :src="'./images/flags/' + selectLanguage"
-        alt="Flag"
+        :src="'/images/flags/' + selectLanguage"
+        alt="Flags"
         style="width: 30px"
       />
     </a>

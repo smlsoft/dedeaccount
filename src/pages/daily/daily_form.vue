@@ -175,11 +175,10 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
 
-    // set height ifram
-    heightIamgeDivCheckGl.value = 'height:' + divCheckGl.value.offsetHeight + 'px';
-
-  
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
@@ -1364,7 +1363,8 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
-  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
 
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
@@ -2062,7 +2062,7 @@ function resizeGalleria(e) {
                   <TabPanel>
                     <template #header>
                       <i class="pi pi-book mr-1"></i>
-                      <span> ข้อมูลรายวัน</span>
+                      <span> {{ $t("journal") }}</span>
                     </template>
                     <div v-if="!onLoad">
                       <JournalForm
@@ -2085,7 +2085,7 @@ function resizeGalleria(e) {
                   <TabPanel>
                     <template #header>
                       <i class="pi pi-wallet mr-1"></i>
-                      <span> ข้อมูลภาษี</span>
+                      <span> {{ $t("vats") }}</span>
                     </template>
                     <div v-if="!onLoad">
                       <VatForm
@@ -2103,7 +2103,7 @@ function resizeGalleria(e) {
                   <TabPanel>
                     <template #header>
                       <i class="pi pi-wallet mr-1"></i>
-                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                      <span> {{ $t("taxes") }}</span>
                     </template>
                     <div v-if="!onLoad">
                       <TaxForm
@@ -2128,7 +2128,10 @@ function resizeGalleria(e) {
               label="บันทึกรายวัน"
               icon="pi pi-save"
               class="w-auto p-button-success"
-            ></Button>
+            >
+              <i class="pi pi-save"></i> &nbsp; &nbsp;
+              <label for="">{{ $t("save") }}</label>
+            </Button>
           </div>
         </div>
       </div>

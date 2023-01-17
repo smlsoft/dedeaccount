@@ -86,11 +86,13 @@ function checkDateFormat(index) {
     class="flex justify-content-between flex-wrap m-0 mb-3 p-0 text-900 line-height-3"
   >
     <div class="flex align-items-center justify-content-center">
-      รวมฐานภาษี : {{ Utils.formatCurrency(sum_vatbase) }} บาท |
-      รวมยอดยกเว้นภาษี : {{ Utils.formatCurrency(sum_vat_exemption) }} บาท
+      {{ $t("vat_base") }} : {{ Utils.formatCurrency(sum_vatbase) }} บาท |
+      รวมยอดยกเว้นภาษี {{ $t("vat_exem") }} :
+      {{ Utils.formatCurrency(sum_vat_exemption) }} บาท
     </div>
     <div class="flex align-items-center justify-content-center font-bold">
-      รวมยอดภาษี : {{ Utils.formatCurrency(sum_vatamount) }} บาท
+      รวมยอดภาษี {{ $t("vat_amount") }}:
+      {{ Utils.formatCurrency(sum_vatamount) }} บาท
     </div>
   </div>
   <div
@@ -101,7 +103,7 @@ function checkDateFormat(index) {
     <div class="mb-0 flex align-items-center justify-content-between">
       <div class="flex align-items-center">
         <span class="text-md font-medium text-900"
-          >รายการที่ {{ index + 1 }}</span
+          >รายการที่ {{ $t("") }}{{ index + 1 }}</span
         >
       </div>
       <div>
@@ -116,7 +118,9 @@ function checkDateFormat(index) {
     <div class="surface-border border-top-1 opacity-50 mb-0 col-12"></div>
     <div class="grid formgrid p-fluid">
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">วันที่ใบกำกับ</label>
+        <label class="font-medium text-900"
+          >วันที่ใบกำกับ {{ $t("vat_date") }}</label
+        >
         <Calendar
           dateFormat="dd/mm/yy"
           v-model="data.vatdate"
@@ -125,7 +129,9 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">เลขที่ใบกำกับ</label>
+        <label class="font-medium text-900"
+          >เลขที่ใบกำกับ {{ $t("vat_num") }}</label
+        >
         <InputText
           type="text"
           v-model="data.vatdocno"
@@ -134,7 +140,7 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ชื่อ</label>
+        <label class="font-medium text-900">ชื่อ {{ $t("") }}</label>
         <InputText
           type="text"
           v-model="data.custname"
@@ -144,7 +150,7 @@ function checkDateFormat(index) {
       </div>
       <div class="field col-12 md:col-6">
         <label class="font-medium text-900"
-          >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน</label
+          >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน {{ $t("tax_payer") }}</label
         >
         <InputText
           type="text"
@@ -155,7 +161,9 @@ function checkDateFormat(index) {
       </div>
 
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">สถานประกอบการ</label>
+        <label class="font-medium text-900"
+          >สถานประกอบการ {{ $t("organize") }}</label
+        >
         <div class="flex mt-2">
           <div class="flex">
             <div class="field-radiobutton">
@@ -166,7 +174,7 @@ function checkDateFormat(index) {
                 v-model="data.organization"
                 @change="setBranch(index)"
               />
-              <label>สำนักงานใหญ่</label>
+              <label>สำนักงานใหญ่ {{ $t("head_of") }}</label>
             </div>
           </div>
           <div class="flex ml-4">
@@ -178,13 +186,15 @@ function checkDateFormat(index) {
                 v-model="data.organization"
                 @change="setBranch(index)"
               />
-              <label>สาขา</label>
+              <label>สาขา {{ $t("sub_of") }}</label>
             </div>
           </div>
         </div>
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ลำดับที่สาขา</label>
+        <label class="font-medium text-900"
+          >ลำดับที่สาขา {{ $t("sub_of_number") }}</label
+        >
         <InputText
           type="text"
           v-model="data.branchcode"
@@ -193,7 +203,7 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ปีภาษี</label>
+        <label class="font-medium text-900">ปีภาษี {{ $t("vat_year") }}</label>
 
         <InputText
           type="number"
@@ -204,7 +214,9 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">เดือนภาษี</label>
+        <label class="font-medium text-900"
+          >เดือนภาษี {{ $t("vat_month") }}</label
+        >
         <InputText
           type="number"
           :min="1"
@@ -216,7 +228,7 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ฐานภาษี</label>
+        <label class="font-medium text-900">ฐานภาษี {{ $t("vat_base") }}</label>
 
         <InputNumber
           v-model="data.vatbase"
@@ -230,7 +242,9 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">อัตราภาษี</label>
+        <label class="font-medium text-900"
+          >อัตราภาษี {{ $t("vat_rate") }}</label
+        >
 
         <InputNumber
           v-model="data.vatrate"
@@ -244,7 +258,7 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ภาษี</label>
+        <label class="font-medium text-900">ภาษี {{ $t("vatinfo") }}</label>
         <div class="flex">
           <div class="flex">
             <div class="field-radiobutton">
@@ -254,7 +268,7 @@ function checkDateFormat(index) {
                 v-model="data.vatmode"
                 :disabled="props.isUpdate"
               />
-              <label>ภาษีซื้อ</label>
+              <label>ภาษีซื้อ {{ $t("vat_input") }}</label>
             </div>
           </div>
           <div class="flex ml-4">
@@ -265,13 +279,15 @@ function checkDateFormat(index) {
                 v-model="data.vatmode"
                 :disabled="props.isUpdate"
               />
-              <label>ภาษีขาย</label>
+              <label>ภาษีขาย {{ $t("vat_output") }}</label>
             </div>
           </div>
         </div>
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ประเภทภาษี</label>
+        <label class="font-medium text-900"
+          >ประเภทภาษี {{ $t("vat_type") }}</label
+        >
         <div class="flex">
           <div class="flex">
             <div class="field-radiobutton">
@@ -281,7 +297,7 @@ function checkDateFormat(index) {
                 v-model="data.vattype"
                 :disabled="props.isUpdate"
               />
-              <label>ปกติ</label>
+              <label>ปกติ {{ $t("normal") }}</label>
             </div>
           </div>
           <div class="flex ml-4" v-if="data.vatmode != '1'">
@@ -292,19 +308,21 @@ function checkDateFormat(index) {
                 v-model="data.vattype"
                 :disabled="props.isUpdate"
               />
-              <label>ขอคืนไม่ได้</label>
+              <label>ขอคืนไม่ได้ {{ $t("not_refund") }}</label>
             </div>
           </div>
           <div class="flex ml-4">
             <div class="field-radiobutton">
               <RadioButton name="vattype" :value="2" v-model="data.vattype" />
-              <label>ไม่ถึงกำหนดชำระ</label>
+              <label>ไม่ถึงกำหนดชำระ {{ $t("nort_due") }}</label>
             </div>
           </div>
         </div>
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ยอดภาษี</label>
+        <label class="font-medium text-900"
+          >ยอดภาษี {{ $t("vat_amount") }}</label
+        >
         <InputNumber
           v-model="data.vatamount"
           autofocus
@@ -316,7 +334,9 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ยอดยกเว้นภาษี</label>
+        <label class="font-medium text-900"
+          >ยอดยกเว้นภาษี {{ $t("vat_exem") }}</label
+        >
 
         <InputNumber
           v-model="data.exceptvat"
@@ -329,7 +349,7 @@ function checkDateFormat(index) {
         />
       </div>
       <div class="field col-12">
-        <label class="font-medium text-900">หมายเหตุ</label>
+        <label class="font-medium text-900">หมายเหตุ {{ $t("remark") }}</label>
 
         <Textarea
           id="notes"
@@ -347,7 +367,7 @@ function checkDateFormat(index) {
             v-model="data.vatsubmit"
             :disabled="props.isUpdate"
           ></Checkbox>
-          <span class="ml-2">ยื่นเพิ่ม</span>
+          <span class="ml-2">ยื่นเพิ่ม {{ $t("additonal") }}</span>
         </div>
       </div>
     </div>
