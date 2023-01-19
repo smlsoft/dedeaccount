@@ -20,7 +20,6 @@ import $ from "jquery";
 import DocumentPreview from "./components/documentPreview.vue";
 
 const confirmChangeImage = ref("ต้องการเปลี่ยนรูปภาพ ");
-const create = ref("ต้องการสร้าง Gallery ใหม่");
 const content = ref();
 const storeApp = useApp();
 const router = useRouter();
@@ -41,8 +40,7 @@ const uploadmodel = ref(false);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
 const limitPage = ref(50);
-const createDialog = ref(false);
-const data_gallery = ref([]);
+
 const fileLimit = ref(100);
 const uploadedFileCount = ref(0);
 const updateRefDialog = ref(false);
@@ -51,12 +49,6 @@ const WsConnectAllImage = ref();
 const confirmRejectDialog = ref(false);
 const showSkeleton = ref(false);
 const totalPage = ref(0);
-const gallery_form = ref({
-  code: "",
-  name: "",
-  creator: "superadmin",
-  create_date: "26/06/2022",
-});
 const selectSort = ref("uploadedat");
 const sortField = ref([
   {
@@ -100,7 +92,6 @@ const title2 = ref("");
 const title2_valid = ref(false);
 const uploadedat = ref(new Date());
 const uploadedat2 = ref(new Date());
-const data_save_group = ref({});
 const images_list_group = ref([]);
 const imageGroup = ref();
 const imageDialog = ref(false);
@@ -109,6 +100,7 @@ const dataImageDialog = ref({});
 const pageGetAllImage = ref(1);
 const pageGetAllImageGroup = ref(1);
 
+const searchFolder = ref("");
 const searchImageDate = ref();
 const searchFromDate = ref(new Date());
 const searchToDate = ref(new Date());
@@ -120,13 +112,24 @@ const selectedImag = ref("");
 const showImgData = ref();
 const showDocumentPreview = ref(true);
 const isSelectedDocument = ref(false);
+const isDataListNull = ref(false);
 
 const data_folder = ref([]);
 const selectedFolder = ref({
-  guidfixed: "all",
-  name: "",
+  guidfixed: null,
+  name: "All",
   status: 0,
 });
+
+const listSizeImageBloc = ref([
+  { icon: "pi pi-th-large", value: "normal" },
+  { icon: "pi pi-table", value: "large" },
+]);
+const sizeImageBloc = ref(listSizeImageBloc.value[0]);
+const sizeWidthImageBloc = ref(90);
+const sizeHeightImageBloc = ref(90);
+
+const data_save_group = ref({});
 
 onUnmounted(() => {
   console.log(
@@ -145,20 +148,6 @@ onMounted(() => {
   storeApp.setActivePage("document_images");
   storeApp.setPageTitle("คลังเอกสาร");
 
-  /*
-    data_gallery.value.push({
-      code: "0001",
-      name: "เอกสารซื้อ2606",
-      creator: "superadmin",
-      create_date: "26/06/2022",
-    });
-    data_gallery.value.push({
-      code: "0002",
-      name: "เอกสารขาย2806",
-      creator: "superadmin",
-      create_date: "26/06/2022",
-    });
-  */
   if (
     route.params.id != "" &&
     route.params.id != "" &&
@@ -325,23 +314,9 @@ function WsAllImageConnect() {
 }
 function onClose() {
   confirmRejectDialog.value = false;
-  createDialog.value = false;
   confirmChangeImageDialog.value = false;
   confirmSaveDialog.value = false;
   updateRefDialog.value = false;
-}
-
-function onSaveCreate() {
-  data_gallery.value.push({
-    name: gallery_form.value.name,
-    creator: gallery_form.value.creator,
-    create_date: gallery_form.value.create_date,
-  });
-
-  setTimeout(() => {
-    gallery_form.value.name = "";
-    createDialog.value = false;
-  }, 200);
 }
 
 function getDocumentImageGroupScroll() {
@@ -354,39 +329,45 @@ function getDocumentImageGroupScroll() {
     sortOrder.value,
     showImageBy.value,
     fromDate.value,
-    toDate.value
+    toDate.value,
+    searchFolder.value
   )
     .then((res) => {
-      console.log(res);
-      if (res.success) {
-        setTimeout(() => {
-          res.data.forEach((ele) => {
-            ele.isUpdate = false;
-            ele.ischecked = false;
+      if (res.data == null) {
+        isDataListNull.value = true;
+        showSkeleton.value = false;
+      } else {
+        if (res.success) {
+          setTimeout(() => {
+            res.data.forEach((ele) => {
+              ele.isUpdate = false;
+              ele.ischecked = false;
 
-            let references = ele.references ?? [];
-            if (ele.references == undefined) {
-              ele.references = references;
-            }
+              let references = ele.references ?? [];
+              if (ele.references == undefined) {
+                ele.references = references;
+              }
 
-            ele.imagereferences.sort(function (a, b) {
-              return a.xorder - b.xorder;
+              ele.imagereferences.sort(function (a, b) {
+                return a.xorder - b.xorder;
+              });
+
+              data_list.value.push(ele);
             });
 
-            data_list.value.push(ele);
-          });
+            //console.log(data_list.value);
 
-          //console.log(data_list.value);
+            //onsole.log(totalItemsCount.value);
+            getAllSelectImage();
+            firstPage.value = activePage.value;
 
-          //onsole.log(totalItemsCount.value);
-          getAllSelectImage();
-          firstPage.value = activePage.value;
-
-          // console.log("firstPage" + firstPage.value);
-          showSkeleton.value = false;
-        }, 500);
+            // console.log("firstPage" + firstPage.value);
+            showSkeleton.value = false;
+          }, 500);
+        }
       }
     })
+
     .catch((err) => {
       getImageAll;
       console.log(err);
@@ -398,7 +379,7 @@ function getImageAll() {
   let limePage = 1000;
   ImageDataService.getImageAll(limePage, pageGetAllImage.value)
     .then((res) => {
-      console.log(res);
+      //console.log(res);
       if (res.success) {
         data_list_group.value = res.data;
 
@@ -443,6 +424,7 @@ function getImageAllAppend() {
           []
         );
         console.log("count image : " + data_list_group.value.length);
+        console.log("detail count image by date");
         console.log(result);
       }
     })
@@ -520,6 +502,7 @@ function getDocumentImageGroupAllAppend() {
 function getDocumentImageGroup() {
   showSkeleton.value = true;
   loading.value = true;
+  isDataListNull.value = false;
 
   ImageDataService.getDocumentImageGroup(
     limitPage.value,
@@ -529,30 +512,40 @@ function getDocumentImageGroup() {
     sortOrder.value,
     showImageBy.value,
     fromDate.value,
-    toDate.value
+    toDate.value,
+    searchFolder.value
   )
     .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-
-        data_list.value = data_list.value.map((element) => {
-          let references = element.references ?? [];
-          element.references = references;
-          return element;
-        });
-
-        data_list.value.forEach((element) => {
-          element.ischecked = false;
-        });
-
-        loading.value = false;
+      if (res.data == null) {
         showSkeleton.value = false;
-        totalPage.value = res.pagination.totalPage;
-        totalItemsCount.value = res.pagination.total;
-        getAllSelectImage();
+        data_list.value = [];
+        isDataListNull.value = true;
+      } else {
+        console.log("getDocumentImageGroup");
+        console.log(res);
+        if (res.success) {
+          data_list.value = res.data;
+
+          data_list.value = data_list.value.map((element) => {
+            let references = element.references ?? [];
+            element.references = references;
+            return element;
+          });
+
+          data_list.value.forEach((element) => {
+            element.ischecked = false;
+          });
+
+          isDataListNull.value = false;
+          loading.value = false;
+          showSkeleton.value = false;
+          totalPage.value = res.pagination.totalPage;
+          totalItemsCount.value = res.pagination.total;
+          getAllSelectImage();
+        }
       }
     })
+
     .catch((err) => {
       toast.add({
         severity: "error",
@@ -762,6 +755,7 @@ function selectImg(data) {
 function getAllSelectImage() {
   MasterdataService.getAllSelectImage()
     .then((res) => {
+      console.log("getAllSelectImage");
       console.log(res);
       if (res.success) {
         AllImageUsed.value = res.data;
@@ -1524,45 +1518,20 @@ function addToGroupImage(data) {
   console.log(data_set_group.value);
 }
 
-function verifyData(mode) {
+function verifyData() {
   var errorCount = 0;
 
-  if (mode) {
-    if (title.value == "") {
-      errorCount += 1;
-      toast.add({
-        severity: "error",
-        summary: "ไม่สามารถทำรายการได้",
-        detail: "กรุณาป้อนชื่อชุดเอกสาร ",
-        life: 4000,
-      });
-      title_valid.value = true;
-    } else {
-      title_valid.value = false;
-    }
-
-    if (data_set_group.value.length == 0) {
-      errorCount += 1;
-      toast.add({
-        severity: "error",
-        summary: "ไม่สามารถทำรายการได้",
-        detail: "กรุณาเลือกรูปเอกสาร ",
-        life: 4000,
-      });
-    }
+  if (title2.value == "") {
+    errorCount += 1;
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาป้อนชื่อชุดเอกสาร ",
+      life: 4000,
+    });
+    title2_valid.value = true;
   } else {
-    if (title2.value == "") {
-      errorCount += 1;
-      toast.add({
-        severity: "error",
-        summary: "ไม่สามารถทำรายการได้",
-        detail: "กรุณาป้อนชื่อชุดเอกสาร ",
-        life: 4000,
-      });
-      title2_valid.value = true;
-    } else {
-      title2_valid.value = false;
-    }
+    title2_valid.value = false;
   }
 
   if (errorCount != 0) {
@@ -1687,6 +1656,7 @@ function removeSelectedImg() {
 function getFolderList() {
   FolderService.getFolderList()
     .then((res) => {
+      console.log("getFolderList");
       console.log(res);
       if (res.success) {
         data_folder.value = res.data;
@@ -1710,10 +1680,10 @@ function saveFolderSuccess(status) {
 
 function selectFolder(data) {
   let newData = {};
-  if (data == "all") {
+  if (data == null) {
     newData = {
-      guidfixed: "all",
-      name: "",
+      guidfixed: null,
+      name: "All",
       status: 0,
     };
   } else {
@@ -1724,6 +1694,10 @@ function selectFolder(data) {
     };
   }
   selectedFolder.value = newData;
+
+  clearFilterDocumentImageGroup();
+  searchFolder.value = newData.guidfixed;
+  getDocumentImageGroup();
 }
 
 function rejectSuccess(status) {
@@ -1732,6 +1706,110 @@ function rejectSuccess(status) {
     selectedImag.value = "";
     getDocumentImageGroup();
   }
+}
+
+function clearFilterDocumentImageGroup() {
+  limitPage.value = 50;
+  activePage.value = 1;
+  searchItem.value = "";
+  selectSort.value = "uploadedat";
+  sortOrder.value = -1;
+  showImageBy.value = "";
+  fromDate.value = "";
+  toDate.value = "";
+  searchFolder.value = "";
+}
+
+function selectSizeImageBloc(event) {
+  if (event.value.value == "normal") {
+    sizeWidthImageBloc.value = 90;
+    sizeHeightImageBloc.value = 90;
+  } else {
+    sizeWidthImageBloc.value = 230;
+    sizeHeightImageBloc.value = 230;
+  }
+}
+async function saveGropImages() {
+  // mode true == สร้างชุดเอกสาร
+  // mode false == กำหนดชุดเอกสาร
+
+  let newDate = new Date();
+
+  newDate = uploadedat2.value;
+
+  if (newDate.getHours() == 0) {
+    let d = new Date();
+    let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+    let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
+
+    newDate.setHours(hours);
+    newDate.setMinutes(minutes);
+    newDate.setSeconds(seconds);
+  }
+
+  console.log(newDate);
+
+  console.log(selectedImg.value);
+  let isPass = await verifyData();
+  if (isPass) {
+    let imagereferences = [];
+    selectedImg.value.forEach((element, index) => {
+      element.documentimageguid.xorder = index;
+      imagereferences.push(element.documentimageguid);
+    });
+
+    data_save_group.value = {
+      imagereferences: imagereferences,
+      title: title2.value,
+      uploadedat: Utils.getFormatDateTime(newDate),
+    };
+  } else {
+    return;
+  }
+
+  try {
+    const res = await ImageDataService.postDocumentImageGroup(
+      data_save_group.value
+    );
+    if (res.success) {
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+      setTimeout(() => {
+        imageGroup.value = null;
+        title.value = "";
+        title_valid.value = false;
+        uploadedat.value = new Date();
+        title2.value = "";
+        title2_valid.value = false;
+        uploadedat2.value = new Date();
+        updateRefDialog.value = false;
+        data_set_group.value = [];
+        selectedImg.value = [];
+        activePage.value = 1;
+        getDocumentImageGroup();
+      }, 100);
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
+}
+
+function cancelGropImages() {
+  selectedImg.value = [];
+  updateRefDialog.value = false;
+  title2.value = "";
+  title2_valid.value = false;
 }
 </script>
 <template>
@@ -1790,6 +1868,7 @@ function rejectSuccess(status) {
     <div class="flex bg-primary-50">
       <div style="height: 90vh; width: 200px; overflow-y: auto">
         <ImagesFolder
+          :isMain="true"
           :data_folder="data_folder"
           :selectedFolder="selectedFolder"
           v-on:saveFolderSuccess="saveFolderSuccess"
@@ -1804,14 +1883,103 @@ function rejectSuccess(status) {
         >
           <SplitterPanel :size="50">
             <div
-              style="height: 90vh; overflow-y: auto"
+              style="height: 90vh"
               @scroll="onScroll"
               id="content"
+              :style="[
+                data_list.length == 0
+                  ? 'overflow-y: hidden'
+                  : 'overflow-y: auto',
+              ]"
             >
+              <div
+                v-if="isDataListNull == true"
+                class="flex align-items-center justify-content-center h-full"
+              >
+                <p class="text-600">ไม่พบเอกสาร</p>
+              </div>
+
+              <div class="flex-row">
+                <div class="flex align-items-center justify-content-center">
+                  <div class="p-inputgroup">
+                    <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
+                    <Button
+                      icon="pi pi-search"
+                      @click="getDocumentImageGroup()"
+                      class="p-button-primary"
+                    />
+                  </div>
+                </div>
+                <div class="flex align-items-center justify-content-center">
+                  <div class="flex justify-content-between">
+                    <div class="grid">
+                      <div
+                        v-for="listShowImageBy of listShowImageBys"
+                        :key="listShowImageBy.code"
+                        class="field-radiobutton m-3"
+                      >
+                        <RadioButton
+                          :id="listShowImageBy.code"
+                          name="listShowImageBy"
+                          :value="listShowImageBy.code"
+                          v-model="showImageBy"
+                          @change="getDocImageListDefualt()"
+                        />
+                        <label :for="listShowImageBy.code">{{
+                          listShowImageBy.name
+                        }}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex align-items-center justify-content-center">
+                  <div class="grid">
+                    <div class="flex align-items-center ml-2">
+                      <span class="mr-2 text-900">การเรียงข้อมูล</span>
+                      <Dropdown
+                        v-model="selectSort"
+                        :options="sortField"
+                        optionLabel="name"
+                        optionValue="code"
+                        @change="selectSortUse($event)"
+                      >
+                      </Dropdown>
+                      <i
+                        v-if="sortOrder == -1"
+                        class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(1)"
+                      ></i>
+                      <i
+                        v-if="sortOrder == 1"
+                        class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(-1)"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+
+                <SelectButton
+                  v-model="sizeImageBloc"
+                  :options="listSizeImageBloc"
+                  optionLabel="value"
+                  dataKey="value"
+                  aria-labelledby="custom"
+                  @change="selectSizeImageBloc"
+                  :unselectable="false"
+                >
+                  <template #option="slotProps">
+                    <i :class="slotProps.option.icon"></i>
+                  </template>
+                </SelectButton>
+              </div>
+
               <div
                 class="flex flex-wrap align-items-center justify-content-center m-1"
               >
                 <div
+                  v-if="isDataListNull == false"
                   class="flex"
                   v-for="data in data_list"
                   :key="data.guidfixed"
@@ -1847,10 +2015,11 @@ function rejectSuccess(status) {
                       :allimage_used="AllImageUsed"
                       :mode="1"
                       :isSelectedDocument="isSelectedDocument"
+                      :sizeWidthImageBloc="sizeWidthImageBloc"
+                      :sizeHeightImageBloc="sizeHeightImageBloc"
                       v-on:selectImg="selectImg"
                       v-on:useImage="useImage"
                       v-on:createform="createform"
-                      v-on:onFileSelect="onFileNewSelect"
                       v-on:onReloadData="getDocumentImageGroup"
                       v-on:documentImageUnGroup="documentImageUnGroup"
                       v-on:rejectImage="rejectImage"
@@ -1895,6 +2064,7 @@ function rejectSuccess(status) {
               :selectedImag="selectedImag"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:rejectSuccess="rejectSuccess"
+              v-on:onFileSelect="onFileNewSelect"
             />
           </SplitterPanel>
         </Splitter>
@@ -1975,13 +2145,6 @@ function rejectSuccess(status) {
       </div>
     </Dialog>
 
-    <DialogForm
-      :confirmDialog="createDialog"
-      :textContent="create"
-      v-on:close="onClose"
-      v-on:confirm="onSaveCreate"
-    >
-    </DialogForm>
     <Dialog
       v-model:visible="updateRefDialog"
       :style="{ width: '450px' }"
@@ -2015,13 +2178,13 @@ function rejectSuccess(status) {
           label="ยกเลิก"
           icon="pi pi-times"
           class="p-button-text"
-          @click="updateRefDialog = false"
+          @click="cancelGropImages()"
         />
         <Button
           label="บันทึก"
           icon="pi pi-check"
           class="p-button-text"
-          @click="saveGropImages(modeCreateImageGroup)"
+          @click="saveGropImages()"
         />
       </template>
     </Dialog>
@@ -2033,8 +2196,10 @@ function rejectSuccess(status) {
       :style="{ width: '80vw' }"
       :modal="true"
       :closable="false"
+      contentStyle="padding: 0rem;"
     >
       <ImageUpload
+        :data_folder="data_folder"
         v-on:success="uploadSuccess()"
         :data_ondrop="data_import"
         v-on:closeDialogUpload="closeDialogUpload()"

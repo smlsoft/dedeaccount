@@ -7,6 +7,22 @@ export const menus = [
     children: [],
   },
   {
+    title: "จัดการรูปภาพ",
+    icon: "pi pi-image",
+    to: "",
+    name: "daily",
+    children: [
+      {
+        title: "อัพโหลด/จัดชุดรูปภาพ",
+        icon: "pi pi-upload",
+        to: "/daily/list",
+        name: "daily_list",
+      },
+
+
+    ],
+  },
+  {
     title: "คลังเอกสาร",
     icon: "pi pi-inbox",
     to: "/document_images/list",

@@ -1,177 +1,202 @@
 <template>
-  <div class="p-3 surface-section flex-auto">
-    <div class="flex justify-content-between pl-2 pt-2">
-      <div class="flex align-items-center justify-content-center">
-        <div class="flex">
-          <FileUpload
-            ref="fileInput"
-            :disabled="loading == true"
-            name="Image[]"
-            mode="basic"
-            @select="selectedFile"
-            :multiple="true"
-            accept="image/*"
-            chooseLabel="เลือกรูป"
-            :maxFileSize="10000000"
-          >
-          </FileUpload>
-        </div>
-        <div class="flex ml-2">
-          <Button
-            :disabled="loading == true || data_import.length == 0"
-            class="p-button-success"
-            icon="pi pi-save"
-            label="อัพโหลด"
-            @click="uploadClick()"
-          />
-        </div>
-        <div class="flex ml-2">
-          <Button
-            :disabled="loading == true || data_import.length == 0"
-            class="p-button-warning"
-            icon="pi pi-trash"
-            label="ยกเลิกรูปภาพ"
-            @click="clear()"
-          />
-        </div>
+  <div class="flex bg-primary-50 p-2">
+    <div style="width: 200px; overflow-y: auto" class="flex-none">
+      <ImagesFolder
+        :isMain="false"
+        :data_folder="props.data_folder"
+        :selectedFolder="selectedFolder"
+        v-on:selectFolder="selectFolder"
+      />
+    </div>
+    <div class="surface-section flex-1 p-2">
+      <div class="py-2">
+        <i class="pi pi-folder-open mr-2"></i>
+        <span class="font-medium text-xl text-primary-700">{{
+          selectedFolder.name
+        }}</span>
       </div>
-      <div class="flex align-items-center justify-content-center">
-        <Button
-          class="p-button-danger"
-          icon="pi pi-times"
-          label="ปิด"
-          @click="closeDialogUpload()"
+      <div class="p-fluid">
+        <Chips
+          v-model="tags"
+          :separator="separatorExp"
+          :allowDuplicate="false"
+          placeholder="แท็กเอกสาร"
         />
       </div>
-    </div>
-
-    <div
-      ref="content"
-      class="p-fileupload-content mt-3 p-3 surface-card shadow-2 border-rounded"
-      @dragenter="onDragEnter"
-      @dragover="onDragOver"
-      @dragleave="onDragLeave"
-      @drop="onDrop"
-    >
-      <!-- <ProgressBar class="" v-if="loading" :value="onUploadProgress" style="height: 0.9em; font-size: 14px">
-        {{ onUploadProgress }}% ({{ loadImg }}/{{ data_import.length }})</ProgressBar> -->
-
-      <div class="flex flex-row flex-wrap" v-if="data_import.length > 0">
+      <div class="flex justify-content-between py-2">
         <div class="flex align-items-center justify-content-center">
-          <Tag
-            icon="pi pi-image"
-            severity="info"
-            class="mr-2"
-            :value="'จำนวน ' + data_import.length + ' รูป'"
-            rounded
-          >
-          </Tag>
+          <div class="flex">
+            <FileUpload
+              ref="fileInput"
+              :disabled="loading == true"
+              name="Image[]"
+              mode="basic"
+              @select="selectedFile"
+              :multiple="true"
+              accept="image/*"
+              chooseLabel="เลือกรูป"
+              :maxFileSize="10000000"
+            >
+            </FileUpload>
+          </div>
+          <div class="flex ml-2">
+            <Button
+              :disabled="loading == true || data_import.length == 0"
+              class="p-button-success"
+              icon="pi pi-save"
+              label="อัพโหลด"
+              @click="uploadClick()"
+            />
+          </div>
+          <div class="flex ml-2">
+            <Button
+              :disabled="loading == true || data_import.length == 0"
+              class="p-button-warning"
+              icon="pi pi-trash"
+              label="ยกเลิกรูปภาพ"
+              @click="clear()"
+            />
+          </div>
         </div>
         <div class="flex align-items-center justify-content-center">
-          <Tag
-            class="mr-2"
-            icon="pi pi-check"
-            severity="success"
-            :value="'สำเร็จ ' + data_import_success.length + ' รูป'"
-            rounded
-          ></Tag>
-        </div>
-        <div class="flex align-items-center justify-content-center">
-          <Tag
+          <Button
+            class="p-button-danger"
             icon="pi pi-times"
-            severity="danger"
-            :value="'ไม่สำเร็จ ' + data_import_false.length + ' รูป'"
-            rounded
-          >
-          </Tag>
+            label="ปิด"
+            @click="closeDialogUpload()"
+          />
         </div>
       </div>
-      <div class="p-fileupload-files pt-3" v-if="data_import.length > 0">
-        <div class="relative mb-1">
-          <div class="flex flex-wrap justify-content-center gap-1">
-            <div
-              class="border-round m-1"
-              v-for="(file, index) of data_import"
-              :key="file.name + file.type + file.size"
+
+      <div
+        ref="content"
+        class="p-fileupload-content mt-3 p-3 surface-card shadow-2 border-rounded"
+        @dragenter="onDragEnter"
+        @dragover="onDragOver"
+        @dragleave="onDragLeave"
+        @drop="onDrop"
+      >
+        <!-- <ProgressBar class="" v-if="loading" :value="onUploadProgress" style="height: 0.9em; font-size: 14px">
+        {{ onUploadProgress }}% ({{ loadImg }}/{{ data_import.length }})</ProgressBar> -->
+
+        <div class="flex flex-row flex-wrap" v-if="data_import.length > 0">
+          <div class="flex align-items-center justify-content-center">
+            <Tag
+              icon="pi pi-image"
+              severity="info"
+              class="mr-2"
+              :value="'จำนวน ' + data_import.length + ' รูป'"
+              rounded
             >
-              <div class="relative shadow-2 card-container">
-                <div class="relative p-3 border-round">
-                  <img
-                    v-if="isImage(file)"
-                    :class="file.cmd != 'success' ? 'opacity-30' : ''"
-                    :alt="file.name"
-                    :src="file.objectURL"
-                    class="mb-0 w-full h-9rem"
-                    style="object-fit: cover"
-                  />
-                  <div class="flex justify-content-center pt-1">
-                    <span class="text-900 font-medium titletext">
-                      {{ file.name }}
-                    </span>
-                  </div>
-                  <div
-                    class="absolute top-0 left-0"
-                    v-if="file.cmd == 'success'"
-                  >
-                    <Button
-                      class="p-button-rounded p-button-outlined"
-                      :icon="file.cmd == 'success' ? 'pi pi-trash' : ''"
-                      :class="file.cmd == 'success' ? 'p-button-warning' : ''"
-                      @click="remove(file.cmd, index)"
+            </Tag>
+          </div>
+          <div class="flex align-items-center justify-content-center">
+            <Tag
+              class="mr-2"
+              icon="pi pi-check"
+              severity="success"
+              :value="'สำเร็จ ' + data_import_success.length + ' รูป'"
+              rounded
+            ></Tag>
+          </div>
+          <div class="flex align-items-center justify-content-center">
+            <Tag
+              icon="pi pi-times"
+              severity="danger"
+              :value="'ไม่สำเร็จ ' + data_import_false.length + ' รูป'"
+              rounded
+            >
+            </Tag>
+          </div>
+        </div>
+        <div class="p-fileupload-files pt-3" v-if="data_import.length > 0">
+          <div class="relative mb-1">
+            <div class="flex flex-wrap justify-content-center gap-1">
+              <div
+                class="border-round m-1"
+                v-for="(file, index) of data_import"
+                :key="file.name + file.type + file.size"
+              >
+                <div class="relative shadow-2 card-container">
+                  <div class="relative p-3 border-round">
+                    <img
+                      v-if="isImage(file)"
+                      :class="file.cmd != 'success' ? 'opacity-30' : ''"
+                      :alt="file.name"
+                      :src="file.objectURL"
+                      class="mb-0 w-full h-9rem"
+                      style="object-fit: cover"
                     />
-                  </div>
-                  <div class="absolute top-0 right-0">
-                    <Button
-                      class="p-button-rounded"
-                      :icon="
-                        file.cmd == 'wait'
-                          ? 'pi pi-times'
-                          : file.cmd == 'progress'
-                          ? 'pi pi-spin pi-spinner'
-                          : file.cmd == 'error'
-                          ? 'pi pi-trash'
-                          : 'pi pi-check-circle'
-                      "
-                      :class="
-                        file.cmd == 'error'
-                          ? 'p-button-danger'
-                          : file.cmd == 'wait'
-                          ? 'p-button-danger'
-                          : file.cmd == 'progress'
-                          ? 'p-button-info'
-                          : ' p-button-success'
-                      "
-                      @click="
-                        file.cmd == 'error' || file.cmd == 'wait'
-                          ? remove(file.cmd, index)
-                          : ''
-                      "
-                    />
+                    <div class="flex justify-content-center pt-1">
+                      <span class="text-900 font-medium titletext">
+                        {{ file.name }}
+                      </span>
+                    </div>
+                    <div
+                      class="absolute top-0 left-0"
+                      v-if="file.cmd == 'success'"
+                    >
+                      <Button
+                        class="p-button-rounded p-button-outlined"
+                        :icon="file.cmd == 'success' ? 'pi pi-trash' : ''"
+                        :class="file.cmd == 'success' ? 'p-button-warning' : ''"
+                        @click="remove(file.cmd, index)"
+                      />
+                    </div>
+                    <div class="absolute top-0 right-0">
+                      <Button
+                        class="p-button-rounded"
+                        :icon="
+                          file.cmd == 'wait'
+                            ? 'pi pi-times'
+                            : file.cmd == 'progress'
+                            ? 'pi pi-spin pi-spinner'
+                            : file.cmd == 'error'
+                            ? 'pi pi-trash'
+                            : 'pi pi-check-circle'
+                        "
+                        :class="
+                          file.cmd == 'error'
+                            ? 'p-button-danger'
+                            : file.cmd == 'wait'
+                            ? 'p-button-danger'
+                            : file.cmd == 'progress'
+                            ? 'p-button-info'
+                            : ' p-button-success'
+                        "
+                        @click="
+                          file.cmd == 'error' || file.cmd == 'wait'
+                            ? remove(file.cmd, index)
+                            : ''
+                        "
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="p-fileupload-empty" v-if="data_import.length == 0">
+          <p>ลากไฟล์ที่ต้องการอัพโหลดวางที่นี่.</p>
+        </div>
       </div>
-      <div class="p-fileupload-empty" v-if="data_import.length == 0">
-        <p>ลากไฟล์ที่ต้องการอัพโหลดวางที่นี่.</p>
+      <div class="flex justify-content-end pt-5">
+        <Button
+          class="p-button-success"
+          icon="pi pi-save"
+          label="บันทึก"
+          :disabled="!queSuccess"
+          :loading="queDocRefSuccess"
+          @click="saveDocumentImage()"
+        />
       </div>
-    </div>
-    <div class="flex justify-content-end pt-5">
-      <Button
-        class="p-button-success"
-        icon="pi pi-save"
-        label="บันทึก"
-        :disabled="!queSuccess"
-        :loading="queDocRefSuccess"
-        @click="saveDocumentImage()"
-      />
-    </div>
-    <div class="pt-1">
-      <ProgressBar mode="indeterminate" v-if="loadingSaveDocumentImage" />
+      <div class="pt-1">
+        <ProgressBar mode="indeterminate" v-if="loadingSaveDocumentImage" />
+      </div>
     </div>
   </div>
+
   <DialogForm
     :confirmDialog="showCloseDialogUpload"
     :textContent="'ต้องการยกเลิกรูปภาพทั้งหมด'"
@@ -206,6 +231,7 @@
 <script setup>
 /* eslint-disable */
 import ImageDataService from "@/services/ImageDataService";
+import ImagesFolder from "./ImagesFolder.vue";
 import { ref, onMounted } from "vue";
 import { DomHandler } from "primevue/utils";
 import { useRouter } from "vue-router";
@@ -242,11 +268,19 @@ const queSuccess = ref(false);
 const queDocRefSuccess = ref(false);
 const upLoadQueDocRef = ref(0);
 const openConfirmationDocRef = ref(false);
+const selectedFolder = ref({
+  guidfixed: null,
+  name: "All",
+  status: 0,
+});
+const tags = ref();
+const separatorExp = ref(/,| /);
 
 const emit = defineEmits(["success", "closeDialogUpload"]);
 
 const props = defineProps({
   data_ondrop: Array,
+  data_folder: Array,
 });
 onMounted(() => {
   // console.log(props.data_ondrop.value);
@@ -648,10 +682,18 @@ function emitImagesList() {
 }
 
 function saveDocumentImage() {
-  console.log(data_import.value);
-  console.log(data_import_success.value);
+  // console.log(data_import.value);
+  // console.log(data_import_success.value);
 
   let data = [];
+
+  data_import_success.value.forEach((element) => {
+    element.tags = tags.value == null ? [] : tags.value;
+    element.pathfilefolder =
+      selectedFolder.value.guidfixed == null
+        ? ""
+        : selectedFolder.value.guidfixed;
+  });
 
   data_import.value.forEach((master_data) => {
     if (master_data.cmd == "success") {
@@ -689,6 +731,24 @@ function saveDocumentImage() {
         life: 6000,
       });
     });
+}
+
+function selectFolder(data) {
+  let newData = {};
+  if (data == null) {
+    newData = {
+      guidfixed: null,
+      name: "All",
+      status: 0,
+    };
+  } else {
+    newData = {
+      guidfixed: data.guidfixed,
+      name: data.name,
+      status: data.status == 0 ? false : true,
+    };
+  }
+  selectedFolder.value = newData;
 }
 </script>
 

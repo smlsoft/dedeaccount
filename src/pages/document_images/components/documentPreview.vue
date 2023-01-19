@@ -20,7 +20,11 @@ const props = defineProps({
   allimage_used: Array,
 });
 
-const emit = defineEmits(["closeDocumentPreview", "rejectSuccess"]);
+const emit = defineEmits([
+  "closeDocumentPreview",
+  "rejectSuccess",
+  "onFileSelect",
+]);
 
 function closeDocumentPreview() {
   emit("closeDocumentPreview");
@@ -186,6 +190,18 @@ const items = computed({
     ];
   },
 });
+
+function chooseFile() {
+  document.getElementById("chooseFile").click();
+}
+
+function onFileSelect(event) {
+  emit(
+    "onFileSelect",
+    event,
+    props.selectedImag.imagereferences[activeIndexList.value]
+  );
+}
 </script>
 <template>
   <input

@@ -1,6 +1,7 @@
 <template>
   <div class="bg-primary-50 border-round select-none">
     <div
+      v-if="props.isMain == true"
       class="flex justify-content-between flex-wrap card-container purple-container"
     >
       <div class="flex align-items-center justify-content-center m-2">
@@ -12,7 +13,7 @@
       </div>
       <div class="flex align-items-center justify-content-center m-2">
         <Button
-          :disabled="props.selectedFolder.guidfixed == 'all'"
+          :disabled="props.selectedFolder.guidfixed == null"
           @click="addFolder(false)"
           icon="pi pi-pencil"
           class="p-button-outlined w-2rem h-2rem"
@@ -45,18 +46,26 @@
         <ul class="list-none p-0 m-0 overflow-hidden">
           <li>
             <a
-              @click="selectFolder('all')"
+              @click="selectFolder(null)"
               :class="
-                props.selectedFolder.guidfixed == 'all'
+                props.selectedFolder.guidfixed == null
                   ? 'bg-primary-500 text-white '
                   : ''
               "
               v-ripple
               class="flex align-items-center cursor-pointer p-2 hover:bg-primary-500 hover:text-white transition-colors transition-duration-150 p-ripple"
             >
-              <i class="pi pi-folder mr-2"></i>
+              <i
+                :class="
+                  props.selectedFolder.guidfixed == null
+                    ? 'pi pi-folder-open mr-2'
+                    : 'pi pi-folder mr-2'
+                "
+              ></i>
+
               <span class="font-medium">All</span>
               <span
+                v-if="props.isMain == true"
                 class="inline-flex align-items-center justify-content-center ml-auto bg-cyan-100 text-cyan-900 border-circle"
                 style="min-width: 1.5rem; height: 1.5rem"
                 >0</span
@@ -83,9 +92,16 @@
               v-ripple
               class="flex align-items-center cursor-pointer p-2 hover:bg-primary-500 hover:text-white transition-colors transition-duration-150 p-ripple"
             >
-              <i class="pi pi-folder mr-2"></i>
+              <i
+                :class="
+                  data.guidfixed == props.selectedFolder.guidfixed
+                    ? 'pi pi-folder-open mr-2'
+                    : 'pi pi-folder mr-2'
+                "
+              ></i>
               <span class="font-medium">{{ data.name }}</span>
               <span
+                v-if="props.isMain == true"
                 class="inline-flex align-items-center justify-content-center ml-auto bg-blue-100 text-blue-900 border-circle"
                 style="min-width: 1.5rem; height: 1.5rem"
                 >0</span
@@ -133,6 +149,7 @@
               <i class="pi pi-folder mr-2"></i>
               <span class="font-medium">{{ data.name }}</span>
               <span
+                v-if="props.isMain == true"
                 class="inline-flex align-items-center justify-content-center ml-auto bg-blue-100 text-blue-900 border-circle"
                 style="min-width: 1.5rem; height: 1.5rem"
                 >0</span
@@ -219,6 +236,7 @@ const toast = useToast();
 const props = defineProps({
   data_folder: Object,
   selectedFolder: Object,
+  isMain: Boolean,
 });
 
 const folderName = ref("");

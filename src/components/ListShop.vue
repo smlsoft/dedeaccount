@@ -97,12 +97,12 @@ function verifyData() {
     nameShopInvalid.value = true;
   }
 
-  if (telShop.value == "") {
-    telShopInvalid.value = false;
-    checkValid += 1;
-  } else {
-    telShopInvalid.value = true;
-  }
+  // if (telShop.value == "") {
+  //   telShopInvalid.value = false;
+  //   checkValid += 1;
+  // } else {
+  //   telShopInvalid.value = true;
+  // }
 
   if (checkValid == 0) {
     return true;
@@ -143,7 +143,7 @@ function verifyData() {
             <div class="flex justify-content-end mb-0">
               <div class="flex align-items-center mt-3 md:mt-0">
                 <Button
-                  class="p-button-sm mr-3"
+                  class="p-button-sm mr-3 bg-primary-700"
                   label="สร้างกิจการ"
                   icon="pi pi-plus "
                   @click="createShopModal = true"
@@ -276,7 +276,7 @@ function verifyData() {
         id="tel"
         class="w-full mb-3"
         type="number"
-        :class="!nameShopInvalid ? 'p-invalid' : ''"
+        :class="!telShopInvalid ? 'p-invalid' : ''"
       />
     </div>
     <template #footer>

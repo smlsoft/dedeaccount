@@ -111,6 +111,12 @@ function lockShowSlideBar(data) {
   localStorage.setLockSlideBar = data;
   lockSlideBar.value = data;
 }
+
+function createShopScuuess(status) {
+  if (status) {
+    openSelectShop();
+  }
+}
 </script>
 
 <template>
@@ -133,7 +139,7 @@ function lockShowSlideBar(data) {
       <Toast />
       <!-- content -->
       <div class="p-0 flex flex-column flex-auto">
-        <div class="surface-section flex-auto">
+        <div class="flex-auto bg-primary-50">
           <slot></slot>
         </div>
       </div>
@@ -154,6 +160,7 @@ function lockShowSlideBar(data) {
       v-on:isFavorite="isFavorite"
       v-on:selectShop="selectShop"
       v-on:goLogout="goLogout"
+      v-on:createShopScuuess="createShopScuuess"
     />
     <template #footer>
       <div class="border-top-1 surface-border pt-3">

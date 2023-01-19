@@ -1,7 +1,14 @@
 <template>
   <div
     class="relative cursor-pointer text-center m-3"
-    style="width: 90px; height: 90px"
+    :style="
+      'width:' +
+      props.sizeWidthImageBloc +
+      'px;' +
+      'height:' +
+      props.sizeHeightImageBloc +
+      'px'
+    "
     :class="borderImage()"
     @click="zoomImg(props.images_data)"
     @mouseenter="hoveredItem = props.images_data.imageuri"
@@ -13,7 +20,15 @@
       <img
         :src="props.images_data.imagereferences[0].imageuri"
         class="w-full"
-        style="width: 80px; height: 84px; object-fit: cover; margin: 3px"
+        style="object-fit: cover; margin: 3px"
+        :style="
+          'width:' +
+          (props.sizeWidthImageBloc - 10) +
+          'px;' +
+          'height:' +
+          (props.sizeHeightImageBloc - 6) +
+          'px'
+        "
       />
       <button
         v-if="props.images_data.imagereferences.length > 1"
@@ -121,6 +136,8 @@ const props = defineProps({
   mode: Number,
   allimage_used: Array,
   isSelectedDocument: Boolean,
+  sizeWidthImageBloc: Number,
+  sizeHeightImageBloc: Number,
 });
 const emit = defineEmits([
   "selectImg",
