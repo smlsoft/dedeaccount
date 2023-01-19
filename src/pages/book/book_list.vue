@@ -243,16 +243,12 @@ function sortBy(data) {
             </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-            <Column
-              field="code"
-              header="รหัสสมุดรายวัน"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="name1"
-              header="ชื่อสมุดรายวัน"
-              :sortable="true"
-            ></Column>
+            <Column field="code" header="" :sortable="true">
+              <template #header> {{ $t("journalBookId") }}</template>
+            </Column>
+            <Column field="name1" header="" :sortable="true"
+              ><template #header> {{ $t("journalBookname") }}</template>
+            </Column>
 
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">

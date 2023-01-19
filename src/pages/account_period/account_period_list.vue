@@ -384,13 +384,19 @@ function onPage(event) {
                   icon="pi pi-plus"
                   class="p-button-success mr-2"
                   @click="opendialogAccountPeriodSingle"
-                />
+                >
+                  <i class="pi pi-plus mr-2"></i>
+                  <label for="">{{ $t("create_accP") }}</label>
+                </Button>
                 <Button
                   label="เพิ่มงวดบัญชีอัตโนมัติ"
                   icon="pi pi-play"
                   class="p-button-help mr-2"
                   @click="opendialogAccountPeriod"
-                />
+                >
+                  <i class="pi pi-play mr-2"></i>
+                  <label for="">{{ $t("create_accP") }}</label>
+                </Button>
                 <Button
                   label="ลบข้อมูล"
                   icon="pi pi-trash"
@@ -399,7 +405,10 @@ function onPage(event) {
                   :disabled="
                     !selectedAccountPeriod || !selectedAccountPeriod.length
                   "
-                />
+                >
+                  <i class="pi pi-trash mr-2"></i>
+                  <label for="">{{ $t("delete") }}</label>
+                </Button>
               </div>
               <div class="flex align-items-center justify-content-center">
                 <span class="p-input-icon-left">
@@ -415,36 +424,34 @@ function onPage(event) {
           <Column selectionMode="multiple" style="width: 3rem"></Column>
           <Column
             field="startdateshow"
-            header="จากวันที่"
+            header=""
             :sortable="true"
             style="min-width: 12rem"
-          >
+            ><template #header> {{ $t("sincetime") }}</template>
           </Column>
           <Column
             field="enddateshow"
-            header="ถึงวันที่"
+            header=""
             :sortable="true"
             style="min-width: 16rem"
-          ></Column>
+            ><template #header> {{ $t("totime") }}</template></Column
+          >
           <Column
             field="period"
-            header="งวดลำดับที่"
+            header=""
             :sortable="true"
             style="min-width: 8rem"
-          >
+            ><template #header> {{ $t("order_acc") }}</template>
           </Column>
-          <Column
-            field="description"
-            header="คำอธิบาย"
-            :sortable="true"
-            style="min-width: 10rem"
-          ></Column>
+          <Column field="" header="" :sortable="true" style="min-width: 10rem"
+            ><template #header> {{ $t("description") }}</template></Column
+          >
           <Column
             field="isdisabled"
-            header="ปิด/เปิด"
+            header=""
             :sortable="true"
             style="min-width: 10rem"
-          >
+            ><template #header> {{ $t("close") }}/{{ $t("turnon") }}</template>
             <template #body="slotProps">
               <InputSwitch
                 :modelValue="!slotProps.data.isdisabled"
@@ -476,7 +483,9 @@ function onPage(event) {
         :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
         :style="{ width: '50vw' }"
         :modal="true"
-      >
+        ><template #header>
+          <h3>{{ $t("auto_create") }}</h3>
+        </template>
         <div class="grid formgrid p-fluid">
           <div class="field col-12">
             <div class="grid">
@@ -492,9 +501,11 @@ function onPage(event) {
                   ></RadioButton>
                 </div>
                 <div>
-                  <span class="text-900 text-2xl font-medium">เดือน</span>
+                  <span class="text-900 text-2xl font-medium">{{
+                    $t("month")
+                  }}</span>
                   <p class="text-xl text-500 font-medium mt-2 mb-0">
-                    ตามจำนวนที่กำหนด
+                    {{ $t("set_num") }}
                   </p>
                 </div>
               </div>
@@ -510,9 +521,11 @@ function onPage(event) {
                   ></RadioButton>
                 </div>
                 <div>
-                  <span class="text-900 text-2xl font-medium">ไตรมาส</span>
+                  <span class="text-900 text-2xl font-medium">{{
+                    $t("quarter")
+                  }}</span>
                   <p class="text-xl text-500 font-medium mt-2 mb-0">
-                    + 3 เดือน
+                    + 3 {{ $t("month") }}
                   </p>
                 </div>
               </div>
@@ -528,16 +541,18 @@ function onPage(event) {
                   ></RadioButton>
                 </div>
                 <div>
-                  <span class="text-900 text-2xl font-medium">ปี</span>
+                  <span class="text-900 text-2xl font-medium">{{
+                    $t("year")
+                  }}</span>
                   <p class="text-xl text-500 font-medium mt-2 mb-0">
-                    + 12 เดือน
+                    + 12 {{ $t("year") }}
                   </p>
                 </div>
               </div>
             </div>
           </div>
           <div class="field col-12">
-            <label class="font-medium text-900">จากวันที่</label>
+            <label class="font-medium text-900">{{ $t("sincetime") }}</label>
             <DatePicker
               v-model="startDate"
               dateFormat="d/m/yy"
@@ -548,11 +563,11 @@ function onPage(event) {
             />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">เริ่มต้นงวด</label>
+            <label class="font-medium text-900">{{ $t("Acc_start") }}</label>
             <InputNumber v-model="startAccountPeriod" />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">จำนวนงวด</label>
+            <label class="font-medium text-900">{{ $t("term") }}</label>
             <InputNumber v-model="countAccountPeriod" />
           </div>
         </div>
@@ -563,26 +578,34 @@ function onPage(event) {
             icon="pi pi-times"
             @click="dialogAccountPeriod = false"
             class="p-button-text"
-          />
+          >
+            <i class="pi pi-time mr-2"></i>
+            <label for="">{{ $t("cancle") }}</label>
+          </Button>
           <Button
             label="บันทึก"
             class="p-button-success"
             icon="pi pi-save"
             @click="saveAccountPeriod()"
             autofocus
-          />
+            ><i class="pi pi-save mr-2"></i>
+            <label for="">{{ $t("save") }}</label></Button
+          >
         </template>
       </Dialog>
       <Dialog
-        :header="dialogMode == 0 ? 'เพิ่มงวดบัญชี' : 'แก้ไขงวดบัญชี'"
         v-model:visible="dialogAccountPeriodSingle"
         :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
         :style="{ width: '50vw' }"
         :modal="true"
-      >
+        ><template #header v-if="dialogMode == 1">
+          <h3>{{ $t("edit_accP") }}</h3> </template
+        ><template #header v-if="dialogMode == 0">
+          <h3>{{ $t("create_accP") }}</h3>
+        </template>
         <div class="grid formgrid p-fluid">
           <div class="field col-6">
-            <label class="font-medium text-900">จากวันที่</label>
+            <label class="font-medium text-900">{{ $t("sincetime") }}</label>
             <DatePicker
               v-model="startDate"
               dateFormat="d/m/yy"
@@ -593,7 +616,7 @@ function onPage(event) {
             />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">ถึงวันที่</label>
+            <label class="font-medium text-900">{{ $t("totime") }}</label>
             <DatePicker
               v-model="endDate"
               dateFormat="d/m/yy"
@@ -604,17 +627,20 @@ function onPage(event) {
             />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">
-              {{ dialogMode == 0 ? "เริ่มต้นงวด" : "งวดลำดับที่" }}</label
+            <label class="font-medium text-900" v-if="dialogMode == 0">
+              {{ $t("Acc_start") }}</label
+            >
+            <label class="font-medium text-900" v-if="dialogMode == 1">
+              {{ $t("order_acc") }}</label
             >
             <InputNumber v-model="startAccountPeriod" />
           </div>
           <div class="field col-6">
-            <label class="font-medium text-900">รายละเอียด</label>
+            <label class="font-medium text-900">{{ $t("description") }}</label>
             <InputText type="text" v-model="description" />
           </div>
           <div class="field col-12" v-if="dialogMode == 1">
-            <label class="font-medium text-900">สถานะ</label>
+            <label class="font-medium text-900">{{ $t("status") }}</label>
             <InputSwitch
               v-model="statusAccountPeriod"
               style="display: flex"
@@ -629,7 +655,9 @@ function onPage(event) {
             icon="pi pi-times"
             @click="dialogAccountPeriodSingle = false"
             class="p-button-text"
-          />
+            ><i class="pi pi-times mr-2"></i>
+            <label for="">{{ $t("cancle") }}</label></Button
+          >
           <Button
             label="บันทึก"
             class="p-button-success"
@@ -640,7 +668,9 @@ function onPage(event) {
                 : editAccountPeriodSingle()
             "
             autofocus
-          />
+            ><i class="pi pi-save mr-2"></i>
+            <label for="">{{ $t("save") }}</label></Button
+          >
         </template>
       </Dialog>
 

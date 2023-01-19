@@ -175,7 +175,7 @@ function verifyData() {
     <div class="grid formgrid p-fluid">
       <div class="field mb-12 col-12 md:col-12">
         <label for="accountcode" class="font-medium text-900"
-          ><span class="text-orange-500">* </span> รหัสผังบัญชี
+          ><span class="text-orange-500">* </span> {{ $t("account_code") }}
         </label>
         <InputText
           id="accountcode"
@@ -186,7 +186,8 @@ function verifyData() {
       </div>
       <div class="field mb-12 col-12 md:col-12">
         <label for="accountname" class="font-medium text-900"
-          ><span class="text-orange-500">* </span>ชื่อบัญชี</label
+          ><span class="text-orange-500">* </span>
+          {{ $t("account_name") }}</label
         >
         <InputText
           id="accountname"
@@ -196,8 +197,8 @@ function verifyData() {
         />
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="accountcategory" class="font-medium text-900"
-          >หมวดบัญชี</label
+        <label for="accountcategory" class="font-medium text-900">
+          {{ $t("acc_cat") }}</label
         >
         <div class="flex flex-wrap card-container blue-container">
           <div
@@ -216,8 +217,8 @@ function verifyData() {
         </div>
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="selectedgroup" class="font-medium text-900"
-          >กลุ่มบัญชี</label
+        <label for="selectedgroup" class="font-medium text-900">
+          {{ $t("accountgroup") }}</label
         >
         <div class="flex flex-wrap card-container blue-container">
           <div
@@ -236,8 +237,8 @@ function verifyData() {
         </div>
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="accountlevel" class="font-medium text-900"
-          >ระดับบัญชี</label
+        <label for="accountlevel" class="font-medium text-900">
+          {{ $t("acc_level") }}</label
         >
         <div class="flex flex-wrap card-container blue-container">
           <div
@@ -256,8 +257,8 @@ function verifyData() {
         </div>
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="consolidateaccountcode" class="font-medium text-900"
-          >รหัสผังบัญชีกลาง</label
+        <label for="consolidateaccountcode" class="font-medium text-900">
+          {{ $t("consolidate_acc") }}</label
         >
         <InputText
           type="text"
@@ -268,8 +269,8 @@ function verifyData() {
       </div>
       <div class="field mb-12 col-12 md:col-12">
         <label for="accountcategory" class="font-medium text-900"
-          >ด้านบัญชี</label
-        >
+          >{{ $t("acc_balance_type") }}
+        </label>
         <div class="flex flex-wrap card-container blue-container">
           <div
             v-for="balance of balances"
@@ -294,7 +295,10 @@ function verifyData() {
         label="บันทึกผังบัญชี"
         icon="pi pi-save"
         class="w-auto p-button-success"
-      ></Button>
+      >
+        <i class="pi pi-save mr-2"></i>
+        <label for="">{{ $t("save") }}</label>
+      </Button>
     </div>
   </div>
   <DialogForm

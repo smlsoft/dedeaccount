@@ -318,7 +318,9 @@ function sortBy(data) {
                     icon="pi pi-plus"
                     class="w-auto"
                     @click="goForm()"
-                  ></Button>
+                    ><i class="pi pi-plus mr-2"></i
+                    ><label for="">{{ $t("createacc_group") }}</label></Button
+                  >
                 </div>
                 <div
                   class="flex-1 flex align-items-center justify-content-center"
@@ -349,16 +351,16 @@ function sortBy(data) {
             </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-            <Column
-              field="code"
-              header="รหัสกลุ่มบัญชี"
-              :sortable="true"
-            ></Column>
-            <Column
-              field="name1"
-              header="ชื่อกลุ่มบัญชี"
-              :sortable="true"
-            ></Column>
+            <Column field="code" header="" :sortable="true"
+              ><template #header>
+                {{ $t("accountgroupcode") }}</template
+              ></Column
+            >
+            <Column field="name1" header="" :sortable="true"
+              ><template #header>
+                {{ $t("accountgroupname") }}</template
+              ></Column
+            >
 
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">

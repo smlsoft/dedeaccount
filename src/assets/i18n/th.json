@@ -294,7 +294,7 @@
   "forgot_pass": "ลืมรหัสผ่าน ?",
   "or": "หรือ ",
   "email": "อีเมลล์ ",
-
+  "accountgroup": "กลุ่มบัญชี",
   "username": "ชื่อ ",
   "con_password": "ยืนยันรหัสผ่าน",
   "acc_level": " ระดับบัญชี",
@@ -330,5 +330,23 @@
   "nort_due": "ยังไม่ถึงกำหนดชำระ",
   "vat_amount": "ยอดภาษี",
   "additonal": "ยื่นเพิ่มเติม",
-  "name1": "ชื่อ"
+  "name1": "ชื่อ",
+  "addshop": "สร้างกิจการ",
+  "accountgroupcode": "รหัสกลุ่มบัญชี",
+  "accountgroupname": "ชื่อกลุ่มบัญชี",
+  "createacc_group": "สร้างกลุ่มบัญชี",
+  "journalBookId": "รหัสมุดรายวัน",
+  "journalBookname": "ชื่อสมุดรายวัน",
+  "create_accP": "เพิ่มงวดบัญชี",
+  "auto_create": "เพิ่มงวดบัญชีอัตโนมัติ",
+  "order_acc": "งวดลำดับที่",
+  "turnon": "เปิด",
+  "edit_accP": "แก้ไขงวดบัญชี",
+  "Acc_start": " เริ่มต้นงวด",
+  "cancle": "ยกเลิก",
+  "month": "เดือน",
+  "year": "ปี",
+  "quarter": "ไตรมาส",
+  "set_num": "ตามจำนวนที่กำหนด",
+  "term": "Term"
 }

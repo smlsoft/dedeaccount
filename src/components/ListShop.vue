@@ -2,6 +2,7 @@
 import { useToast } from "primevue/usetoast";
 import AuthenService from "@/services/AuthenService";
 import { ref, onMounted, computed } from "vue";
+import languageButton from "@/components/page/LanguageButton.vue";
 
 const toast = useToast();
 const props = defineProps({
@@ -131,14 +132,17 @@ function verifyData() {
             </div>
           </div>
           <div class="mb-3 lg:mb-0">
-            <div class="flex justify-content-end mb-2">
-              <Button
-                class="p-button-text"
-                label="Logout"
-                icon="pi pi-sign-out"
-                iconPos="right"
-                @click="goLogout()"
-              />
+            <div class="flex justify-content-end mb-5">
+              <div class="flex align-items-center mt-3 md:mt-0">
+                <languageButton />
+                <Button
+                  class="p-button-text"
+                  label="Logout"
+                  icon="pi pi-sign-out"
+                  iconPos="right"
+                  @click="goLogout()"
+                />
+              </div>
             </div>
             <div class="flex justify-content-end mb-0">
               <div class="flex align-items-center mt-3 md:mt-0">
@@ -147,7 +151,10 @@ function verifyData() {
                   label="สร้างกิจการ"
                   icon="pi pi-plus "
                   @click="createShopModal = true"
-                />
+                >
+                  <i class="pi pi-plus mr-2"></i>
+                  <label for="">{{ $t("addshop") }}</label>
+                </Button>
                 <span class="p-input-icon-left">
                   <i class="pi pi-search"></i>
                   <InputText

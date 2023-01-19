@@ -156,7 +156,7 @@ function verifyData() {
       <div class="grid formgrid p-fluid">
         <div class="field mb-6 col-6 md:col-6">
           <label for="groupCode" class="font-medium text-900">
-            <TextRequire textLabel="รหัสสมุดรายวัน"></TextRequire>
+            <label for="">*{{ $t("journalBookId") }}</label>
           </label>
           <InputText
             id="code"
@@ -167,7 +167,7 @@ function verifyData() {
         </div>
         <div class="field mb-6 col-6 md:col-6">
           <label for="name1" class="font-medium text-900">
-            <TextRequire textLabel="ชื่อสมุดรายวัน 1"></TextRequire>
+            <label for="">*{{ $t("journalBookname") }}</label>
           </label>
           <InputText
             id="name1"
@@ -180,7 +180,9 @@ function verifyData() {
           <Panel header="More" :toggleable="true">
             <div class="grid formgrid p-fluid">
               <div class="field mb-6 col-6 md:col-6">
-                <label for="name2" class="font-medium">ชื่อสมุดรายวัน 2 </label>
+                <label for="name2" class="font-medium"
+                  >{{ $t("journalBookname") }} 2
+                </label>
                 <InputText
                   id="name2"
                   type="text"
@@ -189,7 +191,9 @@ function verifyData() {
                 />
               </div>
               <div class="field mb-6 col-6 md:col-6">
-                <label for="name3" class="font-medium">ชื่อสมุดรายวัน 3</label>
+                <label for="name3" class="font-medium"
+                  >{{ $t("journalBookname") }} 3</label
+                >
                 <InputText
                   id="name3"
                   type="text"
@@ -198,7 +202,9 @@ function verifyData() {
                 />
               </div>
               <div class="field mb-6 col-6 md:col-6">
-                <label for="name4" class="font-medium">ชื่อสมุดรายวัน 4</label>
+                <label for="name4" class="font-medium"
+                  >{{ $t("journalBookname") }} 4</label
+                >
                 <InputText
                   id="name4"
                   type="text"
@@ -207,7 +213,9 @@ function verifyData() {
                 />
               </div>
               <div class="field mb-6 col-6 md:col-6">
-                <label for="name5" class="font-medium">ชื่อสมุดรายวัน 5</label>
+                <label for="name5" class="font-medium"
+                  >{{ $t("journalBookname") }} 5</label
+                >
                 <InputText
                   id="name5"
                   type="text"
@@ -225,7 +233,10 @@ function verifyData() {
           label="บันทึกสมุดรายวัน"
           icon="pi pi-save"
           class="w-auto p-button-success"
-        ></Button>
+        >
+          <i class="pi pi-save mr-2"></i>
+          <label for="">{{ $t("save") }}</label></Button
+        >
       </div>
     </div>
   </div>
