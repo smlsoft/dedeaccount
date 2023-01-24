@@ -6,22 +6,30 @@ export const menus = [
     to: "/",
     children: [],
   },
+
   {
-    title: "จัดการรูปภาพ",
+    title: "รูปภาพเอกสาร",
     icon: "pi pi-image",
-    to: "",
-    name: "daily",
+    to: "/images/list",
+    name: "pic_group",
     children: [
       {
-        title: "อัพโหลด/จัดชุดรูปภาพ",
+        title: "อัพโหลดรูปเอกสาร",
         icon: "pi pi-upload",
-        to: "/daily/list",
-        name: "daily_list",
+        to: "/images/job",
+        name: "images_job",
+      },
+      {
+        title: "ตรวจสอบรูปภาพ",
+        icon: "pi pi-check-circle",
+        to: "/images/job_approve",
+        name: "images_job_approve",
       },
 
 
     ],
   },
+
   {
     title: "คลังเอกสาร",
     icon: "pi pi-inbox",
@@ -166,28 +174,7 @@ export const menus = [
   */
 
 
-  // {
-  //   title: "รูปภาพเอกสาร",
-  //   icon: "pi pi-image",
-  //   to: "/images/list",
-  //   name: "pic_group",
-  //   children: [
-  //     // {
-  //     //   title: "อัพโหลดรูปเอกสาร",
-  //     //   icon: "pi pi-images",
-  //     //   to: "/images/gallery",
-  //     //   name: "images_upload",
-  //     // },
-  //     // {
-  //     //   title: "รูปภาพเอกสาร",
-  //     //   icon: "pi pi-folder-open",
-  //     //   to: "/images/list",
-  //     //   name: "images_list",
-  //     // },
 
-
-  //   ],
-  // },
 
   {
     title: "กำหนดค่า",

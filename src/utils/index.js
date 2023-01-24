@@ -149,6 +149,25 @@ const getDateFormatDMY = (date) => {
   // return dayjs(d).format("DD/MM/BBBB");
 };
 
+const getDateFormatDMYHMS = (date) => {
+  var d = new Date(date),
+    month = "" + (d.getMonth() + 1),
+    day = "" + d.getDate(),
+    year = d.getFullYear(),
+    hour = d.getHours(),
+    minute = d.getMinutes(),
+    second = d.getSeconds();
+
+
+  if (process.env.VUE_APP_DATE == "th") {
+    year += 543;
+  }
+  if (month.length < 2) month = "0" + month;
+  if (day.length < 2) day = "0" + day;
+  return [day, month, year].join("/") + " " + [hour, minute, second].join(":");
+  // return dayjs(d).format("DD/MM/BBBB");
+};
+
 const getDateTimeFormatStandard = (date) => {
   var d = new Date(date),
     month = "" + (d.getMonth() + 1),
@@ -282,6 +301,11 @@ const isImage = (file) => {
   return /^image\//.test(file.type);
 };
 
+const generateRandomNumber = () => {
+  const min = 1000;
+  const max = 9999;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 
 export default {
   newGuid,
@@ -302,6 +326,7 @@ export default {
   formatCurrency,
   remove_duplicates_array,
   getDateFormatDMY,
+  getDateFormatDMYHMS,
   isImage,
   getYearBuddhist,
   checkSpecialString,
@@ -309,4 +334,5 @@ export default {
   formatNumberReport,
   getYearDC,
   formatNumberforamount,
+  generateRandomNumber
 };

@@ -1,399 +1,151 @@
 <template>
-  <!-- <div class="card-container blue-container">
-    <div
-      :class="borderImage()"
-      class="transition-colors transition-duration-500 border-round cursor-pointer m-1 px-5 py-5"
-      @click="selectModeImage()"
-    >
-      <div
-        class="surface-card shadow-1 border-rounded cardimage"
-        style="border-radius: 6px; padding: 10px"
-      >
-        <img
-          :src="props.images_data.imageuri"
-          class="mb-1 w-full h-9rem"
-          style="cursor: zoom-in"
-          @click="zoomImg(props.images_data)"
-        />
-
-        <div class="flex justify-content-between align-items-start">
-          <div class="text-md font-medium text-900 mb-2 titletext">
-            {{ props.images_data.documentref }}
-          </div>
-        </div>
-        <div class="mt-0 mb-2 flex text-600 justify-content-between">
-          <div class="font-medium text-sm">สร้างเมื่อ</div>
-          <div class="font-medium text-sm">
-            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
-          </div>
-        </div>
-        <div
-          class="mt-0 mb-2 flex text-600 justify-content-between"
-          v-if="checkUseImg(props.images_data.documentref)"
-        >
-          <div class="font-medium text-sm">ใช้งานโดย</div>
-          <div class="font-medium text-sm">
-            {{ getUseData(props.images_data.documentref) }}
-          </div>
-        </div>
-        <ul class="list-none m-0 p-0">
-          <li class="py-1">
-            <div
-              class="flex align-items-center justify-content-center"
-              v-if="props.mode == 1 && props.images_data.status == 1"
-            >
-              <Button
-                v-if="props.images_data.status == 1"
-                icon="pi pi-upload"
-                :class="'p-button-secondary text-white mr-1'"
-                class="w-full"
-                label="เลือกรูปใหม่"
-                @click="chooseFile()"
-              />
-              <input
-                id="chooseFile"
-                ref="fileInput"
-                type="file"
-                @change="onFileSelect"
-                :multiple="false"
-                accept="image/*"
-                style="display: none"
-              />
-              <Button
-                v-if="props.images_data.status == 1"
-                icon="pi pi-refresh"
-                :class="'p-button-green text-white mr-1'"
-                class="w-full"
-                :label="'นำกลับมาใช้'"
-                @click="removeReject()"
-              />
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div> -->
-  <!-- <div
-    class="p-1 cursor-pointer card-container blue-container"
+  <div
+    class="relative cursor-pointer text-center m-3"
+    :style="
+      'width:' +
+      props.sizeWidthImageBloc +
+      'px;' +
+      'height:' +
+      props.sizeHeightImageBloc +
+      'px'
+    "
     :class="borderImage()"
-    @click="selectModeImage()"
+    @click="zoomImg(props.images_data)"
+    @mouseenter="hoveredItem = props.images_data.imageuri"
+    @mouseleave="hoveredItem = null"
   >
-    <div class="shadow-2 p-3 surface-card border-round cardimage">
-      <div class="mb-2">
-        <img
-          :src="props.images_data.imageuri"
-          class="mb-0 w-full h-9rem"
-          style="cursor: zoom-in"
-          @click="zoomImg(props.images_data)"
-        />
-      </div>
-      <div class="flex justify-content-between align-items-center mb-2">
-        <span class="text-900 font-medium titletext">{{
-          props.images_data.documentref
-        }}</span>
-      </div>
-
-      <div class="mt-0 mb-2 flex text-600 justify-content-between">
-        <div class="font-medium text-sm">สร้างเมื่อ</div>
-        <div class="font-medium text-sm">
-          {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
-        </div>
-      </div>
-      <div
-        class="mt-0 mb-0 flex text-600 justify-content-between"
-        style="min-height: 20px"
+    <div
+      class="static flex align-items-center justify-content-center hover:shadow-3"
+    >
+      <img
+        :src="props.images_data.imagereferences[0].imageuri"
+        class="w-full"
+        style="object-fit: cover; margin: 3px"
+        :style="
+          'width:' +
+          (props.sizeWidthImageBloc - 10) +
+          'px;' +
+          'height:' +
+          (props.sizeHeightImageBloc - 6) +
+          'px'
+        "
+      />
+      <button
+        v-if="props.images_data.imagereferences.length > 1"
+        type="text"
+        v-ripple
+        class="absolute p-link w-2rem h-2rem bg-primary-500 border-circle inline-flex align-items-center justify-content-center"
+        style="top: 0rem; left: 0rem"
       >
-        <div
-          class="font-medium text-sm"
-          v-if="checkUseImg(props.images_data.documentref)"
-        >
-          ใช้งานโดย
-        </div>
-        <div
-          class="font-medium text-sm"
-          v-if="checkUseImg(props.images_data.documentref)"
-        >
-          {{ getUseData(props.images_data.documentref) }}
-        </div>
-      </div>
-
-      <ul class="list-none m-0 p-0">
-        <li class="py-1">
-          <div
-            class="align-items-center justify-content-center"
-            v-if="props.mode == 1 && props.images_data.status == 1"
-          >
-            <Button
-              v-if="props.images_data.status == 1"
-              icon="pi pi-upload"
-              :class="'p-button-secondary text-white mr-1'"
-              class="w-full"
-              label="เลือกรูปใหม่"
-              @click="chooseFile()"
-            />
-            <input
-              id="chooseFile"
-              ref="fileInput"
-              type="file"
-              @change="onFileSelect"
-              :multiple="false"
-              accept="image/*"
-              style="display: none"
-            />
-            <Button
-              v-if="props.images_data.status == 1"
-              icon="pi pi-refresh"
-              :class="'p-button-green text-white mr-1'"
-              class="w-full mt-1"
-              :label="'นำกลับมาใช้'"
-              @click="removeReject()"
-            />
-          </div>
-        </li>
-      </ul>
+        <span class="font-bold text-white">{{
+          props.images_data.imagereferences.length
+        }}</span>
+      </button>
+      <Checkbox
+        v-if="
+          isSelectedDocument &&
+          props.images_data.imagereferences.length === 1 &&
+          props.images_data.references.length === 0 &&
+          props.images_data.isreject == false &&
+          !checkUseImg(props.images_data.guidfixed)
+        "
+        style="top: 0rem; right: 0rem"
+        class="absolute"
+        inputId="binary"
+        v-model="props.images_data.ischecked"
+        :binary="true"
+        :readonly="true"
+      />
     </div>
-  </div> -->
-
-  <div class="p-1 cursor-pointer card-container blue-container" :class="borderImage()" @click="selectModeImage()"
-    @mouseenter="hoveredItem = props.images_data.imageuri" @mouseleave="hoveredItem = null">
-    <div class="p-2 surface-card border-round cardimage">
-      <div class="
-          surface-section
-          z-1
-          relative
-          transition-all transition-duration-300
-        ">
-        <div class="relative mb-1">
-          <!-- <div
-            class="fadein absolute left-0 top-0 w-full h-full"
-            v-if="hoveredItem === props.images_data.imageuri"
-          ></div> -->
-          <img :src="props.images_data.imageuri" class="w-full " style="object-fit: cover; height: 12rem"
-            :style="props.mode != 4 ? 'cursor: zoom-in' : ''"
-            @click="props.mode != 4 ? zoomImg(props.images_data) : ''" />
-          <!-- <button
-            v-if="hoveredItem == props.images_data.imageuri"
-            @click="zoomImg(props.images_data)"
-            type="text"
-            v-ripple
-            class="fadein p-link w-2rem h-2rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
-            style="top: 1rem; right: 1rem"
-          >
-            <i class="pi pi-info text-white"></i>
-          </button> -->
-          <div class="absolute" style="bottom: 0.5rem; right: 0.3rem" v-if="checkUseImg(props.images_data.documentref)">
-            <Chip :label="getUseData(props.images_data.documentref)" style="background-color: #2196f3; color: #ffffff"
-              icon="pi pi-user" class="mr-2 mb-2 " />
-            <!-- <Avatar style="background-color: #2196f3; color: #ffffff" :label="
-              getUseData(props.images_data.documentref)
-                .charAt(0)
-                .toUpperCase()
-            " shape="circle" v-tooltip.top="'Enter your usernamesssssss'" /> -->
-          </div>
-        </div>
-        <div class="flex justify-content-between align-items-center mb-2">
-          <span class="text-900 font-medium titletext">{{
-          (props.images_data.name != "") ? props.images_data.name : props.images_data.guidfixed
-          }}</span>
-        </div>
-        <div class="flex justify-content-between align-items-center mb-2">
-          <span class="text-900 font-medium titletext">กลุ่มเอกสาร : {{
-          props.images_data.documentref
-          }}</span>
-        </div>
-        <div class="flex justify-content-between align-items-center mb-2" v-if="props.images_data.status == 2">
-          <span class="text-900 font-medium titletext">เอกสาร : {{
-          props.images_data.docguidref
-          }}</span>
-        </div>
-        <div class=" mb-0 flex text-600 justify-content-between">
-          <div class="font-medium text-sm relative">
-            <span v-if="props.mode != 4">
-              <Button class="p-button-text text-yellow-500 mr-1" icon="pi pi-print"
-                @click="printImg(props.images_data.imageuri)" style="z-index: 200" />
-            </span>
-            <span v-if="props.mode != 4 && props.images_data.status == 2">
-              <Button class="p-button-text text-color-secondary mr-1" icon="pi pi-eye"
-                @click="showDetailGlImage(props.images_data.docguidref)" style="z-index: 200"
-                :disabled="props.images_data.docguidref == ''" />
-            </span>
-          </div>
-          <div class="font-medium text-sm">
-            {{ Utils.getDateTimeFormat(props.images_data.uploadedat) }}
-          </div>
-        </div>
-        <!-- <div
-          class="mt-0 mb-0 flex text-600 justify-content-between"
-          style="min-height: 20px"
-        >
-          <div
-            class="font-medium text-sm"
-            v-if="checkUseImg(props.images_data.documentref)"
-          >
-            ใช้งานโดย
-          </div>
-          <div
-            class="font-medium text-sm"
-            v-if="checkUseImg(props.images_data.documentref)"
-          >
-            {{ getUseData(props.images_data.documentref) }}
-          </div>
-        </div> -->
-        <ul class="list-none m-0 p-0">
-          <li class="py-1">
-            <div class="align-items-center justify-content-center"
-              v-if="props.mode == 1 && props.images_data.status == 1">
-              <Button v-if="props.images_data.status == 1" icon="pi pi-upload"
-                :class="'p-button-secondary text-white mr-1'" class="w-full" label="เลือกรูปใหม่"
-                @click="chooseFile()" />
-              <input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect" :multiple="false"
-                accept="image/*" style="display: none" />
-              <Button v-if="props.images_data.status == 1" icon="pi pi-refresh"
-                :class="'p-button-green text-white mr-1'" class="w-full mt-1" :label="'นำกลับมาใช้'"
-                @click="removeReject()" />
-            </div>
-          </li>
-        </ul>
-      </div>
+    <div class="white-space-nowrap overflow-hidden text-overflow-ellipsis">
+      <span class="text-900" style="font-size: 12px">{{
+        props.images_data.title
+      }}</span>
     </div>
   </div>
-  <Dialog :dismissableMask="false" :close-on-escape="false" v-model:visible="showImgDialog" header="รายละเอียด"
-    style="min-width: 600px; max-width: 1080px" :modal="true">
-    <div class="confirmation-content" id="boxconfirm">
-      <div class="flex justify-content-between mb-2">
-        <div class="flex">{{ showImgHeader }}</div>
-        <div class="flex">{{ showContent }}</div>
-      </div>
-      <img :src="showImgSrc" class="mb-1 w-full" v-if="!showRotateEdit" />
-      <Cropper v-if="showRotateEdit" ref="cropper" class="cropper" :src="showImgSrc" :transitions="true"
-        image-restriction="fit-area" @change="change" />
 
-      <div class="flex align-items-center justify-content-center" v-if="
-        props.mode == 1 &&
-        !checkUseImg(showImageDocRef) &&
-        props.images_data.status == 0 &&
-        !showRotateEdit
-      ">
-        <!-- <Button label="แก้ไข" icon="pi pi-pencil" class="p-button-primary w-full mr-1" @click="editimage()" /> -->
-        <!-- <Button
-          label="สร้างเอกสาร"
-          icon="pi pi-pencil"
-          @click="createform()"
-          class="p-button-primary w-full mr-1"
-        /> -->
+  <DialogForm
+    :confirmDialog="confirmSaveImg"
+    :textContent="'ต้องการบันทึกรูปภาพ'"
+    v-on:close="confirmSaveImg = false"
+    v-on:confirm="saveUpdateImg()"
+  ></DialogForm>
+  <DialogForm
+    :confirmDialog="confirmUnGroup"
+    :textContent="'ต้องการยกเลิกชุดรูปภาพ'"
+    v-on:close="confirmUnGroup = false"
+    v-on:confirm="documentImageUnGroup()"
+  ></DialogForm>
 
-        <Button v-if="props.images_data.status == 0" icon="pi pi-trash" label="ยกเลิกรูปภาพ"
-          class="p-button-danger w-full mr-1 text-white" @click="rejectImg()" />
-      </div>
-      <div class="flex align-items-center justify-content-center mb-2 mt-2" v-if="showRotateEdit">
-        <Button icon="pi pi-arrow-left" class="p-button-info mr-1" @click="flip(true, false)" />
-        <Button icon="pi pi-arrow-right" class="p-button-info mr-1" @click="flip(false, true)" />
-        <Button icon="pi pi-refresh" class="p-button-info mr-1" @click="rotate(90)" />
-        <Button icon="pi pi-replay" class="p-button-info ml-1" @click="rotate(-90)" />
-      </div>
-      <div class="flex align-items-center justify-content-center" v-if="showRotateEdit">
-        <Button label="บันทึก" icon="pi pi-save" class="p-button-success w-full mr-1" @click="confirmSaveImg = true" />
-        <!-- <Button
-          label="สร้างเอกสาร"
-          icon="pi pi-pencil"
-          @click="createform()"
-          class="p-button-primary w-full mr-1"
-        /> -->
-
-        <Button v-if="props.images_data.status == 0" icon="pi pi-angle-left" label="ยกเลิก"
-          class="p-button-danger w-full mr-1 text-white" @click="showRotateEdit = false" />
-      </div>
-    </div>
-  </Dialog>
-  <DialogForm :confirmDialog="confirmSaveImg" :textContent="'ต้องการบันทึกรูปภาพใช่หรือไม่'"
-    v-on:close="confirmSaveImg = false" v-on:confirm="saveUpdateImg()"></DialogForm>
-
-  <Dialog :header="props.images_data.docguidref" v-model:visible="showGLImage"
-    :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '60vw'}" :modal="true" :draggable="false"
-    position="top">
-
-    <!-- <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
-      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
-      :groupAccount_detail="groupAccount_detail">
-    </JournalForm> -->
-
-    <!-- <TabView class="tabview-custom" ref="tabview">
-      <TabPanel>
-        <template #header>
-          <i class="pi pi-book mr-1"></i>
-          <span> ข้อมูลรายวัน</span>
-        </template>
-        <div>
-          <JournalForm :daily_form="daily_form"></JournalForm>
-        </div>
-      </TabPanel> -->
-    <!-- <TabPanel>
-        <template #header>
-          <i class="pi pi-wallet mr-1"></i>
-          <span> ข้อมูลภาษี</span>
-        </template>
-        <div>
-          <VatForm :vats="vats"></VatForm>
-        </div>
-      </TabPanel>
-      <TabPanel>
-        <template #header>
-          <i class="pi pi-wallet mr-1"></i>
-          <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-        </template>
-        <div>
-          <TaxForm :taxes="taxes"></TaxForm>
-        </div>
-      </TabPanel> -->
-    <!-- </TabView> -->
-
-  </Dialog>
+  <DialogForm
+    :confirmDialog="onfirmRejectDialog"
+    v-on:close="onfirmRejectDialog = false"
+    :textContent="contentOnfirmRejectDialog"
+    v-on:confirm="
+      rejectImage(
+        props.images_data.imagereferences[activeIndexList].documentimageguid,
+        isReject
+      )
+    "
+  >
+  </DialogForm>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import Utils from "@/utils/";
 import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
 import { useToast } from "primevue/usetoast";
 import DialogForm from "@/components/form/DialogForm.vue";
+
 const toast = useToast();
 const confirmSaveImg = ref(false);
-
-const showImgSrc = ref(null);
+const confirmUnGroup = ref(false);
+const showImgData = ref(null);
 const showImgDialog = ref(false);
-const showContent = ref("");
-const showImgHeader = ref("");
 const showImageDocRef = ref("");
 const hoveredItem = ref();
-const showRotateEdit = ref(false);
 const cropper = ref();
 const zoomImgData = ref();
-const imageStatus = {
-  Normal: 0,
-  Reject: 1,
-  Saved: 2,
-};
-const showGLImage = ref(false);
-const daily_form = ref({});
-const taxes = ref([]);
-const vats = ref([]);
-const loadDetailGlImage = ref(false);
+const activeIndexList = ref(0);
+const onfirmRejectDialog = ref(false);
+const isReject = ref(true);
+const contentOnfirmRejectDialog = ref("");
+const confirmEditGroup = ref(false);
+
+const checkSelected = ref(false);
+
+// const checkSelected = computed({
+//   get() {
+//     if (props.images_selete.length == 0) {
+//       return false;
+//     }
+//   },
+// });
 
 const props = defineProps({
   images_data: Object,
   images_selete: Array,
   mode: Number,
   allimage_used: Array,
+  isSelectedDocument: Boolean,
+  sizeWidthImageBloc: Number,
+  sizeHeightImageBloc: Number,
 });
 const emit = defineEmits([
   "selectImg",
   "useImage",
   "createform",
   "rejectImg",
-  "removeReject",
   "onFileSelect",
-  "onReloadData"
+  "onReloadData",
+  "documentImageUnGroup",
+
+  "rejectImage",
+  "showDetailGlImage",
+  "addToGroupImage",
+  "showImg",
 ]);
 
 onMounted(async () => {
@@ -405,30 +157,20 @@ onMounted(async () => {
   $(".titletext").attr(
     "style",
     "width:" +
-    (width - 20) +
-    "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
+      (width - 20) +
+      "px;white-space: nowrap;overflow: hidden;  text-overflow: ellipsis;"
   );
 });
 
 function chooseFile() {
   document.getElementById("chooseFile").click();
 }
-function rotateImg(val) { }
 
-function editimage() {
-  showRotateEdit.value = true;
-  setTimeout(() => {
-    cropper.value.setCoordinates(({ coordinates, imageSize }) => ({
-      width: imageSize.width,
-      height: imageSize.height,
-    }));
-  }, 50);
-}
 function checkSelect(data) {
   var found = 0;
 
   props.images_selete.forEach((element) => {
-    if (element == data) {
+    if (element.guidfixed == data) {
       found += 1;
     }
   });
@@ -447,8 +189,6 @@ function flip(x, y) {
 function rotate(angle) {
   cropper.value.rotate(angle);
 }
-
-function change({ coordinates, image }) { }
 
 function saveUpdateImg() {
   const { canvas } = cropper.value.getResult();
@@ -547,7 +287,6 @@ async function replaceImg(imageuri) {
     );
     console.log(res);
     if (res.success) {
-      showRotateEdit.value = false;
       showImgDialog.value = false;
       confirmSaveImg.value = false;
       reloadData();
@@ -626,19 +365,40 @@ function getUseData(data) {
   }
 }
 
-function selectImg(data) {
-  emit("selectImg", data);
+function selectImg(data, tags, documentimageguid) {
+  if (props.mode == 1) {
+    let dataSelet = {
+      guidfixed: data,
+      tags: tags,
+      documentimageguid: documentimageguid,
+    };
+    emit("selectImg", dataSelet);
+  } else if (props.mode == 3 || props.mode == 4) {
+    emit("selectImg", data);
+  } else {
+    emit("selectImg", data);
+  }
 }
 
 function zoomImg(data) {
+  if (props.isSelectedDocument) {
+    selectModeImage();
+  }
+
+  data.imagereferences = data.imagereferences.sort((a, b) => {
+    if (a.xorder < b.xorder) {
+      return -1;
+    }
+  });
+  console.log(data);
+
   zoomImgData.value = data;
-  console.log("zoomImg");
-  showImgSrc.value = data.imageuri;
-  showImgDialog.value = true;
-  var date = Utils.getDateTimeFormat(data.uploadedat);
-  showContent.value = "วันที่ : " + date + "  โดย " + data.uploadedby;
-  showImgHeader.value = "เลขอ้างอิง: " + data.documentref;
+  showImgData.value = data;
   showImageDocRef.value = data.documentref;
+
+  //showImgDialog.value = true;
+
+  emit("showImg", showImgData.value);
 }
 
 function createform() {
@@ -649,50 +409,95 @@ function useImage() {
   emit("useImage", props.images_data.documentref);
 }
 
-function removeReject() {
-  emit("removeReject", props.images_data.documentref);
-}
-
 function rejectImg() {
   emit("rejectImg", props.images_data.documentref);
 }
 function onFileSelect(event) {
-  emit("onFileSelect", event, props.images_data);
+  emit(
+    "onFileSelect",
+    event,
+    props.images_data.imagereferences[activeIndexList.value]
+  );
+  showImgDialog.value = false;
 }
 
 function reloadData() {
   emit("onReloadData", "");
 }
 
+function documentImageUnGroup() {
+  emit("documentImageUnGroup", props.images_data.guidfixed);
+  confirmUnGroup.value = false;
+  showImgDialog.value = false;
+}
+
+function rejectImage(documentimageguid, isReject) {
+  onfirmRejectDialog.value = false;
+  showImgDialog.value = false;
+
+  emit("rejectImage", documentimageguid, isReject);
+}
+
+function showDetailGlImage(docno) {
+  emit("showDetailGlImage", docno);
+}
+
+function addToGroupImage(data) {
+  emit("addToGroupImage", data);
+}
+
+function selectRejectImage(reject) {
+  if (reject) {
+    contentOnfirmRejectDialog.value =
+      "ต้องการยกเลิกรูปภาพ " +
+      props.images_data.imagereferences[activeIndexList.value].name;
+    isReject.value = true;
+    onfirmRejectDialog.value = true;
+  } else {
+    contentOnfirmRejectDialog.value =
+      "ต้องการนำรูปภาพ " +
+      props.images_data.imagereferences[activeIndexList.value].name +
+      " กลับมาใช้";
+    isReject.value = false;
+    onfirmRejectDialog.value = true;
+  }
+}
+
 function selectModeImage() {
   console.log("selectModeImage");
-  // mode 1 page : images_list      เมนู: รูปภาพเอกสาร
-  // mode 2 page : dail_images_list เมนู: บันทึกรายวันจากรูป
-  // mode 3 page : daily_form       เมนู: เพิ่มข้อมูลรายวัน
+  console.log(checkUseImg(props.images_data.guidfixed));
 
-  let modeMenu = props.mode;
-  let statusImage = props.images_data.status;
-
-  // console.log(checkUseImg(props.images_data.documentref));
-  // console.log("menu", modeMenu);
-  // console.log("status", statusImage);
-  // console.log("--------------");
+  // mode 1 page : images_list                   เมนู: รูปภาพเอกสาร
+  // mode 3 page : daily_form                    เมน: บันทึกรายการบัญชี
+  // mode 4 page : daily_images_group_list       เมนู: บันทึกรายวันจากรูป
 
   if (showImgDialog.value) {
     return;
   }
-  if (!checkUseImg(props.images_data.documentref)) {
-    if (modeMenu == 1 && statusImage == 0) {
-      console.log("xxx");
-      selectImg(props.images_data.guidfixed);
-    } else if (modeMenu == 2 && statusImage == 0) {
-      selectImg(props.images_data.documentref);
-    } else if (modeMenu == 3 && statusImage == 0) {
-      selectImg(props.images_data.documentref);
+
+  let modeMenu = props.mode;
+  let statusImage = props.images_data.isreject;
+  if (!checkUseImg(props.images_data.guidfixed)) {
+    if (props.images_data.references.length > 0) {
+      return false;
+    } else {
+      if (modeMenu == 1 && statusImage == false) {
+        if (props.images_data.imagereferences.length > 1) {
+          console.log("group");
+          // zoomImg(props.images_data);
+        } else {
+          selectImg(
+            props.images_data.guidfixed,
+            props.images_data.tags,
+            props.images_data.imagereferences[0]
+          );
+        }
+      } else if (modeMenu == 3 || (modeMenu == 4 && statusImage == false)) {
+        selectImg(props.images_data.guidfixed);
+      } else if (statusImage == true) {
+        zoomImg(props.images_data);
+      }
     }
-  }
-  if (modeMenu == 4 && statusImage == 0) {
-    selectImg(props.images_data.documentref);
   }
 }
 
@@ -702,7 +507,15 @@ function printImg(data) {
   var w = window.open("", "");
   w.document.write("<html><head>");
   w.document.write("</head><body >");
-  w.document.write('<img id="print-image-element" src="' + url + '" width="100%"/>');
+
+  data.forEach((element, index) => {
+    w.document.write(
+      '<img id="print-image-element" src="' +
+        element.imageuri +
+        '" width="100%"/>'
+    );
+  });
+
   w.document.write(
     '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
   );
@@ -711,152 +524,59 @@ function printImg(data) {
   w.window.close();
   selectModeImage();
 }
+
 function borderImage() {
   let userImageStyle = "";
-  let isUseImage = checkUseImg(props.images_data.documentref);
+  let isUseImage = checkUseImg(props.images_data.guidfixed);
   let selectedImage = checkSelect(props.images_data.guidfixed);
-  let statusImage = props.images_data.status;
+  let statusImage = props.images_data.isreject;
+  let referencesImage = props.images_data.references;
 
-  if (statusImage == imageStatus.Normal) {
-    if (isUseImage) {
-      userImageStyle = "bg-blue-100";
-    } else {
-      if (selectedImage) {
-        userImageStyle = "bg-blue-500 ";
+  if (referencesImage.length == 0) {
+    if (statusImage == false) {
+      if (isUseImage) {
+        userImageStyle = "bg-blue-100";
       } else {
-        userImageStyle = "bg-blue-while hover:shadow-1 ";
+        if (selectedImage) {
+          userImageStyle = "bg-blue-500 ";
+        } else {
+          userImageStyle = "bg-blue-while hover:shadow-1 ";
+        }
       }
+    } else if (statusImage == true) {
+      userImageStyle = "bg-red-400";
     }
-  } else if (statusImage == imageStatus.Reject) {
-    userImageStyle = "bg-yellow-200";
-  } else if (statusImage == imageStatus.Saved) {
+  } else {
     userImageStyle = "bg-green-100";
   }
+
   return userImageStyle;
 }
 
-function showDetailGlImage(docno) {
-  console.log(docno);
-  showGLImage.value = true;
-
-  loadDetailGlImage.value = true;
-  MasterdataService.getGLledger(docno)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        if (res.success) {
-          const vat = res.data.vats;
-          const tax = res.data.taxes;
-
-          console.log(res.data);
-
-          daily_form.value.accountdescription = res.data.accountdescription;
-          daily_form.value.accountgroup = res.data.accountgroup;
-          daily_form.value.accountperiod = res.data.accountperiod;
-          daily_form.value.accountyear = res.data.accountyear;
-          daily_form.value.amount = res.data.amount;
-          daily_form.value.batchId = res.data.batchId;
-          daily_form.value.journaltype = res.data.journaltype.toString();
-          daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
-          daily_form.value.docno = res.data.docno;
-          daily_form.value.bookcode = res.data.bookcode;
-          daily_form.value.journaldetail = res.data.journaldetail;
-          if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
-            daily_form.value.exdocrefdate = "";
-          } else {
-            daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
-          }
-          daily_form.value.exdocrefno = res.data.exdocrefno;
-
-          if (res.data.vats.length > 0) {
-            vats.value = [];
-
-            for (var i = 0; i < res.data.vats.length; i++) {
-              var vattemp = {
-                vattype: vat[i].vattype,
-                vatdate: Utils.getDateTimeFromDate(vat[i].vatdate),
-                vatdocno: vat[i].vatdocno,
-                vatperiod: vat[i].vatperiod,
-                vatyear: vat[i].vatyear,
-                vatbase: vat[i].vatbase,
-                vatrate: vat[i].vatrate,
-                vatamount: vat[i].vatamount,
-                exceptvat: vat[i].exceptvat,
-                vatmode: vat[i].vatmode,
-                vatsubmit: vat[i].vatsubmit,
-                custname: vat[i].custname,
-                custtaxid: vat[i].custtaxid,
-                organization: vat[i].organization,
-                branchcode: vat[i].branchcode,
-                remark: vat[i].remark,
-              };
-              vats.value.push(vattemp);
-            }
-          }
-
-          if (res.data.taxes.length > 0) {
-            taxes.value = [];
-            for (var i = 0; i < res.data.taxes.length; i++) {
-              var taxes_temp = {
-                taxdocno: res.data.taxes[i].taxdocno,
-                taxdate: Utils.getDateTimeFromDate(res.data.taxes[i].taxdate),
-                custname: res.data.taxes[i].custname,
-                custtype: res.data.taxes[i].custtype,
-                custtaxid: res.data.taxes[i].custtaxid,
-                taxtype: res.data.taxes[i].taxtype,
-                address: res.data.taxes[i].address,
-                details: [],
-              };
-
-              if (
-                res.data.taxes[i].details != null &&
-                res.data.taxes[i].details.length > 0
-              ) {
-                var sumamount = 0;
-                var sumbase = 0;
-                res.data.taxes[i].details.forEach((data) => {
-                  var details_temp = {
-                    description: data.description,
-                    taxbase: data.taxbase,
-                    taxrate: data.taxrate,
-                    taxamount: data.taxamount,
-                  };
-
-                  taxes_temp.details.push(details_temp);
-                });
-              } else {
-                taxes_temp.details = [
-                  {
-                    description: "",
-                    taxbase: 0,
-                    taxrate: 0,
-                    taxamount: 0,
-                  },
-                ];
-              }
-
-              taxes.value.push(taxes_temp);
-            }
-            console.log();
-          }
-
-
-          console.log(vats.value);
-          console.log(taxes.value);
-        }
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-
+function exitDialog() {
+  console.log("exitDialog");
+  activeIndexList.value = 0;
 }
 </script>
 <style scoped>
-.textcenter {
-  margin: auto;
-  line-height: 1.25rem;
+.selectimgDialog .p-dialog-header {
+  padding: 10px 15px 10px 15px;
+}
 
-  padding: 0px;
+.p-galleria-thumbnails-top {
+  width: 100% !important;
+}
+
+.p-message {
+  margin: 0px;
+  width: 100% !important;
+}
+
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #000;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
+  width: 100%;
 }
 </style>

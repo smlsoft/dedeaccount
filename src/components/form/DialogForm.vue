@@ -7,7 +7,7 @@ const props = defineProps({
   textContent: String,
   textContent2: String,
   confirmDialog: Boolean,
-
+  textDetail: Array,
   mode: Number,
 });
 
@@ -68,16 +68,28 @@ function onConfirm() {
         <span class="font-medium text-2xl text-900">Confirm </span>
       </div>
     </template>
-    <p
-      class="line-height-3 p-0 m-0"
-      style="font-size: 1.2rem; text-align: center"
-    >
-      <span
-        >{{ props.textContent }}
 
-        {{ props.textContent2 }} ใช่หรือไม่ ?
-      </span>
-    </p>
+    <div class="flex flex-column justify-content-center align-items-center">
+      <p
+        class="line-height-3 p-0 m-0"
+        style="font-size: 1.2rem; text-align: center"
+      >
+        <span
+          >{{ props.textContent }}
+
+          {{ props.textContent2 }} ใช่หรือไม่ ?
+        </span>
+      </p>
+    </div>
+    <div class="flex flex-column justify-content-center align-items-center">
+      <span
+        class="text-xl text-900 font-medium"
+        v-for="(data, index) in props.textDetail"
+      >
+        {{ index + 1 + ". " + data.documentimageguid.name }}</span
+      >
+    </div>
+
     <template #footer>
       <div class="border-top-1 surface-border pt-3">
         <Button

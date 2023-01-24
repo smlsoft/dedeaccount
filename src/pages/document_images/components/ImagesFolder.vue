@@ -229,7 +229,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import FolderService from "@/services/FolderService";
+import JobService from "@/services/JobService";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
@@ -267,7 +267,7 @@ async function saveFolder() {
       status: 0,
     };
     try {
-      const res = await FolderService.postFolder(data);
+      const res = await JobService.postJob(data);
       if (res.success) {
         folderName.value = "";
         showDialogNewFolder.value = false;
@@ -295,7 +295,7 @@ async function editFolder() {
     };
     console.log(data);
     try {
-      const res = await FolderService.putFolder(
+      const res = await JobService.putJob(
         props.selectedFolder.guidfixed,
         data
       );

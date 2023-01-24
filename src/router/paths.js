@@ -233,22 +233,7 @@ export default [
     },
     component: () => import("../pages/remaindoc/remaindoc_detail.vue"),
   },
-  {
-    path: "/images/gallery",
-    name: "image_gallery",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_gallery.vue"),
-  },
-  {
-    path: "/images/list",
-    name: "list_images",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_list.vue"),
-  },
+
   {
     path: "/images_group/list",
     name: "pic_group_docref",
@@ -257,22 +242,7 @@ export default [
     },
     component: () => import("../pages/images_group/images_list.vue"),
   },
-  {
-    path: "/images/list/:id",
-    name: "list_images_param",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_list.vue"),
-  },
-  {
-    path: "/images/detail/:id",
-    name: "imagesDetail",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_detail.vue"),
-  },
+
   {
     path: "/book/list",
     name: "bookList",
@@ -412,5 +382,37 @@ export default [
     },
     component: () => import("../pages/document_images/document_list.vue"),
   },
+  {
+    path: "/images/job",
+    name: "image_job",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job.vue"),
+  },
 
+  {
+    path: "/images/detail/:id",
+    name: "images_job_detail",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_detail.vue"),
+  },
+  {
+    path: "/images/job_approve",
+    name: "images_job_approve",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_approve.vue"),
+  },
+  {
+    path: "/images/components/JobList",
+    name: "JobList",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/JobList.vue"),
+  },
 ];

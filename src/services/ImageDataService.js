@@ -17,11 +17,11 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate, folder) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate, jobguid) {
         let q = "";     // search
         let filterDate = "";
         let sortShowBy = "";
-        let sortFolder = "";
+        let sortjobguid = "";
 
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
@@ -39,16 +39,16 @@ export default {
             filterDate = "&fromdate=" + fromDate + "&todate=" + toDate;
         }
 
-        if (folder == 'all') {
-            sortFolder = "";
+        if (jobguid == 'all') {
+            sortjobguid = "";
         } else {
-            if (folder != "" && folder != undefined && folder != null) {
-                sortFolder = "&folder=" + folder
+            if (jobguid != "" && jobguid != undefined && jobguid != null) {
+                sortjobguid = "&jobguid=" + jobguid
             }
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortFolder}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortFolder}`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortjobguid}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortjobguid}`).then(res => res.data);
     },
 
     // ดึงกลุ่มรูปทั้งหมด
@@ -115,4 +115,9 @@ export default {
     getDocumentImageByDocNo(id) {
         return instanceApi(true).get(`/documentimagegroup/docref/` + id).then(res => res.data);
     },
+
+    // ลบ
+    deleteDocumentImageGroup(data) {
+        return instanceApi(true).delete(`/documentimagegroup` , { data: data }).then(res => res.data);
+    }
 }
