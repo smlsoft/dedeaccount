@@ -1838,7 +1838,7 @@ function resizeGalleria(e) {
                               <iframe
                                 :name="slotProps.item.imageuri"
                                 :src="
-                                  '/images_group/components/zoom?uri=' +
+                                  '/document_images/components/zoom?uri=' +
                                   slotProps.item.imageuri
                                 "
                               >
@@ -1846,6 +1846,7 @@ function resizeGalleria(e) {
                             </div>
                           </div>
                         </div>
+                        
                       </template>
                       <template #thumbnail="slotProps">
                         <img

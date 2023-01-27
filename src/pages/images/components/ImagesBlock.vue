@@ -41,12 +41,57 @@
           props.images_data.imagereferences.length
         }}</span>
       </button>
+      <button
+        v-if="props.ischeckApprove"
+        type="text"
+        v-ripple
+        class="absolute p-link w-2rem h-2rem border-circle inline-flex align-items-center justify-content-center"
+        style="top: 0rem; right: 0rem"
+        :class="[
+          props.images_data.status == 0 || props.images_data.status == 99
+            ? 'surface-300'
+            : '',
+          props.images_data.status == 1 ? 'bg-green-300' : '',
+          props.images_data.status == 2 ? 'bg-red-400' : '',
+          props.images_data.status == 3 ? 'bg-yellow-400' : '',
+        ]"
+      >
+        <i
+          :class="[
+            props.images_data.status == 99 ? 'pi pi-spin pi-spinner' : '',
+            props.images_data.status == 0 ? 'pi pi-clock' : '',
+            props.images_data.status == 1 ? 'pi pi-check-circle' : '',
+            props.images_data.status == 2 ? 'pi pi-times-circle' : '',
+            props.images_data.status == 3 ? 'pi pi-question-circle' : '',
+          ]"
+        ></i>
+      </button>
+      <button
+        v-if="!props.ischeckApprove"
+        type="text"
+        v-ripple
+        class="absolute p-link w-2rem h-2rem border-circle inline-flex align-items-center justify-content-center"
+        style="top: 0rem; right: 0rem"
+        :class="[
+          props.images_data.status == 1 ? 'bg-green-300' : '',
+          props.images_data.status == 2 ? 'bg-red-400' : '',
+          props.images_data.status == 3 ? 'bg-yellow-400' : '',
+        ]"
+      >
+        <i
+          :class="[
+            props.images_data.status == 1 ? 'pi pi-check-circle' : '',
+            props.images_data.status == 2 ? 'pi pi-times-circle' : '',
+            props.images_data.status == 3 ? 'pi pi-question-circle' : '',
+          ]"
+        ></i>
+      </button>
       <Checkbox
         v-if="
           isSelectedDocument &&
           props.images_data.imagereferences.length === 1 &&
           props.images_data.references.length === 0 &&
-          props.images_data.isreject == false &&
+          props.images_data.isreject != 2 &&
           !checkUseImg(props.images_data.guidfixed)
         "
         style="top: 0rem; right: 0rem"
@@ -110,7 +155,7 @@ const cropper = ref();
 const zoomImgData = ref();
 const activeIndexList = ref(0);
 const onfirmRejectDialog = ref(false);
-const isReject = ref(true);
+const isReject = ref(2);
 const contentOnfirmRejectDialog = ref("");
 const confirmEditGroup = ref(false);
 
@@ -132,6 +177,7 @@ const props = defineProps({
   isSelectedDocument: Boolean,
   sizeWidthImageBloc: Number,
   sizeHeightImageBloc: Number,
+  ischeckApprove: Boolean,
 });
 const emit = defineEmits([
   "selectImg",
@@ -373,15 +419,14 @@ function selectImg(data, tags, documentimageguid) {
       documentimageguid: documentimageguid,
     };
     emit("selectImg", dataSelet);
-  } else if (props.mode == 3 || props.mode == 4) {
-    emit("selectImg", data);
-  } else {
-    emit("selectImg", data);
   }
 }
 
 function zoomImg(data) {
-  if (props.isSelectedDocument) {
+  if (
+    props.isSelectedDocument ||
+    (props.ischeckApprove && props.images_data.status == 0)
+  ) {
     selectModeImage();
   }
 
@@ -451,52 +496,37 @@ function selectRejectImage(reject) {
     contentOnfirmRejectDialog.value =
       "ต้องการยกเลิกรูปภาพ " +
       props.images_data.imagereferences[activeIndexList.value].name;
-    isReject.value = true;
+    isReject.value = 2;
     onfirmRejectDialog.value = true;
   } else {
     contentOnfirmRejectDialog.value =
       "ต้องการนำรูปภาพ " +
       props.images_data.imagereferences[activeIndexList.value].name +
       " กลับมาใช้";
-    isReject.value = false;
+    isReject.value = 0;
     onfirmRejectDialog.value = true;
   }
 }
 
 function selectModeImage() {
   console.log("selectModeImage");
-  console.log(checkUseImg(props.images_data.guidfixed));
 
-  // mode 1 page : images_list                   เมนู: รูปภาพเอกสาร
-  // mode 3 page : daily_form                    เมน: บันทึกรายการบัญชี
-  // mode 4 page : daily_images_group_list       เมนู: บันทึกรายวันจากรูป
-
-  if (showImgDialog.value) {
-    return;
-  }
-
-  let modeMenu = props.mode;
-  let statusImage = props.images_data.isreject;
-  if (!checkUseImg(props.images_data.guidfixed)) {
-    if (props.images_data.references.length > 0) {
-      return false;
+  if (props.ischeckApprove) {
+    selectImg(
+      props.images_data.guidfixed,
+      props.images_data.tags,
+      props.images_data.imagereferences[0]
+    );
+  } else {
+    if (props.images_data.imagereferences.length > 1) {
+      console.log("group");
+      return;
     } else {
-      if (modeMenu == 1 && statusImage == false) {
-        if (props.images_data.imagereferences.length > 1) {
-          console.log("group");
-          // zoomImg(props.images_data);
-        } else {
-          selectImg(
-            props.images_data.guidfixed,
-            props.images_data.tags,
-            props.images_data.imagereferences[0]
-          );
-        }
-      } else if (modeMenu == 3 || (modeMenu == 4 && statusImage == false)) {
-        selectImg(props.images_data.guidfixed);
-      } else if (statusImage == true) {
-        zoomImg(props.images_data);
-      }
+      selectImg(
+        props.images_data.guidfixed,
+        props.images_data.tags,
+        props.images_data.imagereferences[0]
+      );
     }
   }
 }
@@ -529,11 +559,11 @@ function borderImage() {
   let userImageStyle = "";
   let isUseImage = checkUseImg(props.images_data.guidfixed);
   let selectedImage = checkSelect(props.images_data.guidfixed);
-  let statusImage = props.images_data.isreject;
+  let statusImage = props.images_data.status;
   let referencesImage = props.images_data.references;
 
   if (referencesImage.length == 0) {
-    if (statusImage == false) {
+    if (statusImage != 2) {
       if (isUseImage) {
         userImageStyle = "bg-blue-100";
       } else {
@@ -543,7 +573,7 @@ function borderImage() {
           userImageStyle = "bg-blue-while hover:shadow-1 ";
         }
       }
-    } else if (statusImage == true) {
+    } else if (statusImage == 2) {
       userImageStyle = "bg-red-400";
     }
   } else {

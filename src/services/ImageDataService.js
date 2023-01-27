@@ -17,11 +17,11 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate, jobguid) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate, taskguid) {
         let q = "";     // search
         let filterDate = "";
         let sortShowBy = "";
-        let sortjobguid = "";
+        let sorttaskguid = "";
 
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
@@ -39,16 +39,21 @@ export default {
             filterDate = "&fromdate=" + fromDate + "&todate=" + toDate;
         }
 
-        if (jobguid == 'all') {
-            sortjobguid = "";
+        if (taskguid == 'all') {
+            sorttaskguid = "";
         } else {
-            if (jobguid != "" && jobguid != undefined && jobguid != null) {
-                sortjobguid = "&jobguid=" + jobguid
+            if (taskguid != "" && taskguid != undefined && taskguid != null) {
+                sorttaskguid = "&taskguid=" + taskguid
             }
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortjobguid}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sortjobguid}`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sorttaskguid}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sorttaskguid}`).then(res => res.data);
+    },
+
+    // updateแค่ สถานะ 
+    putDocumentImageGroupStatus(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },
 
     // ดึงกลุ่มรูปทั้งหมด
@@ -118,6 +123,6 @@ export default {
 
     // ลบ
     deleteDocumentImageGroup(data) {
-        return instanceApi(true).delete(`/documentimagegroup` , { data: data }).then(res => res.data);
+        return instanceApi(true).delete(`/documentimagegroup`, { data: data }).then(res => res.data);
     }
 }

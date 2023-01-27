@@ -16,8 +16,8 @@ export const menus = [
       {
         title: "อัพโหลดรูปเอกสาร",
         icon: "pi pi-upload",
-        to: "/images/job",
-        name: "images_job",
+        to: "/images/job_upload",
+        name: "images_job_upload",
       },
       {
         title: "ตรวจสอบรูปภาพ",
@@ -30,13 +30,14 @@ export const menus = [
     ],
   },
 
-  {
-    title: "คลังเอกสาร",
-    icon: "pi pi-inbox",
-    to: "/document_images/list",
-    name: "document_images",
-    children: [],
-  },
+  // เมนูรวม
+  // {
+  //   title: "คลังเอกสาร",
+  //   icon: "pi pi-inbox",
+  //   to: "/document_images/list",
+  //   name: "document_images",
+  //   children: [],
+  // },
   {
     title: "คลังรูปภาพ",
     icon: "pi pi-image",

@@ -4,7 +4,7 @@ import DialogApprove from "@/components/form/DialogApprove.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
-import JobService from "@/services/JobService";
+import TaskService from "@/services/TaskService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useToast } from "primevue/usetoast";
@@ -76,7 +76,7 @@ const createFormStatus = ref(false);
 
 const imagesDragData = ref({});
 const imagesDragCount = ref(0);
-const imagesDragReject = ref(false);
+const imagesDragReject = ref(0);
 const imagesDragReferences = ref(0);
 const addToGroup = ref("");
 const addImageGuidfixed = ref("");
@@ -112,8 +112,9 @@ const showDocumentPreview = ref(true);
 const isSelectedDocument = ref(false);
 const isDataListNull = ref(false);
 
-const job = ref({
+const taskDetail = ref({
   guidfixed: "",
+  name: "",
   status: 0,
 });
 const dialogJobApprove = ref(false);
@@ -136,21 +137,21 @@ onUnmounted(() => {});
 onMounted(() => {
   searchFolder.value = route.params.id;
   getDocumentImageGroup();
-  getJobById(searchFolder.value);
+  getTaskById(searchFolder.value);
 
-  storeApp.setPageTitle("#" + searchFolder.value);
+  storeApp.setPageTitle("อัพโหลดรูปภาพ JOB #" + searchFolder.value);
   storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job_detail");
+  storeApp.setActiveChild("images_job_upload_detail");
 });
 
-function getJobById(guidfixed) {
-  JobService.getJobById(guidfixed)
+function getTaskById(guidfixed) {
+  TaskService.getTaskById(guidfixed)
     .then((res) => {
       //console.log(res);
       if (res.success) {
-        job.value = res.data;
+        taskDetail.value = res.data;
 
-        console.log(job.value);
+        console.log(taskDetail.value);
       }
     })
     .catch((err) => {
@@ -826,13 +827,16 @@ function showDetailGlImage(docno) {
 }
 
 function dragStart(data) {
-  if (job.value.status != 0) {
+  console.log(data);
+  if (taskDetail.value.status != 0) {
     return;
   }
   imagesDragData.value = data;
   imagesDragCount.value = data.imagereferences.length;
-  imagesDragReject.value = data.isreject;
+  imagesDragReject.value = data.status;
   imagesDragReferences.value = data.references.length;
+
+  console.log(imagesDragReject.value);
 
   if (checkUseImg(data.guidfixed)) {
     return;
@@ -840,7 +844,7 @@ function dragStart(data) {
     //console.log(data);
     if (
       data.imagereferences.length == 1 &&
-      data.isreject == false &&
+      data.isreject != 2 &&
       data.references.length == 0
     ) {
       if (selectedImg.value.length == 0) {
@@ -883,19 +887,9 @@ function allowDrop(data, event) {
 }
 
 async function drop(data, event) {
-  //console.log(data);
   event.preventDefault();
   console.log("drop");
-
-  if (checkUseImg(imagesDragData.value.guidfixed)) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "ไม่สามารถเลือกรูปได้ ",
-      life: 3000,
-    });
-    return;
-  }
+  console.log(data);
 
   addImageGuidfixed.value = data.guidfixed;
   addImagenewData.value = data.imagereferences;
@@ -904,7 +898,7 @@ async function drop(data, event) {
     return;
   }
 
-  if (!data.isreject && data.references.length == 0) {
+  if (data.isreject != 2 && data.references.length == 0) {
     //จัดชุดใหม่
     if (data.imagereferences.length == 1) {
       let result = [];
@@ -959,8 +953,6 @@ async function addImageGroup() {
     element.documentimageguid.xorder = addImagenewData.value.length;
     addImagenewData.value.push(element.documentimageguid);
   });
-  //console.log(newData);
-
   try {
     const res = await ImageDataService.putAddImageInGroup(
       addImageGuidfixed.value,
@@ -1111,7 +1103,7 @@ async function saveGropImages() {
     data_save_group.value = {
       imagereferences: imagereferences,
       title: title2.value,
-      jobguid: route.params.id,
+      taskguid: route.params.id,
       tags: tag.value,
       uploadedat: Utils.getFormatDateTime(newDate),
     };
@@ -1133,6 +1125,7 @@ async function saveGropImages() {
         life: 3000,
       });
       setTimeout(() => {
+        isSelectedDocument.value = false;
         imageGroup.value = null;
         title.value = "";
         title_valid.value = false;
@@ -1182,13 +1175,14 @@ function confirmJobFalse() {
   ramdomNumber.value = Utils.generateRandomNumber();
 }
 
+// ส่งตรวจสอบ
 async function jobApprove() {
   dialogJobApprove.value = false;
   let status = {
     status: 1,
   };
   try {
-    const res = await JobService.putJob(searchFolder.value, status);
+    const res = await TaskService.putTaskStatus(searchFolder.value, status);
     if (res.success) {
       toast.add({
         severity: "success",
@@ -1197,7 +1191,7 @@ async function jobApprove() {
         life: 3000,
       });
       setTimeout(() => {
-        router.push({ name: "image_job" });
+        router.push({ name: "images_job_upload" });
       }, 1000);
     }
   } catch (err) {
@@ -1242,6 +1236,21 @@ async function deleteImage() {
     });
   }
 }
+
+function onColseConfirmGroupImageDialog() {
+  confirmGroupImageDialog.value = false;
+  selectedImg.value = [];
+}
+
+function updateTagImage(id, data) {
+  console.log(data);
+  console.log(selectedImag.value);
+  data_list.value.filter(function (ele) {
+    if (ele.guidfixed == id) {
+      ele.tags = data;
+    }
+  });
+}
 </script>
 <template>
   <AppLayout>
@@ -1254,13 +1263,13 @@ async function deleteImage() {
             class="p-button-sm p-button-text"
             label="กลับหน้ารายการ"
             icon="pi pi-arrow-left"
-            @click="router.push({ name: 'image_job' })"
+            @click="router.push({ name: 'images_job_upload' })"
           />
         </div>
 
         <div class="ml-1">
           <Button
-            :disabled="job.status != 0"
+            :disabled="taskDetail.status != 0"
             class="p-button-sm"
             label="Upload รูปภาพ"
             icon="pi pi-upload"
@@ -1269,7 +1278,7 @@ async function deleteImage() {
         </div>
         <div class="ml-1">
           <Button
-            :disabled="selectedImg.length <= 1 || job.status != 0"
+            :disabled="selectedImg.length <= 1 || taskDetail.status != 0"
             class="p-button-info text-white p-button-sm"
             icon="pi pi-pencil"
             label="กำหนดชุดเอกสาร"
@@ -1279,7 +1288,7 @@ async function deleteImage() {
 
         <div class="ml-1">
           <Button
-            :disabled="job.status != 0"
+            :disabled="taskDetail.status != 0"
             :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
             class="text-black p-button-sm"
             :icon="
@@ -1305,14 +1314,14 @@ async function deleteImage() {
       </div>
       <div class="flex">
         <Button
-          :disabled="selectedImg.length <= 1 || job.status != 0"
+          :disabled="selectedImg.length == 0 || taskDetail.status != 0"
           class="p-button-danger p-button-sm mr-1 p-button-outlined"
           icon="pi pi-trash"
           label="ลบเอกสาร"
           @click="confirmDeleteImage = true"
         />
         <Button
-          :disabled="job.status != 0"
+          :disabled="taskDetail.status != 0"
           class="p-button-sm p-button-success"
           label="ปิดงาน"
           icon="pi pi-send"
@@ -1339,34 +1348,6 @@ async function deleteImage() {
               ]"
               class="m-2"
             >
-              <div class="flex align-items-center justify-content-center">
-                <div class="p-inputgroup">
-                  <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button
-                    icon="pi pi-search"
-                    @click="getDocumentImageGroup()"
-                    class="p-button-primary"
-                  />
-                </div>
-              </div>
-              <div class="flex flex-wrap">
-                <div
-                  v-for="listShowImageBy of listShowImageBys"
-                  :key="listShowImageBy.code"
-                  class="field-radiobutton m-2 my-3 flex align-items-center justify-content-center"
-                >
-                  <RadioButton
-                    :id="listShowImageBy.code"
-                    name="listShowImageBy"
-                    :value="listShowImageBy.code"
-                    v-model="showImageBy"
-                    @change="getDocImageListDefualt()"
-                  />
-                  <label :for="listShowImageBy.code">{{
-                    listShowImageBy.name
-                  }}</label>
-                </div>
-              </div>
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
@@ -1380,25 +1361,25 @@ async function deleteImage() {
                     draggable="true"
                     @dragstart="dragStart(data, $event)"
                     @drag="
-                      job.status == 0 &&
+                      taskDetail.status == 0 &&
                       imagesDragCount == 1 &&
-                      imagesDragReject == false &&
+                      imagesDragReject != 2 &&
                       imagesDragReferences == 0
                         ? dragging(data, $event)
                         : ''
                     "
                     @drop="
-                      job.status == 0 &&
+                      taskDetail.status == 0 &&
                       imagesDragCount == 1 &&
-                      imagesDragReject == false &&
+                      imagesDragReject != 2 &&
                       imagesDragReferences == 0
                         ? drop(data, $event)
                         : ''
                     "
                     @dragover="
-                      job.status == 0 &&
+                      taskDetail.status == 0 &&
                       imagesDragCount == 1 &&
-                      imagesDragReject == false &&
+                      imagesDragReject != 2 &&
                       imagesDragReferences == 0
                         ? allowDrop(data, $event)
                         : ''
@@ -1456,11 +1437,12 @@ async function deleteImage() {
               :showOveray="showOveray"
               :showImgData="showImgData"
               :selectedImag="selectedImag"
-              :jobStatus="job.status"
+              :jobStatus="taskDetail.status"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:rejectSuccess="rejectSuccess"
               v-on:onFileSelect="onFileNewSelect"
               v-on:documentImageUnGroup="documentImageUnGroup"
+              v-on:updateTagImage="updateTagImage"
             />
           </SplitterPanel>
         </Splitter>
@@ -1533,6 +1515,7 @@ async function deleteImage() {
             :separator="separatorExp"
             :allowDuplicate="false"
             placeholder="แท็กเอกสาร"
+            :addOnBlur="true"
           />
         </div>
       </div>
@@ -1562,7 +1545,7 @@ async function deleteImage() {
       contentStyle="padding: 0rem;"
     >
       <ImageUpload
-        :job_number="job"
+        :task_number="taskDetail"
         v-on:success="uploadSuccess()"
         :data_ondrop="data_import"
         v-on:closeDialogUpload="closeDialogUpload()"
@@ -1577,7 +1560,7 @@ async function deleteImage() {
     <DialogForm
       :confirmDialog="confirmGroupImageDialog"
       :textContent="'ต้องการรวมชุดรูป ' + addToGroup"
-      v-on:close="confirmGroupImageDialog = false"
+      v-on:close="onColseConfirmGroupImageDialog"
       v-on:confirm="addImageGroup()"
     ></DialogForm>
     <DialogForm
@@ -1588,6 +1571,7 @@ async function deleteImage() {
       v-on:confirm="deleteImage()"
     ></DialogForm>
     <DialogApprove
+      :title="'ยืนยันการตรวจสอบ'"
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"
       v-on:close="dialogJobApprove = false"

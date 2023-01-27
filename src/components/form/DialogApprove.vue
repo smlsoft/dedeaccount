@@ -9,6 +9,7 @@ const confirmRamdomNumber_valid = ref(false);
 const props = defineProps({
   confirmDialog: Boolean,
   ramdomNumber: Number,
+  title: String,
 });
 
 const emit = defineEmits(["close", "confirmJob", "confirmJobFalse"]);
@@ -58,7 +59,7 @@ function onConfirm() {
         </span>
       </div>
       <div class="flex">
-        <div class="font-medium text-2xl text-900">ยืนยันการปิดงาน</div>
+        <div class="font-medium text-2xl text-900">{{ props.title }}</div>
       </div>
       <div class="flex">
         <p class="line-height-3 p-0 m-3">กรุณากรอกหมายเลขที่เห็น</p>

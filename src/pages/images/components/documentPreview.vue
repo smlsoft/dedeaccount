@@ -14,12 +14,23 @@ const onfirmRejectDialog = ref(false);
 const contentOnfirmRejectDialog = ref("");
 const confirmUnGroup = ref(false);
 
+const listStatusImages = ref([
+  { name: "ผ่าน", code: 1 },
+  { name: "ไม่ผ่าน", code: 2 },
+  { name: "ไม่บันทึก", code: 3 },
+  { name: "รอตรวจสอบ", code: 0 },
+]);
+const dialogEditTag = ref(false);
+const tag = ref();
+const separatorExp = ref(/,| /);
+
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
   showOveray: Boolean,
   allimage_used: Array,
   jobStatus: Number,
+  ischeckApprove: Boolean,
 });
 
 const emit = defineEmits([
@@ -27,6 +38,8 @@ const emit = defineEmits([
   "rejectSuccess",
   "onFileSelect",
   "documentImageUnGroup",
+  "upDateStatusImage",
+  "updateTagImage",
 ]);
 
 function closeDocumentPreview() {
@@ -160,8 +173,8 @@ const items = computed({
           },
           {
             disabled:
-              props.showImgData[activeIndexList.value].isreject &&
-              props.selectedImag.references.length == 0 ||
+              (props.showImgData[activeIndexList.value].isreject &&
+                props.selectedImag.references.length == 0) ||
               props.jobStatus != 0,
             label: "ยกเลิกรูปเอกสาร",
             icon: "pi pi-trash",
@@ -171,8 +184,8 @@ const items = computed({
           },
           {
             disabled:
-              !props.showImgData[activeIndexList.value].isreject &&
-              props.selectedImag.references.length == 0 ||
+              (!props.showImgData[activeIndexList.value].isreject &&
+                props.selectedImag.references.length == 0) ||
               props.jobStatus != 0,
             label: "นำรูปกลับมาใช้",
             icon: "pi pi-refresh",
@@ -182,8 +195,8 @@ const items = computed({
           },
           {
             disabled:
-              !props.showImgData[activeIndexList.value].isreject &&
-              props.selectedImag.references.length == 0 ||
+              (!props.showImgData[activeIndexList.value].isreject &&
+                props.selectedImag.references.length == 0) ||
               props.jobStatus != 0,
             label: "อัพโหลดรูปใหม่",
             icon: "pi pi-upload",
@@ -224,7 +237,25 @@ function documentImageUnGroup() {
 
   emit("documentImageUnGroup", props.selectedImag.guidfixed);
 }
+
+function upDateStatusImage() {
+  let data = {
+    guidfixed: props.selectedImag.guidfixed,
+    status: props.selectedImag.status,
+  };
+  emit("upDateStatusImage", data);
+}
+
+function editTag() {
+  dialogEditTag.value = true;
+  tag.value = props.selectedImag.tags;
+}
+function updateTagImage() {
+  dialogEditTag.value = false;
+  emit("updateTagImage", props.selectedImag.guidfixed, tag.value);
+}
 </script>
+
 <template>
   <input
     id="chooseFile"
@@ -237,8 +268,30 @@ function documentImageUnGroup() {
   />
   <div v-if="props.showImgData.length > 0">
     <div class="flex align-items-center justify-content-between">
-      <div class="flex"></div>
       <div class="flex">
+        <div
+          v-for="listStatusImage of listStatusImages"
+          :key="listStatusImage.code"
+          class="field-radiobutton m-2 my-3 flex align-items-center justify-content-center"
+        >
+          <RadioButton
+            :disabled="!props.ischeckApprove"
+            :id="listStatusImage.code"
+            name="listStatusImage"
+            :value="listStatusImage.code"
+            v-model="props.selectedImag.status"
+            @change="upDateStatusImage"
+          />
+          <label :for="listStatusImage.code">{{ listStatusImage.name }}</label>
+        </div>
+      </div>
+
+      <div class="flex">
+        <!-- <Button
+          icon="pi pi-print"
+          class="p-button-rounded p-button-danger p-button-text"
+          @click="printImg(props.showImgData)"
+        /> -->
         <Button
           icon="pi pi-list"
           class="p-button-rounded p-button-danger p-button-text"
@@ -255,28 +308,7 @@ function documentImageUnGroup() {
         />
       </div>
     </div>
-    <div class="flex flex flex-wrap m-2">
-      <div v-for="data in props.selectedImag.tags">
-        <Tag class="mr-1 my-1 bg-primary-500" :value="'#' + data" rounded></Tag>
-      </div>
-    </div>
-    <div class="flex justify-content-between m-2">
-      <div class="flex">
-        ชื่อรูป : {{ props.showImgData[activeIndexList].name }}
-      </div>
-      <div class="flex">
-        วันที่ :{{
-          Utils.getDateTimeFormat(props.showImgData[activeIndexList].uploadedat)
-        }}
-        โดย {{ props.showImgData[activeIndexList].uploadedby }}
-      </div>
-    </div>
-    <Message
-      severity="warn"
-      :closable="false"
-      v-if="props.showImgData[activeIndexList].isreject"
-      >รูปมีปัญหา</Message
-    >
+
     <Galleria
       :value="props.showImgData"
       :circular="true"
@@ -323,6 +355,33 @@ function documentImageUnGroup() {
         />
       </template>
     </Galleria>
+    <Message
+      severity="warn"
+      :closable="false"
+      v-if="props.showImgData[activeIndexList].isreject"
+      >รูปมีปัญหา</Message
+    >
+    <div class="flex flex-wrap align-items-center m-2">
+      <div v-for="data in props.selectedImag.tags">
+        <Tag class="mr-1 my-1 bg-primary-500" :value="'#' + data" rounded></Tag>
+      </div>
+      <Button
+        icon="pi pi-pencil"
+        class="p-button-rounded p-button-danger p-button-text"
+        @click="editTag"
+      />
+    </div>
+    <div class="flex justify-content-between m-2">
+      <div class="flex">
+        ชื่อรูป : {{ props.showImgData[activeIndexList].name }}
+      </div>
+      <div class="flex">
+        วันที่ :{{
+          Utils.getDateTimeFormat(props.showImgData[activeIndexList].uploadedat)
+        }}
+        โดย {{ props.showImgData[activeIndexList].uploadedby }}
+      </div>
+    </div>
   </div>
   <DialogForm
     :confirmDialog="onfirmRejectDialog"
@@ -342,11 +401,44 @@ function documentImageUnGroup() {
     v-on:close="confirmUnGroup = false"
     v-on:confirm="documentImageUnGroup()"
   ></DialogForm>
+  <Dialog
+    v-model:visible="dialogEditTag"
+    :style="{ width: '550px' }"
+    header="แก้ไขแท็กรูปภาพ"
+    :modal="true"
+  >
+    <div class="grid formgrid p-fluid pt-3">
+      <div class="field mb-12 col-12 md:col-12">
+        <label class="font-medium text-900">แท็กเอกสาร</label>
+        <Chips
+          v-model="tag"
+          :separator="separatorExp"
+          :allowDuplicate="false"
+          placeholder="แท็กเอกสาร"
+          :addOnBlur="true"
+        />
+      </div>
+    </div>
+    <template #footer>
+      <Button
+        label="ยกเลิก"
+        icon="pi pi-times"
+        class="p-button-text"
+        @click="dialogEditTag = false"
+      />
+      <Button
+        label="บันทึก"
+        icon="pi pi-save"
+        class="p-button-success"
+        @click="updateTagImage"
+      />
+    </template>
+  </Dialog>
 </template>
 <style>
 iframe {
   display: block; /* iframes are inline by default */
-  background: #ffffff;
+  background: #000;
   border: none; /* Reset default border */
   height: 100%; /* Viewport-relative units */
   width: 100%;

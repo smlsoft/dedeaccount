@@ -1,22 +1,18 @@
 <script setup>
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
-import JobService from "@/services/JobService";
+import TaskService from "@/services/TaskService";
 import DatePicker from "@/components/widget/DatePicker.vue";
-import JobList from "./components/JobList.vue";
+import TaskList from "./components/TaskList.vue";
 import { useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
-const textContent = ref("ต้องการลบสมุดรายวัน รหัสสมุดรายวัน ");
-const booklistcode = ref("");
 const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
-const detail = ref();
 const data_list = ref([]);
-const confirmSaveDialog = ref(false);
 const totalItemsCount = ref(0);
 const loading = ref(true);
 const activePage = ref(1);
@@ -37,17 +33,17 @@ const jobDescription = ref("");
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 
 onMounted(() => {
-  getJobList();
+  getTaskList();
   storeApp.setPageTitle("อัพโหลดรูปภาพเอกสาร");
   storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job");
+  storeApp.setActiveChild("images_job_upload");
 });
 
-function getJobList() {
+function getTaskList() {
   loading.value = true;
-  JobService.getJobList()
+  TaskService.getTaskList()
     .then((res) => {
-      console.log("getJobList");
+      console.log("getTaskList");
       console.log(res);
       if (res.success) {
         loading.value = false;
@@ -90,9 +86,9 @@ async function saveJob() {
       status: 0,
     };
     try {
-      const res = await JobService.postJob(data);
+      const res = await TaskService.postTask(data);
       if (res.success) {
-        getJobList();
+        getTaskList();
         closeDialogCreateJob();
       }
     } catch (err) {
@@ -109,7 +105,7 @@ async function saveJob() {
 
 function onRowSelect(data) {
   router.push({
-    name: "images_job_detail",
+    name: "images_job_upload_detail",
     params: { id: data.guidfixed },
   });
 }
@@ -127,7 +123,7 @@ function keydown() {
 function doneTyping() {
   activePage.value = 1;
   firstPage.value = 0;
-  JobService.getJobList(
+  TaskService.getTaskList(
     limitPage.value,
     activePage.value,
     filters.value,
@@ -155,7 +151,7 @@ function doneTyping() {
     <MainContentWarp>
       <div class="grid">
         <div class="col-12">
-          <JobList
+          <TaskList
             :modeMenu="0"
             :data_list="data_list"
             :loading="loading"

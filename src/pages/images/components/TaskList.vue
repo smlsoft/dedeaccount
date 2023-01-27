@@ -47,58 +47,58 @@
     </template>
     <template #empty> ไม่พบข้อมูล </template>
     <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-    <Column header="ลำดับ" style="width: 5%">
+    <Column header="ลำดับ" style="max-width: 5%">
       <template #body="slotProps">
         {{ slotProps.index + 1 }}
       </template>
     </Column>
-    <Column field="createdat" header="วันที่" :sortable="true"></Column>
-    <Column field="name" header="ชื่อ" :sortable="true"></Column>
-    <Column field="total" header="จำนวน" :sortable="true"></Column>
+    <Column field="ownerat" header="วันที่" style="min-width: 15%">
+      <template #body="slotProps">
+        {{ Utils.getDateFormatDMYHMS(slotProps.data.ownerat) }}
+      </template>
+    </Column>
+    <Column field="name" header="ชื่อ"></Column>
+    <Column field="total" header="จำนวน"></Column>
     <Column
       v-if="props.modeMenu == 0"
       field="totalreject"
       header="เอกสารมีปัญหา"
-      :sortable="true"
     ></Column>
-    <Column
-      v-if="props.modeMenu == 1"
-      field="total"
-      header="ผ่าน"
-      :sortable="true"
-    ></Column>
-    <Column
-      v-if="props.modeMenu == 1"
-      field="total"
-      header="ไม่ผ่าน"
-      :sortable="true"
-    ></Column>
-    <Column
-      v-if="props.modeMenu == 1"
-      field="total"
-      header="คงเหลือ"
-      :sortable="true"
-    ></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="ไม่ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="คงเหลือ"></Column>
 
-    <Column field="name" header="ผู้สร้าง" :sortable="true"></Column>
-    <Column field="description" header="หมายเหตุ" :sortable="true"></Column>
-    <Column field="status" header="สถานะ" :sortable="true">
+    <Column field="ownerby" header="ผู้สร้าง"></Column>
+    <Column field="description" header="หมายเหตุ"></Column>
+    <Column field="status" header="สถานะ" style="min-width: 20%">
       <template #body="slotProps">
         <Tag
-          v-if="slotProps.data.status == 0"
+          v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
           value="กำลังอัพโหลด"
+          icon="pi pi-upload"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 0 && slotProps.data.totalreject != 0"
+          value="รอแก้ไข"
+          severity="warning"
           icon="pi pi-upload"
         ></Tag>
         <Tag
           v-if="slotProps.data.status == 1"
           severity="warning"
-          value="รอตรวจสอบ"
+          value="อัพโหลดเสร็จแล้ว / รอตรวจสอบ"
           icon="pi pi-clock"
         ></Tag>
         <Tag
           v-if="slotProps.data.status == 2"
+          severity="info"
+          value="กำลังตรวจสอบ"
+          icon="pi pi-clock"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 3"
           severity="success"
-          value="ตรวจสอบเสร็จแล้ว"
+          value="ตรวจสอบเสร็จแล้ว / รอบันทึกบัญชี"
           icon="pi pi-check-circle"
         ></Tag>
       </template>
@@ -107,6 +107,7 @@
 </template>
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import Utils from "@/utils/";
 const searchText = ref(props.filters);
 
 onMounted(() => {});

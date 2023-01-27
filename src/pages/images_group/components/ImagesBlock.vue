@@ -214,7 +214,7 @@
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
-          <div style="margin: 0px; padding: 0px;width: 100%;height: 65vh;" >
+          <div style="margin: 0px; padding: 0px; width: 100%; height: 65vh">
             <iframe
               :name="slotProps.item.imageuri"
               :src="

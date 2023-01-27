@@ -4,7 +4,7 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
-import JobService from "@/services/JobService";
+import TaskService from "@/services/TaskService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useToast } from "primevue/usetoast";
@@ -1654,7 +1654,7 @@ function removeSelectedImg() {
 }
 
 function getFolderList() {
-  JobService.getJobList()
+  TaskService.getTaskList()
     .then((res) => {
       console.log("getFolderList");
       console.log(res);

@@ -4,7 +4,7 @@
       <div class="py-2">
         <span class="font-medium text-xl">Job Number </span>
         <span class="font-medium text-xl text-primary-700"
-          >#{{ props.job_number.guidfixed }}</span
+          >#{{ props.task_number.guidfixed }}</span
         >
       </div>
       <div class="p-fluid">
@@ -13,6 +13,7 @@
           :separator="separatorExp"
           :allowDuplicate="false"
           placeholder="แท็กเอกสาร"
+          :addOnBlur="true"
         />
       </div>
       <div class="flex justify-content-between py-2">
@@ -271,7 +272,7 @@ const emit = defineEmits(["success", "closeDialogUpload"]);
 
 const props = defineProps({
   data_ondrop: Array,
-  job_number: Object,
+  task_number: Object,
 });
 onMounted(() => {
   // console.log(props.data_ondrop.value);
@@ -680,7 +681,7 @@ function saveDocumentImage() {
 
   data_import_success.value.forEach((element) => {
     element.tags = tags.value == null ? [] : tags.value;
-    element.jobguid = props.job_number.guidfixed;
+    element.taskguid = props.task_number.guidfixed;
   });
 
   data_import.value.forEach((master_data) => {

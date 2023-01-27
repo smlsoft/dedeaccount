@@ -383,21 +383,21 @@ export default [
     component: () => import("../pages/document_images/document_list.vue"),
   },
   {
-    path: "/images/job",
-    name: "image_job",
+    path: "/images/job_upload",
+    name: "images_job_upload",
     meta: {
       auth: true,
     },
-    component: () => import("../pages/images/images_job.vue"),
+    component: () => import("../pages/images/images_job_upload.vue"),
   },
 
   {
-    path: "/images/detail/:id",
-    name: "images_job_detail",
+    path: "/images/upload_detail/:id",
+    name: "images_job_upload_detail",
     meta: {
       auth: true,
     },
-    component: () => import("../pages/images/images_job_detail.vue"),
+    component: () => import("../pages/images/images_job_upload_detail.vue"),
   },
   {
     path: "/images/job_approve",
@@ -408,11 +408,19 @@ export default [
     component: () => import("../pages/images/images_job_approve.vue"),
   },
   {
-    path: "/images/components/JobList",
-    name: "JobList",
+    path: "/images/approve_detail/:id",
+    name: "images_job_approve_detail",
     meta: {
       auth: true,
     },
-    component: () => import("../pages/images/components/JobList.vue"),
+    component: () => import("../pages/images/images_job_approve_detail.vue"),
+  },
+  {
+    path: "/images/components/TaskList",
+    name: "TaskList",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/TaskList.vue"),
   },
 ];
