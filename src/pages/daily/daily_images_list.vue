@@ -78,7 +78,7 @@ const showImageGallery = ref(false);
 const connection = ref();
 const sortRef = ref("0");
 const sortReject = ref("0");
-const showImageBy = ref("unsave");
+const showImageBy = ref("1");
 onUnmounted(() => {
   console.log("unmounted--------------------------------------------------------");
   connection.value.close();

@@ -17,22 +17,13 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate, taskguid) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, status, fromDate, toDate, taskguid) {
         let q = "";     // search
         let filterDate = "";
-        let sortShowBy = "";
         let sorttaskguid = "";
 
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
-        }
-
-        if (showBy == "save") {
-            sortShowBy = "&ref=2"
-        } else if (showBy == "unsave") {
-            sortShowBy = "&ref=1&reject=0"
-        } else if (showBy == "reject") {
-            sortShowBy = "&reject=1"
         }
 
         if (fromDate != "" && fromDate != undefined && fromDate != null) {
@@ -47,8 +38,10 @@ export default {
             }
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sorttaskguid}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${sortShowBy}${filterDate}${sorttaskguid}`).then(res => res.data);
+
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}&status=${status}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}&status=${status}`).then(res => res.data);
     },
 
     // updateแค่ สถานะ 

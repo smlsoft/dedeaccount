@@ -4,7 +4,7 @@ import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import Utils from "@/utils/";
-
+const userName = localStorage._usercode;
 const toast = useToast();
 
 const activeIndexList = ref(0);
@@ -13,6 +13,7 @@ const isReject = ref(true);
 const onfirmRejectDialog = ref(false);
 const contentOnfirmRejectDialog = ref("");
 const confirmUnGroup = ref(false);
+const loaddingButton = ref(false);
 
 const listStatusImages = ref([
   { name: "ผ่าน", code: 1 },
@@ -31,15 +32,16 @@ const props = defineProps({
   allimage_used: Array,
   jobStatus: Number,
   ischeckApprove: Boolean,
+  modeMenu: Number,
 });
 
 const emit = defineEmits([
   "closeDocumentPreview",
-  "rejectSuccess",
   "onFileSelect",
   "documentImageUnGroup",
   "upDateStatusImage",
   "updateTagImage",
+  "createGL",
 ]);
 
 function closeDocumentPreview() {
@@ -61,6 +63,7 @@ function checkUseImg(data) {
     return true;
   }
 }
+
 function getUseData(data) {
   var found = 0;
   var detail = "";
@@ -100,59 +103,6 @@ function printImg(data) {
   w.window.close();
 }
 
-function selectRejectImage(reject) {
-  if (reject) {
-    contentOnfirmRejectDialog.value =
-      "ต้องการยกเลิกรูปภาพ " +
-      props.selectedImag.imagereferences[activeIndexList.value].name;
-    isReject.value = true;
-    onfirmRejectDialog.value = true;
-  } else {
-    contentOnfirmRejectDialog.value =
-      "ต้องการนำรูปภาพ " +
-      props.selectedImag.imagereferences[activeIndexList.value].name +
-      " กลับมาใช้";
-    isReject.value = false;
-    onfirmRejectDialog.value = true;
-  }
-}
-
-async function rejectImage(documentimageguid, isReject) {
-  console.log("documentimageguid :" + documentimageguid);
-  console.log("isReject :" + isReject);
-  let data = {
-    isreject: true,
-  };
-
-  if (!isReject) {
-    data.isreject = false;
-  }
-
-  await ImageDataService.putRejectImage(documentimageguid, data)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        toast.add({
-          severity: "success",
-          summary: "success",
-          detail: "บันทึกข้อมูลสำเร็จ",
-          life: 3000,
-        });
-        onfirmRejectDialog.value = false;
-        emit("rejectSuccess", true);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: err,
-        life: 3000,
-      });
-    });
-}
-
 const toggle = (event) => {
   menu.value.toggle(event);
 };
@@ -173,28 +123,6 @@ const items = computed({
           },
           {
             disabled:
-              (props.showImgData[activeIndexList.value].isreject &&
-                props.selectedImag.references.length == 0) ||
-              props.jobStatus != 0,
-            label: "ยกเลิกรูปเอกสาร",
-            icon: "pi pi-trash",
-            command: () => {
-              selectRejectImage(true);
-            },
-          },
-          {
-            disabled:
-              (!props.showImgData[activeIndexList.value].isreject &&
-                props.selectedImag.references.length == 0) ||
-              props.jobStatus != 0,
-            label: "นำรูปกลับมาใช้",
-            icon: "pi pi-refresh",
-            command: () => {
-              selectRejectImage(false);
-            },
-          },
-          {
-            disabled:
               (!props.showImgData[activeIndexList.value].isreject &&
                 props.selectedImag.references.length == 0) ||
               props.jobStatus != 0,
@@ -209,7 +137,7 @@ const items = computed({
               props.selectedImag.imagereferences.length == 1 ||
               props.jobStatus != 0,
             label: "ยกเลิกชุดเอกสาร",
-            icon: "pi pi-export",
+            icon: "pi pi-external-link",
             command: () => {
               confirmUnGroup.value = true;
             },
@@ -246,6 +174,14 @@ function upDateStatusImage() {
   emit("upDateStatusImage", data);
 }
 
+function upDateStatusImageByButton() {
+  let data = {
+    guidfixed: props.selectedImag.guidfixed,
+    status: 4,
+  };
+  emit("upDateStatusImage", data);
+}
+
 function editTag() {
   dialogEditTag.value = true;
   tag.value = props.selectedImag.tags;
@@ -253,6 +189,14 @@ function editTag() {
 function updateTagImage() {
   dialogEditTag.value = false;
   emit("updateTagImage", props.selectedImag.guidfixed, tag.value);
+}
+
+function createGL(data) {
+  loaddingButton.value = true;
+  setTimeout(() => {
+    emit("createGL", data);
+    loaddingButton.value = false;
+  }, 500);
 }
 </script>
 
@@ -268,7 +212,25 @@ function updateTagImage() {
   />
   <div v-if="props.showImgData.length > 0">
     <div class="flex align-items-center justify-content-between">
-      <div class="flex">
+      <div
+        class="flex"
+        v-if="props.modeMenu == 3 && props.selectedImag.status != 2"
+      >
+        <Button
+          label="ไม่ผ่าน"
+          class="p-button-danger p-b mr-1"
+          @click="upDateStatusImageByButton"
+          :disabled="checkUseImg(props.selectedImag.guidfixed)"
+        />
+        <Button
+          label="คีย์เอกสาร"
+          class=""
+          :disabled="checkUseImg(props.selectedImag.guidfixed)"
+          @click="createGL(props.selectedImag)"
+          :loading="loaddingButton"
+        />
+      </div>
+      <div class="flex" v-if="props.modeMenu != 3">
         <div
           v-for="listStatusImage of listStatusImages"
           :key="listStatusImage.code"
@@ -287,6 +249,12 @@ function updateTagImage() {
       </div>
 
       <div class="flex">
+        <Chip
+          v-if="checkUseImg(props.selectedImag.guidfixed)"
+          :label="getUseData(props.selectedImag.guidfixed)"
+          icon="pi pi-user"
+          class="mr-2"
+        />
         <!-- <Button
           icon="pi pi-print"
           class="p-button-rounded p-button-danger p-button-text"
@@ -369,6 +337,7 @@ function updateTagImage() {
         icon="pi pi-pencil"
         class="p-button-rounded p-button-danger p-button-text"
         @click="editTag"
+        v-if="props.modeMenu != 3"
       />
     </div>
     <div class="flex justify-content-between m-2">
@@ -383,18 +352,6 @@ function updateTagImage() {
       </div>
     </div>
   </div>
-  <DialogForm
-    :confirmDialog="onfirmRejectDialog"
-    v-on:close="onfirmRejectDialog = false"
-    :textContent="contentOnfirmRejectDialog"
-    v-on:confirm="
-      rejectImage(
-        props.selectedImag.imagereferences[activeIndexList].documentimageguid,
-        isReject
-      )
-    "
-  >
-  </DialogForm>
   <DialogForm
     :confirmDialog="confirmUnGroup"
     :textContent="'ต้องการยกเลิกชุดรูปภาพ'"

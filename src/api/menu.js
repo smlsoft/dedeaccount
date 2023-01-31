@@ -25,19 +25,26 @@ export const menus = [
         to: "/images/job_approve",
         name: "images_job_approve",
       },
+      {
+        title: "บันทึกรายวันจากรูป (New)",
+        icon: "pi pi-link",
+        to: "/images/job_daily",
+        name: "images_job_daily",
+      },
 
 
     ],
   },
 
-  // เมนูรวม
-  // {
-  //   title: "คลังเอกสาร",
-  //   icon: "pi pi-inbox",
-  //   to: "/document_images/list",
-  //   name: "document_images",
-  //   children: [],
-  // },
+  // แบบ2
+  {
+    title: "คลังเอกสาร",
+    icon: "pi pi-inbox",
+    to: "/document_images/list",
+    name: "document_images",
+    children: [],
+  },
+  // แบบ1
   {
     title: "คลังรูปภาพ",
     icon: "pi pi-image",

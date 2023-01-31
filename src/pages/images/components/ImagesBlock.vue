@@ -42,7 +42,7 @@
         }}</span>
       </button>
       <button
-        v-if="props.ischeckApprove"
+        v-if="props.ischeckApprove && props.modeMenu != 3"
         type="text"
         v-ripple
         class="absolute p-link w-2rem h-2rem border-circle inline-flex align-items-center justify-content-center"
@@ -67,7 +67,7 @@
         ></i>
       </button>
       <button
-        v-if="!props.ischeckApprove"
+        v-if="!props.ischeckApprove && props.modeMenu != 3"
         type="text"
         v-ripple
         class="absolute p-link w-2rem h-2rem border-circle inline-flex align-items-center justify-content-center"
@@ -86,12 +86,33 @@
           ]"
         ></i>
       </button>
+      <button
+        v-if="props.modeMenu == 3"
+        type="text"
+        v-ripple
+        class="absolute p-link w-2rem h-2rem border-circle inline-flex align-items-center justify-content-center"
+        style="top: 0rem; right: 0rem"
+        :class="[
+          props.images_data.references.length == 0
+            ? 'surface-300'
+            : 'bg-green-300',
+          props.images_data.status == 4 ? 'bg-red-400' : '',
+        ]"
+      >
+        <i
+          :class="[
+            props.images_data.references.length == 0
+              ? 'pi pi-clock'
+              : 'pi pi-check-circle',
+            props.images_data.status == 99 ? 'pi pi-spin pi-spinner' : '',
+          ]"
+        ></i>
+      </button>
       <Checkbox
         v-if="
           isSelectedDocument &&
           props.images_data.imagereferences.length === 1 &&
           props.images_data.references.length === 0 &&
-          props.images_data.isreject != 2 &&
           !checkUseImg(props.images_data.guidfixed)
         "
         style="top: 0rem; right: 0rem"
@@ -121,19 +142,6 @@
     v-on:close="confirmUnGroup = false"
     v-on:confirm="documentImageUnGroup()"
   ></DialogForm>
-
-  <DialogForm
-    :confirmDialog="onfirmRejectDialog"
-    v-on:close="onfirmRejectDialog = false"
-    :textContent="contentOnfirmRejectDialog"
-    v-on:confirm="
-      rejectImage(
-        props.images_data.imagereferences[activeIndexList].documentimageguid,
-        isReject
-      )
-    "
-  >
-  </DialogForm>
 </template>
 
 <script setup>
@@ -155,7 +163,6 @@ const cropper = ref();
 const zoomImgData = ref();
 const activeIndexList = ref(0);
 const onfirmRejectDialog = ref(false);
-const isReject = ref(2);
 const contentOnfirmRejectDialog = ref("");
 const confirmEditGroup = ref(false);
 
@@ -172,30 +179,25 @@ const checkSelected = ref(false);
 const props = defineProps({
   images_data: Object,
   images_selete: Array,
-  mode: Number,
   allimage_used: Array,
   isSelectedDocument: Boolean,
   sizeWidthImageBloc: Number,
   sizeHeightImageBloc: Number,
   ischeckApprove: Boolean,
+  modeMenu: Number,
 });
 const emit = defineEmits([
   "selectImg",
   "useImage",
-  "createform",
-  "rejectImg",
   "onFileSelect",
   "onReloadData",
   "documentImageUnGroup",
-
-  "rejectImage",
-  "showDetailGlImage",
   "addToGroupImage",
   "showImg",
 ]);
 
 onMounted(async () => {
-  //console.log(props.images_data);
+  setTimeout(() => {}, 1000);
   let box = $(".cardimage");
 
   let width = box.offsetWidth;
@@ -412,14 +414,12 @@ function getUseData(data) {
 }
 
 function selectImg(data, tags, documentimageguid) {
-  if (props.mode == 1) {
-    let dataSelet = {
-      guidfixed: data,
-      tags: tags,
-      documentimageguid: documentimageguid,
-    };
-    emit("selectImg", dataSelet);
-  }
+  let dataSelet = {
+    guidfixed: data,
+    tags: tags,
+    documentimageguid: documentimageguid,
+  };
+  emit("selectImg", dataSelet);
 }
 
 function zoomImg(data) {
@@ -446,17 +446,10 @@ function zoomImg(data) {
   emit("showImg", showImgData.value);
 }
 
-function createform() {
-  emit("createform", props.images_data.documentref);
-}
-
 function useImage() {
   emit("useImage", props.images_data.documentref);
 }
 
-function rejectImg() {
-  emit("rejectImg", props.images_data.documentref);
-}
 function onFileSelect(event) {
   emit(
     "onFileSelect",
@@ -476,36 +469,8 @@ function documentImageUnGroup() {
   showImgDialog.value = false;
 }
 
-function rejectImage(documentimageguid, isReject) {
-  onfirmRejectDialog.value = false;
-  showImgDialog.value = false;
-
-  emit("rejectImage", documentimageguid, isReject);
-}
-
-function showDetailGlImage(docno) {
-  emit("showDetailGlImage", docno);
-}
-
 function addToGroupImage(data) {
   emit("addToGroupImage", data);
-}
-
-function selectRejectImage(reject) {
-  if (reject) {
-    contentOnfirmRejectDialog.value =
-      "ต้องการยกเลิกรูปภาพ " +
-      props.images_data.imagereferences[activeIndexList.value].name;
-    isReject.value = 2;
-    onfirmRejectDialog.value = true;
-  } else {
-    contentOnfirmRejectDialog.value =
-      "ต้องการนำรูปภาพ " +
-      props.images_data.imagereferences[activeIndexList.value].name +
-      " กลับมาใช้";
-    isReject.value = 0;
-    onfirmRejectDialog.value = true;
-  }
 }
 
 function selectModeImage() {
@@ -557,22 +522,12 @@ function printImg(data) {
 
 function borderImage() {
   let userImageStyle = "";
-  let isUseImage = checkUseImg(props.images_data.guidfixed);
-  let selectedImage = checkSelect(props.images_data.guidfixed);
   let statusImage = props.images_data.status;
   let referencesImage = props.images_data.references;
 
   if (referencesImage.length == 0) {
     if (statusImage != 2) {
-      if (isUseImage) {
-        userImageStyle = "bg-blue-100";
-      } else {
-        if (selectedImage) {
-          userImageStyle = "bg-blue-500 ";
-        } else {
-          userImageStyle = "bg-blue-while hover:shadow-1 ";
-        }
-      }
+      userImageStyle = "bg-blue-while hover:shadow-1 ";
     } else if (statusImage == 2) {
       userImageStyle = "bg-red-400";
     }

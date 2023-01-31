@@ -547,7 +547,7 @@ function uploadClick() {
 
 function myUploader() {
   loading.value = true;
-  var interval = 300;
+  var interval = 200;
   if (data_import.value.length > 0) {
     var ele = data_import.value[upLoadQue.value];
     var index = upLoadQue.value;

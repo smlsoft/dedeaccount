@@ -98,7 +98,7 @@ const dataImageDialog = ref({});
 const pageGetAllImage = ref(1);
 const pageGetAllImageGroup = ref(1);
 
-const searchFolder = ref("");
+const jobId = ref("");
 const searchImageDate = ref();
 const searchFromDate = ref(new Date());
 const searchToDate = ref(new Date());
@@ -135,11 +135,11 @@ const confirmDeleteImage = ref(false);
 
 onUnmounted(() => {});
 onMounted(() => {
-  searchFolder.value = route.params.id;
+  jobId.value = route.params.id;
   getDocumentImageGroup();
-  getTaskById(searchFolder.value);
+  getTaskById(jobId.value);
 
-  storeApp.setPageTitle("อัพโหลดรูปภาพ JOB #" + searchFolder.value);
+  storeApp.setPageTitle("อัพโหลดรูปภาพ JOB #" + jobId.value);
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_upload_detail");
 });
@@ -182,7 +182,7 @@ function getDocumentImageGroupScroll() {
     showImageBy.value,
     fromDate.value,
     toDate.value,
-    searchFolder.value
+    jobId.value
   )
     .then((res) => {
       if (res.success) {
@@ -238,7 +238,7 @@ function getDocumentImageGroup() {
     showImageBy.value,
     fromDate.value,
     toDate.value,
-    searchFolder.value
+    jobId.value
   )
     .then((res) => {
       if (res.success) {
@@ -1044,14 +1044,6 @@ function removeSelectedImg() {
   });
 }
 
-function rejectSuccess(status) {
-  if (status) {
-    showImgData.value = null;
-    selectedImag.value = "";
-    getDocumentImageGroup();
-  }
-}
-
 function clearFilterDocumentImageGroup() {
   limitPage.value = 50;
   activePage.value = 1;
@@ -1061,7 +1053,7 @@ function clearFilterDocumentImageGroup() {
   showImageBy.value = "";
   fromDate.value = "";
   toDate.value = "";
-  searchFolder.value = "";
+  jobId.value = "";
 }
 
 function selectSizeImageBloc(event) {
@@ -1182,7 +1174,7 @@ async function jobApprove() {
     status: 1,
   };
   try {
-    const res = await TaskService.putTaskStatus(searchFolder.value, status);
+    const res = await TaskService.putTaskStatus(jobId.value, status);
     if (res.success) {
       toast.add({
         severity: "success",
@@ -1389,16 +1381,11 @@ function updateTagImage(id, data) {
                       :images_data="data"
                       :images_selete="selectedImg"
                       :allimage_used="AllImageUsed"
-                      :mode="1"
                       :isSelectedDocument="isSelectedDocument"
                       :sizeWidthImageBloc="sizeWidthImageBloc"
                       :sizeHeightImageBloc="sizeHeightImageBloc"
                       v-on:selectImg="selectImg"
                       v-on:useImage="useImage"
-                      v-on:createform="createform"
-                      v-on:onReloadData="getDocumentImageGroup"
-                      v-on:rejectImage="rejectImage"
-                      v-on:showDetailGlImage="showDetailGlImage"
                       v-on:addToGroupImage="addToGroupImage"
                       v-on:showImg="showImg"
                     >
@@ -1438,8 +1425,8 @@ function updateTagImage(id, data) {
               :showImgData="showImgData"
               :selectedImag="selectedImag"
               :jobStatus="taskDetail.status"
+              :modeMenu="1"
               v-on:closeDocumentPreview="closeDocumentPreview"
-              v-on:rejectSuccess="rejectSuccess"
               v-on:onFileSelect="onFileNewSelect"
               v-on:documentImageUnGroup="documentImageUnGroup"
               v-on:updateTagImage="updateTagImage"

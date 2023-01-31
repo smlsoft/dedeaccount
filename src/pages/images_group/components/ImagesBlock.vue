@@ -214,7 +214,7 @@
       >
         <template #header="slotProps"> </template>
         <template #item="slotProps">
-          <div style="margin: 0px; padding: 0px; width: 100%; height: 65vh">
+          <div style="margin: 0px; padding: 0px;width: 100%;height: 65vh;" >
             <iframe
               :name="slotProps.item.imageuri"
               :src="
@@ -645,7 +645,7 @@ function selectModeImage() {
     if (props.images_data.references.length > 0) {
       return false;
     } else {
-      if (modeMenu == 1 && statusImage == false) {
+      if (modeMenu == 1 ) {
         if (props.images_data.imagereferences.length > 1) {
           console.log("group");
           // zoomImg(props.images_data);
@@ -659,7 +659,7 @@ function selectModeImage() {
             );
           }
         }
-      } else if (modeMenu == 3 || (modeMenu == 4 && statusImage == false)) {
+      } else if (modeMenu == 3 || (modeMenu == 4 )) {
         selectImg(props.images_data.guidfixed);
       } else if (statusImage == true) {
         zoomImg(props.images_data);

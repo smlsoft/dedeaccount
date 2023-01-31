@@ -330,7 +330,7 @@ function getDocumentImageGroupScroll() {
     showImageBy.value,
     fromDate.value,
     toDate.value,
-    searchFolder.value
+    jobId.value
   )
     .then((res) => {
       if (res.data == null) {
@@ -513,7 +513,7 @@ function getDocumentImageGroup() {
     showImageBy.value,
     fromDate.value,
     toDate.value,
-    searchFolder.value
+    jobId.value
   )
     .then((res) => {
       if (res.data == null) {
@@ -1696,7 +1696,7 @@ function selectFolder(data) {
   selectedFolder.value = newData;
 
   clearFilterDocumentImageGroup();
-  searchFolder.value = newData.guidfixed;
+  jobId.value = newData.guidfixed;
   getDocumentImageGroup();
 }
 
@@ -1717,7 +1717,7 @@ function clearFilterDocumentImageGroup() {
   showImageBy.value = "";
   fromDate.value = "";
   toDate.value = "";
-  searchFolder.value = "";
+  jobId.value = "";
 }
 
 function selectSizeImageBloc(event) {

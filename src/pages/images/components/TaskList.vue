@@ -11,6 +11,87 @@
     :metaKeySelection="false"
     @rowSelect="onRowSelect"
   >
+    <Column header="ลำดับ" style="max-width: 5%">
+      <template #body="slotProps">
+        {{ slotProps.index + 1 }}
+      </template>
+    </Column>
+    <Column field="ownerat" header="วันที่" style="min-width: 15%">
+      <template #body="slotProps">
+        {{ Utils.getDateFormatDMYHMS(slotProps.data.ownerat) }}
+      </template>
+    </Column>
+    <Column field="name" header="ชื่อ"></Column>
+    <Column v-if="props.modeMenu != 3" field="total" header="จำนวน"></Column>
+    <Column
+      v-if="props.modeMenu == 0"
+      field="totalreject"
+      header="เอกสารมีปัญหา"
+    ></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="ไม่ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 1" field="total" header="คงเหลือ"></Column>
+    <Column header="เอกสารที่ต้องบันทึก" v-if="props.modeMenu == 3">
+      <template #body="slotProps">
+        {{ slotProps.data.total - slotProps.data.totalreject }}
+      </template>
+    </Column>
+    <Column header="บันทึกเอกสาร" v-if="props.modeMenu == 3">
+      <template #body="slotProps">
+        {{ 0 }}
+      </template>
+    </Column>
+    <Column header="รอแก้ไข" v-if="props.modeMenu == 3">
+      <template #body="slotProps">
+        {{ 0 }}
+      </template>
+    </Column>
+    <Column header="คงเหลือ" v-if="props.modeMenu == 3">
+      <template #body="slotProps">
+        {{ 0 }}
+      </template>
+    </Column>
+
+    <Column field="ownerby" header="ผู้สร้าง"></Column>
+    <Column field="status" header="สถานะ" style="min-width: 17%">
+      <template #body="slotProps">
+        <Tag
+          v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
+          value="กำลังอัพโหลด"
+          icon="pi pi-upload"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 0 && slotProps.data.totalreject != 0"
+          value="รอแก้ไข"
+          severity="warning"
+          icon="pi pi-upload"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 1"
+          severity="warning"
+          value="อัพโหลดเสร็จแล้ว / รอตรวจสอบ"
+          icon="pi pi-clock"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 2"
+          severity="info"
+          value="กำลังตรวจสอบ"
+          icon="pi pi-clock"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 3"
+          severity="success"
+          value="ตรวจสอบเสร็จแล้ว / รอบันทึกบัญชี"
+          icon="pi pi-check-circle"
+        ></Tag>
+      </template>
+    </Column>
+    <Column
+      field="description"
+      header="หมายเหตุ"
+      style="min-width: 10%"
+    ></Column>
+
     <template #header>
       <div class="flex">
         <div class="flex-none flex align-items-center justify-content-start">
@@ -47,62 +128,6 @@
     </template>
     <template #empty> ไม่พบข้อมูล </template>
     <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-    <Column header="ลำดับ" style="max-width: 5%">
-      <template #body="slotProps">
-        {{ slotProps.index + 1 }}
-      </template>
-    </Column>
-    <Column field="ownerat" header="วันที่" style="min-width: 15%">
-      <template #body="slotProps">
-        {{ Utils.getDateFormatDMYHMS(slotProps.data.ownerat) }}
-      </template>
-    </Column>
-    <Column field="name" header="ชื่อ"></Column>
-    <Column field="total" header="จำนวน"></Column>
-    <Column
-      v-if="props.modeMenu == 0"
-      field="totalreject"
-      header="เอกสารมีปัญหา"
-    ></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="ไม่ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="คงเหลือ"></Column>
-
-    <Column field="ownerby" header="ผู้สร้าง"></Column>
-    <Column field="description" header="หมายเหตุ"></Column>
-    <Column field="status" header="สถานะ" style="min-width: 20%">
-      <template #body="slotProps">
-        <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
-          value="กำลังอัพโหลด"
-          icon="pi pi-upload"
-        ></Tag>
-        <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totalreject != 0"
-          value="รอแก้ไข"
-          severity="warning"
-          icon="pi pi-upload"
-        ></Tag>
-        <Tag
-          v-if="slotProps.data.status == 1"
-          severity="warning"
-          value="อัพโหลดเสร็จแล้ว / รอตรวจสอบ"
-          icon="pi pi-clock"
-        ></Tag>
-        <Tag
-          v-if="slotProps.data.status == 2"
-          severity="info"
-          value="กำลังตรวจสอบ"
-          icon="pi pi-clock"
-        ></Tag>
-        <Tag
-          v-if="slotProps.data.status == 3"
-          severity="success"
-          value="ตรวจสอบเสร็จแล้ว / รอบันทึกบัญชี"
-          icon="pi pi-check-circle"
-        ></Tag>
-      </template>
-    </Column>
   </DataTable>
 </template>
 <script setup>
@@ -112,6 +137,10 @@ const searchText = ref(props.filters);
 
 onMounted(() => {});
 
+//modeMenu
+// 1 = เมนู upload image
+// 2 = เมนู ตรวจสอบรูป
+// 3 = บันทึกรายวันจากรูป
 const props = defineProps({
   modeMenu: Number,
   data_list: Array,

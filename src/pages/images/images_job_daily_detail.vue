@@ -2,6 +2,7 @@
 import DialogApprove from "@/components/form/DialogApprove.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import ImageDataService from "@/services/ImageDataService";
+import MasterdataService from "@/services/MasterdataService";
 import TaskService from "@/services/TaskService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
@@ -35,7 +36,7 @@ const sortOrder = ref(-1);
 
 const selectedImg = ref([]);
 
-const showImageBy = ref("");
+const showImageByStatus = ref("1,3,4");
 
 const imageDialog = ref(false);
 const dataImageDialog = ref({});
@@ -69,17 +70,201 @@ const sizeHeightImageBloc = ref(90);
 
 const ramdomNumber = ref();
 const checkSuccess = ref(false);
-const statusAllImage = ref(true);
+
+const WsConnectImage = ref();
+const WsConnectAllImage = ref();
+const connection = ref();
+
+onUnmounted(() => {
+  console.log(
+    "unmounted--------------------------------------------------------"
+  );
+
+  WsConnectAllImage.value.close();
+  WsConnectImage.value.close();
+  connection.value.close();
+});
 
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setPageTitle("ตรวจสอบรูปภาพ JOB #" + jobId.value);
+  storeApp.setPageTitle("บันทึกรายวัน JOB #" + jobId.value);
   storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job_approve_detail");
+  storeApp.setActiveChild("images_job_daily_detail");
+
+  WSImageConnect();
+  WsAllImageConnect();
+  websocketConnect();
 });
+
+function websocketConnect() {
+  connection.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
+      localStorage.getItem("_token")
+  );
+  connection.value.onopen = function (event) {
+    //console.log(event);
+    //console.log("Successfully connected to the echo websocket server...");
+  };
+  connection.value.onmessage = function (event) {
+    // console.log("websocketConnect ", event);
+    // var jsonData = JSON.parse(event.data);
+    // if (jsonData.docref != "") {
+    //     MasterdataService.getImagesByDocref(jsonData.docref)
+    //         .then((res) => {
+    //             if (res.success) {
+    //                 //console.log(res.data);
+    //                 if (res.data.imagereferences.length > 0) {
+    //                     //router.push({ name: "daily_images_show" });
+    //                 }
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             // console.log(err);
+    //         });
+    // }
+  };
+
+  connection.value.onclose = function (e) {
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      e.reason
+    );
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "images_job_daily_detail"
+      ) {
+        console.log(
+          "Socket is closed. Reconnect will be attempted in 1 second.",
+          e.reason
+        );
+        websocketConnect();
+        getAllSelectImage();
+      }
+    }, 1000);
+  };
+}
+
+function WSImageConnect() {
+  WsConnectImage.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
+      localStorage.getItem("_token")
+  );
+
+  WsConnectImage.value.onopen = function (event) {
+    // console.log(event);
+    // console.log(
+    //   "WsConnectImage Successfully connected to the echo websocket server..."
+    // );
+  };
+  WsConnectImage.value.onmessage = function (event) {
+    //console.log("WSImageConnect ", event);
+  };
+  WsConnectImage.value.onclose = function (e) {
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "images_job_daily_detail"
+      ) {
+        console.log(
+          "Socket is closed. Reconnect will be attempted in 1 second.",
+          e.reason
+        );
+        WSImageConnect();
+        getAllSelectImage();
+      }
+    }, 1000);
+  };
+}
+function WsAllImageConnect() {
+  console.log("Starting connection to WebSocket Server");
+  WsConnectAllImage.value = new WebSocket(
+    "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
+      localStorage.getItem("_token")
+  );
+  WsConnectAllImage.value.onopen = function (event) {
+    // console.log("onopen", event);
+    // console.log(
+    //     "WsAllImage Connect Successfully connected to the echo websocket server..."
+    // );
+  };
+  WsConnectAllImage.value.onmessage = function (event) {
+    console.log("WsAllImageConnect", event);
+    var jsonData = JSON.parse(event.data);
+    console.log("jsonData ", jsonData);
+    if (jsonData.status == "selected") {
+      console.log("selected");
+      var found = 0;
+      AllImageUsed.value.forEach((data) => {
+        if (data.docref == jsonData.docref) {
+          found += 1;
+        }
+      });
+      if (found == 0) {
+        AllImageUsed.value.push({
+          docref: jsonData.docref,
+          username: jsonData.username,
+        });
+      }
+    } else if (jsonData.status == "deselected") {
+      console.log("unselected");
+      var rebuild = [];
+      AllImageUsed.value.forEach((data) => {
+        if (data.docref != jsonData.docref) {
+          rebuild.push(data);
+        }
+      });
+      AllImageUsed.value = rebuild;
+    }
+
+    console.log("AllImageUsed ", AllImageUsed.value);
+  };
+  WsConnectAllImage.value.onclose = function (e) {
+    console.log(
+      "WsAllImageConnect Socket is closed. Reconnect will be attempted in 1 second.",
+      e.reason
+    );
+    setTimeout(function () {
+      if (
+        localStorage._token != "" &&
+        localStorage._token != undefined &&
+        route.name == "images_job_daily_detail"
+      ) {
+        console.log(
+          "Socket is closed. Reconnect will be attempted in 1 second.",
+          e.reason
+        );
+        WsAllImageConnect();
+        getAllSelectImage();
+      }
+    }, 1000);
+  };
+}
+
+function getAllSelectImage() {
+  MasterdataService.getAllSelectImage()
+    .then((res) => {
+      console.log("getAllSelectImage");
+      console.log(res);
+      if (res.success) {
+        AllImageUsed.value = res.data;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ดึงข้อมูลล้มเหลว " + err,
+        life: 3000,
+      });
+    });
+}
 
 function getTaskById(guidfixed) {
   TaskService.getTaskById(guidfixed)
@@ -87,8 +272,6 @@ function getTaskById(guidfixed) {
       //console.log(res);
       if (res.success) {
         job.value = res.data;
-
-        console.log(job.value);
       }
     })
     .catch((err) => {
@@ -109,7 +292,7 @@ function getDocumentImageGroupScroll() {
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value,
+    showImageByStatus.value,
     fromDate.value,
     toDate.value,
     jobId.value
@@ -139,6 +322,7 @@ function getDocumentImageGroupScroll() {
 
             showSkeleton.value = false;
           }, 500);
+          getAllSelectImage();
         }
       }
     })
@@ -161,7 +345,7 @@ function getDocumentImageGroup() {
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value,
+    showImageByStatus.value,
     fromDate.value,
     toDate.value,
     jobId.value
@@ -186,7 +370,7 @@ function getDocumentImageGroup() {
             element.ischecked = false;
           });
 
-          checkImageApprove();
+          checkImagereferences();
 
           isDataListNull.value = false;
           loading.value = false;
@@ -194,6 +378,7 @@ function getDocumentImageGroup() {
           totalPage.value = res.pagination.totalPage;
           totalItemsCount.value = res.pagination.total;
         }
+        getAllSelectImage();
       }
     })
 
@@ -225,44 +410,6 @@ function onScroll() {
   }
 }
 
-async function rejectImage(documentimageguid, isReject) {
-  console.log("documentimageguid :" + documentimageguid);
-  console.log("isReject :" + isReject);
-  let data = {
-    isreject: true,
-  };
-
-  if (!isReject) {
-    data.isreject = false;
-  }
-
-  await ImageDataService.putRejectImage(documentimageguid, data)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        toast.add({
-          severity: "success",
-          summary: "success",
-          detail: "บันทึกข้อมูลสำเร็จ",
-          life: 3000,
-        });
-        setTimeout(() => {
-          activePage.value = 1;
-          getDocumentImageGroup();
-        }, 100);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "ไม่สามารถเลือกรูปได้ " + err,
-        life: 3000,
-      });
-    });
-}
-
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
 }
@@ -273,27 +420,81 @@ function showImg(data) {
   showDocumentPreview.value = true;
 }
 
+function createGL(data) {
+  var sendData = { docref: data.guidfixed };
+  if (checkUseImgByUser(localStorage._usercode)) {
+    swapImage(data.guidfixed);
+  } else {
+    MasterdataService.postSelectImage(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+            router.push({
+              name: "daily_images_job_form",
+              params: { id: jobId.value },
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
+}
+
+function swapImage(data) {
+  var sendData = { docref: data };
+  if (checkUseImgByUser(localStorage._usercode)) {
+    MasterdataService.postSelectImageForce(sendData)
+      .then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (res.data) {
+            WsConnectImage.value.send(JSON.stringify(sendData));
+            router.push({
+              name: "daily_images_job_form",
+              params: { id: jobId.value },
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "ไม่สามารถเลือกรูปได้ " + err,
+          life: 3000,
+        });
+      });
+  }
+}
+
+function checkUseImgByUser(user) {
+  var found = 0;
+  AllImageUsed.value.forEach((element) => {
+    if (element.username == user) {
+      found += 1;
+    }
+  });
+
+  if (found == 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 function closeDocumentPreview() {
   showDocumentPreview.value = false;
-}
-
-function rejectSuccess(status) {
-  if (status) {
-    showImgData.value = null;
-    selectedImag.value = "";
-    getDocumentImageGroup();
-  }
-}
-
-function startApproveJob() {
-  ischeckApprove.value = true;
-  if (job.value.status == 1) {
-    jobApprove(2);
-  }
-}
-
-function stopApproveJob() {
-  ischeckApprove.value = false;
 }
 
 function endApproveJob() {
@@ -306,37 +507,86 @@ function confirmApproveFalse() {
   ramdomNumber.value = Utils.generateRandomNumber();
 }
 
-// ตรวจเสร็จแล้ว
+// บันทึกเสร็จแล้ว
 async function jobApprove(statusJob) {
   dialogJobApprove.value = false;
   let status = {
     status: statusJob,
   };
-  try {
-    const res = await TaskService.putTaskStatus(jobId.value, status);
-    if (res.success) {
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
+  console.log(statusJob);
+  //   try {
+  //     const res = await TaskService.putTaskStatus(jobId.value, status);
+  //     if (res.success) {
+  //       toast.add({
+  //         severity: "success",
+  //         summary: "success",
+  //         detail: "บันทึกข้อมูลสำเร็จ",
+  //         life: 3000,
+  //       });
 
-      if (statusJob == 3) {
-        setTimeout(() => {
-          router.push({ name: "images_job_approve" });
-        }, 1000);
-      }
+  //       if (statusJob == 3) {
+  //         setTimeout(() => {
+  //           router.push({ name: "images_daily_approve" });
+  //         }, 1000);
+  //       }
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //     toast.add({
+  //       severity: "error",
+  //       summary: "error",
+  //       detail: "บันทึกไม่สำเร็จ " + err,
+  //       life: 3000,
+  //     });
+  //   }
+}
+
+function checkImagereferences() {
+  let notImagereferences = 0;
+  data_list.value.forEach((element) => {
+    if (element.imagereferences.length == 1) {
+      notImagereferences += 1;
     }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
+  });
+
+  if (notImagereferences == 0) {
+    checkSuccess.value = true;
+  } else {
+    checkSuccess.value = false;
   }
+
+  console.log("checkImagereferences : " + checkSuccess.value);
+}
+
+async function upDateStatusImage(data) {
+  console.log(data);
+
+  // 99= ตั้งค่าสถานะให้ icon โหลด
+  data_list.value.filter(function (ele) {
+    if (ele.guidfixed == data.guidfixed) {
+      ele.status = 99;
+    }
+  });
+  console.log(data_list.value);
+
+  const updateData = await updateStatus(data.guidfixed, data.status);
+  setTimeout(() => {
+    if (updateData) {
+      data_list.value.filter(function (ele) {
+        if (ele.guidfixed == data.guidfixed) {
+          ele.status = data.status;
+        }
+      });
+    } else {
+      data_list.value.filter(function (ele) {
+        if (ele.guidfixed == data.guidfixed) {
+          ele.status = 0;
+        }
+      });
+    }
+
+    checkImagereferences();
+  }, 300);
 }
 
 // Update status
@@ -364,132 +614,6 @@ async function updateStatus(guidfixed, data_status) {
     return false;
   }
 }
-
-async function updateStatusFrist(data) {
-  console.log(data.guidfixed);
-  // 99= ตั้งค่าสถานะให้ icon โหลด
-  data_list.value.filter(function (ele) {
-    if (ele.guidfixed == data.guidfixed) {
-      ele.status = 99;
-    }
-  });
-
-  const updateData = await updateStatus(data.guidfixed, 1);
-  setTimeout(() => {
-    if (updateData) {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = 1;
-        }
-      });
-    } else {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = 0;
-        }
-      });
-    }
-
-    checkImageApprove();
-  }, 300);
-}
-
-async function upDateStatusImage(data) {
-  console.log(data);
-
-  // 99= ตั้งค่าสถานะให้ icon โหลด
-  data_list.value.filter(function (ele) {
-    if (ele.guidfixed == data.guidfixed) {
-      ele.status = 99;
-    }
-  });
-
-  const updateData = await updateStatus(data.guidfixed, data.status);
-  setTimeout(() => {
-    if (updateData) {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = data.status;
-        }
-      });
-    } else {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = 0;
-        }
-      });
-    }
-
-    checkImageApprove();
-  }, 300);
-}
-
-function checkImageApprove() {
-  let notApproveImate = 0;
-  data_list.value.forEach((element) => {
-    if (element.status == 0) {
-      notApproveImate += 1;
-    }
-  });
-
-  if (notApproveImate == 0) {
-    checkSuccess.value = true;
-  } else {
-    checkSuccess.value = false;
-  }
-}
-
-function updateAllStatusImage() {
-  if (!statusAllImage.value) {
-    data_list.value.forEach((element) => {
-      // 99= ตั้งค่าสถานะให้ icon โหลด
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == element.guidfixed) {
-          ele.status = 99;
-        }
-      });
-
-      const updateData = updateStatus(element.guidfixed, 1);
-      setTimeout(() => {
-        if (updateData) {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 1;
-            }
-          });
-        } else {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 0;
-            }
-          });
-        }
-
-        checkImageApprove();
-      }, 300);
-    });
-  } else {
-    data_list.value.forEach((element) => {
-      // 99= ตั้งค่าสถานะให้ icon โหลด
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == element.guidfixed) {
-          ele.status = 99;
-        }
-      });
-      const updateData = updateStatus(element.guidfixed, 0);
-      setTimeout(() => {
-        if (updateData) {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 0;
-            }
-          });
-        }
-        checkImageApprove();
-      }, 300);
-    });
-  }
-}
 </script>
 <template>
   <AppLayout>
@@ -501,48 +625,12 @@ function updateAllStatusImage() {
           class="p-button-sm p-button-text"
           label="กลับหน้ารายการ"
           icon="pi pi-arrow-left"
-          @click="router.push({ name: 'images_job_approve' })"
-        />
-        <Button
-          :disabled="ischeckApprove || job.status == 3"
-          class="p-button-sm ml-2"
-          label="เริ่มตรวจสอบ"
-          icon="pi pi-play"
-          @click="startApproveJob()"
-        />
-        <Button
-          :disabled="!ischeckApprove || checkSuccess"
-          class="p-button-sm ml-2"
-          label="หยุดตรวจสอบ"
-          icon="pi pi-pause"
-          @click="stopApproveJob()"
-        />
-        <ToggleButton
-          :disabled="!ischeckApprove"
-          v-model="statusAllImage"
-          onLabel="ผ่านทั้งหมด"
-          offLabel="ยกเลิกผ่านทั้งหมด"
-          onIcon="pi pi-check"
-          offIcon="pi pi-times"
-          class="p-button-sm ml-2"
-          @change="updateAllStatusImage"
+          @click="router.push({ name: 'images_job_daily' })"
         />
       </div>
       <div class="flex">
-        <Chip
-          :label="data_list.length.toString()"
-          icon="pi pi-image"
-          class="ml-2 bg-primary-100"
-        />
-        <Chip
-          :label="data_list.length.toString()"
-          icon="pi pi-clock"
-          class="ml-2"
-        />
-        <Chip label="0" icon="pi pi-check-circle" class="ml-2 bg-green-300" />
-        <Chip label="0" icon="pi pi-times-circle" class="ml-2 bg-red-400" />
         <Button
-          :disabled="!checkSuccess || job.status == 3"
+          :disabled="true"
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"
@@ -569,16 +657,6 @@ function updateAllStatusImage() {
               ]"
               class="m-2"
             >
-              <!-- <div class="flex align-items-center justify-content-center">
-                <div class="p-inputgroup">
-                  <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button
-                    icon="pi pi-search"
-                    @click="getDocumentImageGroup()"
-                    class="p-button-primary"
-                  />
-                </div>
-              </div> -->
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
@@ -589,6 +667,7 @@ function updateAllStatusImage() {
                   :key="data.guidfixed"
                 >
                   <ImageBlock
+                    :modeMenu="3"
                     :images_data="data"
                     :images_selete="selectedImg"
                     :allimage_used="AllImageUsed"
@@ -596,7 +675,6 @@ function updateAllStatusImage() {
                     :sizeWidthImageBloc="sizeWidthImageBloc"
                     :sizeHeightImageBloc="sizeHeightImageBloc"
                     v-on:showImg="showImg"
-                    v-on:selectImg="updateStatusFrist"
                   >
                   </ImageBlock>
                 </div>
@@ -634,9 +712,10 @@ function updateAllStatusImage() {
               :selectedImag="selectedImag"
               :jobStatus="job.status"
               :ischeckApprove="ischeckApprove"
-              :modeMenu="2"
+              :modeMenu="3"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
+              v-on:createGL="createGL"
             />
           </SplitterPanel>
         </Splitter>

@@ -423,4 +423,29 @@ export default [
     },
     component: () => import("../pages/images/components/TaskList.vue"),
   },
+
+  {
+    path: "/images/job_daily",
+    name: "images_job_daily",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily.vue"),
+  },
+  {
+    path: "/images/daily_detail/:id",
+    name: "images_job_daily_detail",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily_detail.vue"),
+  },
+  {
+    path: "/daily/daily_images_job_form/:id",
+    name: "daily_images_job_form",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/daily/daily_images_job_form.vue"),
+  },
 ];
