@@ -96,12 +96,13 @@ export default {
     },
 
     //noreserve
-    documentimagegroupnoreserve(limitPage, page, search) {
+    documentimagegroupnoreserve(limitPage, page, search, sorttaskguid) {
         var q = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1&ref=1&reject=0`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`).then(res => res.data);
     },
 
     // เพิ่มรูปใน Group Image

@@ -514,37 +514,38 @@ async function jobApprove(statusJob) {
     status: statusJob,
   };
   console.log(statusJob);
-  //   try {
-  //     const res = await TaskService.putTaskStatus(jobId.value, status);
-  //     if (res.success) {
-  //       toast.add({
-  //         severity: "success",
-  //         summary: "success",
-  //         detail: "บันทึกข้อมูลสำเร็จ",
-  //         life: 3000,
-  //       });
+    try {
+      const res = await TaskService.putTaskStatus(jobId.value, status);
+      if (res.success) {
+        toast.add({
+          severity: "success",
+          summary: "success",
+          detail: "บันทึกข้อมูลสำเร็จ",
+          life: 3000,
+        });
 
-  //       if (statusJob == 3) {
-  //         setTimeout(() => {
-  //           router.push({ name: "images_daily_approve" });
-  //         }, 1000);
-  //       }
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     toast.add({
-  //       severity: "error",
-  //       summary: "error",
-  //       detail: "บันทึกไม่สำเร็จ " + err,
-  //       life: 3000,
-  //     });
-  //   }
+        if (statusJob == 3) {
+          setTimeout(() => {
+            router.push({ name: "images_daily_daily" });
+          }, 1000);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "error",
+        detail: "บันทึกไม่สำเร็จ " + err,
+        life: 3000,
+      });
+    }
 }
 
 function checkImagereferences() {
   let notImagereferences = 0;
   data_list.value.forEach((element) => {
-    if (element.imagereferences.length == 1) {
+    console.log(element.references.length);
+    if (element.references.length == 1) {
       notImagereferences += 1;
     }
   });
@@ -630,7 +631,7 @@ async function updateStatus(guidfixed, data_status) {
       </div>
       <div class="flex">
         <Button
-          :disabled="true"
+          :disabled="checkSuccess"
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"
@@ -758,7 +759,7 @@ async function updateStatus(guidfixed, data_status) {
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"
       v-on:close="dialogJobApprove = false"
-      v-on:confirmJob="jobApprove(3)"
+      v-on:confirmJob="jobApprove(4)"
       v-on:confirmJobFalse="confirmApproveFalse()"
     />
   </AppLayout>

@@ -24,7 +24,7 @@ const listStatusImages = ref([
 const dialogEditTag = ref(false);
 const tag = ref();
 const separatorExp = ref(/,| /);
-
+const confirmRejectDialog = ref(false);
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -219,13 +219,19 @@ function createGL(data) {
         <Button
           label="ไม่ผ่าน"
           class="p-button-danger p-b mr-1"
-          @click="upDateStatusImageByButton"
-          :disabled="checkUseImg(props.selectedImag.guidfixed)"
+          @click="confirmRejectDialog = true"
+          :disabled="
+            checkUseImg(props.selectedImag.guidfixed) ||
+            props.selectedImag.references.length > 0
+          "
         />
         <Button
           label="คีย์เอกสาร"
           class=""
-          :disabled="checkUseImg(props.selectedImag.guidfixed)"
+          :disabled="
+            checkUseImg(props.selectedImag.guidfixed) ||
+            props.selectedImag.references.length > 0
+          "
           @click="createGL(props.selectedImag)"
           :loading="loaddingButton"
         />
@@ -352,6 +358,13 @@ function createGL(data) {
       </div>
     </div>
   </div>
+  <DialogForm
+    :confirmDialog="confirmRejectDialog"
+    :textContent="'ต้องการยกเลิกรูปภาพ'"
+    :textContent2="props.showImgData[activeIndexList].name"
+    v-on:close="confirmRejectDialog = false"
+    v-on:confirm="upDateStatusImageByButton()"
+  ></DialogForm>
   <DialogForm
     :confirmDialog="confirmUnGroup"
     :textContent="'ต้องการยกเลิกชุดรูปภาพ'"

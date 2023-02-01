@@ -9,12 +9,10 @@ import { ref, onMounted, computed, onUnmounted, watch } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
 import $ from "jquery";
-import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "../../services/ImageDataService";
-import ImagePreview from "./components/imagePreview.vue";
 
 const storeApp = useApp();
 const content = ref();
@@ -61,7 +59,6 @@ const updateMode = ref(false);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
 const groupAccount_detail = ref([]);
-const conreject = "ต้องการยกเลิกรูปภาพ";
 const conSave = "ต้องการบันทึกเอกสารรายวัน";
 const conchange = "ต้องการเปลี่ยนรูปภาพ";
 const connamechange = "";
@@ -170,6 +167,7 @@ const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const jobId = ref("");
 const showOveray = ref(false);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -229,9 +227,9 @@ onMounted(() => {
   jobId.value = route.params.id;
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_images_list");
+  storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
 
   disableAllinput(0);
-  storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
@@ -266,7 +264,6 @@ onMounted(() => {
   WsAllImageConnect();
 
   showpanel();
-  setWidthPanelForm2(30, 70);
 
   // setTimeout(() => {
   //   console.log(selectedImgUrl.value );
@@ -299,7 +296,7 @@ function WSImageConnect() {
       if (
         localStorage._token != "" &&
         localStorage._token != undefined &&
-        route.name == "daily_images_form"
+        route.name == "daily_images_job_form"
       ) {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
@@ -377,7 +374,7 @@ function WsAllImageConnect() {
       if (
         localStorage._token != "" &&
         localStorage._token != undefined &&
-        route.name == "daily_images_form"
+        route.name == "daily_images_job_form"
       ) {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
@@ -454,7 +451,7 @@ function websocketConnect() {
       if (
         localStorage._token != "" &&
         localStorage._token != undefined &&
-        route.name == "daily_images_form"
+        route.name == "daily_images_job_form"
       ) {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
@@ -895,17 +892,18 @@ function getDocImageList() {
   ImageDataService.documentimagegroupnoreserve(
     limitPage.value,
     activePage.value,
-    searchItem.value
+    searchItem.value,
+    jobId.value
   )
     .then((res) => {
-      // console.log(res);
+      console.log(res);
       if (res.success) {
         data_list.value = res.data;
         totalItemsCount.value = res.pagination.total;
         setTimeout(() => {
           checkActiveIndex();
         }, 500);
-        // console.log(totalItemsCount.value);
+        console.log(data_list.value);
       }
     })
     .catch((err) => {
@@ -913,9 +911,38 @@ function getDocImageList() {
     });
 }
 
-function resizeend(event) {
-  // console.log(event);
+function getNewDocImageList() {
+  ImageDataService.documentimagegroupnoreserve(
+    limitPage.value,
+    activePage.value,
+    searchItem.value,
+    jobId.value
+  )
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        data_list.value = res.data;
+
+        var check_dup = data_list.value.filter(
+          (val) => val.guidfixed == doc_images.value.guidfixed
+        );
+
+        if (check_dup.length == 0) {
+          data_list.value.splice(0, 0, doc_images.value);
+        }
+
+        totalItemsCount.value = res.pagination.total;
+        setTimeout(() => {
+          checkActiveIndex();
+        }, 500);
+        console.log(data_list.value);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
+
 function deSelectImg() {
   selectedImgData.value = { guidfixed: "", imagereferences: [] };
   selectedImg.value = false;
@@ -944,85 +971,6 @@ function removeMagnify() {
   //console.log(elements);
   while (elements.length > 0) {
     elements[0].parentNode.removeChild(elements[0]);
-  }
-}
-function magnify(imgID, zoom) {
-  var img, glass, w, h, bw;
-
-  // if (elements.length > 0) {
-  //   elements[0].parentNode.removeChild(elements[0]);
-  // } else {
-  const elements = document.getElementsByClassName("img-magnifier-glass");
-  // console.log(elements);
-  while (elements.length > 0) {
-    elements[0].parentNode.removeChild(elements[0]);
-  }
-
-  img = document.getElementById(imgID);
-
-  /*create magnifier glass:*/
-  glass = document.createElement("DIV");
-
-  glass.setAttribute("class", "img-magnifier-glass");
-  /*insert magnifier glass:*/
-  img.parentElement.insertBefore(glass, img);
-  /*set background properties for the magnifier glass:*/
-  glass.style.backgroundImage = "url('" + img.src + "')";
-  glass.style.backgroundRepeat = "no-repeat";
-  glass.style.backgroundSize =
-    img.width * zoom + "px " + img.height * zoom + "px";
-  glass.style.zIndex = 99999;
-  bw = 3;
-  w = glass.offsetWidth / 2;
-  h = glass.offsetHeight / 2;
-  /*execute a function when someone moves the magnifier glass over the image:*/
-  glass.addEventListener("mousemove", moveMagnifier);
-  img.addEventListener("mousemove", moveMagnifier);
-  /*and also for touch screens:*/
-  glass.addEventListener("touchmove", moveMagnifier);
-  img.addEventListener("touchmove", moveMagnifier);
-  function moveMagnifier(e) {
-    var pos, x, y;
-    /*prevent any other actions that may occur when moving over the image*/
-    e.preventDefault();
-    /*get the cursor's x and y positions:*/
-    pos = getCursorPos(e);
-    x = pos.x;
-    y = pos.y;
-    /*prevent the magnifier glass from being positioned outside the image:*/
-    if (x > img.width - w / zoom) {
-      x = img.width - w / zoom;
-    }
-    if (x < w / zoom) {
-      x = w / zoom;
-    }
-    if (y > img.height - h / zoom) {
-      y = img.height - h / zoom;
-    }
-    if (y < h / zoom) {
-      y = h / zoom;
-    }
-    /*set the position of the magnifier glass:*/
-    glass.style.left = x - w + "px";
-    glass.style.top = y - h + "px";
-    /*display what the magnifier glass "sees":*/
-    glass.style.backgroundPosition =
-      "-" + (x * zoom - w + bw) + "px -" + (y * zoom - h + bw) + "px";
-  }
-  function getCursorPos(e) {
-    var a,
-      x = 0,
-      y = 0;
-    e = e || window.event;
-    /*get the x and y positions of the image:*/
-    a = img.getBoundingClientRect();
-    /*calculate the cursor's x and y coordinates, relative to the image:*/
-    x = e.pageX - a.left;
-    y = e.pageY - a.top;
-    /*consider any page scrolling:*/
-    x = x - window.pageXOffset;
-    y = y - window.pageYOffset;
-    return { x: x, y: y };
   }
 }
 
@@ -1110,32 +1058,6 @@ function verifyTax() {
   }
 }
 
-function rejectImg() {
-  var post_data = { status: 1 };
-  console.log(selectedImgData.value.imagereferences);
-  MasterdataService.putrejectimagestatusonlyGuiD(
-    post_data,
-    selectedImgData.value.imagereferences[activeIndex.value].guidfixed
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        selectedImgData.value.imagereferences[activeIndex.value].status = 1;
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: err,
-        life: 3000,
-      });
-    });
-  confirmRejectDialog.value = false;
-}
-
 function hidepanel() {
   setTimeout(() => {
     var panel = document.getElementById("panelForm3");
@@ -1147,10 +1069,10 @@ function hidepanel() {
 function showpanel() {
   setTimeout(() => {
     var panel3 = document.getElementById("panelForm3");
-    panel3.setAttribute("style", "flex-basis: calc(70% - 4px) !important");
+    panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
   }, 50);
 }
 
@@ -1387,7 +1309,6 @@ function nextImage(index) {
           if (res.data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             clearData();
-            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1565,6 +1486,7 @@ function useImage(data) {
         }
       })
       .catch((err) => {
+        nextImageOnSave(data);
         console.log(err);
         toast.add({
           severity: "error",
@@ -1578,6 +1500,17 @@ function useImage(data) {
 
 function changeImage(data) {
   var sendData = { docref: data };
+  if (checkUseImg(data)) {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: "ไม่สามารถเลือกรูปได้มีผู้ใช้กำลังใช้งานอยู่ ",
+      life: 3000,
+    });
+    confirmChangeImageDialog.value = false;
+    getNewDocImageList();
+    return;
+  }
   if (checkUseImgByUser(localStorage._usercode)) {
     MasterdataService.postSelectImageForce(sendData)
       .then((res) => {
@@ -1587,8 +1520,6 @@ function changeImage(data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             confirmChangeImageDialog.value = false;
             clearData();
-
-            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1601,13 +1532,6 @@ function changeImage(data) {
           life: 3000,
         });
       });
-  } else if (checkUseImg(data)) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "ไม่สามารถเลือกรูปได้มีผู้ใช้กำลังใช้งานอยู่ ",
-      life: 3000,
-    });
   } else {
     MasterdataService.postSelectImage(sendData)
       .then((res) => {
@@ -1643,53 +1567,6 @@ function reLoadImage() {
     });
 }
 
-const setTransform = () => {
-  zoomStyle.value =
-    "transform:translate(" +
-    pointX.value +
-    "px, " +
-    pointY.value +
-    "px) scale(" +
-    scale.value +
-    ")";
-};
-
-function onmousedown(e) {
-  //console.log(e);
-  e.preventDefault();
-  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
-  panning.value = true;
-}
-
-function onmouseup(e) {
-  // console.log(e);
-  panning.value = false;
-}
-
-function onmousemove(e) {
-  // console.log(e);
-  e.preventDefault();
-  if (!panning.value) {
-    return;
-  }
-  pointX.value = e.clientX - start.value.x;
-  pointY.value = e.clientY - start.value.y;
-  setTransform();
-}
-
-function onwheel(e) {
-  // console.log(e);
-  e.preventDefault();
-  var xs = (e.clientX - pointX.value) / scale.value,
-    ys = (e.clientY - pointY.value) / scale.value,
-    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
-  pointX.value = e.clientX - xs * scale.value;
-  pointY.value = e.clientY - ys * scale.value;
-
-  setTransform();
-}
-
 function resetZoomImage() {
   scale.value = 1;
   panning.value = false;
@@ -1699,26 +1576,38 @@ function resetZoomImage() {
   zoomStyle.value = "";
 }
 
-function setWidthPanelForm2(left, right) {
-  setTimeout(() => {
-    let box = document.getElementById("maincontainer");
-    let width = box.offsetWidth;
-
-    console.log("maincontainer: " + width);
-
-    let boxtable = document.getElementById("galleriabox");
-    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
-  }, 500);
-}
-
-function resizeGalleria(e) {
-  console.log("resizeGalleria");
-  console.log(e.sizes);
-  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
-}
-
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
+  console.log(isOveray);
+}
+
+// Update status
+async function rejectImg() {
+  let status = {
+    status: 4,
+  };
+  try {
+    const res = await ImageDataService.putDocumentImageGroupStatus(
+      doc_images.value.guidfixed,
+      status
+    );
+    if (res.success) {
+      confirmRejectDialog.value = false;
+      removeSelectImg();
+      setTimeout(() => {
+        nextImageOnSave(doc_images.value.guidfixed);
+        clearData();
+      }, 200);
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
 }
 </script>
 
@@ -1745,79 +1634,15 @@ function resizeSplitter(isOveray) {
           v-if="!onLoad"
         >
           <Splitter
-            class="w-full"
+            layout="horizontal"
             @resizestart="resizeSplitter(true)"
             @resizeend="resizeSplitter(false)"
           >
-            <SplitterPanel :size="50">
-              <ImagePreview
-                :showOveray="showOveray"
-                :showImgData="doc_images.imagereferences"
-              />
-            </SplitterPanel>
-            <SplitterPanel :size="50">
-              <TabView class="tabview-custom" ref="tabview">
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-book mr-1"></i>
-                    <span> ข้อมูลรายวัน</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <JournalForm
-                      :daily_form="daily_form"
-                      :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail"
-                      :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail"
-                      v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail"
-                      v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder"
-                      v-on:selectAccount="selectAccount"
-                    >
-                    </JournalForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ข้อมูลภาษี</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <VatForm
-                      :vats="vats"
-                      :vats_valid="vats_valid"
-                      v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat"
-                      v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat"
-                      v-on:setBranch="setBranch"
-                    ></VatForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <TaxForm
-                      :taxes="taxes"
-                      :taxes_valid="taxes_valid"
-                      v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax"
-                      v-on:getSumTaxBase="getSumTaxBase"
-                    ></TaxForm>
-                  </div>
-                </TabPanel>
-              </TabView>
-            </SplitterPanel>
-          </Splitter>
-          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
             <SplitterPanel
               class="relative"
               id="panelForm2"
               @mouseleave="removeMagnify()"
+              :size="50"
             >
               <div>
                 <div class="flex justify-content-between align-items-right">
@@ -1841,9 +1666,15 @@ function resizeSplitter(isOveray) {
                       "
                     />
                   </div>
+                  <div>
+                    <Button
+                      label="ไม่ผ่าน"
+                      class="p-button-danger p-b mr-1"
+                      @click="confirmRejectDialog = true"
+                    />
+                  </div>
                   <!-- <div>
-                    <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
-                      class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
+                   
                     <Button v-if="waitForImages" icon="pi pi-refresh" class="p-button-text text-blue-500"
                       @click="reLoadImage" />
                     <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-refresh" class="p-button-text"
@@ -1853,20 +1684,6 @@ function resizeSplitter(isOveray) {
                         removeMagnify();
                       " />
                   </div> -->
-                </div>
-
-                <div class="p-0" v-if="selectedImg">
-                  <Message
-                    severity="error"
-                    :closable="false"
-                    v-if="doc_images.isreject == true"
-                  >
-                    <span
-                      class="flex align-items-center justify-content-center"
-                    >
-                      *Warning Message รูปโดนยกเลิก
-                    </span>
-                  </Message>
                 </div>
 
                 <KeepAlive>
@@ -1908,6 +1725,7 @@ function resizeSplitter(isOveray) {
                           </div>
                           <div class="col-12" :style="heightIamgeDivCheckGl">
                             <div
+                              class="relative"
                               style="margin: 0px; padding: 0px; height: 100%"
                             >
                               <iframe
@@ -1916,8 +1734,19 @@ function resizeSplitter(isOveray) {
                                   '/document_images/components/zoom?uri=' +
                                   slotProps.item.imageuri
                                 "
+                                class="static"
                               >
                               </iframe>
+                              <div
+                                v-if="showOveray"
+                                class="absolute top-0 left-0"
+                                style="
+                                  width: 100%;
+                                  height: 100%;
+                                  background-color: white;
+                                  opacity: 0;
+                                "
+                              ></div>
                             </div>
                           </div>
                         </div>
@@ -1934,7 +1763,7 @@ function resizeSplitter(isOveray) {
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" id="panelForm3">
+            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">
               <div ref="divCheckGl">
                 <TabView class="tabview-custom" ref="tabview">
                   <TabPanel>
@@ -2023,7 +1852,7 @@ function resizeSplitter(isOveray) {
               :value="data_list"
               :thumbnailsPosition="'top'"
               :showThumbnails="true"
-              :numVisible="data_list.length > 10 ? 10 : data_list.length"
+              :numVisible="6"
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >
@@ -2059,7 +1888,8 @@ function resizeSplitter(isOveray) {
       </div>
       <DialogForm
         :confirmDialog="confirmRejectDialog"
-        :textContent="conreject"
+        :textContent="'ต้องการยกเลิกรูปภาพ'"
+        :textContent2="doc_images.title"
         v-on:close="confirmRejectDialog = false"
         v-on:confirm="rejectImg()"
       ></DialogForm>
