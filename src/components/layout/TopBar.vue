@@ -31,7 +31,7 @@ function openSelectShop() {
           hideOnOutsideClick: true,
         }"
       >
-        <i class="pi pi-bars text-4xl"></i>
+        <i class="pi pi-bars text-4xl text-white"></i>
       </a>
       <div class="font-medium text-1xl text-white">
         {{ storeApp.PageTitle }}
