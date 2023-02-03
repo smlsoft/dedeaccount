@@ -2,18 +2,18 @@
 import DialogForm from "@/components/form/DialogForm.vue";
 import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import Utils from "@/utils/";
 const userName = localStorage._usercode;
 const toast = useToast();
 
 const activeIndexList = ref(0);
 
-const isReject = ref(true);
 const onfirmRejectDialog = ref(false);
 const contentOnfirmRejectDialog = ref("");
 const confirmUnGroup = ref(false);
 const loaddingButton = ref(false);
+const lastGuidFixed = ref("");
 
 const listStatusImages = ref([
   { name: "ผ่าน", code: 1 },
@@ -33,6 +33,7 @@ const props = defineProps({
   jobStatus: Number,
   ischeckApprove: Boolean,
   modeMenu: Number,
+  resetIndex: Number,
 });
 
 const emit = defineEmits([
@@ -43,6 +44,9 @@ const emit = defineEmits([
   "updateTagImage",
   "createGL",
 ]);
+
+onUnmounted(() => {});
+onMounted(() => {});
 
 function closeDocumentPreview() {
   emit("closeDocumentPreview");
@@ -123,9 +127,7 @@ const items = computed({
           },
           {
             disabled:
-              (!props.showImgData[activeIndexList.value].isreject &&
-                props.selectedImag.references.length == 0) ||
-              props.jobStatus != 0,
+              props.selectedImag.references.length == 0 || props.jobStatus != 0,
             label: "อัพโหลดรูปใหม่",
             icon: "pi pi-upload",
             command: () => {
@@ -135,7 +137,8 @@ const items = computed({
           {
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
-              props.jobStatus != 0,
+              props.jobStatus == 1 ||
+              props.jobStatus == 3,
             label: "ยกเลิกชุดเอกสาร",
             icon: "pi pi-external-link",
             command: () => {
@@ -156,7 +159,7 @@ function onFileSelect(event) {
   emit(
     "onFileSelect",
     event,
-    props.selectedImag.imagereferences[activeIndexList.value]
+    props.selectedImag.imagereferences[activeIndex.value]
   );
 }
 
@@ -197,6 +200,93 @@ function createGL(data) {
     emit("createGL", data);
     loaddingButton.value = false;
   }, 500);
+}
+
+const activeIndex = computed({
+  get() {
+    if (lastGuidFixed.value != props.selectedImag.guidfixed) {
+      lastGuidFixed.value = props.selectedImag.guidfixed;
+      activeIndexList.value = 0;
+    }
+    return activeIndexList.value;
+  },
+});
+async function saveGropImages() {
+  let newDate = new Date();
+
+  newDate = uploadedat2.value;
+
+  if (newDate.getHours() == 0) {
+    let d = new Date();
+    let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+    let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
+
+    newDate.setHours(hours);
+    newDate.setMinutes(minutes);
+    newDate.setSeconds(seconds);
+  }
+
+  console.log(newDate);
+
+  console.log(selectedImg.value);
+  let isPass = await verifyData();
+  if (isPass) {
+    let imagereferences = [];
+    selectedImg.value.forEach((element, index) => {
+      element.documentimageguid.xorder = index;
+      imagereferences.push(element.documentimageguid);
+    });
+
+    data_save_group.value = {
+      imagereferences: imagereferences,
+      title: title2.value,
+      taskguid: route.params.id,
+      tags: tag.value,
+      uploadedat: Utils.getFormatDateTime(newDate),
+    };
+  } else {
+    return;
+  }
+
+  console.log(data_save_group.value);
+
+  try {
+    const res = await ImageDataService.postDocumentImageGroup(
+      data_save_group.value
+    );
+    if (res.success) {
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+      setTimeout(() => {
+        isSelectedDocument.value = false;
+        imageGroup.value = null;
+        title.value = "";
+        title_valid.value = false;
+        uploadedat.value = new Date();
+        title2.value = "";
+        title2_valid.value = false;
+        uploadedat2.value = new Date();
+        updateRefDialog.value = false;
+        data_set_group.value = [];
+        selectedImg.value = [];
+        activePage.value = 1;
+        getDocumentImageGroup();
+      }, 100);
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
 }
 </script>
 
@@ -282,7 +372,6 @@ function createGL(data) {
         />
       </div>
     </div>
-
     <Galleria
       :value="props.showImgData"
       :circular="true"
@@ -329,12 +418,7 @@ function createGL(data) {
         />
       </template>
     </Galleria>
-    <Message
-      severity="warn"
-      :closable="false"
-      v-if="props.showImgData[activeIndexList].isreject"
-      >รูปมีปัญหา</Message
-    >
+
     <div class="flex flex-wrap align-items-center m-2">
       <div v-for="data in props.selectedImag.tags">
         <Tag class="mr-1 my-1 bg-primary-500" :value="'#' + data" rounded></Tag>
@@ -348,20 +432,20 @@ function createGL(data) {
     </div>
     <div class="flex justify-content-between m-2">
       <div class="flex">
-        ชื่อรูป : {{ props.showImgData[activeIndexList].name }}
+        ชื่อรูป : {{ props.showImgData[activeIndex].name }}
       </div>
       <div class="flex">
         วันที่ :{{
-          Utils.getDateTimeFormat(props.showImgData[activeIndexList].uploadedat)
+          Utils.getDateTimeFormat(props.showImgData[activeIndex].uploadedat)
         }}
-        โดย {{ props.showImgData[activeIndexList].uploadedby }}
+        โดย {{ props.showImgData[activeIndex].uploadedby }}
       </div>
     </div>
   </div>
   <DialogForm
     :confirmDialog="confirmRejectDialog"
     :textContent="'ต้องการยกเลิกรูปภาพ'"
-    :textContent2="props.showImgData[activeIndexList].name"
+    :textContent2="props.showImgData[activeIndex].name"
     v-on:close="confirmRejectDialog = false"
     v-on:confirm="upDateStatusImageByButton()"
   ></DialogForm>

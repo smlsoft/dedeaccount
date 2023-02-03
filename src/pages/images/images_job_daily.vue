@@ -84,6 +84,11 @@ function onRowSelect(data) {
       name: "images_job_daily_detail",
       params: { id: data.guidfixed },
     });
+  } else if (data.status == 4) {
+    router.push({
+      name: "images_job_daily_detail",
+      params: { id: data.guidfixed },
+    });
   }
 }
 </script>

@@ -37,21 +37,21 @@ export const menus = [
   },
 
   // แบบ2
-  {
-    title: "คลังเอกสาร",
-    icon: "pi pi-inbox",
-    to: "/document_images/list",
-    name: "document_images",
-    children: [],
-  },
+  // {
+  //   title: "คลังเอกสาร",
+  //   icon: "pi pi-inbox",
+  //   to: "/document_images/list",
+  //   name: "document_images",
+  //   children: [],
+  // },
   // แบบ1
-  {
-    title: "คลังรูปภาพ",
-    icon: "pi pi-image",
-    to: "/images_group/list",
-    name: "pic_group_docref",
-    children: [],
-  },
+  // {
+  //   title: "คลังรูปภาพ",
+  //   icon: "pi pi-image",
+  //   to: "/images_group/list",
+  //   name: "pic_group_docref",
+  //   children: [],
+  // },
 
   /*
     {

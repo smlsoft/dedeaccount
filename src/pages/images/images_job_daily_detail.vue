@@ -60,11 +60,7 @@ const job = ref({
 });
 const dialogJobApprove = ref(false);
 
-const listSizeImageBloc = ref([
-  { icon: "pi pi-th-large", value: "normal" },
-  { icon: "pi pi-table", value: "large" },
-]);
-const sizeImageBloc = ref(listSizeImageBloc.value[0]);
+const sizeImageBloc = ref(true);
 const sizeWidthImageBloc = ref(90);
 const sizeHeightImageBloc = ref(90);
 
@@ -74,6 +70,8 @@ const checkSuccess = ref(false);
 const WsConnectImage = ref();
 const WsConnectAllImage = ref();
 const connection = ref();
+
+const resetIndex = ref(0);
 
 onUnmounted(() => {
   console.log(
@@ -90,7 +88,6 @@ onMounted(() => {
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setPageTitle("บันทึกรายวัน JOB #" + jobId.value);
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_daily_detail");
 
@@ -269,9 +266,10 @@ function getAllSelectImage() {
 function getTaskById(guidfixed) {
   TaskService.getTaskById(guidfixed)
     .then((res) => {
-      //console.log(res);
+      console.log(res);
       if (res.success) {
         job.value = res.data;
+        storeApp.setPageTitle("บันทึกรายวัน JOB #" + job.value.name);
       }
     })
     .catch((err) => {
@@ -418,6 +416,8 @@ function showImg(data) {
   selectedImag.value = data;
   showImgData.value = data.imagereferences;
   showDocumentPreview.value = true;
+
+  resetIndex.value = 1;
 }
 
 function createGL(data) {
@@ -514,37 +514,35 @@ async function jobApprove(statusJob) {
     status: statusJob,
   };
   console.log(statusJob);
-    try {
-      const res = await TaskService.putTaskStatus(jobId.value, status);
-      if (res.success) {
-        toast.add({
-          severity: "success",
-          summary: "success",
-          detail: "บันทึกข้อมูลสำเร็จ",
-          life: 3000,
-        });
-
-        if (statusJob == 3) {
-          setTimeout(() => {
-            router.push({ name: "images_daily_daily" });
-          }, 1000);
-        }
-      }
-    } catch (err) {
-      console.log(err);
+  try {
+    const res = await TaskService.putTaskStatus(jobId.value, status);
+    if (res.success) {
       toast.add({
-        severity: "error",
-        summary: "error",
-        detail: "บันทึกไม่สำเร็จ " + err,
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
         life: 3000,
       });
+
+      setTimeout(() => {
+        router.push({ name: "images_job_daily" });
+      }, 200);
     }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
 }
 
 function checkImagereferences() {
   let notImagereferences = 0;
   data_list.value.forEach((element) => {
-    console.log(element.references.length);
+    // console.log(element.references.length);
     if (element.references.length == 1) {
       notImagereferences += 1;
     }
@@ -615,6 +613,16 @@ async function updateStatus(guidfixed, data_status) {
     return false;
   }
 }
+
+function selectSizeImageBloc() {
+  if (sizeImageBloc.value) {
+    sizeWidthImageBloc.value = 90;
+    sizeHeightImageBloc.value = 90;
+  } else {
+    sizeWidthImageBloc.value = 230;
+    sizeHeightImageBloc.value = 230;
+  }
+}
 </script>
 <template>
   <AppLayout>
@@ -630,8 +638,17 @@ async function updateStatus(guidfixed, data_status) {
         />
       </div>
       <div class="flex">
+        <ToggleButton
+          v-model="sizeImageBloc"
+          onLabel=""
+          offLabel=""
+          offIcon="pi pi-th-large"
+          onIcon="pi pi-table"
+          @change="selectSizeImageBloc()"
+          class="ml-2"
+        ></ToggleButton>
         <Button
-          :disabled="checkSuccess"
+          :disabled="checkSuccess || job.status == 4"
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"

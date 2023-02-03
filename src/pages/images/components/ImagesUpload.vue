@@ -2,9 +2,9 @@
   <div class="flex bg-primary-50 p-2">
     <div class="surface-section flex-1 p-2">
       <div class="py-2">
-        <span class="font-medium text-xl">Job Number </span>
+        <span class="font-medium text-xl">Job Name </span>
         <span class="font-medium text-xl text-primary-700"
-          >#{{ props.task_number.guidfixed }}</span
+          >#{{ props.task_number.name }}</span
         >
       </div>
       <div class="p-fluid">
@@ -412,7 +412,17 @@ function onDrop(event) {
   const allowDrop = true || (files && files.length === 1);
 
   if (allowDrop) {
-    onFileSelect(event);
+    if (data_import_success.value.length > 0) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาบันทึกข้อมูลก่อน Upload รูปใหม่",
+        life: 3000,
+      });
+      return;
+    } else {
+      onFileSelect(event);
+    }
   }
 }
 function onFileSelect(event) {

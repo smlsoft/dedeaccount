@@ -119,11 +119,7 @@ const taskDetail = ref({
 });
 const dialogJobApprove = ref(false);
 
-const listSizeImageBloc = ref([
-  { icon: "pi pi-th-large", value: "normal" },
-  { icon: "pi pi-table", value: "large" },
-]);
-const sizeImageBloc = ref(listSizeImageBloc.value[0]);
+const sizeImageBloc = ref(true);
 const sizeWidthImageBloc = ref(90);
 const sizeHeightImageBloc = ref(90);
 
@@ -139,7 +135,6 @@ onMounted(() => {
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setPageTitle("อัพโหลดรูปภาพ JOB #" + jobId.value);
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_upload_detail");
 });
@@ -150,8 +145,7 @@ function getTaskById(guidfixed) {
       //console.log(res);
       if (res.success) {
         taskDetail.value = res.data;
-
-        console.log(taskDetail.value);
+        storeApp.setPageTitle("อัพโหลดรูป JOB #" + taskDetail.value.name);
       }
     })
     .catch((err) => {
@@ -1056,8 +1050,8 @@ function clearFilterDocumentImageGroup() {
   jobId.value = "";
 }
 
-function selectSizeImageBloc(event) {
-  if (event.value.value == "normal") {
+function selectSizeImageBloc() {
+  if (sizeImageBloc.value) {
     sizeWidthImageBloc.value = 90;
     sizeHeightImageBloc.value = 90;
   } else {
@@ -1184,7 +1178,7 @@ async function jobApprove() {
       });
       setTimeout(() => {
         router.push({ name: "images_job_upload" });
-      }, 1000);
+      }, 200);
     }
   } catch (err) {
     console.log(err);
@@ -1305,6 +1299,15 @@ function updateTagImage(id, data) {
         </div>
       </div>
       <div class="flex">
+        <ToggleButton
+          v-model="sizeImageBloc"
+          onLabel=""
+          offLabel=""
+          offIcon="pi pi-th-large"
+          onIcon="pi pi-table"
+          @change="selectSizeImageBloc()"
+          class="mr-2"
+        ></ToggleButton>
         <Button
           :disabled="selectedImg.length == 0 || taskDetail.status != 0"
           class="p-button-danger p-button-sm mr-1 p-button-outlined"
@@ -1313,7 +1316,7 @@ function updateTagImage(id, data) {
           @click="confirmDeleteImage = true"
         />
         <Button
-          :disabled="taskDetail.status != 0"
+          :disabled="taskDetail.status != 0 || data_list.length == 0"
           class="p-button-sm p-button-success"
           label="ปิดงาน"
           icon="pi pi-send"
@@ -1378,6 +1381,7 @@ function updateTagImage(id, data) {
                     "
                   >
                     <ImageBlock
+                      :modeMenu="1"
                       :images_data="data"
                       :images_selete="selectedImg"
                       :allimage_used="AllImageUsed"
@@ -1484,7 +1488,7 @@ function updateTagImage(id, data) {
             :class="title2_valid ? 'p-invalid' : ''"
           />
         </div>
-        <div class="field mb-12 col-12 md:col-12">
+        <div class="field mb-12 col-12 md:col-12" style="display: none">
           <label class="font-medium text-900">วันที่เอกสาร</label>
           <DatePicker
             v-model="uploadedat2"

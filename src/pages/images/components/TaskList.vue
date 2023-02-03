@@ -80,8 +80,14 @@
         ></Tag>
         <Tag
           v-if="slotProps.data.status == 3"
-          severity="success"
+          severity="Info"
           value="ตรวจสอบเสร็จแล้ว / รอบันทึกบัญชี"
+          icon="pi pi-history"
+        ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 4"
+          severity="success"
+          value="ลงบัญชีเสร็จแล้ว"
           icon="pi pi-check-circle"
         ></Tag>
       </template>

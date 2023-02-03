@@ -1,4 +1,5 @@
 <script setup>
+import DialogForm from "@/components/form/DialogForm.vue";
 import DialogApprove from "@/components/form/DialogApprove.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import ImageDataService from "@/services/ImageDataService";
@@ -10,7 +11,7 @@ import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import ImageBlock from "./components/ImagesBlock.vue";
 import $ from "jquery";
-
+import DatePicker from "@/components/widget/DatePicker.vue";
 import DocumentPreview from "./components/documentPreview.vue";
 
 const storeApp = useApp();
@@ -59,11 +60,7 @@ const job = ref({
 });
 const dialogJobApprove = ref(false);
 
-const listSizeImageBloc = ref([
-  { icon: "pi pi-th-large", value: "normal" },
-  { icon: "pi pi-table", value: "large" },
-]);
-const sizeImageBloc = ref(listSizeImageBloc.value[0]);
+const sizeImageBloc = ref(true);
 const sizeWidthImageBloc = ref(90);
 const sizeHeightImageBloc = ref(90);
 
@@ -71,12 +68,35 @@ const ramdomNumber = ref();
 const checkSuccess = ref(false);
 const statusAllImage = ref(true);
 
+const imagesDragData = ref({});
+const imagesDragCount = ref(0);
+const imagesDragReject = ref(0);
+const imagesDragReferences = ref(0);
+const addToGroup = ref("");
+const addImageGuidfixed = ref("");
+const addImagenewData = ref([]);
+const allowDropImage = ref("");
+const updateRefDialog = ref(false);
+const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
+const title = ref("");
+const title_valid = ref(false);
+const title2 = ref("");
+const title2_valid = ref(false);
+const uploadedat = ref(new Date());
+const uploadedat2 = ref(new Date());
+const images_list_group = ref([]);
+const imageGroup = ref();
+const data_save_group = ref({});
+const tag = ref();
+const separatorExp = ref(/,| /);
+const confirmDeleteImage = ref(false);
+const data_set_group = ref([]);
+const confirmGroupImageDialog = ref(false);
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setPageTitle("ตรวจสอบรูปภาพ JOB #" + jobId.value);
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_approve_detail");
 });
@@ -87,8 +107,7 @@ function getTaskById(guidfixed) {
       //console.log(res);
       if (res.success) {
         job.value = res.data;
-
-        console.log(job.value);
+        storeApp.setPageTitle("ตรวจสอบรูป JOB #" + job.value.name);
       }
     })
     .catch((err) => {
@@ -225,44 +244,6 @@ function onScroll() {
   }
 }
 
-async function rejectImage(documentimageguid, isReject) {
-  console.log("documentimageguid :" + documentimageguid);
-  console.log("isReject :" + isReject);
-  let data = {
-    isreject: true,
-  };
-
-  if (!isReject) {
-    data.isreject = false;
-  }
-
-  await ImageDataService.putRejectImage(documentimageguid, data)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        toast.add({
-          severity: "success",
-          summary: "success",
-          detail: "บันทึกข้อมูลสำเร็จ",
-          life: 3000,
-        });
-        setTimeout(() => {
-          activePage.value = 1;
-          getDocumentImageGroup();
-        }, 100);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "ไม่สามารถเลือกรูปได้ " + err,
-        life: 3000,
-      });
-    });
-}
-
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
 }
@@ -275,14 +256,6 @@ function showImg(data) {
 
 function closeDocumentPreview() {
   showDocumentPreview.value = false;
-}
-
-function rejectSuccess(status) {
-  if (status) {
-    showImgData.value = null;
-    selectedImag.value = "";
-    getDocumentImageGroup();
-  }
 }
 
 function startApproveJob() {
@@ -315,18 +288,16 @@ async function jobApprove(statusJob) {
   try {
     const res = await TaskService.putTaskStatus(jobId.value, status);
     if (res.success) {
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
+      // toast.add({
+      //   severity: "success",
+      //   summary: "success",
+      //   detail: "บันทึกข้อมูลสำเร็จ",
+      //   life: 3000,
+      // });
 
-      if (statusJob == 3) {
-        setTimeout(() => {
-          router.push({ name: "images_job_approve" });
-        }, 1000);
-      }
+      setTimeout(() => {
+        router.push({ name: "images_job_approve" });
+      }, 200);
     }
   } catch (err) {
     console.log(err);
@@ -366,6 +337,10 @@ async function updateStatus(guidfixed, data_status) {
 }
 
 async function updateStatusFrist(data) {
+  if (isSelectedDocument.value) {
+    selectImg(data);
+    return;
+  }
   console.log(data.guidfixed);
   // 99= ตั้งค่าสถานะให้ icon โหลด
   data_list.value.filter(function (ele) {
@@ -392,6 +367,53 @@ async function updateStatusFrist(data) {
 
     checkImageApprove();
   }, 300);
+}
+
+function selectImg(data) {
+  console.log(data);
+
+  if (checkSelect(data)) {
+    var rebuild = [];
+    selectedImg.value.forEach((element) => {
+      if (element.guidfixed != data.guidfixed) {
+        rebuild.push(element);
+      }
+    });
+    selectedImg.value = rebuild;
+  } else {
+    selectedImg.value.push(data);
+    setTimeout(() => {
+      selectedImg.value.forEach((element) => {
+        element = Utils.remove_duplicates_array(element);
+      });
+    }, 100);
+  }
+
+  let tags = [];
+  selectedImg.value.forEach((element, index) => {
+    if (element.tags != undefined) {
+      tags = [...tags, ...element.tags];
+    }
+  });
+  tag.value = Array.from(new Set(tags));
+
+  console.log(selectedImg.value);
+
+  ischeckedImage();
+}
+
+function checkSelect(data) {
+  var found = 0;
+  selectedImg.value.forEach((element) => {
+    if (element.guidfixed == data.guidfixed) {
+      found += 1;
+    }
+  });
+  if (found == 0) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 async function upDateStatusImage(data) {
@@ -490,6 +512,370 @@ function updateAllStatusImage() {
     });
   }
 }
+function selectSizeImageBloc() {
+  if (sizeImageBloc.value) {
+    sizeWidthImageBloc.value = 90;
+    sizeHeightImageBloc.value = 90;
+  } else {
+    sizeWidthImageBloc.value = 230;
+    sizeHeightImageBloc.value = 230;
+  }
+}
+
+async function documentImageUnGroup(data) {
+  console.log(data);
+
+  await ImageDataService.putDocumentImageUnGroup(data)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        toast.add({
+          severity: "success",
+          summary: "success",
+          detail: "บันทึกข้อมูลสำเร็จ",
+          life: 3000,
+        });
+        setTimeout(() => {
+          activePage.value = 1;
+          getDocumentImageGroup();
+          showImgData.value = null;
+        }, 100);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ไม่สามารถเลือกรูปได้ " + err,
+        life: 3000,
+      });
+    });
+}
+
+function dragStart(data) {
+  console.log(data);
+  if (job.value.status != 2) {
+    return;
+  }
+  imagesDragData.value = data;
+  imagesDragCount.value = data.imagereferences.length;
+  imagesDragReject.value = data.status;
+  imagesDragReferences.value = data.references.length;
+
+  console.log(imagesDragReject.value);
+
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  } else {
+    //console.log(data);
+    if (
+      data.imagereferences.length == 1 &&
+      data.isreject != 2 &&
+      data.references.length == 0
+    ) {
+      if (selectedImg.value.length == 0) {
+        selectedImg.value.push({
+          guidfixed: data.guidfixed,
+          tags: data.tags,
+          documentimageguid: data.imagereferences[0],
+        });
+        ischeckedImage();
+      }
+    } else {
+      return;
+    }
+  }
+}
+
+function dragging(data, event) {
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  }
+  event.stopPropagation();
+  event.preventDefault();
+}
+
+function allowDrop(data, event) {
+  if (checkUseImg(data.guidfixed)) {
+    return;
+  }
+  if (allowDropImage.value != data.guidfixed) {
+    allowDropImage.value = data.guidfixed;
+  } else {
+    //return;
+  }
+  //console.log(allowDropImage.value);
+
+  // console.log(data);
+  // console.log(event);
+  event.stopPropagation();
+  event.preventDefault();
+}
+
+async function drop(data, event) {
+  event.preventDefault();
+  console.log("drop");
+  console.log(data);
+
+  addImageGuidfixed.value = data.guidfixed;
+  addImagenewData.value = data.imagereferences;
+
+  if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+    return;
+  }
+
+  if (data.isreject != 2 && data.references.length == 0) {
+    //จัดชุดใหม่
+    if (data.imagereferences.length == 1) {
+      let result = [];
+      result = selectedImg.value.filter(
+        (el) => el.guidfixed == addImageGuidfixed.value
+      );
+      if (result.length > 0) {
+        let result_detail = [];
+        result_detail = selectedImg.value.filter(
+          (el) => el.guidfixed == imagesDragData.value.guidfixed
+        );
+        if (result_detail.length > 0) {
+          updateRefDialog.value = true;
+        } else {
+          selectedImg.value.push({
+            guidfixed: imagesDragData.value.guidfixed,
+            tags: data.tags,
+            documentimageguid: imagesDragData.value.imagereferences[0],
+          });
+        }
+        updateRefDialog.value = true;
+      } else {
+        selectedImg.value.push({
+          guidfixed: data.guidfixed,
+          tags: data.tags,
+          documentimageguid: data.imagereferences[0],
+        });
+        updateRefDialog.value = true;
+      }
+
+      let tags = [];
+      selectedImg.value.forEach((element, index) => {
+        if (element.tags != undefined) {
+          tags = [...tags, ...element.tags];
+        }
+      });
+      tag.value = Array.from(new Set(tags));
+
+      console.log(tag.value);
+      console.log(selectedImg.value);
+      ischeckedImage();
+      //เพิ่มรูปเข้าชุด
+    } else {
+      addToGroup.value = data.title;
+      confirmGroupImageDialog.value = true;
+    }
+  }
+}
+
+async function addImageGroup() {
+  selectedImg.value.forEach((element) => {
+    element.documentimageguid.xorder = addImagenewData.value.length;
+    addImagenewData.value.push(element.documentimageguid);
+  });
+  try {
+    const res = await ImageDataService.putAddImageInGroup(
+      addImageGuidfixed.value,
+      addImagenewData.value
+    );
+    //console.log(res);
+    if (res.success) {
+      confirmGroupImageDialog.value = false;
+      activePage.value = 1;
+      selectedImg.value = [];
+      addImageGuidfixed.value = "";
+      addImagenewData.value = [];
+      isSelectedDocument.value = false;
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+
+      setTimeout(() => {
+        getDocumentImageGroup();
+      }, 500);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function addToGroupImage(data) {
+  data_set_group.value.push(data);
+  data_list.value = data_list.value.filter(
+    (item) => !data_set_group.value.includes(item)
+  );
+
+  console.log(data_set_group.value);
+}
+
+function checkUseImg(data) {
+  var found = 0;
+  AllImageUsed.value.forEach((element) => {
+    if (element.docref == data) {
+      found += 1;
+    }
+  });
+
+  if (found == 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function ischeckedImage() {
+  data_list.value.forEach((main) => {
+    var result = selectedImg.value.filter(function (data) {
+      return data.guidfixed == main.guidfixed;
+    });
+    if (result.length > 0) {
+      main.ischecked = true;
+    } else {
+      main.ischecked = false;
+    }
+  });
+}
+function cancelGropImages() {
+  if (isSelectedDocument.value) {
+    updateRefDialog.value = false;
+    title2.value = "";
+    title2_valid.value = false;
+  } else {
+    selectedImg.value = [];
+    updateRefDialog.value = false;
+    title2.value = "";
+    title2_valid.value = false;
+    tag.value = [];
+    ischeckedImage();
+  }
+}
+async function saveGropImages() {
+  let newDate = new Date();
+
+  newDate = uploadedat2.value;
+
+  if (newDate.getHours() == 0) {
+    let d = new Date();
+    let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
+    let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
+    let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
+
+    newDate.setHours(hours);
+    newDate.setMinutes(minutes);
+    newDate.setSeconds(seconds);
+  }
+
+  console.log(newDate);
+
+  console.log(selectedImg.value);
+  let isPass = await verifyData();
+  if (isPass) {
+    let imagereferences = [];
+    selectedImg.value.forEach((element, index) => {
+      element.documentimageguid.xorder = index;
+      imagereferences.push(element.documentimageguid);
+    });
+
+    data_save_group.value = {
+      imagereferences: imagereferences,
+      title: title2.value,
+      taskguid: route.params.id,
+      tags: tag.value,
+      uploadedat: Utils.getFormatDateTime(newDate),
+    };
+  } else {
+    return;
+  }
+
+  console.log(data_save_group.value);
+
+  try {
+    const res = await ImageDataService.postDocumentImageGroup(
+      data_save_group.value
+    );
+    if (res.success) {
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+      setTimeout(() => {
+        isSelectedDocument.value = false;
+        imageGroup.value = null;
+        title.value = "";
+        title_valid.value = false;
+        uploadedat.value = new Date();
+        title2.value = "";
+        title2_valid.value = false;
+        uploadedat2.value = new Date();
+        updateRefDialog.value = false;
+        data_set_group.value = [];
+        selectedImg.value = [];
+        activePage.value = 1;
+        getDocumentImageGroup();
+      }, 100);
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
+}
+function verifyData() {
+  var errorCount = 0;
+
+  if (title2.value == "") {
+    errorCount += 1;
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาป้อนชื่อชุดเอกสาร ",
+      life: 4000,
+    });
+    title2_valid.value = true;
+  } else {
+    title2_valid.value = false;
+  }
+
+  if (errorCount != 0) {
+    return false;
+  } else {
+    return true;
+  }
+}
+function onColseConfirmGroupImageDialog() {
+  confirmGroupImageDialog.value = false;
+  selectedImg.value = [];
+}
+function selectedDocument(isSelectedDoc) {
+  isSelectedDocument.value = isSelectedDoc;
+
+  if (!isSelectedDoc) {
+    removeSelectedImg();
+  }
+  ischeckedImage();
+}
+function removeSelectedImg() {
+  selectedImg.value = [];
+  data_list.value.forEach((element) => {
+    element.ischecked = false;
+  });
+}
 </script>
 <template>
   <AppLayout>
@@ -504,13 +890,15 @@ function updateAllStatusImage() {
           @click="router.push({ name: 'images_job_approve' })"
         />
         <Button
-          :disabled="ischeckApprove || job.status == 3"
+          v-if="!ischeckApprove"
+          :disabled="ischeckApprove || job.status == 3 || isSelectedDocument"
           class="p-button-sm ml-2"
           label="เริ่มตรวจสอบ"
           icon="pi pi-play"
           @click="startApproveJob()"
         />
         <Button
+          v-if="ischeckApprove"
           :disabled="!ischeckApprove || checkSuccess"
           class="p-button-sm ml-2"
           label="หยุดตรวจสอบ"
@@ -525,8 +913,43 @@ function updateAllStatusImage() {
           onIcon="pi pi-check"
           offIcon="pi pi-times"
           class="p-button-sm ml-2"
-          @change="updateAllStatusImage"
+          @change="updateAllStatusImage()"
         />
+        <div class="ml-1">
+          <Button
+            :disabled="selectedImg.length <= 1 || job.status == 3"
+            class="p-button-info text-white p-button-sm"
+            icon="pi pi-pencil"
+            label="กำหนดชุดเอกสาร"
+            @click="updateRefDialog = true"
+          />
+        </div>
+
+        <div class="ml-1">
+          <Button
+            :disabled="job.status == 3 || ischeckApprove"
+            :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
+            class="text-black p-button-sm"
+            :icon="
+              !isSelectedDocument ? 'pi pi-check-square' : 'pi pi-file-excel'
+            "
+            :label="!isSelectedDocument ? 'เลือกเอกสาร' : 'ยกเลิกเลือกเอกสาร'"
+            @click="
+              !isSelectedDocument
+                ? selectedDocument(true)
+                : selectedDocument(false)
+            "
+          />
+        </div>
+        <div class="ml-1">
+          <Button
+            v-if="selectedImg.length > 0"
+            class="p-button-warning p-button-sm"
+            icon="pi pi-times"
+            :label="'เลือก: ' + selectedImg.length.toString()"
+            @click="removeSelectedImg"
+          />
+        </div>
       </div>
       <div class="flex">
         <Chip
@@ -541,6 +964,15 @@ function updateAllStatusImage() {
         />
         <Chip label="0" icon="pi pi-check-circle" class="ml-2 bg-green-300" />
         <Chip label="0" icon="pi pi-times-circle" class="ml-2 bg-red-400" />
+        <ToggleButton
+          v-model="sizeImageBloc"
+          onLabel=""
+          offLabel=""
+          offIcon="pi pi-th-large"
+          onIcon="pi pi-table"
+          @change="selectSizeImageBloc()"
+          class="ml-2"
+        ></ToggleButton>
         <Button
           :disabled="!checkSuccess || job.status == 3"
           class="p-button-sm p-button-success ml-2"
@@ -588,17 +1020,48 @@ function updateAllStatusImage() {
                   v-for="data in data_list"
                   :key="data.guidfixed"
                 >
-                  <ImageBlock
-                    :images_data="data"
-                    :images_selete="selectedImg"
-                    :allimage_used="AllImageUsed"
-                    :ischeckApprove="ischeckApprove"
-                    :sizeWidthImageBloc="sizeWidthImageBloc"
-                    :sizeHeightImageBloc="sizeHeightImageBloc"
-                    v-on:showImg="showImg"
-                    v-on:selectImg="updateStatusFrist"
+                  <div
+                    draggable="true"
+                    @dragstart="dragStart(data, $event)"
+                    @drag="
+                      job.status == 2 &&
+                      imagesDragCount == 1 &&
+                      imagesDragReject != 2 &&
+                      imagesDragReferences == 0
+                        ? dragging(data, $event)
+                        : ''
+                    "
+                    @drop="
+                      job.status == 2 &&
+                      imagesDragCount == 1 &&
+                      imagesDragReject != 2 &&
+                      imagesDragReferences == 0
+                        ? drop(data, $event)
+                        : ''
+                    "
+                    @dragover="
+                      job.status == 2 &&
+                      imagesDragCount == 1 &&
+                      imagesDragReject != 2 &&
+                      imagesDragReferences == 0
+                        ? allowDrop(data, $event)
+                        : ''
+                    "
                   >
-                  </ImageBlock>
+                    <ImageBlock
+                      :modeMenu="2"
+                      :images_data="data"
+                      :images_selete="selectedImg"
+                      :allimage_used="AllImageUsed"
+                      :ischeckApprove="ischeckApprove"
+                      :sizeWidthImageBloc="sizeWidthImageBloc"
+                      :sizeHeightImageBloc="sizeHeightImageBloc"
+                      :isSelectedDocument="isSelectedDocument"
+                      v-on:showImg="showImg"
+                      v-on:selectImg="updateStatusFrist"
+                    >
+                    </ImageBlock>
+                  </div>
                 </div>
                 <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
                   <div
@@ -637,6 +1100,7 @@ function updateAllStatusImage() {
               :modeMenu="2"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
+              v-on:documentImageUnGroup="documentImageUnGroup"
             />
           </SplitterPanel>
         </Splitter>
@@ -682,6 +1146,67 @@ function updateAllStatusImage() {
       v-on:confirmJob="jobApprove(3)"
       v-on:confirmJobFalse="confirmApproveFalse()"
     />
+
+    <Dialog
+      v-model:visible="updateRefDialog"
+      @update:visible="cancelGropImages"
+      :style="{ width: '450px' }"
+      header="กำหนดชุดเอกสาร"
+      :modal="true"
+    >
+      <div class="grid formgrid p-fluid">
+        <div class="field mb-12 col-12 md:col-12">
+          <label for="title" class="font-medium text-900">ชื่อชุดเอกสาร</label>
+          <InputText
+            id="title"
+            type="text"
+            v-model="title2"
+            :class="title2_valid ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field mb-12 col-12 md:col-12" style="display: none">
+          <label class="font-medium text-900">วันที่เอกสาร</label>
+          <DatePicker
+            v-model="uploadedat2"
+            dateFormat="d/m/yy"
+            :showIcon="true"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="false"
+            :hiddenTime="true"
+          />
+        </div>
+        <div class="field mb-12 col-12 md:col-12">
+          <label class="font-medium text-900">แท็กเอกสาร</label>
+          <Chips
+            v-model="tag"
+            :separator="separatorExp"
+            :allowDuplicate="false"
+            placeholder="แท็กเอกสาร"
+            :addOnBlur="true"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <Button
+          label="ยกเลิก"
+          icon="pi pi-times"
+          class="p-button-text"
+          @click="cancelGropImages()"
+        />
+        <Button
+          label="บันทึก"
+          icon="pi pi-check"
+          class="p-button-text"
+          @click="saveGropImages()"
+        />
+      </template>
+    </Dialog>
+    <DialogForm
+      :confirmDialog="confirmGroupImageDialog"
+      :textContent="'ต้องการรวมชุดรูป ' + addToGroup"
+      v-on:close="onColseConfirmGroupImageDialog"
+      v-on:confirm="addImageGroup()"
+    ></DialogForm>
   </AppLayout>
 </template>
 <style scoped>

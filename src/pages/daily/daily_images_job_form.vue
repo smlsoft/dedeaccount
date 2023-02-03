@@ -400,6 +400,7 @@ function websocketConnect() {
     console.log("onmessage ", event);
     var jsonData = JSON.parse(event.data);
     if (jsonData.docref != "") {
+      onLoad.value = false;
       MasterdataService.getImagesByDocref(jsonData.docref)
         .then((res) => {
           if (res.success) {
@@ -439,6 +440,8 @@ function websocketConnect() {
         .catch((err) => {
           // console.log(err);
         });
+    }else{
+      onLoad.value = true
     }
   };
 
@@ -1620,19 +1623,9 @@ async function rejectImg() {
           icon="pi pi-arrow-left"
           class="p-button-text p-button-sm p-button-info"
           @click="!isChange ? goList() : (confirmBackImageDialog = true)"
-          v-if="!onLoad"
         />
-        <div
-          class="flex align-items-center justify-content-center"
-          style="min-height: 60vh"
-          v-if="onLoad"
-        >
-          <ProgressSpinner animationDuration="10s" />
-        </div>
-        <div
-          class="surface-card p-4 shadow-2 border-round p-fluid"
-          v-if="!onLoad"
-        >
+
+        <div class="surface-card p-4 shadow-2 border-round p-fluid">
           <Splitter
             layout="horizontal"
             @resizestart="resizeSplitter(true)"
@@ -1644,7 +1637,14 @@ async function rejectImg() {
               @mouseleave="removeMagnify()"
               :size="50"
             >
-              <div>
+              <div
+                class="flex align-items-center justify-content-center"
+                style="min-height: 60vh"
+                v-if="onLoad"
+              >
+                <ProgressSpinner animationDuration="10s" />
+              </div>
+              <div v-if="!onLoad">
                 <div class="flex justify-content-between align-items-right">
                   <div>
                     <Button
@@ -1771,7 +1771,7 @@ async function rejectImg() {
                       <i class="pi pi-book mr-1"></i>
                       <span> ข้อมูลรายวัน</span>
                     </template>
-                    <div v-if="!onLoad">
+                    <div>
                       <JournalForm
                         :daily_form="daily_form"
                         :daily_form_valid="daily_form_valid"
@@ -1792,7 +1792,7 @@ async function rejectImg() {
                       <i class="pi pi-wallet mr-1"></i>
                       <span> ข้อมูลภาษี</span>
                     </template>
-                    <div v-if="!onLoad">
+                    <div>
                       <VatForm
                         :vats="vats"
                         :vats_valid="vats_valid"
@@ -1809,7 +1809,7 @@ async function rejectImg() {
                       <i class="pi pi-wallet mr-1"></i>
                       <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
                     </template>
-                    <div v-if="!onLoad">
+                    <div>
                       <TaxForm
                         :taxes="taxes"
                         :taxes_valid="taxes_valid"
