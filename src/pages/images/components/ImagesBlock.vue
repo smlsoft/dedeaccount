@@ -97,6 +97,7 @@
             ? 'surface-300'
             : 'bg-green-300',
           props.images_data.status == 4 ? 'bg-red-400' : '',
+          props.images_data.status == 3 ? 'bg-yellow-400' : '',
         ]"
       >
         <i
@@ -105,6 +106,8 @@
               ? 'pi pi-clock'
               : 'pi pi-check-circle',
             props.images_data.status == 99 ? 'pi pi-spin pi-spinner' : '',
+            props.images_data.status == 3 ? 'pi pi-question-circle' : '',
+            props.images_data.status == 4 ? 'pi pi-times-circle' : '',
           ]"
         ></i>
       </button>
@@ -524,10 +527,15 @@ function borderImage() {
   let userImageStyle = "";
   let statusImage = props.images_data.status;
   let referencesImage = props.images_data.references;
+  let isUseImage = checkUseImg(props.images_data.guidfixed);
 
   if (referencesImage.length == 0) {
     if (statusImage != 2) {
-      userImageStyle = "bg-blue-while hover:shadow-1 ";
+      if (isUseImage) {
+        userImageStyle = "bg-blue-300";
+      } else {
+        userImageStyle = "bg-blue-while hover:shadow-1 ";
+      }
     } else if (statusImage == 2) {
       userImageStyle = "bg-red-400";
     }
@@ -536,11 +544,6 @@ function borderImage() {
   }
 
   return userImageStyle;
-}
-
-function exitDialog() {
-  console.log("exitDialog");
-  activeIndexList.value = 0;
 }
 </script>
 <style scoped>

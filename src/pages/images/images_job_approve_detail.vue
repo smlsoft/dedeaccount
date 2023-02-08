@@ -876,6 +876,28 @@ function removeSelectedImg() {
     element.ischecked = false;
   });
 }
+async function updateTagImage(id, data) {
+  // console.log(id);
+  // console.log(data);
+  try {
+    const res = await ImageDataService.putDocumentImageGroupTags(id, data);
+    if (res.success) {
+      data_list.value.filter(function (ele) {
+        if (ele.guidfixed == id) {
+          ele.tags = data;
+        }
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
+}
 </script>
 <template>
   <AppLayout>
@@ -891,7 +913,12 @@ function removeSelectedImg() {
         />
         <Button
           v-if="!ischeckApprove"
-          :disabled="ischeckApprove || job.status == 3 || isSelectedDocument"
+          :disabled="
+            ischeckApprove ||
+            job.status == 3 ||
+            job.status == 4 ||
+            isSelectedDocument
+          "
           class="p-button-sm ml-2"
           label="เริ่มตรวจสอบ"
           icon="pi pi-play"
@@ -917,7 +944,9 @@ function removeSelectedImg() {
         />
         <div class="ml-1">
           <Button
-            :disabled="selectedImg.length <= 1 || job.status == 3"
+            :disabled="
+              selectedImg.length <= 1 || job.status == 3 || job.status == 4
+            "
             class="p-button-info text-white p-button-sm"
             icon="pi pi-pencil"
             label="กำหนดชุดเอกสาร"
@@ -927,7 +956,7 @@ function removeSelectedImg() {
 
         <div class="ml-1">
           <Button
-            :disabled="job.status == 3 || ischeckApprove"
+            :disabled="job.status == 3 || job.status == 4 || ischeckApprove"
             :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
             class="text-black p-button-sm"
             :icon="
@@ -974,7 +1003,7 @@ function removeSelectedImg() {
           class="ml-2"
         ></ToggleButton>
         <Button
-          :disabled="!checkSuccess || job.status == 3"
+          :disabled="!checkSuccess || job.status == 3 || job.status == 4"
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"
@@ -1101,6 +1130,7 @@ function removeSelectedImg() {
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
               v-on:documentImageUnGroup="documentImageUnGroup"
+              v-on:updateTagImage="updateTagImage"
             />
           </SplitterPanel>
         </Splitter>

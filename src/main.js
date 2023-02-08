@@ -155,9 +155,9 @@ app.directive('badge', BadgeDirective);
 const pinia = createPinia()
 pinia.use(piniaPersist)
 app.use(pinia)
-
 app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 app.use(i18n);
+
 app.mount('#app')

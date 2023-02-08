@@ -21,6 +21,11 @@ const listStatusImages = ref([
   { name: "ไม่บันทึก", code: 3 },
   { name: "รอตรวจสอบ", code: 0 },
 ]);
+const listStatusImagesByDaily = ref([
+  { name: "ผ่าน", code: 1 },
+  { name: "ไม่ผ่าน", code: 4 },
+  { name: "ไม่บันทึก", code: 3 },
+]);
 const dialogEditTag = ref(false);
 const tag = ref();
 const separatorExp = ref(/,| /);
@@ -43,6 +48,7 @@ const emit = defineEmits([
   "upDateStatusImage",
   "updateTagImage",
   "createGL",
+  "viewGL",
 ]);
 
 onUnmounted(() => {});
@@ -165,7 +171,6 @@ function onFileSelect(event) {
 
 function documentImageUnGroup() {
   confirmUnGroup.value = false;
-
   emit("documentImageUnGroup", props.selectedImag.guidfixed);
 }
 
@@ -182,6 +187,8 @@ function upDateStatusImageByButton() {
     guidfixed: props.selectedImag.guidfixed,
     status: 4,
   };
+  confirmRejectDialog.value = false;
+
   emit("upDateStatusImage", data);
 }
 
@@ -211,82 +218,15 @@ const activeIndex = computed({
     return activeIndexList.value;
   },
 });
-async function saveGropImages() {
-  let newDate = new Date();
 
-  newDate = uploadedat2.value;
+function viewGL(data) {
+  const result = data.references.filter((gl) => gl.module == "GL");
+  // console.log(result[0].docno);
+  emit("viewGL", result[0].docno);
+}
 
-  if (newDate.getHours() == 0) {
-    let d = new Date();
-    let hours = d.getHours() < 10 ? "0" + d.getHours() : d.getHours();
-    let minutes = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes();
-    let seconds = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds();
-
-    newDate.setHours(hours);
-    newDate.setMinutes(minutes);
-    newDate.setSeconds(seconds);
-  }
-
-  console.log(newDate);
-
-  console.log(selectedImg.value);
-  let isPass = await verifyData();
-  if (isPass) {
-    let imagereferences = [];
-    selectedImg.value.forEach((element, index) => {
-      element.documentimageguid.xorder = index;
-      imagereferences.push(element.documentimageguid);
-    });
-
-    data_save_group.value = {
-      imagereferences: imagereferences,
-      title: title2.value,
-      taskguid: route.params.id,
-      tags: tag.value,
-      uploadedat: Utils.getFormatDateTime(newDate),
-    };
-  } else {
-    return;
-  }
-
-  console.log(data_save_group.value);
-
-  try {
-    const res = await ImageDataService.postDocumentImageGroup(
-      data_save_group.value
-    );
-    if (res.success) {
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
-      setTimeout(() => {
-        isSelectedDocument.value = false;
-        imageGroup.value = null;
-        title.value = "";
-        title_valid.value = false;
-        uploadedat.value = new Date();
-        title2.value = "";
-        title2_valid.value = false;
-        uploadedat2.value = new Date();
-        updateRefDialog.value = false;
-        data_set_group.value = [];
-        selectedImg.value = [];
-        activePage.value = 1;
-        getDocumentImageGroup();
-      }, 100);
-    }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
-  }
+function onTapItem() {
+  alert("tap");
 }
 </script>
 
@@ -302,38 +242,47 @@ async function saveGropImages() {
   />
   <div v-if="props.showImgData.length > 0">
     <div class="flex align-items-center justify-content-between">
-      <div
-        class="flex"
-        v-if="props.modeMenu == 3 && props.selectedImag.status != 2"
-      >
+      <div class="flex" v-if="props.modeMenu == 4"></div>
+      <div class="flex" v-if="props.modeMenu != 4">
         <Button
-          label="ไม่ผ่าน"
-          class="p-button-danger p-b mr-1"
-          @click="confirmRejectDialog = true"
-          :disabled="
-            checkUseImg(props.selectedImag.guidfixed) ||
-            props.selectedImag.references.length > 0
-          "
+          v-if="props.selectedImag.references.length > 0"
+          icon="pi pi-eye"
+          label="รายละเอียดรายวัน"
+          class="p-button-text p-button-outlined p-button-sm p-button-success"
+          @click="viewGL(props.selectedImag)"
+          :loading="loaddingButton"
         />
         <Button
-          label="คีย์เอกสาร"
-          class=""
+          v-if="props.selectedImag.references.length == 0"
+          icon="pi pi-file"
+          label="บันทึกรายวัน"
+          class="p-button-text p-button-outlined p-button-sm"
           :disabled="
             checkUseImg(props.selectedImag.guidfixed) ||
-            props.selectedImag.references.length > 0
+            props.selectedImag.references.length > 0 ||
+            props.selectedImag.status == 3
           "
           @click="createGL(props.selectedImag)"
           :loading="loaddingButton"
         />
       </div>
-      <div class="flex" v-if="props.modeMenu != 3">
+      <div
+        class="flex"
+        v-if="props.modeMenu == 3 && props.selectedImag.status != 2"
+      ></div>
+      <div class="flex">
         <div
-          v-for="listStatusImage of listStatusImages"
+          v-if="props.modeMenu != 4"
+          v-for="listStatusImage of props.jobStatus == 3
+            ? listStatusImagesByDaily
+            : listStatusImages"
           :key="listStatusImage.code"
           class="field-radiobutton m-2 my-3 flex align-items-center justify-content-center"
         >
           <RadioButton
-            :disabled="!props.ischeckApprove"
+            :disabled="
+              !props.ischeckApprove || props.selectedImag.references.length > 0
+            "
             :id="listStatusImage.code"
             name="listStatusImage"
             :value="listStatusImage.code"
@@ -342,14 +291,12 @@ async function saveGropImages() {
           />
           <label :for="listStatusImage.code">{{ listStatusImage.name }}</label>
         </div>
-      </div>
 
-      <div class="flex">
-        <Chip
+        <Button
           v-if="checkUseImg(props.selectedImag.guidfixed)"
           :label="getUseData(props.selectedImag.guidfixed)"
+          class="p-button-text p-button-rounded mr-2 p-button-sm"
           icon="pi pi-user"
-          class="mr-2"
         />
         <!-- <Button
           icon="pi pi-print"
@@ -357,6 +304,7 @@ async function saveGropImages() {
           @click="printImg(props.showImgData)"
         /> -->
         <Button
+          v-if="props.modeMenu != 4"
           icon="pi pi-list"
           class="p-button-rounded p-button-danger p-button-text"
           type="button"
@@ -393,9 +341,7 @@ async function saveGropImages() {
         >
           <iframe
             :name="slotProps.item.imageuri"
-            :src="
-              '/document_images/components/zoom?uri=' + slotProps.item.imageuri
-            "
+            :src="'/images/components/zoom?uri=' + slotProps.item.imageuri"
             class="static"
           >
           </iframe>
@@ -427,7 +373,7 @@ async function saveGropImages() {
         icon="pi pi-pencil"
         class="p-button-rounded p-button-danger p-button-text"
         @click="editTag"
-        v-if="props.modeMenu != 3"
+        v-if="props.modeMenu != 3 && props.modeMenu != 4"
       />
     </div>
     <div class="flex justify-content-between m-2">

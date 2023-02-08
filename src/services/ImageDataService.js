@@ -21,6 +21,7 @@ export default {
         let q = "";     // search
         let filterDate = "";
         let sorttaskguid = "";
+        let sortStatus = "";
 
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
@@ -38,13 +39,20 @@ export default {
             }
         }
 
+        if (status != "" && status != undefined && status != null) {
+            sortStatus = "&status=" + status
+        }
 
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}&status=${status}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}&status=${status}`).then(res => res.data);
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}${sortStatus}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}${sortStatus}`).then(res => res.data);
     },
-
-    // updateแค่ สถานะ 
+    // add update tags in document image group
+    putDocumentImageGroupTags(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/tags`, data).then(res => res.data);
+    },
+    //add update status in document image group
     putDocumentImageGroupStatus(id, data) {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },

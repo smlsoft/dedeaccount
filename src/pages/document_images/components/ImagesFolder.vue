@@ -64,12 +64,6 @@
               ></i>
 
               <span class="font-medium">All</span>
-              <span
-                v-if="props.isMain == true"
-                class="inline-flex align-items-center justify-content-center ml-auto bg-cyan-100 text-cyan-900 border-circle"
-                style="min-width: 1.5rem; height: 1.5rem"
-                >0</span
-              >
             </a>
           </li>
           <li
@@ -82,7 +76,6 @@
             "
           >
             <a
-              v-if="data.status == 0"
               @click="selectFolder(data)"
               :class="
                 data.guidfixed == props.selectedFolder.guidfixed
@@ -104,55 +97,7 @@
                 v-if="props.isMain == true"
                 class="inline-flex align-items-center justify-content-center ml-auto bg-blue-100 text-blue-900 border-circle"
                 style="min-width: 1.5rem; height: 1.5rem"
-                >0</span
-              >
-            </a>
-          </li>
-        </ul>
-      </li>
-      <li>
-        <div
-          v-ripple
-          class="p-2 flex align-items-center justify-content-between text-500 cursor-pointer p-ripple"
-          v-styleclass="{
-            selector: '@next',
-            enterClass: 'hidden',
-            enterActiveClass: 'slidedown',
-            leaveToClass: 'hidden',
-            leaveActiveClass: 'slideup',
-          }"
-        >
-          <span class="font-medium">SUCCESS</span>
-          <i class="pi pi-chevron-down"></i>
-        </div>
-        <ul class="list-none p-0 m-0 overflow-hidden">
-          <li
-            v-for="data in props.data_folder"
-            :key="data.guidfixed"
-            :class="
-              data.guidfixed == props.selectedFolder.guidfixed
-                ? 'bg-primary-500 '
-                : ''
-            "
-          >
-            <a
-              v-if="data.status == 1"
-              @click="selectFolder(data)"
-              :class="
-                data.guidfixed == props.selectedFolder.guidfixed
-                  ? 'text-white '
-                  : ''
-              "
-              v-ripple
-              class="flex align-items-center cursor-pointer p-2 hover:bg-primary-500 hover:text-white transition-colors transition-duration-150 p-ripple"
-            >
-              <i class="pi pi-folder mr-2"></i>
-              <span class="font-medium">{{ data.name }}</span>
-              <span
-                v-if="props.isMain == true"
-                class="inline-flex align-items-center justify-content-center ml-auto bg-blue-100 text-blue-900 border-circle"
-                style="min-width: 1.5rem; height: 1.5rem"
-                >0</span
+                >{{ data.total }}</span
               >
             </a>
           </li>

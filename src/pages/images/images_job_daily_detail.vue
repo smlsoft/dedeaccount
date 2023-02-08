@@ -5,7 +5,7 @@ import ImageDataService from "@/services/ImageDataService";
 import MasterdataService from "@/services/MasterdataService";
 import TaskService from "@/services/TaskService";
 import { useRouter, useRoute } from "vue-router";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, onBeforeUnmount } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
@@ -13,6 +13,9 @@ import ImageBlock from "./components/ImagesBlock.vue";
 import $ from "jquery";
 
 import DocumentPreview from "./components/documentPreview.vue";
+import JournalForm from "../daily/components/journal_form.vue";
+import VatForm from "../daily/components/vat_form.vue";
+import TaxForm from "../daily/components/tax_form.vue";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -72,15 +75,63 @@ const WsConnectAllImage = ref();
 const connection = ref();
 
 const resetIndex = ref(0);
+const openDetailDocNo = ref(false);
+const daily_form = ref({});
+const daily_form_valid = ref({
+  accountdescription: false,
+  accountgroup: false,
+  accountperiod: false,
+  accountyear: false,
+  amount: false,
+  batchId: false,
+  docdate: false,
+  docno: false,
+  bookcode: false,
+});
+const taxes = ref([]);
+const taxes_valid = ref([
+  {
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  },
+]);
+const vats = ref([]);
+const vats_valid = ref([
+  {
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  },
+]);
+
+const myWindow = ref();
+const newWindow = ref(false);
+
+// ใช้เช็ค จอ 2 ว่าเปิดอยู่ไหม
+const idrandom = ref("");
+const countIsOpenPopupImage = ref(0);
+const myInterval = ref(null);
 
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
   );
 
-  WsConnectAllImage.value.close();
-  WsConnectImage.value.close();
-  connection.value.close();
+  if (job.value.status == 3) {
+    WsConnectAllImage.value.close();
+    WsConnectImage.value.close();
+    connection.value.close();
+  }
 });
 
 onMounted(() => {
@@ -90,10 +141,6 @@ onMounted(() => {
 
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_daily_detail");
-
-  WSImageConnect();
-  WsAllImageConnect();
-  websocketConnect();
 });
 
 function websocketConnect() {
@@ -270,6 +317,13 @@ function getTaskById(guidfixed) {
       if (res.success) {
         job.value = res.data;
         storeApp.setPageTitle("บันทึกรายวัน JOB #" + job.value.name);
+        console.log(job.value.status);
+        if (job.value.status == 3) {
+          ischeckApprove.value = true;
+          WSImageConnect();
+          WsAllImageConnect();
+          websocketConnect();
+        }
       }
     })
     .catch((err) => {
@@ -623,6 +677,206 @@ function selectSizeImageBloc() {
     sizeHeightImageBloc.value = 230;
   }
 }
+
+function getGLDetail(docno) {
+  console.log(docno);
+
+  MasterdataService.getGLledger(docno)
+    .then((res) => {
+      if (res.success) {
+        console.log(res);
+        openDetailDocNo.value = true;
+        const vat = res.data.vats;
+        const tax = res.data.taxes;
+
+        daily_form.value.docno = res.data.guidfixed;
+        daily_form.value.accountdescription = res.data.accountdescription;
+        daily_form.value.accountgroup = res.data.accountgroup;
+        daily_form.value.accountperiod = res.data.accountperiod;
+        daily_form.value.accountyear = res.data.accountyear;
+        daily_form.value.amount = res.data.amount;
+        daily_form.value.batchId = res.data.batchId;
+        daily_form.value.journaltype = res.data.journaltype.toString();
+        daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
+        daily_form.value.docno = res.data.docno;
+        daily_form.value.bookcode = res.data.bookcode;
+        daily_form.value.journaldetail = res.data.journaldetail;
+        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+          daily_form.value.exdocrefdate = "";
+        } else {
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
+            res.data.exdocrefdate
+          );
+        }
+        daily_form.value.exdocrefno = res.data.exdocrefno;
+
+        if (vat.length > 0) {
+          vats.value = [];
+          vats_valid.value = [];
+
+          for (var i = 0; i < res.data.vats.length; i++) {
+            var vattemp = {
+              vattype: vat[i].vattype,
+              vatdate: Utils.getDateTimeFromDate(vat[i].vatdate),
+              vatdocno: vat[i].vatdocno,
+              vatperiod: vat[i].vatperiod,
+              vatyear: vat[i].vatyear,
+              vatbase: vat[i].vatbase,
+              vatrate: vat[i].vatrate,
+              vatamount: vat[i].vatamount,
+              exceptvat: vat[i].exceptvat,
+              vatmode: vat[i].vatmode,
+              vatsubmit: vat[i].vatsubmit,
+              custname: vat[i].custname,
+              custtaxid: vat[i].custtaxid,
+              organization: vat[i].organization,
+              branchcode: vat[i].branchcode,
+              remark: vat[i].remark,
+            };
+            putvatValid();
+            vats.value.push(vattemp);
+          }
+        }
+
+        if (tax.length > 0) {
+          taxes.value = [];
+          taxes_valid.value = [];
+          for (var i = 0; i < tax.length; i++) {
+            var taxes_temp = {
+              taxdocno: tax[i].taxdocno,
+              taxdate: Utils.getDateTimeFromDate(tax[i].taxdate),
+              custname: tax[i].custname,
+              custtype: tax[i].custtype,
+              custtaxid: tax[i].custtaxid,
+              taxtype: tax[i].taxtype,
+              address: tax[i].address,
+              details: [],
+            };
+
+            if (tax[i].details != null && tax[i].details.length > 0) {
+              var sumamount = 0;
+              var sumbase = 0;
+              tax[i].details.forEach((data) => {
+                var details_temp = {
+                  description: data.description,
+                  taxbase: data.taxbase,
+                  taxrate: data.taxrate,
+                  taxamount: data.taxamount,
+                };
+
+                taxes_temp.details.push(details_temp);
+              });
+            } else {
+              taxes_temp.details = [
+                {
+                  description: "",
+                  taxbase: 0,
+                  taxrate: 0,
+                  taxamount: 0,
+                },
+              ];
+            }
+            puttaxValid();
+            taxes.value.push(taxes_temp);
+          }
+        }
+
+        // console.log(daily_form.value);
+        // console.log(vats.value);
+        // console.log(taxes.value);
+
+        // toast.add({
+        //   severity: "success",
+        //   summary: "success",
+        //   detail: "ดึงข้อมูลเอกสาร : " + docno + " สำเร็จ",
+        //   life: 3000,
+        // });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      openDetailDocNo.value = false;
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ไม่สามารถดึงข้อมูล " + docno + " ได้ " + err,
+        life: 3000,
+      });
+    });
+}
+
+function goList() {
+  router.push({ name: "images_job_daily" });
+}
+
+function openImageNewWindow() {
+  if (idrandom.value == "") {
+    idrandom.value = Utils.generateRandomNumber();
+  }
+  if (newWindow.value) {
+    myWindow.value = window.open(
+      router.resolve({
+        name: "images_job_daily_detail_view",
+        params: { id: jobId.value, idrandom: idrandom.value },
+      }).href,
+      "myWindow",
+      "width=1000, height=1000"
+    );
+    countIsOpenPopupImage.value = 0;
+    myInterval.value = setInterval(() => {
+      checkPopupOpenImage();
+    }, 300);
+  } else {
+    if (myWindow.value != undefined) {
+      myWindow.value.close();
+      clearInterval(myInterval.value);
+      localStorage.removeItem(idrandom.value);
+      idrandom.value = "";
+    }
+  }
+}
+
+// ใช้เช็ค จอ 2 ว่าเปิดอยู่ไหม
+async function checkPopupOpenImage() {
+  let popupImageStatus = localStorage.getItem(idrandom.value);
+
+  if (popupImageStatus == "1") {
+    localStorage.setItem(idrandom.value, "0");
+    countIsOpenPopupImage.value = 0;
+  } else {
+    if (countIsOpenPopupImage.value > 3) {
+      console.log("Close New Window Image");
+      if (myInterval.value != null) {
+        newWindow.value = false;
+        clearInterval(myInterval.value);
+        localStorage.removeItem(idrandom.value);
+        idrandom.value = "";
+      }
+
+      // let sendData = { docref: selectedImag.value.guidfixed };
+      // try {
+      //   const res = await MasterdataService.postUnSelectImage(sendData);
+      //   // console.log(res);
+      //   if (res.success) {
+      //     if (myInterval.value != null) {
+      //       newWindow.value = false;
+      //       clearInterval(myInterval.value);
+      //       localStorage.removeItem(idrandom.value);
+      //     }
+      //   }
+      // } catch (err) {
+      //   console.log(err);
+      //   toast.add({
+      //     severity: "error",
+      //     summary: "error",
+      //     detail: err.response.data.message,
+      //     life: 3000,
+      //   });
+      // }
+    }
+    countIsOpenPopupImage.value += 1;
+  }
+}
 </script>
 <template>
   <AppLayout>
@@ -634,10 +888,19 @@ function selectSizeImageBloc() {
           class="p-button-sm p-button-text"
           label="กลับหน้ารายการ"
           icon="pi pi-arrow-left"
-          @click="router.push({ name: 'images_job_daily' })"
+          @click="goList()"
         />
       </div>
       <div class="flex">
+        <ToggleButton
+          v-model="newWindow"
+          onLabel=""
+          offLabel=""
+          offIcon="pi pi pi-desktop"
+          onIcon="pi pi-times"
+          @change="openImageNewWindow()"
+          class="p-button-text"
+        />
         <ToggleButton
           v-model="sizeImageBloc"
           onLabel=""
@@ -647,8 +910,9 @@ function selectSizeImageBloc() {
           @change="selectSizeImageBloc()"
           class="ml-2"
         ></ToggleButton>
+
         <Button
-          :disabled="checkSuccess || job.status == 4"
+          :disabled="!checkSuccess || job.status == 4"
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"
@@ -734,6 +998,7 @@ function selectSizeImageBloc() {
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
               v-on:createGL="createGL"
+              v-on:viewGL="getGLDetail"
             />
           </SplitterPanel>
         </Splitter>
@@ -779,6 +1044,54 @@ function selectSizeImageBloc() {
       v-on:confirmJob="jobApprove(4)"
       v-on:confirmJobFalse="confirmApproveFalse()"
     />
+
+    <Dialog
+      v-model:visible="openDetailDocNo"
+      :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
+      :style="{ width: '60vw' }"
+    >
+      <template #header>
+        <h3>{{ $t("docno") }} : {{ daily_form.docno }}</h3>
+      </template>
+      <div class="confirmation-content" id="boxconfirm" style="height: 70vh">
+        <TabView class="tabview-custom" ref="tabview">
+          <TabPanel>
+            <template #header>
+              <i class="pi pi-book mr-1"></i>
+              <span> {{ $t("journal") }}</span>
+            </template>
+            <JournalForm
+              :isUpdate="true"
+              :daily_form="daily_form"
+              :daily_form_valid="daily_form_valid"
+            >
+            </JournalForm>
+          </TabPanel>
+          <TabPanel>
+            <template #header>
+              <i class="pi pi-wallet mr-1"></i>
+              <span> {{ $t("vat") }}</span>
+            </template>
+            <VatForm
+              :isUpdate="true"
+              :vats="vats"
+              :vats_valid="vats_valid"
+            ></VatForm>
+          </TabPanel>
+          <TabPanel>
+            <template #header>
+              <i class="pi pi-wallet mr-1"></i>
+              <span> {{ $t("taxes") }}</span>
+            </template>
+            <TaxForm
+              :isUpdate="true"
+              :taxes="taxes"
+              :taxes_valid="taxes_valid"
+            ></TaxForm>
+          </TabPanel>
+        </TabView>
+      </div>
+    </Dialog>
   </AppLayout>
 </template>
 <style scoped>

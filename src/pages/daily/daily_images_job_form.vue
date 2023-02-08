@@ -167,6 +167,13 @@ const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const jobId = ref("");
 const showOveray = ref(false);
+const myWindow = ref();
+const newWindow = ref(false);
+
+// ใช้เช็ค จอ 2 ว่าเปิดอยู่ไหม
+const idrandom = ref("");
+const countIsOpenPopupImage = ref(0);
+const myInterval = ref(null);
 
 onUnmounted(() => {
   console.log(
@@ -176,6 +183,10 @@ onUnmounted(() => {
   WsConnectAllImage.value.close();
   WsConnectImage.value.close();
   connection.value.close();
+
+  if (myWindow.value != undefined) {
+    myWindow.value.close();
+  }
 });
 
 watch(daily_form.value, (newValue, oldValue) => {
@@ -405,6 +416,7 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
+
             if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
               countDocImage.value = doc_images.value.references.length;
@@ -427,10 +439,10 @@ function websocketConnect() {
 
               //console.log(selectedImgUrl.value);
 
-              selectedImg.value = true;
+              // selectedImg.value = true;
               waitForImages.value = false;
 
-              disableAllinput(res.data.imagereferences[0].isreject);
+              disableAllinput(res.data.status);
               setTimeout(() => {
                 checkActiveIndex();
               }, 100);
@@ -440,8 +452,8 @@ function websocketConnect() {
         .catch((err) => {
           // console.log(err);
         });
-    }else{
-      onLoad.value = true
+    } else {
+      onLoad.value = true;
     }
   };
 
@@ -460,7 +472,9 @@ function websocketConnect() {
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
         //   e.reason
         // );
+
         websocketConnect();
+
         //getAllSelectImage();
       }
     }, 1000);
@@ -468,9 +482,9 @@ function websocketConnect() {
 }
 
 function disableAllinput(data) {
-  //console.log(waitForImages.value);
+  // console.log(data);
   setTimeout(() => {
-    if (waitForImages.value || data == true) {
+    if (waitForImages.value || data == 3 || data == 4) {
       $("#panelForm3 :input").prop("disabled", true);
       $("#panelForm3 .p-dropdown").prop("disabled", true);
     } else {
@@ -507,6 +521,10 @@ function sendChange(data) {
 
 function goList() {
   removeSelectImg();
+
+  if (myWindow.value != undefined) {
+    myWindow.value.close();
+  }
 
   setTimeout(() => {
     router.push({
@@ -948,7 +966,7 @@ function getNewDocImageList() {
 
 function deSelectImg() {
   selectedImgData.value = { guidfixed: "", imagereferences: [] };
-  selectedImg.value = false;
+  // selectedImg.value = false;
   selectedImgUrl.value = "";
 }
 function removeSelectImg() {
@@ -959,13 +977,13 @@ function removeSelectImg() {
       console.log(res);
       if (res.success) {
         selectedImgData.value = { guidfixed: "", imagereferences: [] };
-        selectedImg.value = false;
+        // selectedImg.value = false;
         selectedImgUrl.value = "";
       }
     })
     .catch((err) => {
       selectedImgData.value = { guidfixed: "", imagereferences: [] };
-      selectedImg.value = false;
+      // selectedImg.value = false;
       selectedImgUrl.value = "";
     });
 }
@@ -1612,6 +1630,70 @@ async function rejectImg() {
     });
   }
 }
+
+function openImageNewWindow() {
+  idrandom.value = Utils.generateRandomNumber();
+  if (newWindow.value) {
+    myWindow.value = window.open(
+      router.resolve({
+        name: "images_job_daily_detail_view",
+        params: { id: jobId.value, idrandom: idrandom.value },
+      }).href,
+      "myWindow",
+      "width=1000, height=1000"
+    );
+    countIsOpenPopupImage.value = 0;
+    myInterval.value = setInterval(() => {
+      checkPopupOpenImage();
+    }, 300);
+  } else {
+    if (myWindow.value != undefined) {
+      myWindow.value.close();
+    }
+  }
+}
+
+// ใช้เช็ค จอ 2 ว่าเปิดอยู่ไหม
+async function checkPopupOpenImage() {
+  let popupImageStatus = localStorage.getItem(idrandom.value);
+
+  if (popupImageStatus == "1") {
+    localStorage.setItem(idrandom.value, "0");
+    countIsOpenPopupImage.value = 0;
+  } else {
+    if (countIsOpenPopupImage.value > 3) {
+      console.log("Close New Window Image");
+
+      if (myInterval.value != null) {
+        newWindow.value = false;
+        clearInterval(myInterval.value);
+        localStorage.removeItem(idrandom.value);
+      }
+
+      // let sendData = { docref: selectedImag.value.guidfixed };
+      // try {
+      //   const res = await MasterdataService.postUnSelectImage(sendData);
+      //   // console.log(res);
+      //   if (res.success) {
+      //     if (myInterval.value != null) {
+      //       newWindow.value = false;
+      //       clearInterval(myInterval.value);
+      //       localStorage.removeItem(idrandom.value);
+      //     }
+      //   }
+      // } catch (err) {
+      //   console.log(err);
+      //   toast.add({
+      //     severity: "error",
+      //     summary: "error",
+      //     detail: err.response.data.message,
+      //     life: 3000,
+      //   });
+      // }
+    }
+    countIsOpenPopupImage.value += 1;
+  }
+}
 </script>
 
 <template>
@@ -1645,7 +1727,10 @@ async function rejectImg() {
                 <ProgressSpinner animationDuration="10s" />
               </div>
               <div v-if="!onLoad">
-                <div class="flex justify-content-between align-items-right">
+                <div
+                  class="flex justify-content-between align-items-right p-1"
+                  :class="!selectedImg ? 'flex-column' : ''"
+                >
                   <div>
                     <Button
                       v-if="selectedImg == false"
@@ -1667,23 +1752,21 @@ async function rejectImg() {
                     />
                   </div>
                   <div>
+                    <ToggleButton
+                      v-model="newWindow"
+                      onLabel=""
+                      offLabel=""
+                      offIcon="pi pi pi-desktop"
+                      onIcon="pi pi-times"
+                      @change="openImageNewWindow()"
+                      class="p-button-text"
+                    />
                     <Button
-                      label="ไม่ผ่าน"
-                      class="p-button-danger p-b mr-1"
+                      icon="pi pi-trash"
+                      class="p-button-text text-red-500"
                       @click="confirmRejectDialog = true"
                     />
                   </div>
-                  <!-- <div>
-                   
-                    <Button v-if="waitForImages" icon="pi pi-refresh" class="p-button-text text-blue-500"
-                      @click="reLoadImage" />
-                    <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-refresh" class="p-button-text"
-                      @click="
-                        confirmRemoveImgDialog = true;
-
-                        removeMagnify();
-                      " />
-                  </div> -->
                 </div>
 
                 <KeepAlive>
@@ -1709,7 +1792,7 @@ async function rejectImg() {
                               <Chip
                                 :label="slotProps.item.name"
                                 icon="pi pi-image"
-                                class="ml-2 mt-2"
+                                class="mt-2"
                               />
                               <Chip
                                 :label="
@@ -1731,7 +1814,7 @@ async function rejectImg() {
                               <iframe
                                 :name="slotProps.item.imageuri"
                                 :src="
-                                  '/document_images/components/zoom?uri=' +
+                                  '/images/components/zoom?uri=' +
                                   slotProps.item.imageuri
                                 "
                                 class="static"
@@ -1921,7 +2004,6 @@ async function rejectImg() {
           confirmClearImageDialog = false;
         "
       ></DialogForm>
-
       <DialogForm
         :confirmDialog="confirmSaveDialog"
         :textContent="conSave"

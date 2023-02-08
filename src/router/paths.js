@@ -366,6 +366,14 @@ export default [
     component: () => import("../pages/document_images/components/zoom.vue"),
   },
   {
+    path: "/images/components/zoom",
+    name: "zoom",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/zoom.vue"),
+  },
+  {
     path: "/accountPeriod/list",
     name: "accountPeriod",
     meta: {
@@ -441,6 +449,14 @@ export default [
     component: () => import("../pages/images/images_job_daily_detail.vue"),
   },
   {
+    path: "/images/daily_detail_view/:id/:idrandom",
+    name: "images_job_daily_detail_view",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily_detail_view.vue"),
+  },
+  {
     path: "/daily/daily_images_job_form/:id",
     name: "daily_images_job_form",
     meta: {
@@ -448,4 +464,6 @@ export default [
     },
     component: () => import("../pages/daily/daily_images_job_form.vue"),
   },
+
+
 ];

@@ -25,12 +25,7 @@ export const menus = [
         to: "/images/job_approve",
         name: "images_job_approve",
       },
-      {
-        title: "บันทึกรายวันจากรูป (New)",
-        icon: "pi pi-link",
-        to: "/images/job_daily",
-        name: "images_job_daily",
-      },
+
 
 
     ],
@@ -38,7 +33,7 @@ export const menus = [
 
   // แบบ2
   // {
-  //   title: "คลังเอกสาร",
+  //   title: "คลังรูปภาพเอกสาร",
   //   icon: "pi pi-inbox",
   //   to: "/document_images/list",
   //   name: "document_images",
@@ -108,12 +103,18 @@ export const menus = [
       //   to: "/daily/images_landing",
       //   name: "daily_images_list",
       // },
+      // {
+      //   title: "บันทึกรายวันจากรูป",
+      //   icon: "pi pi-images",
+      //   to: "/daily/images_landing",
+      //   name: "daily_images_group_list",
+      // },
       {
-        title: "บันทึกรายวันจากรูป",
-        icon: "pi pi-images",
-        to: "/daily/images_landing",
-        name: "daily_images_group_list",
-      }
+        title: "บันทึกรายวันจากรูป (New)",
+        icon: "pi pi-link",
+        to: "/images/job_daily",
+        name: "images_job_daily",
+      },
     ],
   },
 

@@ -130,6 +130,7 @@ const sizeWidthImageBloc = ref(90);
 const sizeHeightImageBloc = ref(90);
 
 const data_save_group = ref({});
+const jobId = ref("");
 
 onUnmounted(() => {
   console.log(

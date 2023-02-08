@@ -1228,14 +1228,28 @@ function onColseConfirmGroupImageDialog() {
   selectedImg.value = [];
 }
 
-function updateTagImage(id, data) {
-  console.log(data);
-  console.log(selectedImag.value);
-  data_list.value.filter(function (ele) {
-    if (ele.guidfixed == id) {
-      ele.tags = data;
+async function updateTagImage(id, data) {
+  // console.log(id);
+  // console.log(data);
+
+  try {
+    const res = await ImageDataService.putDocumentImageGroupTags(id, data);
+    if (res.success) {
+      data_list.value.filter(function (ele) {
+        if (ele.guidfixed == id) {
+          ele.tags = data;
+        }
+      });
     }
-  });
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
 }
 </script>
 <template>

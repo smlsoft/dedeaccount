@@ -163,7 +163,7 @@ const readMode = ref(false);
 
 const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
-
+const showOveray = ref(false);
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -175,19 +175,12 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
 
-    // set height ifram
-    heightIamgeDivCheckGl.value = 'height:' + divCheckGl.value.offsetHeight + 'px';
-
-  
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
-
-  if (route.params.mode == "read") {
-    readMode.value = true;
-  } else {
-    readMode.value = false;
-  }
 
   if (
     route.params.id != "" &&
@@ -196,31 +189,20 @@ onMounted(() => {
   ) {
     storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
     onLoad.value = true;
-    updateMode.value = true;
+    readMode.value = true;
     setTimeout(() => {
       getGLDetail(route.params.id);
     }, 1000);
   } else {
     storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
     daily_form.value.docno = Utils.getDocNoDate("JO");
+    readMode.value = false;
   }
 
   getAccountChart();
   getJournalBook();
   getAccountGroup();
 });
-
-function setWidthPanelForm2(left, right) {
-  setTimeout(() => {
-    let box = document.getElementById("maincontainer");
-    let width = box.offsetWidth;
-
-    console.log("maincontainer: " + width);
-
-    let boxtable = document.getElementById("galleriabox");
-    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
-  }, 500);
-}
 
 function getImagesByDocref(data) {
   console.log(data);
@@ -312,7 +294,7 @@ function getGLDetail(id) {
             creditamount: 0,
           });
         }
-        if ((daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z")) {
+        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
           daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
@@ -399,7 +381,6 @@ function getGLDetail(id) {
           console.log();
         }
         if (res.data.documentref != "") {
-          console.log("222");
           MasterdataService.getImagesByDocref(res.data.documentref)
             .then((res) => {
               if (res.success) {
@@ -411,8 +392,6 @@ function getGLDetail(id) {
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
-
-                  setWidthPanelForm2(50, 50);
                 }
               }
             })
@@ -465,7 +444,7 @@ function goList() {
   setTimeout(() => {
     console.log(readMode.value);
     if (readMode.value) {
-      router.push({ name: "pic_group_docref" });
+      router.push({ name: "dailyList" });
     } else {
       router.push({ name: "dailyList" });
     }
@@ -1330,7 +1309,7 @@ function showpanel() {
     panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
   }, 50);
 }
 function isImage(file) {
@@ -1364,7 +1343,8 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
-  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
 
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
@@ -1556,53 +1536,6 @@ function getSumTaxBase(data) {
   return sum.toFixed(2);
 }
 
-const setTransform = () => {
-  zoomStyle.value =
-    "transform:translate(" +
-    pointX.value +
-    "px, " +
-    pointY.value +
-    "px) scale(" +
-    scale.value +
-    ")";
-};
-
-function onmousedown(e) {
-  //console.log(e);
-  e.preventDefault();
-  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
-  panning.value = true;
-}
-
-function onmouseup(e) {
-  //console.log(e);
-  panning.value = false;
-}
-
-function onmousemove(e) {
-  //console.log(e);
-  e.preventDefault();
-  if (!panning.value) {
-    return;
-  }
-  pointX.value = e.clientX - start.value.x;
-  pointY.value = e.clientY - start.value.y;
-  setTransform();
-}
-
-function onwheel(e) {
-  //console.log(e);
-  e.preventDefault();
-  var xs = (e.clientX - pointX.value) / scale.value,
-    ys = (e.clientY - pointY.value) / scale.value,
-    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
-  pointX.value = e.clientX - xs * scale.value;
-  pointY.value = e.clientY - ys * scale.value;
-
-  setTransform();
-}
-
 function selectSortOrder(data) {
   console.log(data);
   sortOrder.value = data;
@@ -1618,19 +1551,9 @@ function getDocumentImageGroupDefualt() {
   getDocumentImageGroup();
 }
 
-function resetZoomImage() {
-  scale.value = 1;
-  panning.value = false;
-  pointX.value = 0;
-  pointY.value = 0;
-  start.value = { x: 0, y: 0 };
-  zoomStyle.value = "";
-}
-
-function resizeGalleria(e) {
-  console.log("resizeGalleria");
-  console.log(e.sizes);
-  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
+function resizeSplitter(isOveray) {
+  showOveray.value = isOveray;
+  console.log(isOveray);
 }
 </script>
 
@@ -1859,7 +1782,11 @@ function resizeGalleria(e) {
           class="surface-card p-4 shadow-2 border-round p-fluid"
           v-if="!onLoad"
         >
-          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
+          <Splitter
+            layout="horizontal"
+            @resizestart="resizeSplitter(true)"
+            @resizeend="resizeSplitter(false)"
+          >
             <SplitterPanel
               :size="1"
               class="relative"
@@ -1887,109 +1814,28 @@ function resizeGalleria(e) {
                     "
                   />
                 </div>
-                <div v-if="!readMode">
-                  <Button
+                <!-- <Button
                     v-if="selectedImg && selectedImgUrl != ''"
                     icon="pi pi-trash"
                     class="p-button-text text-red-500"
                     @click="confirmRejectDialog = true"
-                  />
-                  <Button
-                    v-if="selectedImg && selectedImgUrl != ''"
-                    icon="pi pi-times"
-                    class="p-button-text"
-                    @click="
-                      removeSelectImg();
-                      removeMagnify();
-                    "
-                  />
-                </div>
+                  /> -->
+                <Button
+                  v-if="selectedImg && selectedImgUrl != '' && !readMode"
+                  icon="pi pi-trash"
+                  class="p-button-text"
+                  @click="
+                    removeSelectImg();
+                    removeMagnify();
+                  "
+                />
               </div>
-              <Button
-                v-if="selectedImgUrl == ''"
-                icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0"
-                @click="
-                  showSelectFrom = true;
-                  getDocumentImageGroup();
-                  removeMagnify();
-                "
-              />
-              <div class="p-0" v-if="selectedImg">
-                <Message
-                  severity="error"
-                  :closable="false"
-                  v-if="selectedImgData.isreject == true"
-                >
-                  <span class="flex align-items-center justify-content-center">
-                    *Warning Message รูปโดนยกเลิก
-                  </span>
-                </Message>
-                <Message
-                  severity="warn"
-                  :closable="false"
-                  v-if="selectedImgData.references.length > 0"
-                >
-                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว
-                </Message>
-              </div>
-              <!-- <KeepAlive>
-                <div
-                  id="galleriabox"
-                  v-if="doc_images.length > 0 && selectedImg"
-                >
-                  <Galleria
-                    :numVisible="doc_images.length > 5 ? 10 : doc_images.length"
-                    :value="doc_images"
-                    :thumbnailsPosition="'top'"
-                    :showThumbnails="doc_images.length > 1"
-                    v-model:activeIndex="activeIndex"
-                    @update:activeIndex="resetZoomImage()"
-                  >
-                    <template #item="slotProps">
-                      <div class="p-0 img-magnifier-container mt-0">
-                        <div class="zoom_outer">
-                          <div
-                            id="zoom"
-                            :style="zoomStyle"
-                            @mousedown="onmousedown($event)"
-                            @mouseup="onmouseup($event)"
-                            @mousemove="onmousemove($event)"
-                            @wheel="onwheel($event)"
-                          >
-                            <img
-                              v-if="slotProps.item != null"
-                              :src="slotProps.item.imageuri"
-                              class="p-image-preview zoom"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                    <template #thumbnail="slotProps">
-                      <img
-                        :src="slotProps.item.imageuri"
-                        style="width: 40px; height: 40px"
-                      />
-                    </template>
-                    <template #footer></template>
-                  </Galleria>
-                </div>
-              </KeepAlive> -->
-
               <KeepAlive>
                 <div
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
                 >
-                  <Galleria
-                    :numVisible="doc_images.length > 5 ? 10 : doc_images.length"
-                    :value="doc_images"
-                    :thumbnailsPosition="'top'"
-                    :showThumbnails="doc_images.length > 1"
-                    v-model:activeIndex="activeIndex"
-                    @update:activeIndex="resetZoomImage()"
-                  >
+                  <Galleria :value="doc_images" :showThumbnails="false">
                     <template #item="slotProps">
                       <div class="grid w-full">
                         <div class="col-12">
@@ -1999,7 +1845,7 @@ function resizeGalleria(e) {
                             <Chip
                               :label="slotProps.item.name"
                               icon="pi pi-image"
-                              class="ml-2 mt-2"
+                              class=" mt-2"
                             />
                             <Chip
                               :label="
@@ -2015,32 +1861,32 @@ function resizeGalleria(e) {
                         </div>
                         <div class="col-12" :style="heightIamgeDivCheckGl">
                           <div
-                            style="
-                              margin: 0px;
-                              padding: 0px;
-                              width: 100%;
-                              height: 100%;
-                            "
+                            class="relative"
+                            style="margin: 0px; padding: 0px; height: 100%"
                           >
                             <iframe
                               :name="slotProps.item.imageuri"
                               :src="
-                                '/images_group/components/zoom?uri=' +
+                                '/document_images/components/zoom?uri=' +
                                 slotProps.item.imageuri
                               "
+                              class="static"
                             >
                             </iframe>
+                            <div
+                              v-if="showOveray"
+                              class="absolute top-0 left-0"
+                              style="
+                                width: 100%;
+                                height: 100%;
+                                background-color: white;
+                                opacity: 0;
+                              "
+                            ></div>
                           </div>
                         </div>
                       </div>
                     </template>
-                    <template #thumbnail="slotProps">
-                      <img
-                        :src="slotProps.item.imageuri"
-                        style="width: 40px; height: 40px"
-                      />
-                    </template>
-                    <template #footer> </template>
                   </Galleria>
                 </div>
               </KeepAlive>
@@ -2050,10 +1896,20 @@ function resizeGalleria(e) {
                 icon="pi pi-image"
                 class="p-button-raised p-button-rounded absolute bottom-0 left-0"
                 @click="
-                  showSelectFrom = true;
+                  chooseFile();
+                  // showSelectFrom = true;
                   getDocumentImageGroup();
                   removeMagnify();
                 "
+              />
+              <input
+                id="chooseFile"
+                ref="fileInput"
+                type="file"
+                @change="onFileSelect"
+                :multiple="false"
+                accept="image/*"
+                style="display: none"
               />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
