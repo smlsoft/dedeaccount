@@ -260,7 +260,8 @@ function onTapItem() {
           :disabled="
             checkUseImg(props.selectedImag.guidfixed) ||
             props.selectedImag.references.length > 0 ||
-            props.selectedImag.status == 3
+            props.selectedImag.status == 3 ||
+            props.selectedImag.status == 4
           "
           @click="createGL(props.selectedImag)"
           :loading="loaddingButton"

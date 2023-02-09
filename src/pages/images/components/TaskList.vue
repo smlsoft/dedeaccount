@@ -53,7 +53,7 @@
     </Column>
 
     <Column field="ownerby" header="ผู้สร้าง"></Column>
-    <Column field="status" header="สถานะ" style="min-width: 17%">
+    <Column field="status" header="สถานะ" >
       <template #body="slotProps">
         <Tag
           v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
@@ -69,7 +69,7 @@
         <Tag
           v-if="slotProps.data.status == 1"
           severity="warning"
-          value="อัพโหลดเสร็จแล้ว / รอตรวจสอบ"
+          value="รอตรวจสอบ"
           icon="pi pi-clock"
         ></Tag>
         <Tag
@@ -81,7 +81,7 @@
         <Tag
           v-if="slotProps.data.status == 3"
           severity="Info"
-          value="ตรวจสอบเสร็จแล้ว / รอบันทึกบัญชี"
+          value="รอบันทึกบัญชี"
           icon="pi pi-history"
         ></Tag>
         <Tag
@@ -95,7 +95,6 @@
     <Column
       field="description"
       header="หมายเหตุ"
-      style="min-width: 10%"
     ></Column>
 
     <template #header>

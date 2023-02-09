@@ -15,15 +15,15 @@ const toast = useToast();
 const data_list = ref([]);
 const totalItemsCount = ref(0);
 const loading = ref(true);
-const activePage = ref(1);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
-
-const filters = ref(null);
-const sortField = ref("code");
-const sortOrder = ref(1);
+const activePage = ref(1);
+const search = ref("");
+const filtersStatus = ref("1,2,3,4");
 const limitPage = ref(20);
+const sortField = ref("status");
+const sortOrder = ref(1);
 
 onMounted(() => {
   getTaskList();
@@ -34,7 +34,14 @@ onMounted(() => {
 
 function getTaskList() {
   loading.value = true;
-  TaskService.getTaskList()
+  TaskService.getTaskList(
+    limitPage.value,
+    activePage.value,
+    search.value,
+    filtersStatus.value,
+    sortField.value,
+    sortOrder.value
+  )
     .then((res) => {
       console.log("getTaskList");
       console.log(res);
@@ -86,7 +93,8 @@ function doneTyping() {
   TaskService.getTaskList(
     limitPage.value,
     activePage.value,
-    filters.value,
+    search.value,
+    filtersStatus.value,
     sortField.value,
     sortOrder.value
   )
@@ -117,7 +125,7 @@ function doneTyping() {
             :loading="loading"
             :firstPage="firstPage"
             :totalItemsCount="totalItemsCount"
-            :filters="filters"
+            :filters="search"
             v-on:onRowSelect="onRowSelect"
             v-on:keyup="keyup"
             v-on:keydown="keydown"

@@ -15,7 +15,6 @@ import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "../../services/ImageDataService";
 
 const storeApp = useApp();
-const content = ref();
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
@@ -24,23 +23,14 @@ const confirmSaveDialog = ref(false);
 const confirmRejectDialog = ref(false);
 const onLoad = ref(false);
 const selectedImg = ref(true);
-const selectedImgUse = ref([]);
-const selectSort = ref(0);
-const isShowAll = ref(true);
-const isShowWait = ref(false);
-const isShowUnApprove = ref(false);
 const searchItem = ref("");
 const limitPage = ref(20);
 const activePage = ref(1);
 const showContent = ref("");
-const showSelectFrom = ref(false);
-const showImageList = ref(false);
 const totalItemsCount = ref(10);
-const data_gallery = ref([]);
 const data_list = ref([]);
 const selectedImgUrl = ref("");
 const selectedImgData = ref({ guidfixed: "", imagereferences: [] });
-const rotate = ref(0);
 
 const scale = ref(1);
 const panning = ref(false);
@@ -55,7 +45,6 @@ const WsConnectImage = ref();
 const AllImageUsed = ref([]);
 const WsConnectAllImage = ref();
 const activeIndex = ref(0);
-const updateMode = ref(false);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
 const groupAccount_detail = ref([]);
@@ -63,32 +52,6 @@ const conSave = "ต้องการบันทึกเอกสารรา
 const conchange = "ต้องการเปลี่ยนรูปภาพ";
 const connamechange = "";
 const activeIndexList = ref(0);
-const imagePreviewStyle = computed({
-  get() {
-    return {
-      transform: "rotate(" + rotate.value + "deg) scale(" + scale.value + ")",
-    };
-  },
-});
-
-const sortOption = ref([
-  {
-    value: 0,
-    name: "ตามชื่อ",
-  },
-  {
-    value: 1,
-    name: "ตามลำดับ",
-  },
-  {
-    value: 2,
-    name: "รายการล่าสุด",
-  },
-]);
-const firstPage = ref(0);
-const isGallery = ref(false);
-const showUploadImage = ref(false);
-const fileInput = ref(HTMLInputElement);
 
 const daily_form = ref({
   accountdescription: "",
@@ -174,6 +137,14 @@ const newWindow = ref(false);
 const idrandom = ref("");
 const countIsOpenPopupImage = ref(0);
 const myInterval = ref(null);
+
+const listStatusImagesByDaily = ref([
+  { name: "ผ่าน", code: 1 },
+  { name: "ไม่ผ่าน", code: 4 },
+  { name: "ไม่บันทึก", code: 3 },
+]);
+
+const rejectStatus = ref();
 
 onUnmounted(() => {
   console.log(
@@ -374,7 +345,7 @@ function WsAllImageConnect() {
       AllImageUsed.value = rebuild;
     }
 
-    //  console.log("AllImageUsed ", AllImageUsed.value);
+    console.log("AllImageUsed ", AllImageUsed.value);
   };
   WsConnectAllImage.value.onclose = function (e) {
     // console.log(
@@ -442,6 +413,13 @@ function websocketConnect() {
               // selectedImg.value = true;
               waitForImages.value = false;
 
+              // get data gl กรณีจอ 2 เลือกรูปที่บันทึก GL เรียบร้อยแล้ว
+              if (selectedImgData.value.references.length != 0) {
+                getDataGL(selectedImgData.value.references);
+              } else {
+                clearData();
+              }
+
               disableAllinput(res.data.status);
               setTimeout(() => {
                 checkActiveIndex();
@@ -508,6 +486,133 @@ function getAllSelectImage() {
         severity: "error",
         summary: "Error",
         detail: "ดึงข้อมูลล้มเหลว " + err,
+        life: 3000,
+      });
+    });
+}
+
+function getDataGL(references) {
+  const result = references.filter((gl) => gl.module == "GL");
+  console.log(result[0].docno);
+
+  MasterdataService.getGLledger(result[0].docno)
+    .then((res) => {
+      if (res.success) {
+        console.log(res);
+        const vat = res.data.vats;
+        const tax = res.data.taxes;
+
+        daily_form.value.docno = res.data.guidfixed;
+        daily_form.value.accountdescription = res.data.accountdescription;
+        daily_form.value.accountgroup = res.data.accountgroup;
+        daily_form.value.accountperiod = res.data.accountperiod;
+        daily_form.value.accountyear = res.data.accountyear;
+        daily_form.value.amount = res.data.amount;
+        daily_form.value.batchId = res.data.batchId;
+        daily_form.value.journaltype = res.data.journaltype.toString();
+        daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
+        daily_form.value.docno = res.data.docno;
+        daily_form.value.bookcode = res.data.bookcode;
+        daily_form.value.journaldetail = res.data.journaldetail;
+        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+          daily_form.value.exdocrefdate = "";
+        } else {
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
+            res.data.exdocrefdate
+          );
+        }
+        daily_form.value.exdocrefno = res.data.exdocrefno;
+
+        if (vat.length > 0) {
+          vats.value = [];
+          vats_valid.value = [];
+
+          for (var i = 0; i < res.data.vats.length; i++) {
+            var vattemp = {
+              vattype: vat[i].vattype,
+              vatdate: Utils.getDateTimeFromDate(vat[i].vatdate),
+              vatdocno: vat[i].vatdocno,
+              vatperiod: vat[i].vatperiod,
+              vatyear: vat[i].vatyear,
+              vatbase: vat[i].vatbase,
+              vatrate: vat[i].vatrate,
+              vatamount: vat[i].vatamount,
+              exceptvat: vat[i].exceptvat,
+              vatmode: vat[i].vatmode,
+              vatsubmit: vat[i].vatsubmit,
+              custname: vat[i].custname,
+              custtaxid: vat[i].custtaxid,
+              organization: vat[i].organization,
+              branchcode: vat[i].branchcode,
+              remark: vat[i].remark,
+            };
+            putvatValid();
+            vats.value.push(vattemp);
+          }
+        }
+
+        if (tax.length > 0) {
+          taxes.value = [];
+          taxes_valid.value = [];
+          for (var i = 0; i < tax.length; i++) {
+            var taxes_temp = {
+              taxdocno: tax[i].taxdocno,
+              taxdate: Utils.getDateTimeFromDate(tax[i].taxdate),
+              custname: tax[i].custname,
+              custtype: tax[i].custtype,
+              custtaxid: tax[i].custtaxid,
+              taxtype: tax[i].taxtype,
+              address: tax[i].address,
+              details: [],
+            };
+
+            if (tax[i].details != null && tax[i].details.length > 0) {
+              var sumamount = 0;
+              var sumbase = 0;
+              tax[i].details.forEach((data) => {
+                var details_temp = {
+                  description: data.description,
+                  taxbase: data.taxbase,
+                  taxrate: data.taxrate,
+                  taxamount: data.taxamount,
+                };
+
+                taxes_temp.details.push(details_temp);
+              });
+            } else {
+              taxes_temp.details = [
+                {
+                  description: "",
+                  taxbase: 0,
+                  taxrate: 0,
+                  taxamount: 0,
+                },
+              ];
+            }
+            puttaxValid();
+            taxes.value.push(taxes_temp);
+          }
+        }
+
+        // console.log(daily_form.value);
+        // console.log(vats.value);
+        // console.log(taxes.value);
+
+        // toast.add({
+        //   severity: "success",
+        //   summary: "success",
+        //   detail: "ดึงข้อมูลเอกสาร : " + docno + " สำเร็จ",
+        //   life: 3000,
+        // });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      openDetailDocNo.value = false;
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ไม่สามารถดึงข้อมูล " + docno + " ได้ " + err,
         life: 3000,
       });
     });
@@ -1602,35 +1707,6 @@ function resizeSplitter(isOveray) {
   console.log(isOveray);
 }
 
-// Update status
-async function rejectImg() {
-  let status = {
-    status: 4,
-  };
-  try {
-    const res = await ImageDataService.putDocumentImageGroupStatus(
-      doc_images.value.guidfixed,
-      status
-    );
-    if (res.success) {
-      confirmRejectDialog.value = false;
-      removeSelectImg();
-      setTimeout(() => {
-        nextImageOnSave(doc_images.value.guidfixed);
-        clearData();
-      }, 200);
-    }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
-  }
-}
-
 function openImageNewWindow() {
   idrandom.value = Utils.generateRandomNumber();
   if (newWindow.value) {
@@ -1694,6 +1770,59 @@ async function checkPopupOpenImage() {
     countIsOpenPopupImage.value += 1;
   }
 }
+
+function upDateStatusImage() {
+  console.log(doc_images.value.status);
+
+  if (doc_images.value.status == 1) {
+    updateStatus();
+  } else if (doc_images.value.status == 3) {
+    showContent.value = "ต้องการไม่บันทึกรูปภาพ";
+    confirmRejectDialog.value = true;
+  } else if (doc_images.value.status == 4) {
+    showContent.value = "ต้องการยกเลิกรูปภาพ";
+    confirmRejectDialog.value = true;
+  }
+}
+
+function updateStatusCancel() {
+  confirmRejectDialog.value = false;
+  doc_images.value.status = 1;
+}
+
+// Update status
+async function updateStatus() {
+  let data = {
+    status: doc_images.value.status,
+  };
+  try {
+    const res = await ImageDataService.putDocumentImageGroupStatus(
+      doc_images.value.guidfixed,
+      data
+    );
+    if (res.success) {
+      confirmRejectDialog.value = false;
+
+      if (doc_images.value.status == 1) {
+        return;
+      } else {
+        removeSelectImg();
+        setTimeout(() => {
+          nextImageOnSave(doc_images.value.guidfixed);
+          clearData();
+        }, 200);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
+}
 </script>
 
 <template>
@@ -1751,8 +1880,26 @@ async function checkPopupOpenImage() {
                       "
                     />
                   </div>
-                  <div>
+                  <div class="flex align-items-center justify-content-center">
+                    <div
+                      v-if="selectedImg"
+                      v-for="listStatusImage of listStatusImagesByDaily"
+                      :key="listStatusImage.code"
+                      class="field-radiobutton m-0 mr-2 ml-2 flex align-items-center justify-content-center"
+                    >
+                      <RadioButton
+                        :id="listStatusImage.code"
+                        name="listStatusImage"
+                        :value="listStatusImage.code"
+                        v-model="doc_images.status"
+                        @change="upDateStatusImage"
+                      />
+                      <label :for="listStatusImage.code">{{
+                        listStatusImage.name
+                      }}</label>
+                    </div>
                     <ToggleButton
+                      v-if="!selectedImg"
                       v-model="newWindow"
                       onLabel=""
                       offLabel=""
@@ -1761,12 +1908,13 @@ async function checkPopupOpenImage() {
                       @change="openImageNewWindow()"
                       class="p-button-text"
                     />
+                  </div>
+                  <!--
                     <Button
                       icon="pi pi-trash"
                       class="p-button-text text-red-500"
                       @click="confirmRejectDialog = true"
-                    />
-                  </div>
+                    /> -->
                 </div>
 
                 <KeepAlive>
@@ -1971,10 +2119,10 @@ async function checkPopupOpenImage() {
       </div>
       <DialogForm
         :confirmDialog="confirmRejectDialog"
-        :textContent="'ต้องการยกเลิกรูปภาพ'"
+        :textContent="showContent"
         :textContent2="doc_images.title"
-        v-on:close="confirmRejectDialog = false"
-        v-on:confirm="rejectImg()"
+        v-on:close="updateStatusCancel()"
+        v-on:confirm="updateStatus()"
       ></DialogForm>
       <DialogForm
         :confirmDialog="confirmRemoveImgDialog"

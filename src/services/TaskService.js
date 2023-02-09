@@ -2,8 +2,14 @@ import { instanceApi } from '@/services/ProviderService'
 
 export default {
 
-    getTaskList() {
-        return instanceApi(true).get(`/task/list`).then(res => res.data);
+    getTaskList(limitPage, page, search, filtersStatus, sortField, sortOrder) {
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        console.log(`/task?limit=${limitPage}&page=${page}${q}&status=${filtersStatus}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/task?limit=${limitPage}&page=${page}${q}&status=${filtersStatus}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+
     },
 
     getTaskById(id) {
