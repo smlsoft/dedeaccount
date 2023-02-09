@@ -66,7 +66,6 @@ import Password from 'primevue/password';
 import { createI18n } from 'vue-i18n';
 import messages from '@/assets/i18n';
 import Chips from 'primevue/chips';
-import InlineMessage from 'primevue/InlineMessage';
 
 
 
@@ -91,7 +90,6 @@ const i18n = createI18n({
 
 const app = createApp(App)
 
-app.component('InlineMessage', InlineMessage);
 app.component('Chips', Chips);
 app.component('Password', Password);
 app.component('DataViewLayoutOptions', DataViewLayoutOptions);
