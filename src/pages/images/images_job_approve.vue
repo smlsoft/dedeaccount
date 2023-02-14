@@ -22,8 +22,8 @@ const activePage = ref(1);
 const search = ref("");
 const filtersStatus = ref("1,2,3,4");
 const limitPage = ref(20);
-const sortField = ref("status");
-const sortOrder = ref(1);
+const sortField = ref("ownerat");
+const sortOrder = ref(-1);
 
 onMounted(() => {
   getTaskList();
@@ -120,7 +120,7 @@ function doneTyping() {
       <div class="grid">
         <div class="col-12">
           <TaskList
-            :modeMenu="1"
+            :modeMenu="2"
             :data_list="data_list"
             :loading="loading"
             :firstPage="firstPage"

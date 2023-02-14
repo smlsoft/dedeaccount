@@ -144,7 +144,7 @@ const listStatusImagesByDaily = ref([
   { name: "ไม่บันทึก", code: 3 },
 ]);
 
-const rejectStatus = ref();
+const statusImage = ref();
 
 onUnmounted(() => {
   console.log(
@@ -1030,6 +1030,19 @@ function getDocImageList() {
           checkActiveIndex();
         }, 500);
         console.log(data_list.value);
+        // if (res.data.length == 0) {
+        //   router.push({
+        //     name: "images_job_daily_detail",
+        //     params: { id: jobId.value },
+        //   });
+        // } else {
+        //   data_list.value = res.data;
+        //   totalItemsCount.value = res.pagination.total;
+        //   setTimeout(() => {
+        //     checkActiveIndex();
+        //   }, 500);
+        //   console.log(data_list.value);
+        // }
       }
     })
     .catch((err) => {
@@ -1550,6 +1563,7 @@ function nextImageOnSave(old_img) {
   });
 
   data_list.value = rebuild;
+
   activeIndexList.value = 0;
   activeIndex.value = 0;
 
@@ -1557,14 +1571,8 @@ function nextImageOnSave(old_img) {
     console.log(data_list.value[activeIndexList.value].guidfixed);
     useImage(data_list.value[activeIndexList.value].guidfixed);
   }
-
-  removeImgFromList(old_img);
 }
-function removeImgFromList(data) {
-  console.log(data);
 
-  console.log(data_list.value);
-}
 function checkUseImgByUser(user) {
   var found = 0;
   AllImageUsed.value.forEach((element) => {
@@ -1771,15 +1779,16 @@ async function checkPopupOpenImage() {
   }
 }
 
-function upDateStatusImage() {
-  console.log(doc_images.value.status);
-
-  if (doc_images.value.status == 1) {
+function upDateStatusImage(status) {
+  if (status == 1) {
+    statusImage.value = 1;
     updateStatus();
-  } else if (doc_images.value.status == 3) {
+  } else if (status == 3) {
+    statusImage.value = 3;
     showContent.value = "ต้องการไม่บันทึกรูปภาพ";
     confirmRejectDialog.value = true;
-  } else if (doc_images.value.status == 4) {
+  } else if (status == 4) {
+    statusImage.value = 4;
     showContent.value = "ต้องการยกเลิกรูปภาพ";
     confirmRejectDialog.value = true;
   }
@@ -1787,13 +1796,12 @@ function upDateStatusImage() {
 
 function updateStatusCancel() {
   confirmRejectDialog.value = false;
-  doc_images.value.status = 1;
 }
 
 // Update status
 async function updateStatus() {
   let data = {
-    status: doc_images.value.status,
+    status: statusImage.value,
   };
   try {
     const res = await ImageDataService.putDocumentImageGroupStatus(
@@ -1803,7 +1811,7 @@ async function updateStatus() {
     if (res.success) {
       confirmRejectDialog.value = false;
 
-      if (doc_images.value.status == 1) {
+      if (statusImage.value == 1) {
         return;
       } else {
         removeSelectImg();
@@ -1857,10 +1865,10 @@ async function updateStatus() {
               </div>
               <div v-if="!onLoad">
                 <div
-                  class="flex justify-content-between align-items-right p-1"
+                  class="flex justify-content-between"
                   :class="!selectedImg ? 'flex-column' : ''"
                 >
-                  <div>
+                  <div class="flex">
                     <Button
                       v-if="selectedImg == false"
                       icon="pi pi-angle-double-right"
@@ -1880,8 +1888,20 @@ async function updateStatus() {
                       "
                     />
                   </div>
-                  <div class="flex align-items-center justify-content-center">
-                    <div
+                  <div class="flex">
+                    <!-- <Button
+                      v-if="selectedImg"
+                      label="ไม่ผ่าน"
+                      @click="upDateStatusImage(4)"
+                      class="p-button-danger p-button-sm mr-1"
+                    />
+                    <Button
+                      v-if="selectedImg"
+                      label="ห้ามบันทึกรายวัน"
+                      @click="upDateStatusImage(3)"
+                      class="p-button-warning p-button-sm"
+                    /> -->
+                    <!-- <div
                       v-if="selectedImg"
                       v-for="listStatusImage of listStatusImagesByDaily"
                       :key="listStatusImage.code"
@@ -1897,7 +1917,7 @@ async function updateStatus() {
                       <label :for="listStatusImage.code">{{
                         listStatusImage.name
                       }}</label>
-                    </div>
+                    </div> -->
                     <ToggleButton
                       v-if="!selectedImg"
                       v-model="newWindow"
@@ -1909,12 +1929,6 @@ async function updateStatus() {
                       class="p-button-text"
                     />
                   </div>
-                  <!--
-                    <Button
-                      icon="pi pi-trash"
-                      class="p-button-text text-red-500"
-                      @click="confirmRejectDialog = true"
-                    /> -->
                 </div>
 
                 <KeepAlive>

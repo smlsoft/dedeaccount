@@ -23,8 +23,8 @@ const activePage = ref(1);
 const search = ref("");
 const filtersStatus = ref("3,4");
 const limitPage = ref(20);
-const sortField = ref("status");
-const sortOrder = ref(1);
+const sortField = ref("ownerat");
+const sortOrder = ref(-1);
 
 onMounted(() => {
   getTaskList();

@@ -551,8 +551,8 @@ function closeDocumentPreview() {
   showDocumentPreview.value = false;
 }
 
-function endApproveJob() {
-  console.log("endApproveJob");
+function endDailyJob() {
+  console.log("endDailyJob");
   ramdomNumber.value = Utils.generateRandomNumber();
   dialogJobApprove.value = true;
 }
@@ -596,11 +596,15 @@ async function jobApprove(statusJob) {
 function checkImagereferences() {
   let notImagereferences = 0;
   data_list.value.forEach((element) => {
-    // console.log(element.references.length);
-    if (element.references.length == 1) {
-      notImagereferences += 1;
+    // console.log(element);
+    if (element.references.length == 0) {
+      if (element.status == 1) {
+        notImagereferences += 1;
+      }
     }
   });
+
+  // console.log(notImagereferences);
 
   if (notImagereferences == 0) {
     checkSuccess.value = true;
@@ -916,7 +920,7 @@ async function checkPopupOpenImage() {
           class="p-button-sm p-button-success ml-2"
           label="บันทึก"
           icon="pi pi-save"
-          @click="endApproveJob()"
+          @click="endDailyJob()"
         />
       </div>
     </div>

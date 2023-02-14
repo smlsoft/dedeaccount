@@ -362,11 +362,11 @@ function checkDateFormat(index) {
   </div>
   <DialogForm
     :confirmDialog="deleteDetailVatDialog"
-    :textContent="textContent"
-    v-on:close="deleteDetailVat = false"
+    :textContent="'ต้องการลบข้อมูลภาษี รายการที่ ' + (del_data.index + 1)"
+    v-on:close="deleteDetailVatDialog = false"
     v-on:confirm="deleteDetailVat"
   ></DialogForm>
-  <Dialog
+  <!-- <Dialog
     v-model:visible="deleteDetailVatDialog"
     :style="{ width: '450px' }"
     header="Confirm"
@@ -393,5 +393,5 @@ function checkDateFormat(index) {
         @click="deleteDetailVat"
       />
     </template>
-  </Dialog>
+  </Dialog> -->
 </template>

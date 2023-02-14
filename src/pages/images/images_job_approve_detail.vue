@@ -51,7 +51,7 @@ const showImgData = ref();
 const showDocumentPreview = ref(true);
 const isSelectedDocument = ref(false);
 const isDataListNull = ref(false);
-const ischeckApprove = ref(false);
+const ischeckApprove = ref(true);
 const loadIcon = ref(false);
 
 const job = ref({
@@ -260,12 +260,21 @@ function closeDocumentPreview() {
 
 function startApproveJob() {
   ischeckApprove.value = true;
+
   if (job.value.status == 1) {
-    jobApprove(2);
+    jobApprove(2, "start");
   }
 }
 
 function stopApproveJob() {
+  const result = data_list.value.filter((data) => data.status == 1);
+  console.log(result);
+  if (result.length == 0) {
+    jobApprove(1, "stop");
+  } else {
+    jobApprove(2, "stop");
+  }
+
   ischeckApprove.value = false;
 }
 
@@ -280,7 +289,7 @@ function confirmApproveFalse() {
 }
 
 // ตรวจเสร็จแล้ว
-async function jobApprove(statusJob) {
+async function jobApprove(statusJob, modeMenu) {
   dialogJobApprove.value = false;
   let status = {
     status: statusJob,
@@ -295,9 +304,11 @@ async function jobApprove(statusJob) {
       //   life: 3000,
       // });
 
-      setTimeout(() => {
-        router.push({ name: "images_job_approve" });
-      }, 200);
+      if (modeMenu == "save") {
+        setTimeout(() => {
+          router.push({ name: "images_job_approve" });
+        }, 200);
+      }
     }
   } catch (err) {
     console.log(err);
@@ -337,36 +348,34 @@ async function updateStatus(guidfixed, data_status) {
 }
 
 async function updateStatusFrist(data) {
-  if (isSelectedDocument.value) {
-    selectImg(data);
-    return;
-  }
-  console.log(data.guidfixed);
-  // 99= ตั้งค่าสถานะให้ icon โหลด
-  data_list.value.filter(function (ele) {
-    if (ele.guidfixed == data.guidfixed) {
-      ele.status = 99;
-    }
-  });
-
-  const updateData = await updateStatus(data.guidfixed, 1);
-  setTimeout(() => {
-    if (updateData) {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = 1;
-        }
-      });
-    } else {
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == data.guidfixed) {
-          ele.status = 0;
-        }
-      });
-    }
-
-    checkImageApprove();
-  }, 300);
+  // if (isSelectedDocument.value) {
+  //   selectImg(data);
+  //   return;
+  // }
+  // console.log(data.guidfixed);
+  // // 99= ตั้งค่าสถานะให้ icon โหลด
+  // data_list.value.filter(function (ele) {
+  //   if (ele.guidfixed == data.guidfixed) {
+  //     ele.status = 99;
+  //   }
+  // });
+  // const updateData = await updateStatus(data.guidfixed, 1);
+  // setTimeout(() => {
+  //   if (updateData) {
+  //     data_list.value.filter(function (ele) {
+  //       if (ele.guidfixed == data.guidfixed) {
+  //         ele.status = 1;
+  //       }
+  //     });
+  //   } else {
+  //     data_list.value.filter(function (ele) {
+  //       if (ele.guidfixed == data.guidfixed) {
+  //         ele.status = 0;
+  //       }
+  //     });
+  //   }
+  //   checkImageApprove();
+  // }, 300);
 }
 
 function selectImg(data) {
@@ -622,6 +631,7 @@ async function drop(data, event) {
   addImagenewData.value = data.imagereferences;
 
   if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+    removeSelectedImg();
     return;
   }
 
@@ -911,7 +921,7 @@ async function updateTagImage(id, data) {
           icon="pi pi-arrow-left"
           @click="router.push({ name: 'images_job_approve' })"
         />
-        <Button
+        <!-- <Button
           v-if="!ischeckApprove"
           :disabled="
             ischeckApprove ||
@@ -931,7 +941,7 @@ async function updateTagImage(id, data) {
           label="หยุดตรวจสอบ"
           icon="pi pi-pause"
           @click="stopApproveJob()"
-        />
+        /> -->
         <ToggleButton
           :disabled="!ischeckApprove"
           v-model="statusAllImage"
@@ -953,10 +963,9 @@ async function updateTagImage(id, data) {
             @click="updateRefDialog = true"
           />
         </div>
-
         <div class="ml-1">
           <Button
-            :disabled="job.status == 3 || job.status == 4 || ischeckApprove"
+            :disabled="job.status == 3 || job.status == 4 || !ischeckApprove"
             :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
             class="text-black p-button-sm"
             :icon="
@@ -1005,7 +1014,7 @@ async function updateTagImage(id, data) {
         <Button
           :disabled="!checkSuccess || job.status == 3 || job.status == 4"
           class="p-button-sm p-button-success ml-2"
-          label="บันทึก"
+          label="อนุมัติ"
           icon="pi pi-save"
           @click="endApproveJob()"
         />
@@ -1173,7 +1182,7 @@ async function updateTagImage(id, data) {
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"
       v-on:close="dialogJobApprove = false"
-      v-on:confirmJob="jobApprove(3)"
+      v-on:confirmJob="jobApprove(3, 'save')"
       v-on:confirmJobFalse="confirmApproveFalse()"
     />
 

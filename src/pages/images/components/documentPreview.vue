@@ -16,10 +16,10 @@ const loaddingButton = ref(false);
 const lastGuidFixed = ref("");
 
 const listStatusImages = ref([
+  { name: "รอตรวจสอบ", code: 0 },
   { name: "ผ่าน", code: 1 },
   { name: "ไม่ผ่าน", code: 2 },
-  { name: "ไม่บันทึก", code: 3 },
-  { name: "รอตรวจสอบ", code: 0 },
+  { name: "ห้ามบันทึกรายวัน", code: 3 },
 ]);
 const listStatusImagesByDaily = ref([
   { name: "ผ่าน", code: 1 },
@@ -174,10 +174,10 @@ function documentImageUnGroup() {
   emit("documentImageUnGroup", props.selectedImag.guidfixed);
 }
 
-function upDateStatusImage() {
+function upDateStatusImage(status) {
   let data = {
     guidfixed: props.selectedImag.guidfixed,
-    status: props.selectedImag.status,
+    status: status,
   };
   emit("upDateStatusImage", data);
 }
@@ -242,38 +242,75 @@ function onTapItem() {
   />
   <div v-if="props.showImgData.length > 0">
     <div class="flex align-items-center justify-content-between">
-      <div class="flex" v-if="props.modeMenu == 4"></div>
-      <div class="flex" v-if="props.modeMenu != 4">
+      <!--left-->
+      <div class="flex" v-if="props.modeMenu == 1 || props.modeMenu == 4"></div>
+      <div class="flex" v-if="props.modeMenu == 2 || props.modeMenu == 3">
         <Button
           v-if="props.selectedImag.references.length > 0"
           icon="pi pi-eye"
-          label="รายละเอียดรายวัน"
-          class="p-button-text p-button-outlined p-button-sm p-button-success"
+          label="รายวัน"
+          class="p-button-sm p-button-success mr-1"
           @click="viewGL(props.selectedImag)"
           :loading="loaddingButton"
         />
         <Button
-          v-if="props.selectedImag.references.length == 0"
+          v-if="
+            props.selectedImag.references.length == 0 && props.modeMenu == 3
+          "
           icon="pi pi-file"
           label="บันทึกรายวัน"
-          class="p-button-text p-button-outlined p-button-sm"
+          class="p-button-sm mr-1"
           :disabled="
             checkUseImg(props.selectedImag.guidfixed) ||
             props.selectedImag.references.length > 0 ||
-            props.selectedImag.status == 3 ||
-            props.selectedImag.status == 4
+            props.selectedImag.status == 3
           "
           @click="createGL(props.selectedImag)"
           :loading="loaddingButton"
         />
-      </div>
-      <div
-        class="flex"
-        v-if="props.modeMenu == 3 && props.selectedImag.status != 2"
-      ></div>
-      <div class="flex">
-        <div
-          v-if="props.modeMenu != 4"
+        <div v-if="props.modeMenu == 2">
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="ผ่าน"
+            @click="upDateStatusImage(1)"
+            class="p-button-success p-button-sm mr-1"
+          />
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="ไม่ผ่าน"
+            @click="upDateStatusImage(2)"
+            class="p-button-danger p-button-sm mr-1"
+          />
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="ห้ามบันทึกรายวัน"
+            @click="upDateStatusImage(3)"
+            class="p-button-warning p-button-sm mr-1"
+          />
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="รอตรวจสอบ"
+            @click="upDateStatusImage(0)"
+            class="p-button-secondary p-button-sm"
+          />
+        </div>
+
+        <!-- <div v-if="props.modeMenu == 3">
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="ไม่ผ่าน"
+            @click="upDateStatusImage(4)"
+            class="p-button-danger p-button-sm mr-1"
+          />
+          <Button
+            :disabled="props.selectedImag.references.length > 0"
+            label="ห้ามบันทึกรายวัน"
+            @click="upDateStatusImage(3)"
+            class="p-button-warning p-button-sm"
+          />
+        </div> -->
+
+        <!-- <div
           v-for="listStatusImage of props.jobStatus == 3
             ? listStatusImagesByDaily
             : listStatusImages"
@@ -291,19 +328,22 @@ function onTapItem() {
             @change="upDateStatusImage"
           />
           <label :for="listStatusImage.code">{{ listStatusImage.name }}</label>
-        </div>
+        </div> -->
+      </div>
 
+      <!--right-->
+      <div class="flex" v-if="props.modeMenu != 4">
         <Button
           v-if="checkUseImg(props.selectedImag.guidfixed)"
           :label="getUseData(props.selectedImag.guidfixed)"
           class="p-button-text p-button-rounded mr-2 p-button-sm"
           icon="pi pi-user"
         />
-        <!-- <Button
+        <Button
           icon="pi pi-print"
           class="p-button-rounded p-button-danger p-button-text"
           @click="printImg(props.showImgData)"
-        /> -->
+        />
         <Button
           v-if="props.modeMenu != 4"
           icon="pi pi-list"
@@ -320,7 +360,9 @@ function onTapItem() {
           @click="closeDocumentPreview"
         />
       </div>
+      <div class="flex" v-if="props.modeMenu == 4"></div>
     </div>
+
     <Galleria
       :value="props.showImgData"
       :circular="true"

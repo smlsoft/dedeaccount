@@ -17,14 +17,14 @@ const totalItemsCount = ref(0);
 const loading = ref(true);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
+
 const firstPage = ref(0);
 const activePage = ref(1);
-
 const search = ref("");
 const filtersStatus = ref("0,1,2,3,4");
 const limitPage = ref(20);
-const sortField = ref("status");
-const sortOrder = ref(1);
+const sortField = ref("ownerat");
+const sortOrder = ref(-1);
 
 const dialogCreateJob = ref(false);
 const jobDate = ref(new Date());
@@ -161,7 +161,7 @@ function doneTyping() {
       <div class="grid">
         <div class="col-12">
           <TaskList
-            :modeMenu="0"
+            :modeMenu="1"
             :data_list="data_list"
             :loading="loading"
             :firstPage="firstPage"
@@ -198,7 +198,7 @@ function doneTyping() {
         />
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="jobName" class="font-medium text-900">ชื่อ</label>
+        <label for="jobName" class="font-medium text-900">เลขที่ Job</label>
         <InputText
           id="jobName"
           type="text"

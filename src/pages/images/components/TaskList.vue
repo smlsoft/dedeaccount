@@ -24,13 +24,13 @@
     <Column field="name" header="ชื่อ"></Column>
     <Column v-if="props.modeMenu != 3" field="total" header="จำนวน"></Column>
     <Column
-      v-if="props.modeMenu == 0"
+      v-if="props.modeMenu == 1 || props.modeMenu == 2"
       field="totalreject"
       header="เอกสารมีปัญหา"
     ></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="ไม่ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 1" field="total" header="คงเหลือ"></Column>
+    <Column v-if="props.modeMenu == 2" field="total" header="ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 2" field="total" header="ไม่ผ่าน"></Column>
+    <Column v-if="props.modeMenu == 2" field="total" header="คงเหลือ"></Column>
     <Column header="เอกสารที่ต้องบันทึก" v-if="props.modeMenu == 3">
       <template #body="slotProps">
         {{ slotProps.data.total - slotProps.data.totalreject }}
@@ -53,12 +53,13 @@
     </Column>
 
     <Column field="ownerby" header="ผู้สร้าง"></Column>
-    <Column field="status" header="สถานะ" >
+    <Column field="status" header="สถานะ">
       <template #body="slotProps">
         <Tag
           v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
-          value="กำลังอัพโหลด"
+          value="รออัพโหลด"
           icon="pi pi-upload"
+          class="bg-gray-500"
         ></Tag>
         <Tag
           v-if="slotProps.data.status == 0 && slotProps.data.totalreject != 0"
@@ -92,16 +93,13 @@
         ></Tag>
       </template>
     </Column>
-    <Column
-      field="description"
-      header="หมายเหตุ"
-    ></Column>
+    <Column field="description" header="หมายเหตุ"></Column>
 
     <template #header>
       <div class="flex">
         <div class="flex-none flex align-items-center justify-content-start">
           <Button
-            v-if="props.modeMenu == 0"
+            v-if="props.modeMenu == 1"
             label="สร้าง Job"
             icon="pi pi-plus"
             class="w-auto"

@@ -889,6 +889,7 @@ async function drop(data, event) {
   addImagenewData.value = data.imagereferences;
 
   if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+    removeSelectedImg();
     return;
   }
 
@@ -1543,8 +1544,8 @@ async function updateTagImage(id, data) {
     <Dialog
       header="Upload รูปภาพ"
       v-model:visible="uploadmodel"
-      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-      :style="{ width: '80vw' }"
+      :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+      :style="{ width: '90vw' }"
       :modal="true"
       :closable="false"
       contentStyle="padding: 0rem;"
