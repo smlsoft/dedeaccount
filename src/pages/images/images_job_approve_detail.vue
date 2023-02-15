@@ -616,8 +616,8 @@ function allowDrop(data, event) {
   }
   //console.log(allowDropImage.value);
 
-  // console.log(data);
-  // console.log(event);
+  console.log(data);
+  console.log(event);
   event.stopPropagation();
   event.preventDefault();
 }

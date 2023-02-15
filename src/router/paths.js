@@ -374,6 +374,14 @@ export default [
     component: () => import("../pages/images/components/zoom.vue"),
   },
   {
+    path: "/images/components/zoomfabric",
+    name: "zoomfabric",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/zoomFabric.vue"),
+  },
+  {
     path: "/accountPeriod/list",
     name: "accountPeriod",
     meta: {

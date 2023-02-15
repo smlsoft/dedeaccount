@@ -128,6 +128,7 @@ const ramdomNumber = ref();
 const tag = ref();
 const separatorExp = ref(/,| /);
 const confirmDeleteImage = ref(false);
+const modeReorder = ref(false);
 
 onUnmounted(() => {});
 onMounted(() => {
@@ -885,61 +886,65 @@ async function drop(data, event) {
   console.log("drop");
   console.log(data);
 
-  addImageGuidfixed.value = data.guidfixed;
-  addImagenewData.value = data.imagereferences;
+  if (!modeReorder.value) {
+    addImageGuidfixed.value = data.guidfixed;
+    addImagenewData.value = data.imagereferences;
 
-  if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
-    removeSelectedImg();
-    return;
-  }
+    if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+      removeSelectedImg();
+      return;
+    }
 
-  if (data.isreject != 2 && data.references.length == 0) {
-    //จัดชุดใหม่
-    if (data.imagereferences.length == 1) {
-      let result = [];
-      result = selectedImg.value.filter(
-        (el) => el.guidfixed == addImageGuidfixed.value
-      );
-      if (result.length > 0) {
-        let result_detail = [];
-        result_detail = selectedImg.value.filter(
-          (el) => el.guidfixed == imagesDragData.value.guidfixed
+    if (data.isreject != 2 && data.references.length == 0) {
+      //จัดชุดใหม่
+      if (data.imagereferences.length == 1) {
+        let result = [];
+        result = selectedImg.value.filter(
+          (el) => el.guidfixed == addImageGuidfixed.value
         );
-        if (result_detail.length > 0) {
+        if (result.length > 0) {
+          let result_detail = [];
+          result_detail = selectedImg.value.filter(
+            (el) => el.guidfixed == imagesDragData.value.guidfixed
+          );
+          if (result_detail.length > 0) {
+            updateRefDialog.value = true;
+          } else {
+            selectedImg.value.push({
+              guidfixed: imagesDragData.value.guidfixed,
+              tags: data.tags,
+              documentimageguid: imagesDragData.value.imagereferences[0],
+            });
+          }
           updateRefDialog.value = true;
         } else {
           selectedImg.value.push({
-            guidfixed: imagesDragData.value.guidfixed,
+            guidfixed: data.guidfixed,
             tags: data.tags,
-            documentimageguid: imagesDragData.value.imagereferences[0],
+            documentimageguid: data.imagereferences[0],
           });
+          updateRefDialog.value = true;
         }
-        updateRefDialog.value = true;
-      } else {
-        selectedImg.value.push({
-          guidfixed: data.guidfixed,
-          tags: data.tags,
-          documentimageguid: data.imagereferences[0],
+
+        let tags = [];
+        selectedImg.value.forEach((element, index) => {
+          if (element.tags != undefined) {
+            tags = [...tags, ...element.tags];
+          }
         });
-        updateRefDialog.value = true;
+        tag.value = Array.from(new Set(tags));
+
+        console.log(tag.value);
+        console.log(selectedImg.value);
+        ischeckedImage();
+        //เพิ่มรูปเข้าชุด
+      } else {
+        addToGroup.value = data.title;
+        confirmGroupImageDialog.value = true;
       }
-
-      let tags = [];
-      selectedImg.value.forEach((element, index) => {
-        if (element.tags != undefined) {
-          tags = [...tags, ...element.tags];
-        }
-      });
-      tag.value = Array.from(new Set(tags));
-
-      console.log(tag.value);
-      console.log(selectedImg.value);
-      ischeckedImage();
-      //เพิ่มรูปเข้าชุด
-    } else {
-      addToGroup.value = data.title;
-      confirmGroupImageDialog.value = true;
     }
+  } else {
+    console.log("reorder");
   }
 }
 
@@ -1303,6 +1308,14 @@ async function updateTagImage(id, data) {
             "
           />
         </div>
+        <!-- <div class="ml-1">
+          <Button
+            class="p-button-info text-white p-button-sm"
+            icon="pi pi-pencil"
+            label="เรียงรูป"
+            @click="modeReorder = true"
+          />
+        </div> -->
         <div class="ml-1">
           <Button
             v-if="selectedImg.length > 0"

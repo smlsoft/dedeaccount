@@ -2,7 +2,7 @@
 import DialogForm from "@/components/form/DialogForm.vue";
 import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import Utils from "@/utils/";
 const userName = localStorage._usercode;
 const toast = useToast();
@@ -30,6 +30,7 @@ const dialogEditTag = ref(false);
 const tag = ref();
 const separatorExp = ref(/,| /);
 const confirmRejectDialog = ref(false);
+const openEditImage = ref(false);
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -123,6 +124,14 @@ const items = computed({
       {
         label: "Options",
         items: [
+          {
+            disabled: props.jobStatus != 2,
+            label: "แก้ไขรูปภาพ",
+            icon: "pi pi-pencil",
+            command: () => {
+              dialogEditImae();
+            },
+          },
           {
             disabled: false,
             label: "ปริ้นเอกสาร",
@@ -227,6 +236,13 @@ function viewGL(data) {
 
 function onTapItem() {
   alert("tap");
+}
+
+function dialogEditImae() {
+  openEditImage.value = true;
+}
+function closeEditImage() {
+  openEditImage.value = false;
 }
 </script>
 
@@ -339,11 +355,11 @@ function onTapItem() {
           class="p-button-text p-button-rounded mr-2 p-button-sm"
           icon="pi pi-user"
         />
-        <Button
+        <!-- <Button
           icon="pi pi-print"
           class="p-button-rounded p-button-danger p-button-text"
           @click="printImg(props.showImgData)"
-        />
+        /> -->
         <Button
           v-if="props.modeMenu != 4"
           icon="pi pi-list"
@@ -362,7 +378,6 @@ function onTapItem() {
       </div>
       <div class="flex" v-if="props.modeMenu == 4"></div>
     </div>
-
     <Galleria
       :value="props.showImgData"
       :circular="true"
@@ -476,6 +491,22 @@ function onTapItem() {
         @click="updateTagImage"
       />
     </template>
+  </Dialog>
+
+  <Dialog
+    header="Header"
+    v-model:visible="openEditImage"
+    class="p-dialog-maximized"
+    @update:visible="closeEditImage"
+  >
+    <iframe
+      :name="props.showImgData[activeIndex].imageuri"
+      :src="
+        '/images/components/zoomFabric?uri=' +
+        props.showImgData[activeIndex].imageuri
+      "
+    >
+    </iframe>
   </Dialog>
 </template>
 <style>
