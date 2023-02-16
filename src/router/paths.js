@@ -480,7 +480,14 @@ export default [
     },
     component: () => import("../pages/images/test.vue"),
   },
-
+  {
+    path: "/images/testreorder",
+    name: "testreorder",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/testreorder.vue"),
+  },
 
 
 ];

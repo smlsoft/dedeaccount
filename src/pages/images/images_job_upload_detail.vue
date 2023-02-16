@@ -47,7 +47,7 @@ const WsConnectAllImage = ref();
 const confirmRejectDialog = ref(false);
 const showSkeleton = ref(false);
 const totalPage = ref(0);
-const selectSort = ref("uploadedat");
+const selectSort = ref("xorder");
 const sortField = ref([
   {
     code: "uploadedat",
@@ -58,7 +58,7 @@ const sortField = ref([
     name: "ชื่อรูป",
   },
 ]);
-const sortOrder = ref(-1);
+const sortOrder = ref(1);
 
 const isGallery = ref(false);
 const selectedImg = ref([]);
@@ -129,6 +129,8 @@ const tag = ref();
 const separatorExp = ref(/,| /);
 const confirmDeleteImage = ref(false);
 const modeReorder = ref(false);
+const draggedItemIndex = ref(null);
+const data_sort = ref([]);
 
 onUnmounted(() => {});
 onMounted(() => {
@@ -238,7 +240,7 @@ function getDocumentImageGroup() {
     .then((res) => {
       if (res.success) {
         console.log("getDocumentImageGroup");
-        console.log(res);
+        console.log(res.data);
         if (res.data == null) {
           showSkeleton.value = false;
           data_list.value = [];
@@ -251,7 +253,7 @@ function getDocumentImageGroup() {
             return element;
           });
 
-          data_list.value.forEach((element) => {
+          data_list.value.forEach((element, index) => {
             element.ischecked = false;
           });
 
@@ -822,7 +824,6 @@ function showDetailGlImage(docno) {
 }
 
 function dragStart(data) {
-  console.log(data);
   if (taskDetail.value.status != 0) {
     return;
   }
@@ -831,28 +832,30 @@ function dragStart(data) {
   imagesDragReject.value = data.status;
   imagesDragReferences.value = data.references.length;
 
-  console.log(imagesDragReject.value);
-
-  if (checkUseImg(data.guidfixed)) {
-    return;
-  } else {
-    //console.log(data);
-    if (
-      data.imagereferences.length == 1 &&
-      data.isreject != 2 &&
-      data.references.length == 0
-    ) {
-      if (selectedImg.value.length == 0) {
-        selectedImg.value.push({
-          guidfixed: data.guidfixed,
-          tags: data.tags,
-          documentimageguid: data.imagereferences[0],
-        });
-        ischeckedImage();
-      }
-    } else {
+  if (!modeReorder.value) {
+    if (checkUseImg(data.guidfixed)) {
       return;
+    } else {
+      //console.log(data);
+      if (
+        data.imagereferences.length == 1 &&
+        data.isreject != 2 &&
+        data.references.length == 0
+      ) {
+        if (selectedImg.value.length == 0) {
+          selectedImg.value.push({
+            guidfixed: data.guidfixed,
+            tags: data.tags,
+            documentimageguid: data.imagereferences[0],
+          });
+          ischeckedImage();
+        }
+      } else {
+        return;
+      }
     }
+  } else {
+    draggedItemIndex.value = data.xorder;
   }
 }
 
@@ -871,9 +874,9 @@ function allowDrop(data, event) {
   if (allowDropImage.value != data.guidfixed) {
     allowDropImage.value = data.guidfixed;
   } else {
-    //return;
+    return;
   }
-  //console.log(allowDropImage.value);
+  console.log(allowDropImage.value);
 
   // console.log(data);
   // console.log(event);
@@ -886,15 +889,15 @@ async function drop(data, event) {
   console.log("drop");
   console.log(data);
 
+  addImageGuidfixed.value = data.guidfixed;
+  addImagenewData.value = data.imagereferences;
+
+  if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
+    removeSelectedImg();
+    return;
+  }
+
   if (!modeReorder.value) {
-    addImageGuidfixed.value = data.guidfixed;
-    addImagenewData.value = data.imagereferences;
-
-    if (addImageGuidfixed.value == imagesDragData.value.guidfixed) {
-      removeSelectedImg();
-      return;
-    }
-
     if (data.isreject != 2 && data.references.length == 0) {
       //จัดชุดใหม่
       if (data.imagereferences.length == 1) {
@@ -944,8 +947,61 @@ async function drop(data, event) {
       }
     }
   } else {
-    console.log("reorder");
+    // console.log("start: " + draggedItemIndex.value);
+    // console.log("end: " + data.xorder);
+
+    let startXorder = Math.min(draggedItemIndex.value, data.xorder);
+    let endXorder = Math.max(draggedItemIndex.value, data.xorder);
+
+    if (draggedItemIndex.value !== null) {
+      const draggedItem = data_list.value[draggedItemIndex.value];
+      data_list.value.splice(draggedItemIndex.value, 1);
+      data_list.value.splice(data.xorder, 0, draggedItem);
+
+      data_list.value.forEach((element, index) => {
+        if (element.xorder >= startXorder && element.xorder <= endXorder) {
+          data_sort.value.push({
+            taskguid: jobId.value,
+            guidfixed: element.guidfixed,
+            xorder: index,
+          });
+        }
+        element.xorder = index;
+      });
+
+      draggedItemIndex.value = data.xorder;
+
+      // console.log(data_sort.value);
+      // console.log(data_list.value);
+
+      updateDocumentImageXsort();
+    }
   }
+}
+
+function updateDocumentImageXsort() {
+  ImageDataService.putDocumentImageXsort(data_sort.value)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        data_sort.value = [];
+        toast.add({
+          severity: "success",
+          summary: "Success",
+          detail: "Success",
+          life: 1000,
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
 }
 
 async function addImageGroup() {
@@ -1035,6 +1091,14 @@ function selectedDocument(isSelectedDoc) {
     removeSelectedImg();
   }
   ischeckedImage();
+}
+
+function selectedModeReorder(data) {
+  if (data) {
+    modeReorder.value = true;
+  } else {
+    modeReorder.value = false;
+  }
 }
 
 function removeSelectedImg() {
@@ -1257,6 +1321,10 @@ async function updateTagImage(id, data) {
     });
   }
 }
+
+function handleDragEnd() {
+  draggedItemIndex.value = null;
+}
 </script>
 <template>
   <AppLayout>
@@ -1294,7 +1362,7 @@ async function updateTagImage(id, data) {
 
         <div class="ml-1">
           <Button
-            :disabled="taskDetail.status != 0"
+            :disabled="taskDetail.status != 0 || modeReorder"
             :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
             class="text-black p-button-sm"
             :icon="
@@ -1308,14 +1376,20 @@ async function updateTagImage(id, data) {
             "
           />
         </div>
-        <!-- <div class="ml-1">
+        <div class="ml-1">
           <Button
+            :disabled="isSelectedDocument"
+            :class="!modeReorder ? 'surface-800' : 'surface-700'"
             class="p-button-info text-white p-button-sm"
-            icon="pi pi-pencil"
-            label="เรียงรูป"
-            @click="modeReorder = true"
+            :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"
+            :label="!modeReorder ? 'เรียงรูป' : 'ยกเลิกเรียงรูป'"
+            @click="
+              !modeReorder
+                ? selectedModeReorder(true)
+                : selectedModeReorder(false)
+            "
           />
-        </div> -->
+        </div>
         <div class="ml-1">
           <Button
             v-if="selectedImg.length > 0"
@@ -1374,13 +1448,12 @@ async function updateTagImage(id, data) {
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
-                <div
-                  v-if="isDataListNull == false"
-                  class="flex"
-                  v-for="data in data_list"
-                  :key="data.guidfixed"
-                >
+                <TransitionGroup name="fade">
                   <div
+                    v-if="isDataListNull == false"
+                    class="flex"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
                     draggable="true"
                     @dragstart="dragStart(data, $event)"
                     @drag="
@@ -1391,6 +1464,7 @@ async function updateTagImage(id, data) {
                         ? dragging(data, $event)
                         : ''
                     "
+                    @dragend="modeReorder ? handleDragEnd() : ''"
                     @drop="
                       taskDetail.status == 0 &&
                       imagesDragCount == 1 &&
@@ -1407,6 +1481,7 @@ async function updateTagImage(id, data) {
                         ? allowDrop(data, $event)
                         : ''
                     "
+                    @dragover.prevent
                   >
                     <ImageBlock
                       :modeMenu="1"
@@ -1423,23 +1498,28 @@ async function updateTagImage(id, data) {
                     >
                     </ImageBlock>
                   </div>
-                </div>
-                <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
                   <div
-                    class="text-center m-3"
-                    style="width: 90px; height: 90px"
+                    class="flex"
+                    v-for="i in 50"
+                    :key="i"
+                    v-if="showSkeleton"
                   >
                     <div
-                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      class="text-center m-3"
+                      style="width: 90px; height: 90px"
                     >
-                      <Skeleton
-                        style="width: 90px; height: 90px; object-fit: cover"
-                      ></Skeleton>
-                    </div>
+                      <div
+                        class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      >
+                        <Skeleton
+                          style="width: 90px; height: 90px; object-fit: cover"
+                        ></Skeleton>
+                      </div>
 
-                    <Skeleton class="mt-2"></Skeleton>
+                      <Skeleton class="mt-2"></Skeleton>
+                    </div>
                   </div>
-                </div>
+                </TransitionGroup>
               </div>
             </div>
           </SplitterPanel>
@@ -1606,5 +1686,21 @@ async function updateTagImage(id, data) {
 
 .p-inputtext.p-inputtext-sm {
   font-size: 0.875rem;
+}
+
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+.fade-leave-active {
+  position: absolute;
 }
 </style>

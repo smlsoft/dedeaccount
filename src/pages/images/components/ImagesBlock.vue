@@ -428,7 +428,7 @@ function selectImg(data, tags, documentimageguid) {
 function zoomImg(data) {
   if (
     props.isSelectedDocument ||
-    (props.ischeckApprove && props.images_data.status == 0)
+    (props.ischeckApprove && props.images_data.status == 0 )
   ) {
     selectModeImage();
   }

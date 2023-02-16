@@ -286,25 +286,25 @@ function closeEditImage() {
         />
         <div v-if="props.modeMenu == 2">
           <Button
-            :disabled="props.selectedImag.references.length > 0"
+            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 1"
             label="ผ่าน"
             @click="upDateStatusImage(1)"
             class="p-button-success p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0"
+            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 2"
             label="ไม่ผ่าน"
             @click="upDateStatusImage(2)"
             class="p-button-danger p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0"
+            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 3"
             label="ห้ามบันทึกรายวัน"
             @click="upDateStatusImage(3)"
             class="p-button-warning p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0"
+            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 0"
             label="รอตรวจสอบ"
             @click="upDateStatusImage(0)"
             class="p-button-secondary p-button-sm"

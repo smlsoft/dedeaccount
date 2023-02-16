@@ -43,10 +43,8 @@ export default {
             sortStatus = "&status=" + status
         }
 
-
-
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}${sortStatus}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=guidfixed:1&${sortField}:${sortOrder}${filterDate}${sorttaskguid}${sortStatus}`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},guidfixed:1${filterDate}${sorttaskguid}${sortStatus}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},guidfixed:1${filterDate}${sorttaskguid}${sortStatus}`).then(res => res.data);
     },
     // add update tags in document image group
     putDocumentImageGroupTags(id, data) {
@@ -126,5 +124,10 @@ export default {
     // ลบ
     deleteDocumentImageGroup(data) {
         return instanceApi(true).delete(`/documentimagegroup`, { data: data }).then(res => res.data);
-    }
+    },
+
+    //เรียงรูปใน JOB
+    putDocumentImageXsort(data) {
+        return instanceApi(true).put(`/documentimagegroup/xsort`, data).then(res => res.data);
+    },
 }

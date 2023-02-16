@@ -157,5 +157,4 @@ app.use(PrimeVue);
 app.use(router);
 app.use(ToastService);
 app.use(i18n);
-
 app.mount('#app')

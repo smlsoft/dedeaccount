@@ -748,6 +748,7 @@ function ischeckedImage() {
     var result = selectedImg.value.filter(function (data) {
       return data.guidfixed == main.guidfixed;
     });
+    console.log(result.length);
     if (result.length > 0) {
       main.ischecked = true;
     } else {
