@@ -92,6 +92,10 @@ const separatorExp = ref(/,| /);
 const confirmDeleteImage = ref(false);
 const data_set_group = ref([]);
 const confirmGroupImageDialog = ref(false);
+const modeReorder = ref(false);
+const draggedItemIndex = ref(null);
+const data_sort = ref([]);
+
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
@@ -348,10 +352,9 @@ async function updateStatus(guidfixed, data_status) {
 }
 
 async function updateStatusFrist(data) {
-  // if (isSelectedDocument.value) {
-  //   selectImg(data);
-  //   return;
-  // }
+  if (isSelectedDocument.value) {
+    selectImg(data);
+  }
   // console.log(data.guidfixed);
   // // 99= ตั้งค่าสถานะให้ icon โหลด
   // data_list.value.filter(function (ele) {
@@ -573,27 +576,30 @@ function dragStart(data) {
   imagesDragReferences.value = data.references.length;
 
   console.log(imagesDragReject.value);
-
-  if (checkUseImg(data.guidfixed)) {
-    return;
-  } else {
-    //console.log(data);
-    if (
-      data.imagereferences.length == 1 &&
-      data.isreject != 2 &&
-      data.references.length == 0
-    ) {
-      if (selectedImg.value.length == 0) {
-        selectedImg.value.push({
-          guidfixed: data.guidfixed,
-          tags: data.tags,
-          documentimageguid: data.imagereferences[0],
-        });
-        ischeckedImage();
-      }
-    } else {
+  if (!modeReorder.value) {
+    if (checkUseImg(data.guidfixed)) {
       return;
+    } else {
+      //console.log(data);
+      if (
+        data.imagereferences.length == 1 &&
+        data.isreject != 2 &&
+        data.references.length == 0
+      ) {
+        if (selectedImg.value.length == 0) {
+          selectedImg.value.push({
+            guidfixed: data.guidfixed,
+            tags: data.tags,
+            documentimageguid: data.imagereferences[0],
+          });
+          ischeckedImage();
+        }
+      } else {
+        return;
+      }
     }
+  } else {
+    draggedItemIndex.value = data.xorder;
   }
 }
 
@@ -634,55 +640,110 @@ async function drop(data, event) {
     removeSelectedImg();
     return;
   }
-
-  if (data.isreject != 2 && data.references.length == 0) {
-    //จัดชุดใหม่
-    if (data.imagereferences.length == 1) {
-      let result = [];
-      result = selectedImg.value.filter(
-        (el) => el.guidfixed == addImageGuidfixed.value
-      );
-      if (result.length > 0) {
-        let result_detail = [];
-        result_detail = selectedImg.value.filter(
-          (el) => el.guidfixed == imagesDragData.value.guidfixed
+  if (!modeReorder.value) {
+    if (data.isreject != 2 && data.references.length == 0) {
+      //จัดชุดใหม่
+      if (data.imagereferences.length == 1) {
+        let result = [];
+        result = selectedImg.value.filter(
+          (el) => el.guidfixed == addImageGuidfixed.value
         );
-        if (result_detail.length > 0) {
+        if (result.length > 0) {
+          let result_detail = [];
+          result_detail = selectedImg.value.filter(
+            (el) => el.guidfixed == imagesDragData.value.guidfixed
+          );
+          if (result_detail.length > 0) {
+            updateRefDialog.value = true;
+          } else {
+            selectedImg.value.push({
+              guidfixed: imagesDragData.value.guidfixed,
+              tags: data.tags,
+              documentimageguid: imagesDragData.value.imagereferences[0],
+            });
+          }
           updateRefDialog.value = true;
         } else {
           selectedImg.value.push({
-            guidfixed: imagesDragData.value.guidfixed,
+            guidfixed: data.guidfixed,
             tags: data.tags,
-            documentimageguid: imagesDragData.value.imagereferences[0],
+            documentimageguid: data.imagereferences[0],
+          });
+          updateRefDialog.value = true;
+        }
+
+        let tags = [];
+        selectedImg.value.forEach((element, index) => {
+          if (element.tags != undefined) {
+            tags = [...tags, ...element.tags];
+          }
+        });
+        tag.value = Array.from(new Set(tags));
+
+        console.log(tag.value);
+        console.log(selectedImg.value);
+        ischeckedImage();
+        //เพิ่มรูปเข้าชุด
+      } else {
+        addToGroup.value = data.title;
+        confirmGroupImageDialog.value = true;
+      }
+    }
+  } else {
+    // console.log("start: " + draggedItemIndex.value);
+    // console.log("end: " + data.xorder);
+
+    let startXorder = Math.min(draggedItemIndex.value, data.xorder);
+    let endXorder = Math.max(draggedItemIndex.value, data.xorder);
+
+    if (draggedItemIndex.value !== null) {
+      const draggedItem = data_list.value[draggedItemIndex.value];
+      data_list.value.splice(draggedItemIndex.value, 1);
+      data_list.value.splice(data.xorder, 0, draggedItem);
+
+      data_list.value.forEach((element, index) => {
+        if (element.xorder >= startXorder && element.xorder <= endXorder) {
+          data_sort.value.push({
+            guidfixed: element.guidfixed,
+            xorder: index,
           });
         }
-        updateRefDialog.value = true;
-      } else {
-        selectedImg.value.push({
-          guidfixed: data.guidfixed,
-          tags: data.tags,
-          documentimageguid: data.imagereferences[0],
-        });
-        updateRefDialog.value = true;
-      }
-
-      let tags = [];
-      selectedImg.value.forEach((element, index) => {
-        if (element.tags != undefined) {
-          tags = [...tags, ...element.tags];
-        }
+        element.xorder = index;
       });
-      tag.value = Array.from(new Set(tags));
 
-      console.log(tag.value);
-      console.log(selectedImg.value);
-      ischeckedImage();
-      //เพิ่มรูปเข้าชุด
-    } else {
-      addToGroup.value = data.title;
-      confirmGroupImageDialog.value = true;
+      draggedItemIndex.value = data.xorder;
+
+      // console.log(data_sort.value);
+      // console.log(data_list.value);
+
+      updateDocumentImageXsort();
     }
   }
+}
+
+function updateDocumentImageXsort() {
+  ImageDataService.putDocumentImageXsort(jobId.value, data_sort.value)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        data_sort.value = [];
+        toast.add({
+          severity: "success",
+          summary: "Success",
+          detail: "Success",
+          life: 1000,
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
 }
 
 async function addImageGroup() {
@@ -748,7 +809,7 @@ function ischeckedImage() {
     var result = selectedImg.value.filter(function (data) {
       return data.guidfixed == main.guidfixed;
     });
-    console.log(result.length);
+    // console.log(result.length);
     if (result.length > 0) {
       main.ischecked = true;
     } else {
@@ -909,6 +970,14 @@ async function updateTagImage(id, data) {
     });
   }
 }
+
+function selectedModeReorder(data) {
+  if (data) {
+    modeReorder.value = true;
+  } else {
+    modeReorder.value = false;
+  }
+}
 </script>
 <template>
   <AppLayout>
@@ -966,7 +1035,26 @@ async function updateTagImage(id, data) {
         </div>
         <div class="ml-1">
           <Button
-            :disabled="job.status == 3 || job.status == 4 || !ischeckApprove"
+            :disabled="isSelectedDocument"
+            :class="!modeReorder ? 'surface-800' : 'surface-700'"
+            class="p-button-info text-white p-button-sm"
+            :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"
+            :label="!modeReorder ? 'เรียงรูป' : 'ยกเลิกเรียงรูป'"
+            @click="
+              !modeReorder
+                ? selectedModeReorder(true)
+                : selectedModeReorder(false)
+            "
+          />
+        </div>
+        <div class="ml-1">
+          <Button
+            :disabled="
+              job.status == 3 ||
+              job.status == 4 ||
+              !ischeckApprove ||
+              modeReorder
+            "
             :class="!isSelectedDocument ? 'surface-600' : 'surface-700'"
             class="text-black p-button-sm"
             :icon="
@@ -1040,26 +1128,15 @@ async function updateTagImage(id, data) {
               ]"
               class="m-2"
             >
-              <!-- <div class="flex align-items-center justify-content-center">
-                <div class="p-inputgroup">
-                  <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button
-                    icon="pi pi-search"
-                    @click="getDocumentImageGroup()"
-                    class="p-button-primary"
-                  />
-                </div>
-              </div> -->
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
-                <div
-                  v-if="isDataListNull == false"
-                  class="flex"
-                  v-for="data in data_list"
-                  :key="data.guidfixed"
-                >
+                <TransitionGroup name="fade">
                   <div
+                    v-if="isDataListNull == false"
+                    class="flex"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
                     draggable="true"
                     @dragstart="dragStart(data, $event)"
                     @drag="
@@ -1086,6 +1163,7 @@ async function updateTagImage(id, data) {
                         ? allowDrop(data, $event)
                         : ''
                     "
+                    @dragover.prevent
                   >
                     <ImageBlock
                       :modeMenu="2"
@@ -1101,7 +1179,7 @@ async function updateTagImage(id, data) {
                     >
                     </ImageBlock>
                   </div>
-                </div>
+                </TransitionGroup>
                 <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
                   <div
                     class="text-center m-3"
@@ -1256,5 +1334,21 @@ async function updateTagImage(id, data) {
 
 .p-inputtext.p-inputtext-sm {
   font-size: 0.875rem;
+}
+
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+.fade-leave-active {
+  position: absolute;
 }
 </style>

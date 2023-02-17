@@ -127,7 +127,7 @@ export default {
     },
 
     //เรียงรูปใน JOB
-    putDocumentImageXsort(data) {
-        return instanceApi(true).put(`/documentimagegroup/xsort`, data).then(res => res.data);
+    putDocumentImageXsort(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/xsort/${id}`, data).then(res => res.data);
     },
 }

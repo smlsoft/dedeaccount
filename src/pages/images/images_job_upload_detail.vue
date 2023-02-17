@@ -961,7 +961,6 @@ async function drop(data, event) {
       data_list.value.forEach((element, index) => {
         if (element.xorder >= startXorder && element.xorder <= endXorder) {
           data_sort.value.push({
-            taskguid: jobId.value,
             guidfixed: element.guidfixed,
             xorder: index,
           });
@@ -980,7 +979,7 @@ async function drop(data, event) {
 }
 
 function updateDocumentImageXsort() {
-  ImageDataService.putDocumentImageXsort(data_sort.value)
+  ImageDataService.putDocumentImageXsort(jobId.value, data_sort.value)
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -1359,7 +1358,20 @@ function handleDragEnd() {
             @click="updateRefDialog = true"
           />
         </div>
-
+        <div class="ml-1">
+          <Button
+            :disabled="isSelectedDocument"
+            :class="!modeReorder ? 'surface-800' : 'surface-700'"
+            class="p-button-info text-white p-button-sm"
+            :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"
+            :label="!modeReorder ? 'เรียงรูป' : 'ยกเลิกเรียงรูป'"
+            @click="
+              !modeReorder
+                ? selectedModeReorder(true)
+                : selectedModeReorder(false)
+            "
+          />
+        </div>
         <div class="ml-1">
           <Button
             :disabled="taskDetail.status != 0 || modeReorder"
@@ -1373,20 +1385,6 @@ function handleDragEnd() {
               !isSelectedDocument
                 ? selectedDocument(true)
                 : selectedDocument(false)
-            "
-          />
-        </div>
-        <div class="ml-1">
-          <Button
-            :disabled="isSelectedDocument"
-            :class="!modeReorder ? 'surface-800' : 'surface-700'"
-            class="p-button-info text-white p-button-sm"
-            :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"
-            :label="!modeReorder ? 'เรียงรูป' : 'ยกเลิกเรียงรูป'"
-            @click="
-              !modeReorder
-                ? selectedModeReorder(true)
-                : selectedModeReorder(false)
             "
           />
         </div>
@@ -1498,28 +1496,23 @@ function handleDragEnd() {
                     >
                     </ImageBlock>
                   </div>
+                </TransitionGroup>
+                <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
                   <div
-                    class="flex"
-                    v-for="i in 50"
-                    :key="i"
-                    v-if="showSkeleton"
+                    class="text-center m-3"
+                    style="width: 90px; height: 90px"
                   >
                     <div
-                      class="text-center m-3"
-                      style="width: 90px; height: 90px"
+                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
                     >
-                      <div
-                        class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
-                      >
-                        <Skeleton
-                          style="width: 90px; height: 90px; object-fit: cover"
-                        ></Skeleton>
-                      </div>
-
-                      <Skeleton class="mt-2"></Skeleton>
+                      <Skeleton
+                        style="width: 90px; height: 90px; object-fit: cover"
+                      ></Skeleton>
                     </div>
+
+                    <Skeleton class="mt-2"></Skeleton>
                   </div>
-                </TransitionGroup>
+                </div>
               </div>
             </div>
           </SplitterPanel>
