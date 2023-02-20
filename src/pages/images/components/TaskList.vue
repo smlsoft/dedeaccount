@@ -21,7 +21,8 @@
         {{ Utils.getDateFormatDMYHMS(slotProps.data.ownerat) }}
       </template>
     </Column>
-    <Column field="name" header="ชื่อ"></Column>
+    <Column field="code" header="เลขที่งาน"></Column>
+    <Column field="name" header="ชื่องาน"></Column>
     <Column v-if="props.modeMenu != 3" field="total" header="จำนวน"></Column>
     <Column
       v-if="props.modeMenu == 1 || props.modeMenu == 2"
@@ -100,7 +101,7 @@
         <div class="flex-none flex align-items-center justify-content-start">
           <Button
             v-if="props.modeMenu == 1"
-            label="สร้าง Job"
+            label="สร้างงาน"
             icon="pi pi-plus"
             class="w-auto"
             @click="showDialogCreateJob"

@@ -23,5 +23,8 @@ export default {
         return instanceApi(true).put(`/task/` + id + `/status`, data).then(res => res.data);
     },
 
+    getGenerateTaskID() {
+        return instanceApi(true).get(`/task/generate-code`).then(res => res.data);
+    },
 }
 

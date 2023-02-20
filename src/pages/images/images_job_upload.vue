@@ -28,6 +28,8 @@ const sortOrder = ref(-1);
 
 const dialogCreateJob = ref(false);
 const jobDate = ref(new Date());
+const jobId = ref("");
+const jobId_valid = ref(false);
 const jobName = ref("");
 const jobName_valid = ref(false);
 const jobDescription = ref("");
@@ -70,8 +72,28 @@ function getTaskList() {
 }
 
 function showDialogCreateJob() {
+  getGenerateTaskID();
   jobDate.value = new Date();
   dialogCreateJob.value = true;
+}
+
+async function getGenerateTaskID() {
+  try {
+    const res = await TaskService.getGenerateTaskID();
+    if (res.success) {
+      // console.log("getGenerateTaskID");
+      // console.log(res.data);
+      jobId.value = res.data;
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: err,
+      life: 3000,
+    });
+  }
 }
 
 function closeDialogCreateJob() {
@@ -80,6 +102,8 @@ function closeDialogCreateJob() {
 }
 
 function clearDataFrom() {
+  jobId.value = "";
+  jobId_valid.value = false;
   jobName.value = "";
   jobName_valid.value = false;
   jobDescription.value = "";
@@ -87,8 +111,11 @@ function clearDataFrom() {
 async function saveJob() {
   if (jobName.value == "") {
     jobName_valid.value = true;
+  } else if (jobId.value == "") {
+    jobId_valid.value = true;
   } else {
     let data = {
+      code: jobId.value,
       name: jobName.value,
       description: jobDescription.value,
       status: 0,
@@ -198,7 +225,17 @@ function doneTyping() {
         />
       </div>
       <div class="field mb-12 col-12 md:col-12">
-        <label for="jobName" class="font-medium text-900">เลขที่ Job</label>
+        <label for="jobId" class="font-medium text-900">เลขที่งาน</label>
+        <InputText
+          :disabled="true"
+          id="jobId"
+          type="text"
+          v-model="jobId"
+          :class="jobId_valid ? 'p-invalid' : ''"
+        />
+      </div>
+      <div class="field mb-12 col-12 md:col-12">
+        <label for="jobName" class="font-medium text-900">ชื่องาน</label>
         <InputText
           id="jobName"
           type="text"

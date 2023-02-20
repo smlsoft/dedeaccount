@@ -131,6 +131,8 @@ const confirmDeleteImage = ref(false);
 const modeReorder = ref(false);
 const draggedItemIndex = ref(null);
 const data_sort = ref([]);
+const startIndex = ref();
+const endIndex = ref();
 
 onUnmounted(() => {});
 onMounted(() => {
@@ -152,6 +154,8 @@ function getTaskById(guidfixed) {
       }
     })
     .catch((err) => {
+      router.push({ name: "images_job_upload" });
+      console.log(err);
       toast.add({
         severity: "error",
         summary: "Error",
@@ -267,6 +271,7 @@ function getDocumentImageGroup() {
     })
 
     .catch((err) => {
+      console.log(err);
       toast.add({
         severity: "error",
         summary: "Error",
@@ -560,11 +565,30 @@ async function documentImageUnGroup(data) {
           detail: "บันทึกข้อมูลสำเร็จ",
           life: 3000,
         });
+        showImgData.value = null;
+        activePage.value = 1;
+
+        getDocumentImageGroup();
+
         setTimeout(() => {
-          activePage.value = 1;
-          getDocumentImageGroup();
-          showImgData.value = null;
-        }, 100);
+          // เรียง xorder ใหม่
+          data_list.value = data_list.value.map((item, index) => {
+            return { ...item, xorder: index };
+          });
+
+          data_list.value.forEach((element, index) => {
+            data_sort.value.push({
+              guidfixed: element.guidfixed,
+              xorder: index,
+            });
+          });
+
+          // console.log(data_list.value);
+          // console.log(data_sort.value);
+
+          //update xorder ใหม่
+          updateDocumentImageXsort();
+        }, 200);
       }
     })
     .catch((err) => {
@@ -823,14 +847,17 @@ function showDetailGlImage(docno) {
     });
 }
 
-function dragStart(data) {
+function dragStart(data, event, index) {
   if (taskDetail.value.status != 0) {
     return;
   }
+
   imagesDragData.value = data;
   imagesDragCount.value = data.imagereferences.length;
   imagesDragReject.value = data.status;
   imagesDragReferences.value = data.references.length;
+
+  startIndex.value = index;
 
   if (!modeReorder.value) {
     if (checkUseImg(data.guidfixed)) {
@@ -860,35 +887,50 @@ function dragStart(data) {
 }
 
 function dragging(data, event) {
-  if (checkUseImg(data.guidfixed)) {
-    return;
+  if (
+    taskDetail.value.status == 0 &&
+    imagesDragCount.value == 1 &&
+    imagesDragReject.value != 2 &&
+    imagesDragReferences.value == 0
+  ) {
+    if (checkUseImg(data.guidfixed)) {
+      return;
+    }
+    event.stopPropagation();
+    event.preventDefault();
   }
-  event.stopPropagation();
-  event.preventDefault();
 }
 
 function allowDrop(data, event) {
-  if (checkUseImg(data.guidfixed)) {
-    return;
-  }
-  if (allowDropImage.value != data.guidfixed) {
-    allowDropImage.value = data.guidfixed;
-  } else {
-    return;
-  }
-  console.log(allowDropImage.value);
+  if (
+    taskDetail.value.status == 0 &&
+    imagesDragCount.value == 1 &&
+    imagesDragReject.value != 2 &&
+    imagesDragReferences.value == 0
+  ) {
+    if (checkUseImg(data.guidfixed)) {
+      return;
+    }
+    if (allowDropImage.value != data.guidfixed) {
+      allowDropImage.value = data.guidfixed;
+    } else {
+      return;
+    }
+    console.log(allowDropImage.value);
 
-  // console.log(data);
-  // console.log(event);
-  event.stopPropagation();
-  event.preventDefault();
+    // console.log(data);
+    // console.log(event);
+    event.stopPropagation();
+    event.preventDefault();
+  }
 }
 
-async function drop(data, event) {
+async function drop(data, event, index) {
   event.preventDefault();
   console.log("drop");
   console.log(data);
 
+  endIndex.value = index;
   addImageGuidfixed.value = data.guidfixed;
   addImagenewData.value = data.imagereferences;
 
@@ -898,52 +940,59 @@ async function drop(data, event) {
   }
 
   if (!modeReorder.value) {
-    if (data.isreject != 2 && data.references.length == 0) {
-      //จัดชุดใหม่
-      if (data.imagereferences.length == 1) {
-        let result = [];
-        result = selectedImg.value.filter(
-          (el) => el.guidfixed == addImageGuidfixed.value
-        );
-        if (result.length > 0) {
-          let result_detail = [];
-          result_detail = selectedImg.value.filter(
-            (el) => el.guidfixed == imagesDragData.value.guidfixed
+    if (
+      taskDetail.value.status == 0 &&
+      imagesDragCount.value == 1 &&
+      imagesDragReject.value != 2 &&
+      imagesDragReferences.value == 0
+    ) {
+      if (data.isreject != 2 && data.references.length == 0) {
+        //จัดชุดใหม่
+        if (data.imagereferences.length == 1) {
+          let result = [];
+          result = selectedImg.value.filter(
+            (el) => el.guidfixed == addImageGuidfixed.value
           );
-          if (result_detail.length > 0) {
+          if (result.length > 0) {
+            let result_detail = [];
+            result_detail = selectedImg.value.filter(
+              (el) => el.guidfixed == imagesDragData.value.guidfixed
+            );
+            if (result_detail.length > 0) {
+              updateRefDialog.value = true;
+            } else {
+              selectedImg.value.push({
+                guidfixed: imagesDragData.value.guidfixed,
+                tags: data.tags,
+                documentimageguid: imagesDragData.value.imagereferences[0],
+              });
+            }
             updateRefDialog.value = true;
           } else {
             selectedImg.value.push({
-              guidfixed: imagesDragData.value.guidfixed,
+              guidfixed: data.guidfixed,
               tags: data.tags,
-              documentimageguid: imagesDragData.value.imagereferences[0],
+              documentimageguid: data.imagereferences[0],
             });
+            updateRefDialog.value = true;
           }
-          updateRefDialog.value = true;
-        } else {
-          selectedImg.value.push({
-            guidfixed: data.guidfixed,
-            tags: data.tags,
-            documentimageguid: data.imagereferences[0],
+
+          let tags = [];
+          selectedImg.value.forEach((element, index) => {
+            if (element.tags != undefined) {
+              tags = [...tags, ...element.tags];
+            }
           });
-          updateRefDialog.value = true;
+          tag.value = Array.from(new Set(tags));
+
+          console.log(tag.value);
+          console.log(selectedImg.value);
+          ischeckedImage();
+          //เพิ่มรูปเข้าชุด
+        } else {
+          addToGroup.value = data.title;
+          confirmGroupImageDialog.value = true;
         }
-
-        let tags = [];
-        selectedImg.value.forEach((element, index) => {
-          if (element.tags != undefined) {
-            tags = [...tags, ...element.tags];
-          }
-        });
-        tag.value = Array.from(new Set(tags));
-
-        console.log(tag.value);
-        console.log(selectedImg.value);
-        ischeckedImage();
-        //เพิ่มรูปเข้าชุด
-      } else {
-        addToGroup.value = data.title;
-        confirmGroupImageDialog.value = true;
       }
     }
   } else {
@@ -979,17 +1028,23 @@ async function drop(data, event) {
 }
 
 function updateDocumentImageXsort() {
+  console.log("updateDocumentImageXsort");
   ImageDataService.putDocumentImageXsort(jobId.value, data_sort.value)
     .then((res) => {
       console.log(res);
       if (res.success) {
         data_sort.value = [];
-        toast.add({
-          severity: "success",
-          summary: "Success",
-          detail: "Success",
-          life: 1000,
-        });
+        startIndex.value = null;
+        endIndex.value = null;
+
+        console.log(data_list.value);
+
+        // toast.add({
+        //   severity: "success",
+        //   summary: "Success",
+        //   detail: "Success",
+        //   life: 1000,
+        // });
       }
     })
     .catch((err) => {
@@ -1001,49 +1056,6 @@ function updateDocumentImageXsort() {
         life: 3000,
       });
     });
-}
-
-async function addImageGroup() {
-  selectedImg.value.forEach((element) => {
-    element.documentimageguid.xorder = addImagenewData.value.length;
-    addImagenewData.value.push(element.documentimageguid);
-  });
-  try {
-    const res = await ImageDataService.putAddImageInGroup(
-      addImageGuidfixed.value,
-      addImagenewData.value
-    );
-    //console.log(res);
-    if (res.success) {
-      confirmGroupImageDialog.value = false;
-      activePage.value = 1;
-      selectedImg.value = [];
-      addImageGuidfixed.value = "";
-      addImagenewData.value = [];
-      isSelectedDocument.value = false;
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
-
-      setTimeout(() => {
-        getDocumentImageGroup();
-      }, 500);
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-function addToGroupImage(data) {
-  data_set_group.value.push(data);
-  data_list.value = data_list.value.filter(
-    (item) => !data_set_group.value.includes(item)
-  );
-
-  console.log(data_set_group.value);
 }
 
 function verifyData() {
@@ -1179,20 +1191,22 @@ async function saveGropImages() {
         detail: "บันทึกข้อมูลสำเร็จ",
         life: 3000,
       });
+
+      isSelectedDocument.value = false;
+      imageGroup.value = null;
+      title.value = "";
+      title_valid.value = false;
+      uploadedat.value = new Date();
+      title2.value = "";
+      title2_valid.value = false;
+      uploadedat2.value = new Date();
+      updateRefDialog.value = false;
+      data_set_group.value = [];
+      selectedImg.value = [];
+      activePage.value = 1;
+
       setTimeout(() => {
-        isSelectedDocument.value = false;
-        imageGroup.value = null;
-        title.value = "";
-        title_valid.value = false;
-        uploadedat.value = new Date();
-        title2.value = "";
-        title2_valid.value = false;
-        uploadedat2.value = new Date();
-        updateRefDialog.value = false;
-        data_set_group.value = [];
-        selectedImg.value = [];
-        activePage.value = 1;
-        getDocumentImageGroup();
+        getDocumentImageGroupById(res.id);
       }, 100);
     }
   } catch (err) {
@@ -1204,6 +1218,98 @@ async function saveGropImages() {
       life: 3000,
     });
   }
+}
+
+async function addImageGroup() {
+  selectedImg.value.forEach((element) => {
+    element.documentimageguid.xorder = addImagenewData.value.length;
+    addImagenewData.value.push(element.documentimageguid);
+  });
+
+  console.log(addImageGuidfixed.value);
+
+  try {
+    const res = await ImageDataService.putAddImageInGroup(
+      addImageGuidfixed.value,
+      addImagenewData.value
+    );
+    //console.log(res);
+    if (res.success) {
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+      confirmGroupImageDialog.value = false;
+      activePage.value = 1;
+      selectedImg.value = [];
+      addImagenewData.value = [];
+      isSelectedDocument.value = false;
+
+      setTimeout(() => {
+        getDocumentImageGroupById(addImageGuidfixed.value);
+        addImageGuidfixed.value = "";
+      }, 100);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function addToGroupImage(data) {
+  data_set_group.value.push(data);
+  data_list.value = data_list.value.filter(
+    (item) => !data_set_group.value.includes(item)
+  );
+
+  console.log(data_set_group.value);
+}
+
+function getDocumentImageGroupById(id) {
+  ImageDataService.getDocumentImageGroupById(id)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        console.log("startIndex :" + startIndex.value);
+        console.log("endIndex :" + endIndex.value);
+
+        // ลบ index
+        const indicesToRemove = [startIndex.value, endIndex.value];
+        indicesToRemove
+          .sort((a, b) => b - a)
+          .forEach((index) => data_list.value.splice(index, 1));
+
+        // เพิ่ม data ในตำแหน่งที่วาง
+        data_list.value.splice(endIndex.value, 0, res.data);
+
+        // เรียง xorder ใหม่
+        data_list.value = data_list.value.map((item, index) => {
+          return { ...item, xorder: index };
+        });
+        //เก็บค่า xorder ใหม่ ไป update
+        data_list.value.forEach((element, index) => {
+          data_sort.value.push({
+            guidfixed: element.guidfixed,
+            xorder: index,
+          });
+        });
+
+        setTimeout(() => {
+          //update xorder ใหม่
+          updateDocumentImageXsort();
+        }, 100);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
 }
 
 function cancelGropImages() {
@@ -1450,35 +1556,14 @@ function handleDragEnd() {
                   <div
                     v-if="isDataListNull == false"
                     class="flex"
-                    v-for="data in data_list"
+                    v-for="(data, index) in data_list"
                     :key="data.guidfixed"
                     draggable="true"
-                    @dragstart="dragStart(data, $event)"
-                    @drag="
-                      taskDetail.status == 0 &&
-                      imagesDragCount == 1 &&
-                      imagesDragReject != 2 &&
-                      imagesDragReferences == 0
-                        ? dragging(data, $event)
-                        : ''
-                    "
+                    @dragstart="dragStart(data, $event, index)"
+                    @drag="dragging(data, $event)"
                     @dragend="modeReorder ? handleDragEnd() : ''"
-                    @drop="
-                      taskDetail.status == 0 &&
-                      imagesDragCount == 1 &&
-                      imagesDragReject != 2 &&
-                      imagesDragReferences == 0
-                        ? drop(data, $event)
-                        : ''
-                    "
-                    @dragover="
-                      taskDetail.status == 0 &&
-                      imagesDragCount == 1 &&
-                      imagesDragReject != 2 &&
-                      imagesDragReferences == 0
-                        ? allowDrop(data, $event)
-                        : ''
-                    "
+                    @drop="drop(data, $event, index)"
+                    @dragover="allowDrop(data, $event)"
                     @dragover.prevent
                   >
                     <ImageBlock
