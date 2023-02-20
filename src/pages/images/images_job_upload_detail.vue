@@ -1124,7 +1124,7 @@ function clearFilterDocumentImageGroup() {
   activePage.value = 1;
   searchItem.value = "";
   selectSort.value = "uploadedat";
-  sortOrder.value = -1;
+  sortOrder.value = 1;
   showImageBy.value = "";
   fromDate.value = "";
   toDate.value = "";
@@ -1430,6 +1430,35 @@ async function updateTagImage(id, data) {
 function handleDragEnd() {
   draggedItemIndex.value = null;
 }
+
+function updateXorderImageReferences(guidfiexd, data) {
+  ImageDataService.putUpdateImageDocumentimageGroup(guidfiexd, data)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        toast.add({
+          severity: "success",
+          summary: "Success",
+          detail: "Success",
+          life: 3000,
+        });
+
+        setTimeout(() => {
+          showImgData.value = null;
+          getDocumentImageGroup();
+        }, 200);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
+    });
+}
 </script>
 <template>
   <AppLayout>
@@ -1620,6 +1649,7 @@ function handleDragEnd() {
               v-on:onFileSelect="onFileNewSelect"
               v-on:documentImageUnGroup="documentImageUnGroup"
               v-on:updateTagImage="updateTagImage"
+              v-on:updateXorderImageReferences="updateXorderImageReferences"
             />
           </SplitterPanel>
         </Splitter>

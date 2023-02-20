@@ -31,6 +31,9 @@ const tag = ref();
 const separatorExp = ref(/,| /);
 const confirmRejectDialog = ref(false);
 const openEditImage = ref(false);
+const sortImageReferencesModel = ref(false);
+const draggedItemIndex = ref(null);
+const tempImageReferences = ref([]);
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -50,6 +53,7 @@ const emit = defineEmits([
   "updateTagImage",
   "createGL",
   "viewGL",
+  "updateXorderImageReferences",
 ]);
 
 onUnmounted(() => {});
@@ -154,6 +158,17 @@ const items = computed({
               props.selectedImag.imagereferences.length == 1 ||
               props.jobStatus == 1 ||
               props.jobStatus == 3,
+            label: "แก้ไขรูปภาพในชุด",
+            icon: "pi pi-image",
+            command: () => {
+              sortImageReferences();
+            },
+          },
+          {
+            disabled:
+              props.selectedImag.imagereferences.length == 1 ||
+              props.jobStatus == 1 ||
+              props.jobStatus == 3,
             label: "ยกเลิกชุดเอกสาร",
             icon: "pi pi-external-link",
             command: () => {
@@ -234,15 +249,65 @@ function viewGL(data) {
   emit("viewGL", result[0].docno);
 }
 
-function onTapItem() {
-  alert("tap");
-}
-
 function dialogEditImae() {
   openEditImage.value = true;
 }
 function closeEditImage() {
   openEditImage.value = false;
+}
+
+function handleDragStart(index) {
+  draggedItemIndex.value = index;
+}
+
+function handleDragEnd() {
+  draggedItemIndex.value = null;
+}
+
+function handleDrop(index) {
+  if (draggedItemIndex.value !== null) {
+    const draggedItem = tempImageReferences.value[draggedItemIndex.value];
+    tempImageReferences.value.splice(draggedItemIndex.value, 1);
+    tempImageReferences.value.splice(index, 0, draggedItem);
+
+    tempImageReferences.value.forEach((element, index) => {
+      element.xorder = index;
+    });
+
+    draggedItemIndex.value = index;
+
+    // console.log(tempImageReferences.value);
+  }
+}
+
+function sortImageReferences() {
+  props.selectedImag.imagereferences.forEach((element) => {
+    tempImageReferences.value.push(element);
+  });
+
+  sortImageReferencesModel.value = true;
+}
+
+function sortImageReferencesModelClose() {
+  tempImageReferences.value = [];
+  sortImageReferencesModel.value = false;
+}
+
+function sortImageReferencesModelSave() {
+  if (
+    JSON.stringify(props.selectedImag.imagereferences) ===
+    JSON.stringify(tempImageReferences.value)
+  ) {
+    tempImageReferences.value = [];
+  } else {
+    emit(
+      "updateXorderImageReferences",
+      props.selectedImag.guidfixed,
+      tempImageReferences.value
+    );
+  }
+
+  sortImageReferencesModel.value = false;
 }
 </script>
 
@@ -286,25 +351,37 @@ function closeEditImage() {
         />
         <div v-if="props.modeMenu == 2">
           <Button
-            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 1"
+            :disabled="
+              props.selectedImag.references.length > 0 ||
+              props.selectedImag.status == 1
+            "
             label="ผ่าน"
             @click="upDateStatusImage(1)"
             class="p-button-success p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 2"
+            :disabled="
+              props.selectedImag.references.length > 0 ||
+              props.selectedImag.status == 2
+            "
             label="ไม่ผ่าน"
             @click="upDateStatusImage(2)"
             class="p-button-danger p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 3"
+            :disabled="
+              props.selectedImag.references.length > 0 ||
+              props.selectedImag.status == 3
+            "
             label="ห้ามบันทึกรายวัน"
             @click="upDateStatusImage(3)"
             class="p-button-warning p-button-sm mr-1"
           />
           <Button
-            :disabled="props.selectedImag.references.length > 0 || props.selectedImag.status == 0"
+            :disabled="
+              props.selectedImag.references.length > 0 ||
+              props.selectedImag.status == 0
+            "
             label="รอตรวจสอบ"
             @click="upDateStatusImage(0)"
             class="p-button-secondary p-button-sm"
@@ -508,6 +585,69 @@ function closeEditImage() {
     >
     </iframe>
   </Dialog>
+
+  <Dialog
+    v-model:visible="sortImageReferencesModel"
+    header="เรียงรูปภาพในชุด"
+    :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+    :style="{ width: '70vw' }"
+    :modal="true"
+    :closable="false"
+    contentStyle="padding: 0rem;"
+  >
+    <div class="flex flex-wrap align-items-center justify-content-center">
+      <TransitionGroup name="fade">
+        <div
+          class="flex"
+          v-for="(data, index) in tempImageReferences"
+          :key="data.documentimageguid"
+          :dragdrop="true"
+          @dragstart="handleDragStart(index)"
+          @dragend="handleDragEnd()"
+          @drop="handleDrop(index)"
+          @dragover.prevent
+        >
+          <div class="relative cursor-pointer text-center m-3">
+            <div
+              class="static flex align-items-center justify-content-center hover:shadow-3"
+            >
+              <img
+                :src="data.imageuri"
+                class="w-full"
+                style="
+                  object-fit: cover;
+                  margin: 3px;
+                  width: 80px;
+                  height: 86px;
+                "
+              />
+            </div>
+            <div
+              class="white-space-nowrap overflow-hidden text-overflow-ellipsis"
+            >
+              <span class="text-900" style="font-size: 12px">{{
+                data.name
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </TransitionGroup>
+    </div>
+    <template #footer>
+      <Button
+        label="ยกเลิก"
+        icon="pi pi-times"
+        class="p-button-text"
+        @click="sortImageReferencesModelClose()"
+      />
+      <Button
+        label="บันทึก"
+        icon="pi pi-save"
+        class="p-button-success"
+        @click="sortImageReferencesModelSave()"
+      />
+    </template>
+  </Dialog>
 </template>
 <style>
 iframe {
@@ -532,5 +672,21 @@ iframe {
 }
 .p-message .p-message-wrapper {
   padding: 0.5rem 1.5rem;
+}
+
+.fade-move,
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scaleY(0.01) translate(30px, 0);
+}
+
+.fade-leave-active {
+  position: absolute;
 }
 </style>

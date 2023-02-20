@@ -30,9 +30,9 @@ const limitPage = ref(50);
 
 const showSkeleton = ref(false);
 const totalPage = ref(0);
-const selectSort = ref("uploadedat");
+const selectSort = ref("xorder");
 
-const sortOrder = ref(-1);
+const sortOrder = ref(1);
 
 const selectedImg = ref([]);
 
