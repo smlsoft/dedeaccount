@@ -471,23 +471,6 @@ export default [
       auth: true,
     },
     component: () => import("../pages/daily/daily_images_job_form.vue"),
-  },
-  {
-    path: "/images/test",
-    name: "test",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/test.vue"),
-  },
-  {
-    path: "/images/testreorder",
-    name: "testreorder",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/testreorder.vue"),
-  },
-
+  }
 
 ];
