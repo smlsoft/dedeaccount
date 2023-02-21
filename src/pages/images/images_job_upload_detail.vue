@@ -1479,7 +1479,7 @@ function updateXorderImageReferences(guidfiexd, data) {
           <Button
             :disabled="taskDetail.status != 0"
             class="p-button-sm"
-            label="Upload รูปภาพ"
+            label="อัพโหลดรูปภาพ"
             icon="pi pi-upload"
             @click="openModalUpload()"
           />
@@ -1489,7 +1489,7 @@ function updateXorderImageReferences(guidfiexd, data) {
             :disabled="selectedImg.length <= 1 || taskDetail.status != 0"
             class="p-button-info text-white p-button-sm"
             icon="pi pi-pencil"
-            label="กำหนดชุดเอกสาร"
+            label="รวมเอกสาร"
             @click="updateRefDialog = true"
           />
         </div>

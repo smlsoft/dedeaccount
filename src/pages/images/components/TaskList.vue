@@ -5,7 +5,7 @@
     class="p-datatable-sm"
     :loading="loading"
     responsiveLayout="scroll"
-    :scrollable="true"
+    :scrollable="false"
     scrollHeight="80vh"
     selectionMode="single"
     :metaKeySelection="false"
@@ -18,36 +18,101 @@
     </Column>
     <Column field="ownerat" header="วันที่" style="min-width: 15%">
       <template #body="slotProps">
-        {{ Utils.getDateFormatDMYHMS(slotProps.data.ownerat) }}
+        {{ Utils.getDateFormatDMYHM(slotProps.data.ownerat) }}
       </template>
     </Column>
     <Column field="code" header="เลขที่งาน"></Column>
     <Column field="name" header="ชื่องาน"></Column>
-    <Column v-if="props.modeMenu != 3" field="total" header="จำนวน"></Column>
+    <Column
+      v-if="props.modeMenu != 3"
+      field="total"
+      header="จำนวน"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    ></Column>
+
     <Column
       v-if="props.modeMenu == 1 || props.modeMenu == 2"
       field="totalreject"
       header="เอกสารมีปัญหา"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
+      <template #body="{ data, field }">
+        {{ data[field] }}
+      </template>
+    </Column>
+    <Column
+      v-if="props.modeMenu == 2"
+      field="total"
+      header="ผ่าน"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
+      <template #body="{ data, field }">
+        {{ data[field] }}
+      </template>
+    </Column>
+
+    <Column
+      v-if="props.modeMenu == 2"
+      field="totalreject"
+      header="ไม่ผ่าน"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
     ></Column>
-    <Column v-if="props.modeMenu == 2" field="total" header="ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 2" field="total" header="ไม่ผ่าน"></Column>
-    <Column v-if="props.modeMenu == 2" field="total" header="คงเหลือ"></Column>
-    <Column header="เอกสารที่ต้องบันทึก" v-if="props.modeMenu == 3">
+    <Column
+      v-if="props.modeMenu == 2"
+      field="total"
+      header="คงเหลือ"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    ></Column>
+    <Column
+      header="เอกสารที่ต้องบันทึก"
+      v-if="props.modeMenu == 3"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
       <template #body="slotProps">
         {{ slotProps.data.total - slotProps.data.totalreject }}
       </template>
     </Column>
-    <Column header="บันทึกเอกสาร" v-if="props.modeMenu == 3">
+    <Column
+      header="บันทึกเอกสาร"
+      v-if="props.modeMenu == 3"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
       <template #body="slotProps">
         {{ 0 }}
       </template>
     </Column>
-    <Column header="รอแก้ไข" v-if="props.modeMenu == 3">
+    <Column
+      header="รอแก้ไข"
+      v-if="props.modeMenu == 3"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
       <template #body="slotProps">
         {{ 0 }}
       </template>
     </Column>
-    <Column header="คงเหลือ" v-if="props.modeMenu == 3">
+    <Column
+      header="คงเหลือ"
+      v-if="props.modeMenu == 3"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    >
       <template #body="slotProps">
         {{ 0 }}
       </template>
@@ -177,4 +242,8 @@ function keydown() {
   emit("keydown");
 }
 </script>
-<style scoped></style>
+<style>
+.text-header-right .p-column-header-content {
+  display: inline-flex;
+}
+</style>

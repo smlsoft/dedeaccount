@@ -8,28 +8,23 @@ export const menus = [
   },
 
   {
-    title: "รูปภาพเอกสาร",
-    icon: "pi pi-image",
-    to: "/images/list",
-    name: "pic_group",
-    children: [
-      {
-        title: "อัพโหลดรูปเอกสาร",
-        icon: "pi pi-upload",
-        to: "/images/job_upload",
-        name: "images_job_upload",
-      },
-      {
-        title: "ตรวจสอบรูปภาพ",
-        icon: "pi pi-check-circle",
-        to: "/images/job_approve",
-        name: "images_job_approve",
-      },
-
-
-
-    ],
+    title: "อัพโหลดเอกสาร",
+    name: "images_job_upload",
+    icon: "pi pi-upload",
+    to: "/images/job_upload",
+    children: [],
   },
+
+
+  {
+    title: "ตรวจสอบเอกสาร",
+    name: "images_job_approve",
+    icon: "pi pi-check-circle",
+    to: "/images/job_approve",
+    children: [],
+  },
+
+
 
   // แบบ2
   // {

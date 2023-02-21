@@ -9,6 +9,8 @@ import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
+import DialogForm from "@/components/form/DialogForm.vue";
+
 const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
@@ -34,6 +36,8 @@ const jobName = ref("");
 const jobName_valid = ref(false);
 const jobDescription = ref("");
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
+const modelConfirmUploadImage = ref(false);
+const responseId = ref();
 
 onMounted(() => {
   getTaskList();
@@ -123,8 +127,12 @@ async function saveJob() {
     try {
       const res = await TaskService.postTask(data);
       if (res.success) {
-        getTaskList();
+        responseId.value = res.id;
         closeDialogCreateJob();
+        getTaskList();
+        setTimeout(() => {
+          modelConfirmUploadImage.value = true;
+        }, 100);
       }
     } catch (err) {
       console.log(err);
@@ -136,6 +144,12 @@ async function saveJob() {
       });
     }
   }
+}
+function goTo() {
+  router.push({
+    name: "images_job_upload_detail",
+    params: { id: responseId.value },
+  });
 }
 
 function onRowSelect(data) {
@@ -269,4 +283,10 @@ function doneTyping() {
       />
     </template>
   </Dialog>
+  <DialogForm
+    :confirmDialog="modelConfirmUploadImage"
+    :textContent="'ต้องการอัพโหลดเอกสาร'"
+    v-on:close="modelConfirmUploadImage = false"
+    v-on:confirm="goTo()"
+  ></DialogForm>
 </template>

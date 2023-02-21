@@ -149,14 +149,14 @@ const getDateFormatDMY = (date) => {
   // return dayjs(d).format("DD/MM/BBBB");
 };
 
-const getDateFormatDMYHMS = (date) => {
+const getDateFormatDMYHM = (date) => {
   var d = new Date(date),
     month = "" + (d.getMonth() + 1),
     day = "" + d.getDate(),
     year = d.getFullYear(),
     hour = d.getHours(),
-    minute = d.getMinutes(),
-    second = d.getSeconds();
+    minute = (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+
 
 
   if (process.env.VUE_APP_DATE == "th") {
@@ -164,8 +164,7 @@ const getDateFormatDMYHMS = (date) => {
   }
   if (month.length < 2) month = "0" + month;
   if (day.length < 2) day = "0" + day;
-  return [day, month, year].join("/") + " " + [hour, minute, second].join(":");
-  // return dayjs(d).format("DD/MM/BBBB");
+  return [day, month, year].join("/") + " " + [hour, minute].join(":");
 };
 
 const getDateTimeFormatStandard = (date) => {
@@ -326,7 +325,7 @@ export default {
   formatCurrency,
   remove_duplicates_array,
   getDateFormatDMY,
-  getDateFormatDMYHMS,
+  getDateFormatDMYHM,
   isImage,
   getYearBuddhist,
   checkSpecialString,
