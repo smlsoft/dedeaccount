@@ -864,11 +864,7 @@ function dragStart(data, event, index) {
       return;
     } else {
       //console.log(data);
-      if (
-        data.imagereferences.length == 1 &&
-        data.isreject != 2 &&
-        data.references.length == 0
-      ) {
+      if (data.imagereferences.length == 1 && data.references.length == 0) {
         if (selectedImg.value.length == 0) {
           selectedImg.value.push({
             guidfixed: data.guidfixed,
@@ -946,7 +942,7 @@ async function drop(data, event, index) {
       imagesDragReject.value != 2 &&
       imagesDragReferences.value == 0
     ) {
-      if (data.isreject != 2 && data.references.length == 0) {
+      if ( data.references.length == 0) {
         //จัดชุดใหม่
         if (data.imagereferences.length == 1) {
           let result = [];
@@ -1495,7 +1491,7 @@ function updateXorderImageReferences(guidfiexd, data) {
         </div>
         <div class="ml-1">
           <Button
-            :disabled="isSelectedDocument"
+            :disabled="isSelectedDocument || taskDetail.status != 0"
             :class="!modeReorder ? 'surface-800' : 'surface-700'"
             class="p-button-info text-white p-button-sm"
             :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"

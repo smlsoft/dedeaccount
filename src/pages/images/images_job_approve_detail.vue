@@ -568,7 +568,7 @@ async function documentImageUnGroup(data) {
 }
 
 function dragStart(data, event, index) {
-  if (job.value.status != 2) {
+  if (job.value.status != 1) {
     return;
   }
 
@@ -583,12 +583,8 @@ function dragStart(data, event, index) {
     if (checkUseImg(data.guidfixed)) {
       return;
     } else {
-      //console.log(data);
-      if (
-        data.imagereferences.length == 1 &&
-        data.isreject != 2 &&
-        data.references.length == 0
-      ) {
+      // console.log(data);
+      if (data.imagereferences.length == 1 && data.references.length == 0) {
         if (selectedImg.value.length == 0) {
           selectedImg.value.push({
             guidfixed: data.guidfixed,
@@ -612,7 +608,7 @@ function handleDragEnd() {
 
 function dragging(data, event) {
   if (
-    job.value.status == 2 &&
+    job.value.status == 1 &&
     imagesDragCount.value == 1 &&
     imagesDragReject.value != 2 &&
     imagesDragReferences.value == 0
@@ -626,7 +622,7 @@ function dragging(data, event) {
 }
 function allowDrop(data, event) {
   if (
-    job.value.status == 2 &&
+    job.value.status == 1 &&
     imagesDragCount.value == 1 &&
     imagesDragReject.value != 2 &&
     imagesDragReferences.value == 0
@@ -664,12 +660,12 @@ async function drop(data, event, index) {
 
   if (!modeReorder.value) {
     if (
-      job.value.status == 2 &&
+      job.value.status == 1 &&
       imagesDragCount.value == 1 &&
       imagesDragReject.value != 2 &&
       imagesDragReferences.value == 0
     ) {
-      if (data.isreject != 2 && data.references.length == 0) {
+      if (data.references.length == 0) {
         //จัดชุดใหม่
         if (data.imagereferences.length == 1) {
           let result = [];
@@ -719,8 +715,10 @@ async function drop(data, event, index) {
       }
     }
   } else {
-    // console.log("start: " + draggedItemIndex.value);
-    // console.log("end: " + data.xorder);
+    console.log(modeReorder.value);
+
+    console.log("start: " + draggedItemIndex.value);
+    console.log("end: " + data.xorder);
 
     let startXorder = Math.min(draggedItemIndex.value, data.xorder);
     let endXorder = Math.max(draggedItemIndex.value, data.xorder);
@@ -1127,7 +1125,7 @@ function updateXorderImageReferences(guidfiexd, data) {
           @click="stopApproveJob()"
         /> -->
         <ToggleButton
-          :disabled="!ischeckApprove"
+          :disabled="!ischeckApprove || job.status != 1"
           v-model="statusAllImage"
           onLabel="ผ่านทั้งหมด"
           offLabel="ยกเลิกผ่านทั้งหมด"
@@ -1149,7 +1147,7 @@ function updateXorderImageReferences(guidfiexd, data) {
         </div>
         <div class="ml-1">
           <Button
-            :disabled="isSelectedDocument"
+            :disabled="isSelectedDocument || job.status != 1"
             :class="!modeReorder ? 'surface-800' : 'surface-700'"
             class="p-button-info text-white p-button-sm"
             :icon="!modeReorder ? 'pi pi pi-sort' : 'pi pi-times'"

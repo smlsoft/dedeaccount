@@ -156,7 +156,6 @@ const items = computed({
           {
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
-              props.jobStatus == 1 ||
               props.jobStatus == 3,
             label: "แก้ไขรูปภาพในชุด",
             icon: "pi pi-image",
@@ -167,7 +166,6 @@ const items = computed({
           {
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
-              props.jobStatus == 1 ||
               props.jobStatus == 3,
             label: "ยกเลิกชุดเอกสาร",
             icon: "pi pi-external-link",

@@ -216,8 +216,8 @@ function checkAccountPeriod(event, mode) {
       const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
       keyDate = isoDate; // 2022-12-20
     }
-    console.log(dayjs(keyDate).format('YYYY-MM-DD'));
-    getAccountPeriodByDate(dayjs(keyDate).format('YYYY-MM-DD'));
+    // console.log(dayjs(keyDate).format("YYYY-MM-DD"));
+    getAccountPeriodByDate(dayjs(keyDate).format("YYYY-MM-DD"));
   }, 100);
 }
 
@@ -267,7 +267,7 @@ function headerNextFocus(filedName) {
       $(".isUpdate").focus();
     } else if (filedName == "accountRow1") {
       $(".accountcode_" + 0 + " > input").focus();
-    } else if (filedName == "docno")  {
+    } else if (filedName == "docno") {
       $(".docno").focus();
     }
   }, 100);
@@ -278,7 +278,25 @@ function headerNextFocus(filedName) {
   <form>
     <div class="grid formgrid p-fluid">
       <div class="field mb-4 col-12 md:col-3">
-        <label class="font-medium text-900">เอกสารวันที่</label>
+        <span class="p-float-label">
+          <DatePicker
+            dateFormat="d/m/yy"
+            v-model="props.daily_form.docdate"
+            :modelValue="props.daily_form.docdate"
+            :class="props.daily_form_valid.docdate ? 'p-invalid' : ''"
+            :showIcon="true"
+            :disabled="props.isUpdate"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="true"
+            :hiddenTime="true"
+            @date-select="checkAccountPeriod($event, 0)"
+            @blur="checkAccountPeriod($event, 1)"
+            @keyup.enter="headerNextFocus('docno')"
+            inputClass="docdate"
+          />
+          <label for="docdate">เอกสารวันที่</label>
+        </span>
+        <!-- <label class="font-medium text-900">เอกสารวันที่</label>
         <DatePicker
           dateFormat="d/m/yy"
           v-model="props.daily_form.docdate"
@@ -293,10 +311,21 @@ function headerNextFocus(filedName) {
           @blur="checkAccountPeriod($event, 1)"
           @keyup.enter="headerNextFocus('docno')"
           inputClass="docdate"
-        />
+        /> -->
       </div>
       <div class="field mb-4 col-12 md:col-3">
-        <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
+        <span class="p-float-label">
+          <InputText
+            type="text"
+            v-model="props.daily_form.docno"
+            :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
+            :disabled="props.isUpdate || update_mode"
+            @keyup.enter="headerNextFocus('accountperiod')"
+            class="docno"
+          />
+          <label for="docNo">เลขที่เอกสาร</label>
+        </span>
+        <!-- <label for="docNo" class="font-medium text-900">เลขที่เอกสาร</label>
         <InputText
           type="text"
           v-model="props.daily_form.docno"
@@ -304,7 +333,7 @@ function headerNextFocus(filedName) {
           :disabled="props.isUpdate || update_mode"
           @keyup.enter="headerNextFocus('accountperiod')"
           class="docno"
-        />
+        /> -->
       </div>
       <!-- <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">หมายเลขดำเนินการ</label>

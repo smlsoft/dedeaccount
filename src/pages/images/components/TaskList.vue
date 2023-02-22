@@ -25,23 +25,36 @@
     <Column field="name" header="ชื่องาน"></Column>
     <Column
       v-if="props.modeMenu != 3"
-      field="total"
+      field="totaldocument"
       header="จำนวน"
       class="text-header-right"
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
     ></Column>
-
     <Column
-      v-if="props.modeMenu == 1 || props.modeMenu == 2"
-      field="totalreject"
+      v-if="props.modeMenu == 1"
+      field="totaldocumentstatus"
       header="เอกสารมีปัญหา"
       class="text-header-right"
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
     >
-      <template #body="{ data, field }">
-        {{ data[field] }}
+      <template #body="{ data }">
+        <div v-if="data.totaldocumentstatus">
+          <div v-for="item in data.totaldocumentstatus">
+            <span v-if="item.status === 2">
+              {{ item.total }}
+            </span>
+          </div>
+          <span
+            v-if="
+              data.totaldocumentstatus.every((status) => status.status !== 2)
+            "
+          >
+            0
+          </span>
+        </div>
+        <div v-else>0</div>
       </template>
     </Column>
     <Column
@@ -52,8 +65,22 @@
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
     >
-      <template #body="{ data, field }">
-        {{ data[field] }}
+      <template #body="{ data }">
+        <div v-if="data.totaldocumentstatus">
+          <div v-for="item in data.totaldocumentstatus">
+            <span v-if="item.status === 1">
+              {{ item.total }}
+            </span>
+          </div>
+          <span
+            v-if="
+              data.totaldocumentstatus.every((status) => status.status !== 1)
+            "
+          >
+            0
+          </span>
+        </div>
+        <div v-else>0</div>
       </template>
     </Column>
 
@@ -64,7 +91,25 @@
       class="text-header-right"
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
-    ></Column>
+    >
+      <template #body="{ data }">
+        <div v-if="data.totaldocumentstatus">
+          <div v-for="item in data.totaldocumentstatus">
+            <span v-if="item.status === 2">
+              {{ item.total }}
+            </span>
+          </div>
+          <span
+            v-if="
+              data.totaldocumentstatus.every((status) => status.status !== 2)
+            "
+          >
+            0
+          </span>
+        </div>
+        <div v-else>0</div>
+      </template>
+    </Column>
     <Column
       v-if="props.modeMenu == 2"
       field="total"
@@ -72,7 +117,25 @@
       class="text-header-right"
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
-    ></Column>
+    >
+      <template #body="{ data }">
+        <div v-if="data.totaldocumentstatus">
+          <div v-for="item in data.totaldocumentstatus">
+            <span v-if="item.status === 0">
+              {{ item.total }}
+            </span>
+          </div>
+          <span
+            v-if="
+              data.totaldocumentstatus.every((status) => status.status !== 0)
+            "
+          >
+            0
+          </span>
+        </div>
+        <div v-else>0</div>
+      </template>
+    </Column>
     <Column
       header="เอกสารที่ต้องบันทึก"
       v-if="props.modeMenu == 3"
@@ -80,8 +143,22 @@
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
     >
-      <template #body="slotProps">
-        {{ slotProps.data.total - slotProps.data.totalreject }}
+      <template #body="{ data }">
+        <div v-if="data.totaldocumentstatus">
+          <div v-for="item in data.totaldocumentstatus">
+            <span v-if="item.status === 1">
+              {{ item.total }}
+            </span>
+          </div>
+          <span
+            v-if="
+              data.totaldocumentstatus.every((status) => status.status !== 1)
+            "
+          >
+            0
+          </span>
+        </div>
+        <div v-else>0</div>
       </template>
     </Column>
     <Column
@@ -122,15 +199,15 @@
     <Column field="status" header="สถานะ">
       <template #body="slotProps">
         <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totalreject == 0"
+          v-if="slotProps.data.status == 0 && slotProps.data.totaldocument == 0"
           value="รออัพโหลด"
           icon="pi pi-upload"
           class="bg-gray-500"
         ></Tag>
         <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totalreject != 0"
+          v-if="slotProps.data.status == 0 && slotProps.data.totaldocument != 0"
           value="รอแก้ไข"
-          severity="warning"
+          class="bg-gray-800"
           icon="pi pi-upload"
         ></Tag>
         <Tag

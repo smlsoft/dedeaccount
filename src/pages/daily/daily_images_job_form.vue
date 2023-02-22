@@ -12,7 +12,9 @@ import $ from "jquery";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
-import ImageDataService from "../../services/ImageDataService";
+import ImageDataService from "@/services/ImageDataService";
+import dayjs from "dayjs";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -56,7 +58,7 @@ const activeIndexList = ref(0);
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: "1",
+  accountperiod: getAccountPeriodByDate(Utils.getDateTime()),
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -151,6 +153,8 @@ onUnmounted(() => {
     "unmounted--------------------------------------------------------"
   );
 
+  // removeSelectImg();
+
   WsConnectAllImage.value.close();
   WsConnectImage.value.close();
   connection.value.close();
@@ -164,6 +168,11 @@ watch(daily_form.value, (newValue, oldValue) => {
   if (
     JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)
   ) {
+    console.log("daily_form :");
+    console.log(daily_form.value);
+    console.log("daily_form_has");
+    console.log(daily_form.value);
+
     isChange.value = true;
     sendChange(1);
   } else {
@@ -191,17 +200,7 @@ watch(taxes.value, (newValue, oldValue) => {
   }
 });
 
-watch(taxes.value, (newValue, oldValue) => {
-  if (taxes.value.length > 0) {
-    isChange.value = true;
-    sendChange(1);
-  } else {
-    isChange.value = false;
-    sendChange(0);
-  }
-});
-
-onMounted(() => {
+onMounted(async () => {
   // set height ifram
   heightIamgeDivCheckGl.value =
     "height:" + divCheckGl.value.offsetHeight + "px";
@@ -212,19 +211,24 @@ onMounted(() => {
   storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
 
   disableAllinput(0);
+
+  daily_form.value.accountperiod = await getAccountPeriodByDate(
+    daily_form.value.docdate
+  );
+
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
-    accountperiod: daily_form.value.accountperiod,
+    accountperiod: await getAccountPeriodByDate(daily_form.value.docdate),
     accountyear: daily_form.value.accountyear,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,
     docdate: daily_form.value.docdate,
     docno: daily_form.value.docno,
-    journaltype: daily_form.value.journaltype,
-    bookcode: daily_form.value.bookcode,
     exdocrefdate: daily_form.value.exdocrefdate,
     exdocrefno: daily_form.value.exdocrefno,
+    journaltype: daily_form.value.journaltype,
+    bookcode: daily_form.value.bookcode,
     journaldetail: [
       {
         accountcode: "",
@@ -235,6 +239,7 @@ onMounted(() => {
     ],
     parid: daily_form.value.parid,
   };
+
   getAllSelectImage();
   getDocImageList();
   getAccountChart();
@@ -288,17 +293,6 @@ function WSImageConnect() {
       }
     }, 1000);
   };
-}
-
-function checkActiveIndex() {
-  setTimeout(() => {
-    data_list.value.forEach((ele, index) => {
-      // console.log(doc_images.value.guidfixed + " - " + ele.guidfixed);
-      if (doc_images.value.guidfixed == ele.guidfixed) {
-        activeIndexList.value = index;
-      }
-    });
-  }, 30);
 }
 
 function WsAllImageConnect() {
@@ -414,12 +408,13 @@ function websocketConnect() {
               waitForImages.value = false;
 
               // get data gl กรณีจอ 2 เลือกรูปที่บันทึก GL เรียบร้อยแล้ว
-              if (selectedImgData.value.references.length != 0) {
-                getDataGL(selectedImgData.value.references);
-              } else {
-                clearData();
+              if (!isChange.value) {
+                if (selectedImgData.value.references.length != 0) {
+                  getDataGL(selectedImgData.value.references);
+                } else {
+                  clearData();
+                }
               }
-
               disableAllinput(res.data.status);
               setTimeout(() => {
                 checkActiveIndex();
@@ -470,6 +465,38 @@ function disableAllinput(data) {
       $("#panelForm3 .p-dropdown").prop("disabled", false);
     }
   }, 500);
+}
+
+function checkActiveIndex() {
+  setTimeout(() => {
+    data_list.value.forEach((ele, index) => {
+      // console.log(doc_images.value.guidfixed + " - " + ele.guidfixed);
+      if (doc_images.value.guidfixed == ele.guidfixed) {
+        activeIndexList.value = index;
+      }
+    });
+  }, 30);
+}
+
+async function getAccountPeriodByDate(keyDate) {
+  let newDate = dayjs(keyDate).format("YYYY-MM-DD");
+  try {
+    const res = await AccountPeriodDataService.getAccountPeriodByDate(newDate);
+    if (res.success) {
+      console.log(res);
+      const newData = res.data.period;
+      console.log(newData);
+      return newData;
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err.response.data.message,
+      life: 3000,
+    });
+  }
 }
 
 function getAllSelectImage() {
@@ -1487,27 +1514,26 @@ function nextImage(index) {
 
 function clearData() {
   resetZoomImage();
-
-  daily_form.value.accountdescription = "";
-  daily_form.value.accountgroup = "";
-  daily_form.value.accountperiod = "1";
-  daily_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
-  daily_form.value.amount = "";
-  daily_form.value.batchId = "";
-  daily_form.value.docdate = Utils.getDateTime();
   daily_form.value.docno = Utils.getDocNoDate("JO");
-  daily_form.value.exdocrefdate = "";
-  daily_form.value.exdocrefno = "";
-  daily_form.value.bookcode = "";
-  daily_form.value.journaldetail = [
-    {
-      accountcode: "",
-      accountname: "",
-      debitamount: 0,
-      creditamount: 0,
-    },
-  ];
-  daily_form.value.parid = "0000000";
+  daily_form.value.accountdescription = "";
+  // daily_form.value.accountgroup = "";
+  // daily_form.value.accountperiod = "1";
+  // daily_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
+  // daily_form.value.amount = "";
+  // daily_form.value.batchId = "";
+  // daily_form.value.docdate = Utils.getDateTime();
+  // daily_form.value.exdocrefdate = "";
+  // daily_form.value.exdocrefno = "";
+  // daily_form.value.bookcode = "";
+  // daily_form.value.journaldetail = [
+  //   {
+  //     accountcode: "",
+  //     accountname: "",
+  //     debitamount: 0,
+  //     creditamount: 0,
+  //   },
+  // ];
+  // daily_form.value.parid = "0000000";
 
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
@@ -2071,6 +2097,7 @@ async function updateStatus() {
 
           <div class="flex justify-content-between">
             <div class="mt-4 ml-0">
+              {{ isChange }}
               <Button
                 :disabled="!isChange"
                 @click="confirmClearImageDialog = true"
@@ -2095,12 +2122,13 @@ async function updateStatus() {
           >
             <Galleria
               :value="data_list"
-              :thumbnailsPosition="'top'"
+              thumbnailsPosition="top"
               :showThumbnails="true"
-              :numVisible="6"
+              :numVisible="3"
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >
+              <template #item="slotProps"> </template>
               <template #thumbnail="slotProps">
                 <div class="p-1 cursor-pointer">
                   <div class="p-1 surface-card border-round">
