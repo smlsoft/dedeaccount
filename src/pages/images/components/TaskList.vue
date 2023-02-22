@@ -65,32 +65,6 @@
       headerStyle="text-align: right;"
       bodyStyle="text-align: right;"
     ></Column>
-    <!-- <Column
-      v-if="props.modeMenu == 2"
-      field="total"
-      header="ผ่าน"
-      class="text-header-right"
-      headerStyle="text-align: right;"
-      bodyStyle="text-align: right;"
-    >
-      <template #body="{ data }">
-        <div v-if="data.totaldocumentstatus">
-          <div v-for="item in data.totaldocumentstatus">
-            <span v-if="item.status === 1 || item.status === 3">
-              {{ item }}
-            </span>
-          </div>
-          <span
-            v-if="
-              data.totaldocumentstatus.every((status) => status.status !== 1)
-            "
-          >
-            0
-          </span>
-        </div>
-        <div v-else>0</div>
-      </template>
-    </Column> -->
 
     <Column
       v-if="props.modeMenu == 2"

@@ -58,7 +58,7 @@ const activeIndexList = ref(0);
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: 1,
+  accountperiod: "1",
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -212,14 +212,10 @@ onMounted(async () => {
 
   disableAllinput(0);
 
-  // daily_form.value.accountperiod = await getAccountPeriodByDate(
-  //   daily_form.value.docdate
-  // );
-
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
-    accountperiod: await getAccountPeriodByDate(daily_form.value.docdate),
+    accountperiod: daily_form.value.accountperiod,
     accountyear: daily_form.value.accountyear,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,

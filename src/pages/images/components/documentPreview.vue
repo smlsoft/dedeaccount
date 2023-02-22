@@ -570,7 +570,7 @@ function sortImageReferencesModelSave() {
   <Dialog
     header="Header"
     v-model:visible="openEditImage"
-    class="p-dialog-maximized"
+    class="p-dialog-maximized configheader"
     @update:visible="closeEditImage"
   >
     <iframe
@@ -669,6 +669,11 @@ iframe {
 }
 .p-message .p-message-wrapper {
   padding: 0.5rem 1.5rem;
+}
+
+
+.configheader .p-dialog-header {
+  padding: 10px 15px 10px 15px;
 }
 
 .fade-move,

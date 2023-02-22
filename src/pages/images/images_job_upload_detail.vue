@@ -147,7 +147,7 @@ onMounted(() => {
 function getTaskById(guidfixed) {
   TaskService.getTaskById(guidfixed)
     .then((res) => {
-      //console.log(res);
+      console.log(res);
       if (res.success) {
         taskDetail.value = res.data;
         storeApp.setPageTitle("อัพโหลดรูป JOB #" + taskDetail.value.name);
@@ -550,6 +550,7 @@ function uploadSuccess() {
   activePage.value = 1;
   firstPage.value = 0;
   getDocumentImageGroup();
+  getTaskById(jobId.value);
 }
 
 async function documentImageUnGroup(data) {
@@ -1530,6 +1531,11 @@ function updateXorderImageReferences(guidfiexd, data) {
         </div>
       </div>
       <div class="flex">
+        <Chip
+          :label="String(taskDetail.totaldocument)"
+          icon="pi pi-image"
+          class="mr-2 bg-primary-100"
+        />
         <ToggleButton
           v-model="sizeImageBloc"
           onLabel=""
@@ -1793,10 +1799,6 @@ function updateXorderImageReferences(guidfiexd, data) {
 }
 .p-dialog.p-component.p-ripple-disabled {
   background-color: #fff;
-}
-
-.p-dialog .p-dialog-content {
-  padding: 0px;
 }
 
 .fade-move,

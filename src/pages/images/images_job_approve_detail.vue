@@ -97,6 +97,9 @@ const draggedItemIndex = ref(null);
 const data_sort = ref([]);
 const startIndex = ref();
 const endIndex = ref();
+const totalDocumentStatus_0 = ref("0");
+const totalDocumentStatus_1 = ref("0");
+const totalDocumentStatus_2 = ref("0");
 
 onMounted(() => {
   jobId.value = route.params.id;
@@ -110,9 +113,29 @@ onMounted(() => {
 function getTaskById(guidfixed) {
   TaskService.getTaskById(guidfixed)
     .then((res) => {
-      //console.log(res);
+      console.log(res);
       if (res.success) {
         job.value = res.data;
+
+        // รอตรวจ
+        const filteredStatus_0 = job.value.totaldocumentstatus.filter(
+          (obj) => obj.status === 0
+        );
+
+        // ผ่าน
+        const filteredStatus_1 = job.value.totaldocumentstatus.filter(
+          (obj) => obj.status === 1
+        );
+
+        // ไม่ผ่าน
+        const filteredStatus_2 = job.value.totaldocumentstatus.filter(
+          (obj) => obj.status === 2
+        );
+
+        totalDocumentStatus_0.value = filteredStatus_0[0].total.toString();
+        totalDocumentStatus_1.value = filteredStatus_1[0].total.toString();
+        totalDocumentStatus_2.value = filteredStatus_2[0].total.toString();
+
         storeApp.setPageTitle("ตรวจสอบรูป JOB #" + job.value.name);
       }
     })
@@ -338,6 +361,7 @@ async function updateStatus(guidfixed, data_status) {
       status
     );
     if (res.success) {
+      getTaskById(jobId.value);
       return true;
     }
   } catch (err) {
@@ -1192,17 +1216,21 @@ function updateXorderImageReferences(guidfiexd, data) {
       </div>
       <div class="flex">
         <Chip
-          :label="data_list.length.toString()"
+          :label="String(job.totaldocument)"
           icon="pi pi-image"
           class="ml-2 bg-primary-100"
         />
+        <Chip :label="totalDocumentStatus_0" icon="pi pi-clock" class="ml-2" />
         <Chip
-          :label="data_list.length.toString()"
-          icon="pi pi-clock"
-          class="ml-2"
+          :label="totalDocumentStatus_1"
+          icon="pi pi-check-circle"
+          class="ml-2 bg-green-300"
         />
-        <Chip label="0" icon="pi pi-check-circle" class="ml-2 bg-green-300" />
-        <Chip label="0" icon="pi pi-times-circle" class="ml-2 bg-red-400" />
+        <Chip
+          :label="totalDocumentStatus_2"
+          icon="pi pi-times-circle"
+          class="ml-2 bg-red-400"
+        />
         <ToggleButton
           v-model="sizeImageBloc"
           onLabel=""

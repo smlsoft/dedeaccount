@@ -113,7 +113,5 @@ function onConfirm() {
   background-color: #fff;
 }
 
-.p-dialog .p-dialog-content {
-  padding: 0px;
-}
+
 </style>
