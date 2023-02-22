@@ -610,6 +610,13 @@ function verifyData() {
     daily_form_valid.value.bookcode = false;
   }
 
+  if (daily_form.value.accountperiod == null) {
+    errorCount += 1;
+    daily_form_valid.value.docdate = true;
+  } else {
+    daily_form_valid.value.docdate = false;
+  }
+
   var sumCredit = 0;
   var sumDebit = 0;
 
@@ -1845,7 +1852,7 @@ function resizeSplitter(isOveray) {
                             <Chip
                               :label="slotProps.item.name"
                               icon="pi pi-image"
-                              class=" mt-2"
+                              class="mt-2"
                             />
                             <Chip
                               :label="

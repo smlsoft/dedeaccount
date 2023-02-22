@@ -108,3 +108,12 @@ function onConfirm() {
     </template>
   </Dialog>
 </template>
+<style scoped>
+.p-dialog.p-component.p-ripple-disabled {
+  background-color: #fff;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 0px;
+}
+</style>

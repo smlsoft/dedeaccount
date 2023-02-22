@@ -942,7 +942,7 @@ async function drop(data, event, index) {
       imagesDragReject.value != 2 &&
       imagesDragReferences.value == 0
     ) {
-      if ( data.references.length == 0) {
+      if (data.references.length == 0) {
         //จัดชุดใหม่
         if (data.imagereferences.length == 1) {
           let result = [];
@@ -1790,6 +1790,13 @@ function updateXorderImageReferences(guidfiexd, data) {
 
 .p-inputtext.p-inputtext-sm {
   font-size: 0.875rem;
+}
+.p-dialog.p-component.p-ripple-disabled {
+  background-color: #fff;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 0px;
 }
 
 .fade-move,

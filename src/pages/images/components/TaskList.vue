@@ -59,6 +59,14 @@
     </Column>
     <Column
       v-if="props.modeMenu == 2"
+      header="ผ่าน"
+      :field="totalDocumentStatusColumn"
+      class="text-header-right"
+      headerStyle="text-align: right;"
+      bodyStyle="text-align: right;"
+    ></Column>
+    <!-- <Column
+      v-if="props.modeMenu == 2"
       field="total"
       header="ผ่าน"
       class="text-header-right"
@@ -68,8 +76,8 @@
       <template #body="{ data }">
         <div v-if="data.totaldocumentstatus">
           <div v-for="item in data.totaldocumentstatus">
-            <span v-if="item.status === 1">
-              {{ item.total }}
+            <span v-if="item.status === 1 || item.status === 3">
+              {{ item }}
             </span>
           </div>
           <span
@@ -82,7 +90,7 @@
         </div>
         <div v-else>0</div>
       </template>
-    </Column>
+    </Column> -->
 
     <Column
       v-if="props.modeMenu == 2"
@@ -199,13 +207,17 @@
     <Column field="status" header="สถานะ">
       <template #body="slotProps">
         <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totaldocument == 0"
+          v-if="
+            slotProps.data.status == 0 && slotProps.data.parentguidfixed == ''
+          "
           value="รออัพโหลด"
           icon="pi pi-upload"
           class="bg-gray-500"
         ></Tag>
         <Tag
-          v-if="slotProps.data.status == 0 && slotProps.data.totaldocument != 0"
+          v-if="
+            slotProps.data.status == 0 && slotProps.data.parentguidfixed != ''
+          "
           value="รอแก้ไข"
           class="bg-gray-800"
           icon="pi pi-upload"
@@ -281,6 +293,16 @@ import { ref, onMounted, computed } from "vue";
 import Utils from "@/utils/";
 const searchText = ref(props.filters);
 
+const totalDocumentStatusColumn = (rowData) => {
+  let total = 0;
+  rowData.totaldocumentstatus?.forEach((item) => {
+    if (item.status === 1 || item.status === 3) {
+      total += item.total;
+    }
+  });
+  return total;
+};
+
 onMounted(() => {});
 
 //modeMenu
@@ -317,6 +339,15 @@ function keyup() {
 
 function keydown() {
   emit("keydown");
+}
+
+function sumTotalPass(data) {
+  console.log(data);
+  // let total = 0;
+  // data.forEach((element) => {
+  //   total += element.total;
+  // });
+  // return total;
 }
 </script>
 <style>

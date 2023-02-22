@@ -129,7 +129,6 @@ const items = computed({
         label: "Options",
         items: [
           {
-            disabled: props.jobStatus != 2,
             label: "แก้ไขรูปภาพ",
             icon: "pi pi-pencil",
             command: () => {
