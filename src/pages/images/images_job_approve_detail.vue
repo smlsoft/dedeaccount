@@ -1379,6 +1379,7 @@ function updateXorderImageReferences(guidfiexd, data) {
     </Dialog>
 
     <DialogApprove
+      :mode="'approve'"
       :title="'ยืนยันการตรวจสอบ'"
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"

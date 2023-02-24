@@ -1329,19 +1329,20 @@ function closeJob() {
   dialogJobApprove.value = true;
 }
 
+
 function confirmJobFalse() {
   ramdomNumber.value = Utils.generateRandomNumber();
 }
 
 // ส่งตรวจสอบ
-async function jobApprove() {
-  dialogJobApprove.value = false;
+async function jobUpdateStatus(data) {
   let status = {
-    status: 1,
+    status: data,
   };
   try {
     const res = await TaskService.putTaskStatus(jobId.value, status);
     if (res.success) {
+      dialogJobApprove.value = false;
       toast.add({
         severity: "success",
         summary: "success",
@@ -1548,7 +1549,7 @@ function updateXorderImageReferences(guidfiexd, data) {
         <Button
           :disabled="selectedImg.length == 0 || taskDetail.status != 0"
           class="p-button-danger p-button-sm mr-1 p-button-outlined"
-          icon="pi pi-trash"
+          icon="pi pi-times"
           label="ลบเอกสาร"
           @click="confirmDeleteImage = true"
         />
@@ -1780,13 +1781,15 @@ function updateXorderImageReferences(guidfiexd, data) {
       v-on:confirm="deleteImage()"
     ></DialogForm>
     <DialogApprove
-      :title="'ยืนยันการตรวจสอบ'"
+      :mode="'approve'"
+      :title="'ยืนยันการปิดงาน'"
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"
       v-on:close="dialogJobApprove = false"
-      v-on:confirmJob="jobApprove()"
+      v-on:confirmJob="jobUpdateStatus(1)"
       v-on:confirmJobFalse="confirmJobFalse()"
     />
+
   </AppLayout>
 </template>
 <style scoped>

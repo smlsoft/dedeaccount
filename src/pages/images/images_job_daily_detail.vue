@@ -1041,6 +1041,7 @@ async function checkPopupOpenImage() {
     </Dialog>
 
     <DialogApprove
+      :mode="'approve'"
       :title="'ยืนยันการตรวจสอบ'"
       :ramdomNumber="ramdomNumber"
       :confirmDialog="dialogJobApprove"

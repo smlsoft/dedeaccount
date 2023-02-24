@@ -220,9 +220,41 @@
           value="ลงบัญชีเสร็จแล้ว"
           icon="pi pi-check-circle"
         ></Tag>
+        <Tag
+          v-if="slotProps.data.status == 5"
+          severity="danger"
+          value="งานยกเลิก"
+        ></Tag>
       </template>
     </Column>
     <Column field="description" header="หมายเหตุ"></Column>
+    <Column field="taskchild" header="แก้ไข" v-if="props.modeMenu == 2">
+      <template #body="{ slotProps, data, field }">
+        <Button
+          v-if="data[field].code != ''"
+          class="bg-yellow-200 text-yellow-900 font-bold text-sm py-1 px-2"
+          style="border-radius: 10px"
+          :label="textstatus(data[field].status) + ' : ' + data[field].code"
+        />
+      </template>
+    </Column>
+    <Column
+      headerStyle="width: 4rem; text-align: center"
+      bodyStyle="text-align: center; overflow: visible"
+      v-if="props.modeMenu == 1"
+    >
+      <template #body="slotProps">
+        <Button
+          :disabled="
+            slotProps.data.status != 0 
+          "
+          class="p-button-text"
+          type="button"
+          icon="pi pi-cog"
+          @click="showDialogConfigJob(slotProps.data)"
+        ></Button>
+      </template>
+    </Column>
 
     <template #header>
       <div class="flex">
@@ -295,6 +327,7 @@ const props = defineProps({
 const emit = defineEmits([
   "onRowSelect",
   "showDialogCreateJob",
+  "showDialogConfigJob",
   "keyup",
   "keydown",
 ]);
@@ -307,6 +340,10 @@ function showDialogCreateJob() {
   emit("showDialogCreateJob");
 }
 
+function showDialogConfigJob(data) {
+  emit("showDialogConfigJob", data);
+}
+
 function keyup() {
   emit("keyup", searchText.value);
 }
@@ -315,13 +352,22 @@ function keydown() {
   emit("keydown");
 }
 
-function sumTotalPass(data) {
-  console.log(data);
-  // let total = 0;
-  // data.forEach((element) => {
-  //   total += element.total;
-  // });
-  // return total;
+function textstatus(data) {
+  let text = "";
+  if (data == 0) {
+    text = "รอแก้ไข";
+  } else if (data == 1) {
+    text = "รอตรวจสอบ";
+  } else if (data == 2) {
+    text = "กำลังตรวจสอบ";
+  } else if (data == 3) {
+    text = "รอบันทึกบัญชี";
+  } else if (data == 4) {
+    text = "ลงบัญชีเสร็จแล้ว";
+  } else if (data == 5) {
+    text = "ยกเลิกงาน";
+  }
+  return text;
 }
 </script>
 <style>

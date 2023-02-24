@@ -10,6 +10,7 @@ const props = defineProps({
   confirmDialog: Boolean,
   ramdomNumber: Number,
   title: String,
+  mode: String,
 });
 
 const emit = defineEmits(["close", "confirmJob", "confirmJobFalse"]);
@@ -52,10 +53,19 @@ function onConfirm() {
     >
       <div class="flex">
         <span
-          class="flex align-items-center justify-content-center bg-cyan-100 text-cyan-800 border-circle mb-3"
+          class="flex align-items-center justify-content-center border-circle mb-3"
+          :class="
+            props.mode == 'approve'
+              ? ' bg-cyan-100 text-cyan-800'
+              : props.mode == 'cancel'
+              ? ' bg-yellow-100 text-yellow-800'
+              : ' bg-red-100 text-red-800'
+          "
           style="width: 64px; height: 64px"
         >
-          <i class="pi pi-lock text-5xl"></i>
+          <i class="pi pi-lock text-5xl" v-if="props.mode == 'approve'"></i>
+          <i class="pi pi-trash text-5xl" v-if="props.mode == 'delete'"></i>
+          <i class="pi pi-times text-5xl" v-if="props.mode == 'cancel'"></i>
         </span>
       </div>
       <div class="flex">
@@ -65,9 +75,11 @@ function onConfirm() {
         <p class="line-height-3 p-0 m-3">กรุณากรอกหมายเลขที่เห็น</p>
       </div>
       <div class="flex">
-        <span class="font-medium text-xl text-primary-700">{{
-          props.ramdomNumber
-        }}</span>
+        <span
+          class="font-medium text-xl"
+          :class="props.mode == 'approve' ? 'text-primary-700' : 'text-red-700'"
+          >{{ props.ramdomNumber }}</span
+        >
       </div>
 
       <InputText
@@ -82,15 +94,26 @@ function onConfirm() {
     <template #footer>
       <div class="border-top-1 surface-border pt-3 flex">
         <Button
-          icon="pi pi-times"
           @click="onClose"
           label="ยกเลิก"
           class="p-button-outlined w-6 mr-2"
         ></Button>
         <Button
-          icon="pi pi-check"
           @click="onConfirm"
-          label="ยืนยัน"
+          :label="
+            props.mode == 'approve'
+              ? 'ยืนยัน'
+              : props.mode == 'cancel'
+              ? 'ยกเลิกงาน'
+              : 'ลบงาน'
+          "
+          :class="
+            props.mode == 'approve'
+              ? ''
+              : props.mode == 'cancel'
+              ? 'p-button-warning'
+              : 'p-button-danger'
+          "
           class="w-6 ml-2"
         ></Button>
       </div>

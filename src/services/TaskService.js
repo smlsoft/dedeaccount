@@ -26,5 +26,13 @@ export default {
     getGenerateTaskID() {
         return instanceApi(true).get(`/task/generate-code`).then(res => res.data);
     },
+
+    putTask(id, data) {
+        return instanceApi(true).put(`/task/` + id, data).then(res => res.data);
+    },
+
+    deleteTask(data) {
+        return instanceApi(true).delete(`/task/` + data).then(res => res.data);
+    },
 }
 
