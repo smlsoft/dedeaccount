@@ -189,7 +189,7 @@ onMounted(() => {
   ) {
     storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
     onLoad.value = true;
-    readMode.value = true;
+    readMode.value = false;
     setTimeout(() => {
       getGLDetail(route.params.id);
     }, 1000);
@@ -1874,7 +1874,7 @@ function resizeSplitter(isOveray) {
                             <iframe
                               :name="slotProps.item.imageuri"
                               :src="
-                                '/document_images/components/zoom?uri=' +
+                                '/images/components/zoom?uri=' +
                                 slotProps.item.imageuri
                               "
                               class="static"

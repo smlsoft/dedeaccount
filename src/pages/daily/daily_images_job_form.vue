@@ -515,6 +515,31 @@ function getAllSelectImage() {
     });
 }
 
+function putvatValid() {
+  vats_valid.value.push({
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  });
+}
+
+function puttaxValid() {
+  taxes_valid.value.push({
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  });
+}
+
 function getDataGL(references) {
   const result = references.filter((gl) => gl.module == "GL");
   console.log(result[0].docno);
@@ -2121,7 +2146,7 @@ async function updateStatus() {
               :value="data_list"
               thumbnailsPosition="top"
               :showThumbnails="true"
-              :numVisible="3"
+              :numVisible="10"
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >

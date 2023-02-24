@@ -107,8 +107,8 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`).then(res => res.data);
     },
 
     // เพิ่มรูปใน Group Image
@@ -130,4 +130,7 @@ export default {
     putDocumentImageXsort(id, data) {
         return instanceApi(true).put(`/documentimagegroup/xsort/${id}`, data).then(res => res.data);
     },
+
+
+
 }

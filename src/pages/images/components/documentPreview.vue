@@ -324,7 +324,7 @@ function sortImageReferencesModelSave() {
       <div class="flex" v-if="props.modeMenu == 1 || props.modeMenu == 4"></div>
       <div class="flex" v-if="props.modeMenu == 2 || props.modeMenu == 3">
         <Button
-          v-if="props.selectedImag.references.length > 0"
+          v-if="props.selectedImag.references.length > 0 && props.modeMenu == 3"
           icon="pi pi-eye"
           label="รายวัน"
           class="p-button-sm p-button-success mr-1"
@@ -350,7 +350,8 @@ function sortImageReferencesModelSave() {
           <Button
             :disabled="
               props.selectedImag.references.length > 0 ||
-              props.selectedImag.status == 1
+              props.selectedImag.status == 1 ||
+              jobStatus == 3
             "
             label="ผ่าน"
             @click="upDateStatusImage(1)"
@@ -359,7 +360,8 @@ function sortImageReferencesModelSave() {
           <Button
             :disabled="
               props.selectedImag.references.length > 0 ||
-              props.selectedImag.status == 2
+              props.selectedImag.status == 2 ||
+              jobStatus == 3
             "
             label="ไม่ผ่าน"
             @click="upDateStatusImage(2)"
@@ -368,7 +370,8 @@ function sortImageReferencesModelSave() {
           <Button
             :disabled="
               props.selectedImag.references.length > 0 ||
-              props.selectedImag.status == 3
+              props.selectedImag.status == 3 ||
+              jobStatus == 3
             "
             label="ห้ามบันทึกรายวัน"
             @click="upDateStatusImage(3)"
@@ -377,7 +380,8 @@ function sortImageReferencesModelSave() {
           <Button
             :disabled="
               props.selectedImag.references.length > 0 ||
-              props.selectedImag.status == 0
+              props.selectedImag.status == 0 ||
+              jobStatus == 3
             "
             label="รอตรวจสอบ"
             @click="upDateStatusImage(0)"
@@ -423,6 +427,14 @@ function sortImageReferencesModelSave() {
 
       <!--right-->
       <div class="flex" v-if="props.modeMenu != 4">
+        <!-- <Button
+          type="button"
+          label="Comment"
+          icon="pi pi-comments"
+          class="p-button-sm p-button-text p-button-rounded"
+          badge="8"
+          badgeClass="p-badge-danger"
+        /> -->
         <Button
           v-if="checkUseImg(props.selectedImag.guidfixed)"
           :label="getUseData(props.selectedImag.guidfixed)"
@@ -670,7 +682,6 @@ iframe {
 .p-message .p-message-wrapper {
   padding: 0.5rem 1.5rem;
 }
-
 
 .configheader .p-dialog-header {
   padding: 10px 15px 10px 15px;

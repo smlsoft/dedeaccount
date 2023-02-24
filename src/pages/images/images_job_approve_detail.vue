@@ -99,6 +99,7 @@ const startIndex = ref();
 const endIndex = ref();
 const totalDocumentStatus_0 = ref("0");
 const totalDocumentStatus_1 = ref("0");
+const totalDocumentStatus_1_1 = ref("0");
 const totalDocumentStatus_2 = ref("0");
 
 onMounted(() => {
@@ -127,6 +128,11 @@ function getTaskById(guidfixed) {
           (obj) => obj.status === 1
         );
 
+        // ผ่านแต่ห้ามคีย์
+        const filteredStatus_1_1 = job.value.totaldocumentstatus.filter(
+          (obj) => obj.status === 3
+        );
+
         // ไม่ผ่าน
         const filteredStatus_2 = job.value.totaldocumentstatus.filter(
           (obj) => obj.status === 2
@@ -134,6 +140,7 @@ function getTaskById(guidfixed) {
 
         totalDocumentStatus_0.value = filteredStatus_0[0].total.toString();
         totalDocumentStatus_1.value = filteredStatus_1[0].total.toString();
+        totalDocumentStatus_1_1.value = filteredStatus_1_1[0].total.toString();
         totalDocumentStatus_2.value = filteredStatus_2[0].total.toString();
 
         storeApp.setPageTitle("ตรวจสอบรูป JOB #" + job.value.name);
@@ -614,6 +621,7 @@ function dragStart(data, event, index) {
             guidfixed: data.guidfixed,
             tags: data.tags,
             documentimageguid: data.imagereferences[0],
+            data_index: startIndex.value,
           });
           ischeckedImage();
         }
@@ -708,6 +716,7 @@ async function drop(data, event, index) {
                 guidfixed: imagesDragData.value.guidfixed,
                 tags: data.tags,
                 documentimageguid: imagesDragData.value.imagereferences[0],
+                data_index: endIndex.value,
               });
             }
             updateRefDialog.value = true;
@@ -716,6 +725,7 @@ async function drop(data, event, index) {
               guidfixed: data.guidfixed,
               tags: data.tags,
               documentimageguid: data.imagereferences[0],
+              data_index: endIndex.value,
             });
             updateRefDialog.value = true;
           }
@@ -728,7 +738,6 @@ async function drop(data, event, index) {
           });
           tag.value = Array.from(new Set(tags));
 
-          console.log(tag.value);
           console.log(selectedImg.value);
           ischeckedImage();
           //เพิ่มรูปเข้าชุด
@@ -739,10 +748,8 @@ async function drop(data, event, index) {
       }
     }
   } else {
-    console.log(modeReorder.value);
-
-    console.log("start: " + draggedItemIndex.value);
-    console.log("end: " + data.xorder);
+    // console.log("start: " + draggedItemIndex.value);
+    // console.log("end: " + data.xorder);
 
     let startXorder = Math.min(draggedItemIndex.value, data.xorder);
     let endXorder = Math.max(draggedItemIndex.value, data.xorder);
@@ -808,7 +815,7 @@ async function addImageGroup() {
     addImagenewData.value.push(element.documentimageguid);
   });
 
-  console.log(addImageGuidfixed.value);
+  console.log(selectedImg.value);
 
   try {
     const res = await ImageDataService.putAddImageInGroup(
@@ -825,7 +832,6 @@ async function addImageGroup() {
       });
       confirmGroupImageDialog.value = false;
       activePage.value = 1;
-      selectedImg.value = [];
       addImagenewData.value = [];
       isSelectedDocument.value = false;
 
@@ -844,17 +850,32 @@ function getDocumentImageGroupById(id) {
     .then((res) => {
       console.log(res);
       if (res.success) {
-        console.log("startIndex :" + startIndex.value);
-        console.log("endIndex :" + endIndex.value);
+        console.log(selectedImg.value);
+        console.log(data_list.value);
 
-        // ลบ index
-        const indicesToRemove = [startIndex.value, endIndex.value];
-        indicesToRemove
-          .sort((a, b) => b - a)
-          .forEach((index) => data_list.value.splice(index, 1));
+        let data_index = [];
+        let newData_list = [];
+        selectedImg.value.forEach((element) => {
+          data_index.push(element.data_index);
+        });
+
+        data_list.value.forEach((element, index) => {
+          if (data_index.indexOf(index) == -1) {
+            newData_list.push(element);
+          }
+        });
+
+        data_list.value = newData_list;
 
         // เพิ่ม data ในตำแหน่งที่วาง
-        data_list.value.splice(endIndex.value, 0, res.data);
+        if (selectedImg.value.length > 1) {
+          let newIndex = selectedImg.value.length - 1;
+          data_list.value.splice(
+            selectedImg.value[newIndex].data_index,
+            0,
+            res.data
+          );
+        }
 
         // เรียง xorder ใหม่
         data_list.value = data_list.value.map((item, index) => {
@@ -868,6 +889,7 @@ function getDocumentImageGroupById(id) {
           });
         });
 
+        selectedImg.value = [];
         setTimeout(() => {
           //update xorder ใหม่
           updateDocumentImageXsort();
@@ -998,8 +1020,9 @@ async function saveGropImages() {
       uploadedat2.value = new Date();
       updateRefDialog.value = false;
       data_set_group.value = [];
-      selectedImg.value = [];
       activePage.value = 1;
+
+      // selectedImg.value = [];
 
       setTimeout(() => {
         getDocumentImageGroupById(res.id);
@@ -1227,6 +1250,11 @@ function updateXorderImageReferences(guidfiexd, data) {
           class="ml-2 bg-green-300"
         />
         <Chip
+          :label="totalDocumentStatus_1_1"
+          icon="pi pi-check-circle"
+          class="ml-2 bg-yellow-500"
+        />
+        <Chip
           :label="totalDocumentStatus_2"
           icon="pi pi-times-circle"
           class="ml-2 bg-red-400"
@@ -1286,6 +1314,7 @@ function updateXorderImageReferences(guidfiexd, data) {
                     @dragover.prevent
                   >
                     <ImageBlock
+                      :images_data_index="index"
                       :modeMenu="2"
                       :images_data="data"
                       :images_selete="selectedImg"

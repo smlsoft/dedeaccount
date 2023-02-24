@@ -181,6 +181,7 @@ const checkSelected = ref(false);
 
 const props = defineProps({
   images_data: Object,
+  images_data_index: Number,
   images_selete: Array,
   allimage_used: Array,
   isSelectedDocument: Boolean,
@@ -416,19 +417,20 @@ function getUseData(data) {
   }
 }
 
-function selectImg(data, tags, documentimageguid) {
+function selectImg(data, tags, documentimageguid, data_index) {
   let dataSelet = {
     guidfixed: data,
     tags: tags,
     documentimageguid: documentimageguid,
+    data_index: data_index
   };
-  emit("selectImg", dataSelet);
+  emit("selectImg", dataSelet );
 }
 
 function zoomImg(data) {
   if (
     props.isSelectedDocument ||
-    (props.ischeckApprove && props.images_data.status == 0 )
+    (props.ischeckApprove && props.images_data.status == 0)
   ) {
     selectModeImage();
   }
@@ -483,7 +485,8 @@ function selectModeImage() {
     selectImg(
       props.images_data.guidfixed,
       props.images_data.tags,
-      props.images_data.imagereferences[0]
+      props.images_data.imagereferences[0],
+      props.images_data_index
     );
   } else {
     if (props.images_data.imagereferences.length > 1) {
@@ -493,7 +496,8 @@ function selectModeImage() {
       selectImg(
         props.images_data.guidfixed,
         props.images_data.tags,
-        props.images_data.imagereferences[0]
+        props.images_data.imagereferences[0],
+        props.images_data_index
       );
     }
   }

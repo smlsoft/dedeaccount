@@ -154,17 +154,7 @@
         {{ 0 }}
       </template>
     </Column>
-    <Column
-      header="รอแก้ไข"
-      v-if="props.modeMenu == 3"
-      class="text-header-right"
-      headerStyle="text-align: right;"
-      bodyStyle="text-align: right;"
-    >
-      <template #body="slotProps">
-        {{ 0 }}
-      </template>
-    </Column>
+
     <Column
       header="คงเหลือ"
       v-if="props.modeMenu == 3"

@@ -682,6 +682,32 @@ function selectSizeImageBloc() {
   }
 }
 
+function putvatValid() {
+  vats_valid.value.push({
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  });
+}
+
+function puttaxValid() {
+  taxes_valid.value.push({
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  });
+}
+
+
 function getGLDetail(docno) {
   console.log(docno);
 
