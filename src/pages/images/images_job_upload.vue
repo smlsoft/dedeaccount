@@ -248,6 +248,7 @@ function confirmJobFalse() {
 
 // update status job
 async function jobUpdateStatus(data) {
+  loading.value = true;
   let status = {
     status: data,
   };
@@ -257,6 +258,7 @@ async function jobUpdateStatus(data) {
       status
     );
     if (res.success) {
+      loading.value = false;
       dialogJobCancel.value = false;
       dialogConfigJob.value = false;
       dataConfigJob.value = {};
@@ -272,6 +274,7 @@ async function jobUpdateStatus(data) {
     }
   } catch (err) {
     console.log(err);
+    loading.value = false;
     toast.add({
       severity: "error",
       summary: "error",
@@ -298,6 +301,7 @@ async function jobDelete() {
     }
   } catch (err) {
     console.log(err);
+    loading.value = false;
     toast.add({
       severity: "error",
       summary: "error",
@@ -308,10 +312,12 @@ async function jobDelete() {
 }
 
 async function updateDataJob() {
+  loading.value = true;
   if (
     newDataConfigJobName.value == dataConfigJob.value.name &&
     newDataConfigJobDes.value == dataConfigJob.value.description
   ) {
+    loading.value = false;
     dialogConfigJob.value = false;
     modeEditName.value = false;
     modeEditDescription.value = false;
@@ -323,9 +329,10 @@ async function updateDataJob() {
     try {
       const res = await TaskService.putTask(
         dataConfigJob.value.guidfixed,
-        newData
+        dataConfigJob.value
       );
       if (res.success) {
+        loading.value = false;
         dialogConfigJob.value = false;
         modeEditName.value = false;
         modeEditDescription.value = false;
@@ -545,12 +552,16 @@ async function updateDataJob() {
       >
         <div>
           <Button
+            :loading="loading"
+            v-if="dataConfigJob.parentguidfixed != ''"
             @click="cancelJob()"
             icon="pi pi-times"
             label="ยกเลิกงาน"
             class="m-0 mr-2 p-button-warning"
           />
           <Button
+            :loading="loading"
+            v-if="dataConfigJob.parentguidfixed == ''"
             @click="deleteJob()"
             icon="pi pi-trash"
             label="ลบงาน"
@@ -559,6 +570,7 @@ async function updateDataJob() {
         </div>
         <div>
           <Button
+            :loading="loading"
             @click="updateDataJob()"
             icon="pi pi-save"
             label="บันทึก"
