@@ -273,35 +273,6 @@ function headerNextFocus(filedName) {
       $(".docno").focus();
     }
   }, 100);
-  // console.log(filedName);
-  // setTimeout(() => {
-  //   if (filedName == "docdate") {
-  //     $(".docdate").focus();
-  //   } else if (filedName == "batchid") {
-  //     checkAccountPeriod(props.daily_form.docdate, 1);
-  //     $(".batchid").focus();
-  //   } else if (filedName == "accountperiod") {
-  //     $(".accountperiod").focus();
-  //   } else if (filedName == "accountyear") {
-  //     $(".accountyear").focus();
-  //   } else if (filedName == "accountgroup") {
-  //     $(".accountgroup").click();
-  //   } else if (filedName == "bookcode") {
-  //     $(".bookcode").click();
-  //   } else if (filedName == "accountdescription") {
-  //     $(".accountdescription").focus();
-  //   } else if (filedName == "exdocrefno") {
-  //     $(".exdocrefno").focus();
-  //   } else if (filedName == "exdocrefdate") {
-  //     $(".exdocrefdate").focus();
-  //   } else if (filedName == "isUpdate") {
-  //     $(".isUpdate").focus();
-  //   } else if (filedName == "accountRow1") {
-  //     $(".accountcode_" + 0 + " > input").focus();
-  //   } else if (filedName == "docno") {
-  //     $(".docno").focus();
-  //   }
-  // }, 100);
 }
 </script>
 
@@ -323,6 +294,7 @@ function headerNextFocus(filedName) {
             @date-select="checkAccountPeriod($event, 0)"
             @blur="checkAccountPeriod($event, 1)"
             @keyup.enter="headerNextFocus('docno')"
+            @keydown.tab="headerNextFocus('docno')"
             inputClass="docdate"
           />
           <label for="docdate">เอกสารวันที่</label>
@@ -335,7 +307,8 @@ function headerNextFocus(filedName) {
             v-model="props.daily_form.docno"
             :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
             :disabled="props.isUpdate || update_mode"
-            @keyup.enter="headerNextFocus('exdocrefdate')"
+            @keyup.enter="headerNextFocus('bookcode')"
+            @keydown.tab="headerNextFocus('bookcode')"
             class="docno"
           />
           <label for="docNo">เลขที่เอกสาร</label>
@@ -355,7 +328,8 @@ function headerNextFocus(filedName) {
             filterPlaceholder="ค้นหา"
             placeholder="เลือก"
             :autoFilterFocus="true"
-            @keyup.enter="headerNextFocus('accountdescription')"
+            @keyup.enter="headerNextFocus('exdocrefdate')"
+            @keydown.tab="headerNextFocus('exdocrefdate')"
             inputClass="bookcode"
           >
             <template #option="slotProps">
@@ -380,6 +354,7 @@ function headerNextFocus(filedName) {
             :hiddenTime="true"
             inputClass="exdocrefdate"
             @keyup.enter="headerNextFocus('exdocrefno')"
+            @keydown.tab="headerNextFocus('exdocrefno')"
           />
           <label for="exdocrefdate">เอกสารวันที่อ้างอิง</label>
         </span>
@@ -391,8 +366,8 @@ function headerNextFocus(filedName) {
             type="text"
             v-model="props.daily_form.exdocrefno"
             :disabled="props.isUpdate || update_mode"
-            @keyup.enter="headerNextFocus('bookcode')"
-            @keydown.tab="headerNextFocus('bookcode')"
+            @keyup.enter="headerNextFocus('isUpdate')"
+            @keydown.tab="headerNextFocus('isUpdate')"
             class="exdocrefno"
           />
           <label for="exdocrefno">เลขที่เอกสารอ้างอิง</label>
@@ -400,7 +375,9 @@ function headerNextFocus(filedName) {
       </div>
 
       <div class="field mb-4 col-12 md:col-3">
-        <div class="grid mt-3 ml-2">
+        <label class="font-medium text-900 ml-0 mr-2">ประเภทรายการ</label>
+
+        <div class="grid mt-0 ml-2">
           <div class="flex field-checkbox">
             <RadioButton
               :disabled="props.isUpdate"
@@ -408,7 +385,7 @@ function headerNextFocus(filedName) {
               value="0"
               v-model="props.daily_form.journaltype"
               inputClass="isUpdate"
-              @keyup.enter="headerNextFocus('accountRow1')"
+              @keyup.enter="headerNextFocus('accountdescription')"
             />
             <label>ทั่วไป</label>
           </div>
@@ -418,7 +395,7 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="1"
               v-model="props.daily_form.journaltype"
-              @keyup.enter="headerNextFocus('accountRow1')"
+              @keyup.enter="headerNextFocus('accountdescription')"
             />
             <label>ปิดบัญชี</label>
           </div>
@@ -430,7 +407,7 @@ function headerNextFocus(filedName) {
             type="text"
             :disabled="props.isUpdate"
             v-model="props.daily_form.accountdescription"
-            @keydown.tab="headerNextFocus('isUpdate')"
+            @keydown.tab="headerNextFocus('accountRow1')"
             class="accountdescription"
             :autoResize="true"
             rows="2"
@@ -709,7 +686,11 @@ function headerNextFocus(filedName) {
 
     <template #footer>
       <div class="border-top-1 surface-border pt-3">
-        <Button class="w-full" @click="warringAccountperiod = false" label="ตกลง"></Button>
+        <Button
+          class="w-full"
+          @click="warringAccountperiod = false"
+          label="ตกลง"
+        ></Button>
       </div>
     </template>
   </Dialog>
@@ -718,6 +699,4 @@ function headerNextFocus(filedName) {
 .p-dialog.p-component.p-ripple-disabled {
   background-color: #fff;
 }
-
-
 </style>

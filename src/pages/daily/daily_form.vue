@@ -617,9 +617,6 @@ function verifyData() {
     daily_form_valid.value.docdate = false;
   }
 
-  var sumCredit = 0;
-  var sumDebit = 0;
-
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
@@ -654,25 +651,62 @@ function verifyData() {
     ) {
       deletIndex.push(index);
     }
+  });
 
-    // if (ele.accountcode == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
-    // if (ele.accountname == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
+  // ลบ row accountcode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    daily_form.value.journaldetail.splice(idx, 1);
+  });
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+
+  if (daily_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (daily_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  var sumCredit = 0;
+  var sumDebit = 0;
+  daily_form.value.journaldetail.forEach((ele, index) => {
+    if (ele.accountcode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
+        life: 4000,
+      });
+    }
+    if (ele.accountname == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
 
     var debit = 0;
     var credit = 0;
@@ -691,12 +725,6 @@ function verifyData() {
       sumDebit += debit;
       //console.log(sumDebit);
     }
-  });
-
-  // ลบ row accountcode ที่เป็นค่าว่าง
-  deletIndex.forEach((ele, index) => {
-    let idx = ele - index;
-    daily_form.value.journaldetail.splice(idx, 1);
   });
 
   //console.log(sumCredit);

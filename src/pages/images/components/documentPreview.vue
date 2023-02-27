@@ -34,6 +34,8 @@ const openEditImage = ref(false);
 const sortImageReferencesModel = ref(false);
 const draggedItemIndex = ref(null);
 const tempImageReferences = ref([]);
+const dialogComment = ref(false);
+const comment = ref("");
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -43,6 +45,7 @@ const props = defineProps({
   ischeckApprove: Boolean,
   modeMenu: Number,
   resetIndex: Number,
+  loading: Boolean,
 });
 
 const emit = defineEmits([
@@ -54,6 +57,7 @@ const emit = defineEmits([
   "createGL",
   "viewGL",
   "updateXorderImageReferences",
+  "saveComment",
 ]);
 
 onUnmounted(() => {});
@@ -143,15 +147,15 @@ const items = computed({
               printImg(props.showImgData);
             },
           },
-          {
-            disabled:
-              props.selectedImag.references.length == 0 || props.jobStatus != 0,
-            label: "อัพโหลดรูปใหม่",
-            icon: "pi pi-upload",
-            command: () => {
-              chooseFile();
-            },
-          },
+          // รอ service
+          // {
+          //   disabled: props.jobStatus != 0,
+          //   label: "อัพโหลดรูปใหม่",
+          //   icon: "pi pi-upload",
+          //   command: () => {
+          //     chooseFile();
+          //   },
+          // },
           {
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
@@ -306,6 +310,44 @@ function sortImageReferencesModelSave() {
 
   sortImageReferencesModel.value = false;
 }
+
+function showComment() {
+  dialogComment.value = true;
+}
+
+function cancelShowComment() {
+  comment.value = "";
+  dialogComment.value = false;
+}
+
+function saveComment() {
+  if (comment.value == "") {
+    toast.add({
+      severity: "warn",
+      summary: "แจ้งเตือน",
+      detail: "กรุณากรอกข้อความ",
+      life: 3000,
+    });
+    return;
+  }
+  emit(
+    "saveComment",
+    props.showImgData[activeIndex.value].documentimageguid,
+    comment.value,
+    activeIndex.value
+  );
+
+  comment.value = "";
+
+  setTimeout(() => {
+    scrollToBottom();
+  }, 500);
+}
+
+function scrollToBottom() {
+  const dialogContent = document.querySelector(".p-dialog-content");
+  dialogContent.scrollTop = dialogContent.scrollHeight;
+}
 </script>
 
 <template>
@@ -403,38 +445,23 @@ function sortImageReferencesModelSave() {
             class="p-button-warning p-button-sm"
           />
         </div> -->
-
-        <!-- <div
-          v-for="listStatusImage of props.jobStatus == 3
-            ? listStatusImagesByDaily
-            : listStatusImages"
-          :key="listStatusImage.code"
-          class="field-radiobutton m-2 my-3 flex align-items-center justify-content-center"
-        >
-          <RadioButton
-            :disabled="
-              !props.ischeckApprove || props.selectedImag.references.length > 0
-            "
-            :id="listStatusImage.code"
-            name="listStatusImage"
-            :value="listStatusImage.code"
-            v-model="props.selectedImag.status"
-            @change="upDateStatusImage"
-          />
-          <label :for="listStatusImage.code">{{ listStatusImage.name }}</label>
-        </div> -->
       </div>
 
       <!--right-->
       <div class="flex" v-if="props.modeMenu != 4">
-        <!-- <Button
+        <Button
           type="button"
           label="Comment"
           icon="pi pi-comments"
           class="p-button-sm p-button-text p-button-rounded"
-          badge="8"
+          :badge="
+            props.showImgData[activeIndex].comments != null
+              ? props.showImgData[activeIndex].comments.length.toString()
+              : '0'
+          "
           badgeClass="p-badge-danger"
-        /> -->
+          @click="showComment()"
+        />
         <Button
           v-if="checkUseImg(props.selectedImag.guidfixed)"
           :label="getUseData(props.selectedImag.guidfixed)"
@@ -654,6 +681,57 @@ function sortImageReferencesModelSave() {
         icon="pi pi-save"
         class="p-button-success"
         @click="sortImageReferencesModelSave()"
+      />
+    </template>
+  </Dialog>
+
+  <Dialog
+    @show="scrollToBottom"
+    :header="'Comment : ' + props.showImgData[activeIndex].name"
+    :modal="true"
+    v-model:visible="dialogComment"
+    @update:visible="cancelShowComment()"
+    :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+    :style="{ width: '60vw' }"
+  >
+    <div
+      class="flex mt-3"
+      v-for="commets in props.showImgData[activeIndex].comments"
+    >
+      <div class="surface-card shadow-3 border-round p-3 flex-auto">
+        <div class="mb-3">
+          <span class="text-900 font-medium inline-block mr-3">
+            {{ commets.commentedby }}
+          </span>
+          <span class="text-500 text-sm">
+            {{ Utils.getDateFormatDMYHM(commets.commentedat) }}
+          </span>
+        </div>
+        <div class="line-height-3 text-700 mb-2">
+          {{ commets.comment }}
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <Textarea
+        v-model="comment"
+        :autoResize="true"
+        rows="2"
+        class="w-full"
+        autofocus
+      />
+      <Button
+        label="ยกเลิก"
+        icon="pi pi-times"
+        class="p-button-text p-button-sm mt-1"
+        @click="cancelShowComment()"
+      />
+      <Button
+        label="บันทึก"
+        :loading="props.loading"
+        icon="pi pi-save"
+        class="p-button-success m-0 mt-1 p-button-sm"
+        @click="saveComment()"
       />
     </template>
   </Dialog>

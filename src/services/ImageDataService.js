@@ -131,6 +131,9 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/xsort/${id}`, data).then(res => res.data);
     },
 
-
+    // Commenty
+    putDocumentImageComment(id, data) {
+        return instanceApi(true).put(`/documentimage/` + id + `/comment`, data).then(res => res.data);
+    },
 
 }

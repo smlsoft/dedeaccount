@@ -817,12 +817,6 @@ function verifyData() {
   } else {
     daily_form_valid.value.docno = false;
   }
-  if (daily_form.value.accountperiod == "") {
-    errorCount += 1;
-    daily_form_valid.value.accountperiod = true;
-  } else {
-    daily_form_valid.value.accountperiod = false;
-  }
   if (daily_form.value.accountyear == "") {
     errorCount += 1;
     daily_form_valid.value.accountyear = true;
@@ -837,8 +831,13 @@ function verifyData() {
     daily_form_valid.value.bookcode = false;
   }
 
-  var sumCredit = 0;
-  var sumDebit = 0;
+  if (daily_form.value.accountperiod == null) {
+    errorCount += 1;
+    daily_form_valid.value.docdate = true;
+  } else {
+    daily_form_valid.value.docdate = false;
+  }
+
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
@@ -873,25 +872,62 @@ function verifyData() {
     ) {
       deletIndex.push(index);
     }
+  });
 
-    // if (ele.accountcode == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
-    // if (ele.accountname == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
+  // ลบ row accountcode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    daily_form.value.journaldetail.splice(idx, 1);
+  });
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+
+  if (daily_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (daily_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  var sumCredit = 0;
+  var sumDebit = 0;
+  daily_form.value.journaldetail.forEach((ele, index) => {
+    if (ele.accountcode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
+        life: 4000,
+      });
+    }
+    if (ele.accountname == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
 
     var debit = 0;
     var credit = 0;
@@ -912,13 +948,8 @@ function verifyData() {
     }
   });
 
-  // ลบ row accountcode ที่เป็นค่าว่าง
-  deletIndex.forEach((ele, index) => {
-    let idx = ele - index;
-    daily_form.value.journaldetail.splice(idx, 1);
-  });
-  // console.log(sumCredit);
-  // console.log(sumDebit);
+  //console.log(sumCredit);
+  //console.log(sumDebit);
   if (parseFloat(sumCredit).toFixed(2) != parseFloat(sumDebit).toFixed(2)) {
     errorCount += 1;
     toast.add({
@@ -930,12 +961,6 @@ function verifyData() {
   }
 
   if (errorCount != 0) {
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "กรุณาป้อนข้อมูลให้ครบ",
-      life: 4000,
-    });
     return false;
   } else {
     var sumDebit;
@@ -957,9 +982,10 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod = parseInt(
-      daily_form.value.accountperiod.toString()
-    );
+    daily_form.value.accountperiod =
+      daily_form.value.accountperiod != null
+        ? parseInt(daily_form.value.accountperiod.toString())
+        : null;
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }

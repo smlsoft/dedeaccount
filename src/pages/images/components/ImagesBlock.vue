@@ -422,9 +422,9 @@ function selectImg(data, tags, documentimageguid, data_index) {
     guidfixed: data,
     tags: tags,
     documentimageguid: documentimageguid,
-    data_index: data_index
+    data_index: data_index,
   };
-  emit("selectImg", dataSelet );
+  emit("selectImg", dataSelet);
 }
 
 function zoomImg(data) {
@@ -440,7 +440,6 @@ function zoomImg(data) {
       return -1;
     }
   });
-  console.log(data);
 
   zoomImgData.value = data;
   showImgData.value = data;

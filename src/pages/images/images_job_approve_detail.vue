@@ -101,7 +101,6 @@ const totalDocumentStatus_0 = ref("0");
 const totalDocumentStatus_1 = ref("0");
 const totalDocumentStatus_1_1 = ref("0");
 const totalDocumentStatus_2 = ref("0");
-
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
@@ -288,6 +287,28 @@ function showImg(data) {
   selectedImag.value = data;
   showImgData.value = data.imagereferences;
   showDocumentPreview.value = true;
+
+  showImgData.value.forEach((element, index) => {
+    getDocumentImageById(element.documentimageguid, index);
+  });
+}
+
+async function getDocumentImageById(id, index) {
+  try {
+    let res = await ImageDataService.getDocumentImageById(id);
+    // console.log(res)
+    if (res.success) {
+      showImgData.value[index].comments = res.data.comments;
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "ดึงข้อมูล คอมเม้น ไม่สำเร็จ ",
+      life: 4000,
+    });
+  }
 }
 
 function closeDocumentPreview() {
@@ -1137,6 +1158,36 @@ function updateXorderImageReferences(guidfiexd, data) {
       });
     });
 }
+
+async function saveComment(id, data, index) {
+  loading.value = true;
+  let newData = {
+    comment: data,
+  };
+  try {
+    const res = await ImageDataService.putDocumentImageComment(id, newData);
+    if (res.success) {
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 1000,
+      });
+      loading.value = false;
+
+      getDocumentImageById(id, index);
+    }
+  } catch (err) {
+    console.log(err);
+    loading.value = false;
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+  }
+}
 </script>
 <template>
   <AppLayout>
@@ -1365,11 +1416,13 @@ function updateXorderImageReferences(guidfiexd, data) {
               :jobStatus="job.status"
               :ischeckApprove="ischeckApprove"
               :modeMenu="2"
+              :loading="loading"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
               v-on:documentImageUnGroup="documentImageUnGroup"
               v-on:updateTagImage="updateTagImage"
               v-on:updateXorderImageReferences="updateXorderImageReferences"
+              v-on:saveComment="saveComment"
             />
           </SplitterPanel>
         </Splitter>
