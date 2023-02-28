@@ -101,7 +101,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> {{ $t("vats") }}</span>
+                <span> {{ $t("vat") }}</span>
               </template>
               <VatForm
                 :isUpdate="readMode"
@@ -126,6 +126,71 @@
                 <span> {{ $t("img") }}</span>
               </template>
               <Galleria
+                :value="dataImage.imagereferences"
+                :circular="true"
+                containerStyle="max-width: 100%"
+                thumbnailsPosition="buttom"
+                :show-thumbnails="dataImage.imagereferences.length > 1"
+                v-model:activeIndex="activeIndexList"
+                :numVisible="
+                  dataImage.imagereferences.length > 10
+                    ? 10
+                    : dataImage.imagereferences.length
+                "
+              >
+                <template #header>
+                  <div class="flex justify-content-between mb-2">
+                    <div class="flex">
+                      {{ $t("img_name") }} :
+                      {{ dataImage.imagereferences[[activeIndexList]].name }}
+                    </div>
+                    <div class="flex">
+                      {{ $t("date") }} :{{
+                        Utils.getDateTimeFormat(
+                          dataImage.imagereferences[[activeIndexList]]
+                            .uploadedat
+                        )
+                      }}
+                      {{ $t("by") }}
+                      {{
+                        dataImage.imagereferences[[activeIndexList]].uploadedby
+                      }}
+                    </div>
+                  </div>
+                </template>
+                <template #item="slotProps">
+                  <div
+                    class="relative"
+                    style="margin: 0px; padding: 0px; width: 100%; height: 63vh"
+                  >
+                    <iframe
+                      :name="slotProps.item.imageuri"
+                      :src="
+                        '/images/components/zoom?uri=' + slotProps.item.imageuri
+                      "
+                      class="static"
+                    >
+                    </iframe>
+                    <div
+                      v-if="showOveray"
+                      class="absolute top-0 left-0"
+                      style="
+                        width: 100%;
+                        height: 100%;
+                        background-color: white;
+                        opacity: 0;
+                      "
+                    ></div>
+                  </div>
+                </template>
+                <template #thumbnail="slotProps">
+                  <img
+                    :src="slotProps.item.imageuri"
+                    style="width: 50px; height: 50px; display: block"
+                  />
+                </template>
+              </Galleria>
+              <!-- <Galleria
                 :value="dataImage.imagereferences"
                 :circular="true"
                 thumbnailsPosition="top"
@@ -162,11 +227,11 @@
                     <iframe
                       :name="slotProps.item.imageuri"
                       :src="
-                        '/images_group/components/zoom?uri=' +
-                        slotProps.item.imageuri
+                        '/images/components/zoom?uri=' + slotProps.item.imageuri
                       "
                     >
                     </iframe>
+                    
                   </div>
                 </template>
                 <template #thumbnail="slotProps">
@@ -175,7 +240,7 @@
                     style="width: 50px; height: 50px"
                   />
                 </template>
-              </Galleria>
+              </Galleria> -->
             </TabPanel>
           </TabView>
         </div>

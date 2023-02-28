@@ -26,7 +26,7 @@ const activePage = ref(1);
 const firstPage = ref(0);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(50);
+const limitPage = ref(1000);
 
 const showSkeleton = ref(false);
 const totalPage = ref(0);
@@ -85,7 +85,7 @@ const title2_valid = ref(false);
 const uploadedat = ref(new Date());
 const uploadedat2 = ref(new Date());
 const images_list_group = ref([]);
-const imageGroup = ref();
+const imageGroup = ref()
 const data_save_group = ref({});
 const tag = ref();
 const separatorExp = ref(/,| /);
