@@ -85,7 +85,7 @@ const title2_valid = ref(false);
 const uploadedat = ref(new Date());
 const uploadedat2 = ref(new Date());
 const images_list_group = ref([]);
-const imageGroup = ref()
+const imageGroup = ref();
 const data_save_group = ref({});
 const tag = ref();
 const separatorExp = ref(/,| /);
@@ -118,6 +118,13 @@ function getTaskById(guidfixed) {
       console.log(res);
       if (res.success) {
         job.value = res.data;
+        if (res.data.totaldocumentstatus == null) {
+          totalDocumentStatus_0.value = "0";
+          totalDocumentStatus_1.value = "0";
+          totalDocumentStatus_1_1.value = "0";
+          totalDocumentStatus_2.value = "0";
+          return;
+        }
 
         // รอตรวจ
         const filteredStatus_0 = job.value.totaldocumentstatus.filter(
@@ -148,6 +155,7 @@ function getTaskById(guidfixed) {
       }
     })
     .catch((err) => {
+      console.log(err);
       toast.add({
         severity: "error",
         summary: "Error",

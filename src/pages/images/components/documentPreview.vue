@@ -506,9 +506,14 @@ defineExpose({
         <div
           class="relative"
           style="margin: 0px; padding: 0px; width: 100%"
-          :style="
-            props.showImgData.length === 1 ? 'height: 70vh' : 'height: 63vh'
-          "
+          :style="[
+            props.showImgData.length === 1 && props.modeMenu != 4
+              ? 'height: 70vh'
+              : 'height: 63vh',
+            props.showImgData.length === 1 && props.modeMenu == 4
+              ? 'height: 84.5vh'
+              : 'height: 80vh',
+          ]"
         >
           <iframe
             :name="slotProps.item.imageuri"
