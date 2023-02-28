@@ -6,11 +6,9 @@ import ImageDataService from "@/services/ImageDataService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useToast } from "primevue/usetoast";
-import { DomHandler } from "primevue/utils";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import ImageBlock from "../images_group/components/ImagesBlock.vue";
-import ImagesGallery from "../images/components/ImagesGallery.vue";
 import DialogForm from "@/components/form/DialogForm.vue";
 import $ from "jquery";
 
@@ -80,7 +78,7 @@ const showImageGallery = ref(false);
 const connection = ref();
 const sortRef = ref("0");
 const sortReject = ref("0");
-const showImageBy = ref("unsave");
+const showImageBy = ref("1");
 onUnmounted(() => {
   console.log("unmounted--------------------------------------------------------");
   connection.value.close();

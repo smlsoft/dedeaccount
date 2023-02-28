@@ -454,17 +454,15 @@ function rowClass(data) {
             <Column
               field="accountcode"
               header="รหัสผังบัญชี"
-              :sortable="true"
               class="accountcode"
             ></Column>
             <Column
               field="accountname"
               header="ชื่อผังบัญชี"
-              :sortable="true"
               class="accountname"
             ></Column>
 
-            <Column field="accountcategory" header="หมวดบัญชี" :sortable="true">
+            <Column field="accountcategory" header="หมวดบัญชี" >
               <template #body="{ data, field }">
                 {{ newResultCategory(data[field]) }}
               </template>
@@ -472,7 +470,6 @@ function rowClass(data) {
             <Column
               field="accountbalancetype"
               header="ด้านบัญชี"
-              :sortable="true"
             >
               <template #body="{ data, field }">
                 {{ newResultBalance(data[field]) }}
@@ -481,18 +478,15 @@ function rowClass(data) {
             <Column
               field="accountgroup"
               header="กลุ่มบัญชี"
-              :sortable="true"
             ></Column>
 
             <Column
               field="accountlevel"
               header="ระดับบัญชี"
-              :sortable="true"
             ></Column>
             <Column
               field="consolidateaccountcode"
               header="รหัสผังบัญชีกลาง"
-              :sortable="true"
             ></Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">

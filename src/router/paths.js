@@ -233,22 +233,7 @@ export default [
     },
     component: () => import("../pages/remaindoc/remaindoc_detail.vue"),
   },
-  {
-    path: "/images/gallery",
-    name: "image_gallery",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_gallery.vue"),
-  },
-  {
-    path: "/images/list",
-    name: "list_images",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_list.vue"),
-  },
+
   {
     path: "/images_group/list",
     name: "pic_group_docref",
@@ -257,22 +242,7 @@ export default [
     },
     component: () => import("../pages/images_group/images_list.vue"),
   },
-  {
-    path: "/images/list/:id",
-    name: "list_images_param",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_list.vue"),
-  },
-  {
-    path: "/images/detail/:id",
-    name: "imagesDetail",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/images/images_detail.vue"),
-  },
+
   {
     path: "/book/list",
     name: "bookList",
@@ -388,6 +358,30 @@ export default [
     component: () => import("../pages/images_group/components/zoom.vue"),
   },
   {
+    path: "/document_images/components/zoom",
+    name: "zoom",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/document_images/components/zoom.vue"),
+  },
+  {
+    path: "/images/components/zoom",
+    name: "zoom",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/zoom.vue"),
+  },
+  {
+    path: "/images/components/zoomfabric",
+    name: "zoomfabric",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/zoomFabric.vue"),
+  },
+  {
     path: "/accountPeriod/list",
     name: "accountPeriod",
     meta: {
@@ -395,5 +389,88 @@ export default [
     },
     component: () => import("../pages/account_period/account_period_list.vue"),
   },
+
+  {
+    path: "/document_images/list",
+    name: "document_images",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/document_images/document_list.vue"),
+  },
+  {
+    path: "/images/job_upload",
+    name: "images_job_upload",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_upload.vue"),
+  },
+
+  {
+    path: "/images/upload_detail/:id",
+    name: "images_job_upload_detail",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_upload_detail.vue"),
+  },
+  {
+    path: "/images/job_approve",
+    name: "images_job_approve",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_approve.vue"),
+  },
+  {
+    path: "/images/approve_detail/:id",
+    name: "images_job_approve_detail",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_approve_detail.vue"),
+  },
+  {
+    path: "/images/components/TaskList",
+    name: "TaskList",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/components/TaskList.vue"),
+  },
+
+  {
+    path: "/images/job_daily",
+    name: "images_job_daily",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily.vue"),
+  },
+  {
+    path: "/images/daily_detail/:id",
+    name: "images_job_daily_detail",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily_detail.vue"),
+  },
+  {
+    path: "/images/daily_detail_view/:id/:idrandom",
+    name: "images_job_daily_detail_view",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/images/images_job_daily_detail_view.vue"),
+  },
+  {
+    path: "/daily/daily_images_job_form/:id",
+    name: "daily_images_job_form",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/daily/daily_images_job_form.vue"),
+  }
 
 ];

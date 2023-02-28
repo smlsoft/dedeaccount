@@ -1,117 +1,95 @@
 <template>
   <AppLayout>
     <MainContentWarp>
-      <div class="p-2 surface-section flex-auto">
-        <div class="grid p-fluid formgrid">
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem">
-              รายงานทางการเงิน / งบทดลอง</i
-            >
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="startDate" class="font-medium text-900"
-              >สำหรับชุดบัญชี :</label
-            >
-            <Dropdown
-              v-model="accountGroup"
-              :options="groups"
-              optionValue="code"
-              optionLabel="name1"
-              placeholder="กรุณาเลือกชุดบัญชี"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="startDate"
-              :modelValue="startDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="endDate" class="font-medium text-900"
-              >ถึงวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="endDate"
-              :modelValue="endDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="closeyear" class="font-medium text-900"
-              >รวมรายการปิดบัญชีสิ้นปี :</label
-            >
-            <div class="field-checkbox mt-2">
-              <Checkbox :binary="true" v-model="ica" />
-              <label>รวมรายการปิดบัญชีสิ้นปี</label>
-            </div>
-          </div>
-          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
-            <Button
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exportReport()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
-            />
-          </div>
-          <!-- <div class="col-12" v-if="isvisible">
-            <iframe
-              class="w-full overflow-auto surface-overlay"
-              style="height: 90vh"
-              id="iframeContainer"
-            ></iframe>
-          </div> -->
-        </div>
+      <div class="surface-card p-3 shadow-2 border-round">
+        <div class="mb-2 flex align-items-center justify-content-between">
+          <span class="text-xl font-medium text-900">
+            <i class="pi pi-book" style="font-size: 1.5rem">
+              {{ $t("statement") }} / {{ $t("trial") }}
+            </i>
+          </span>
+          <Button
+            label="ค้นหา"
+            icon="pi pi-cog"
+            @click="showSearch = true"
+            class="p-button-rounded mr-2"
+          >
+            <i class="pi pi-cog"></i>
 
-        <Splitter v-if="isvisible" style="height: calc(100vh - 12vh)">
-          <SplitterPanel id="panelForm1">
-            <TrialBalance
-              :dataReport="dataReport"
-              :headDataReport="headDataReportTrialBalance"
-              :loading="loadingTrialBalance"
-              v-on:showSplitterLedger="showSplitterLedger"
-            ></TrialBalance>
-          </SplitterPanel>
-          <SplitterPanel v-if="detailLedger" id="panelForm2">
-            <Ledger
-              :dataReport="dataReportLedger"
-              :headDataReport="headDataReportLedger"
-              :loading="loadingLedger"
-              v-on:showDialogDocNo="getGLDetail"
-              v-on:closeSplitterLedger="closeSplitterLedger"
-            ></Ledger>
-          </SplitterPanel>
-        </Splitter>
+            <label style="text-align: center; margin: auto"
+              >{{ $t("search") }}
+            </label></Button
+          >
+        </div>
+        <div class="flex" v-if="isvisible">
+          <div class="flex">
+            <Button
+              label="ส่งออก Excel"
+              class="p-button-primary"
+              icon="pi pi-file-excel"
+              @click="DownloadExampleExcel()"
+              :disabled="isvisible === false"
+            >
+              <i class="pi pi-file-excel"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("export") }} Excel</label
+              ></Button
+            >
+          </div>
+          <div class="flex ml-2">
+            <Button
+              label="ส่งออก PDF"
+              icon="pi pi-file-pdf"
+              class="p-button-primary"
+              @click="exportPDF()"
+              :disabled="isvisible === false"
+            >
+              <i class="pi pi-file-pdf"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("export") }} PDF</label
+              ></Button
+            >
+          </div>
+        </div>
+        <div class="p-2 surface-section flex-auto">
+          <Splitter v-if="isvisible" :style="screenHeight">
+            <SplitterPanel id="panelForm1">
+              <TrialBalance
+                :dataReport="dataReport"
+                :headDataReport="headDataReportTrialBalance"
+                :loading="loadingTrialBalance"
+                v-on:showSplitterLedger="showSplitterLedger"
+              ></TrialBalance>
+            </SplitterPanel>
+            <SplitterPanel v-if="detailLedger" id="panelForm2">
+              <Ledger
+                :dataReport="dataReportLedger"
+                :headDataReport="headDataReportLedger"
+                :loading="loadingLedger"
+                v-on:showDialogDocNo="getGLDetail"
+                v-on:closeSplitterLedger="closeSplitterLedger"
+              ></Ledger>
+            </SplitterPanel>
+          </Splitter>
+        </div>
       </div>
 
       <Dialog
         v-model:visible="openDetailDocNo"
-        :header="'เอกสาร : ' + daily_form.docno"
         :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
         :style="{ width: '50vw' }"
       >
+        <template #header>
+          <h3>{{ $t("docno") }} : {{ daily_form.docno }}</h3>
+        </template>
         <div class="confirmation-content" id="boxconfirm" style="height: 70vh">
           <TabView class="tabview-custom" ref="tabview">
             <TabPanel>
               <template #header>
                 <i class="pi pi-book mr-1"></i>
-                <span> ข้อมูลรายวัน</span>
+                <span> {{ $t("journal") }}</span>
               </template>
               <JournalForm
                 :isUpdate="readMode"
@@ -123,7 +101,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ข้อมูลภาษี</span>
+                <span> {{ $t("vats") }}</span>
               </template>
               <VatForm
                 :isUpdate="readMode"
@@ -134,7 +112,7 @@
             <TabPanel>
               <template #header>
                 <i class="pi pi-wallet mr-1"></i>
-                <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                <span> {{ $t("vat") }}</span>
               </template>
               <TaxForm
                 :isUpdate="readMode"
@@ -145,29 +123,155 @@
             <TabPanel v-if="showTabImage">
               <template #header>
                 <i class="pi pi-image mr-1"></i>
-                <span> รูปภาพ</span>
+                <span> {{ $t("img") }}</span>
               </template>
-              <div class="flex justify-content-between mb-2">
-                <div class="flex">ชื่อรูป : {{ dataImage.name }}</div>
-                <div class="flex">
-                  วันที่ :{{
-                    Utils.getDateTimeFormat(dataImage.uploadedat)
-                  }}
-                  โดย {{ dataImage.uploadedby }}
-                </div>
-              </div>
-              <div style="margin: 0px; padding: 0px">
-                <iframe
-                  :src="
-                    '/images_group/components/zoom?uri=' + dataImage.imageuri
-                  "
-                >
-                </iframe>
-              </div>
+              <Galleria
+                :value="dataImage.imagereferences"
+                :circular="true"
+                thumbnailsPosition="top"
+                :show-thumbnails="dataImage.imagereferences.length > 1"
+                v-model:activeIndex="activeIndexList"
+                :numVisible="
+                  dataImage.imagereferences.length > 10
+                    ? 10
+                    : dataImage.imagereferences.length
+                "
+              >
+                <template #header>
+                  <div class="flex justify-content-between mb-2">
+                    <div class="flex">
+                      {{ $t("img_name") }} :
+                      {{ dataImage.imagereferences[[activeIndexList]].name }}
+                    </div>
+                    <div class="flex">
+                      {{ $t("date") }} :{{
+                        Utils.getDateTimeFormat(
+                          dataImage.imagereferences[[activeIndexList]]
+                            .uploadedat
+                        )
+                      }}
+                      {{ $t("by") }}
+                      {{
+                        dataImage.imagereferences[[activeIndexList]].uploadedby
+                      }}
+                    </div>
+                  </div>
+                </template>
+                <template #item="slotProps">
+                  <div>
+                    <iframe
+                      :name="slotProps.item.imageuri"
+                      :src="
+                        '/images_group/components/zoom?uri=' +
+                        slotProps.item.imageuri
+                      "
+                    >
+                    </iframe>
+                  </div>
+                </template>
+                <template #thumbnail="slotProps">
+                  <img
+                    :src="slotProps.item.imageuri"
+                    style="width: 50px; height: 50px"
+                  />
+                </template>
+              </Galleria>
             </TabPanel>
           </TabView>
         </div>
       </Dialog>
+
+      <Dialog
+        v-model:visible="showSearch"
+        :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+        :style="{ width: '50vw' }"
+        :modal="true"
+      >
+        <template #header>
+          <i class="pi pi-cog" style="font-size: 1.5rem">
+            {{ $t("search") }}
+          </i>
+        </template>
+        <div class="grid p-fluid formgrid">
+          <div class="field col-12 md:col-6">
+            <label for="startDate" class="font-medium text-900"
+              >{{ $t("accGroup") }}
+            </label>
+            <Dropdown
+              v-model="accountGroup"
+              :options="groups"
+              optionValue="code"
+              optionLabel="name1"
+              placeholder="กรุณาเลือกชุดบัญชี"
+            />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="closeyear" class="font-medium text-900">
+              {{ $t("closing_entry") }} :</label
+            >
+            <div class="field-checkbox mt-2">
+              <Checkbox :binary="true" v-model="ica" />
+              <label>{{ $t("closing_entry") }} </label>
+            </div>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="startDate" class="font-medium text-900"
+              >{{ $t("sincetime") }} :</label
+            >
+            <DatePicker
+              dateFormat="d/m/yy"
+              v-model="startDate"
+              :modelValue="startDate"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="true"
+              :hiddenTime="true"
+            />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="endDate" class="font-medium text-900"
+              >{{ $t("totime") }} :</label
+            >
+            <DatePicker
+              dateFormat="d/m/yy"
+              v-model="endDate"
+              :modelValue="endDate"
+              :showIcon="true"
+              :buddhist="buddhistYear"
+              :hideOnDateTimeSelect="true"
+              :hiddenTime="true"
+            />
+          </div>
+
+          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
+            <Button
+              class="text-center"
+              label="จัดทำรายงาน"
+              icon="pi pi-book"
+              iconPos="left"
+              @click="exportReport()"
+              :disabled="
+                startDate === null ||
+                endDate === null ||
+                accountGroup.length == 0
+              "
+              ><i class="pi pi-book"></i>
+
+              <label style="text-align: center; margin: auto"
+                >{{ $t("process") }}
+              </label></Button
+            >
+          </div>
+        </div>
+      </Dialog>
+
+      <!-- <div class="col-12" v-if="isvisible">
+            <iframe
+              class="w-full overflow-auto surface-overlay"
+              style="height: 90vh"
+              id="iframeContainer"
+            ></iframe>
+          </div> -->
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -188,10 +292,14 @@ import { useToast } from "primevue/usetoast";
 import TrialBalance from "./components/tableTrialBalance.vue";
 import Ledger from "./components/tableLedger.vue";
 import dayjs from "dayjs";
+import XLSX from "xlsx";
 import JournalForm from "../daily/components/journal_form.vue";
 import VatForm from "../daily/components/vat_form.vue";
 import TaxForm from "../daily/components/tax_form.vue";
+const head_example = ref([]);
+const detail_example = ref([]);
 
+const detail_examplenumbertwo = ref([]);
 const storeApp = useApp();
 const isvisible = ref(false);
 const toast = useToast();
@@ -271,7 +379,15 @@ const countVats = ref(0);
 const countTaxes = ref(0);
 const countImages = ref(0);
 
+const showSearch = ref(true);
+const screenHeight = ref("height: calc(100vh - 22vh)");
+const activeIndexList = ref(0);
+
 onMounted(async () => {
+  console.log(screen.height);
+  if (screen.height < 1440) {
+    screenHeight.value = "height: calc(100vh - 30vh)";
+  }
   await getAccountGroup();
   getAccountGroupList();
   getDate();
@@ -319,14 +435,14 @@ async function getAccountGroup() {
 }
 
 async function exportReport() {
+  showSearch.value = true;
   isvisible.value = true;
   detailLedger.value = false;
   shopName.value = localStorage.shop_name;
   startDateShow.value = Utils.getYearBuddhist(startDate.value);
   endDateShow.value = Utils.getYearBuddhist(endDate.value);
-
   await getDataReport();
-
+  showSearch.value = false;
   //exportPDF();
 }
 
@@ -377,6 +493,202 @@ async function getDataReport() {
     });
   }
 }
+async function buildFromJson() {
+  let body = [];
+  let listTrialBalanceSheet = [];
+
+  let totalnextbalancedebit = "";
+  let totalnextbalancecredit = "";
+
+  let accountgroup = accountGroup.value;
+  let startdate = Utils.getDateFromYear(startDate.value);
+  let enddate = Utils.getDateFromYear(endDate.value);
+  console.log("ica", ica.value);
+
+  listTrialBalanceSheet.value = dataReport.value;
+  console.log(dataReport.value);
+
+  // totalnextbalancedebit = res.data.totalnextbalancedebit;
+  // totalnextbalancecredit = res.data.totalnextbalancecredit;
+  body.push([
+    { rowSpan: 2, text: "ชื่อบัญชี", style: "header" },
+    { rowSpan: 2, text: "เลขที่บัญชี", style: "header" },
+    { colSpan: 2, text: "ยอดยกมา", style: "header" },
+    {},
+    { colSpan: 2, text: "ยอดประจำงวด", style: "header" },
+    {},
+    { colSpan: 2, text: "ยอดสะสม", style: "header" },
+    {},
+  ]);
+
+  body.push([
+    {},
+    {},
+
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+    { text: "เดบิต", style: "header" },
+    { text: "เครดิต", style: "header" },
+  ]);
+
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    body.push([
+      { text: detailAccount.accountname },
+      { text: detailAccount.accountcode, alignment: "center" },
+      {
+        text: Utils.formatNumberReport(detailAccount.balancedebitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.balancecreditamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.debitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.creditamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.nextbalancedebitamount),
+        alignment: "right",
+      },
+      {
+        text: Utils.formatNumberReport(detailAccount.nextbalancecreditamount),
+        alignment: "right",
+      },
+    ]);
+  }
+  body.push([
+    { colSpan: 2, text: "รวม", alignment: "center" },
+    {},
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalbalancedebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalbalancecredit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalamountdebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalamountcredit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalnextbalancedebit
+      ),
+      alignment: "right",
+    },
+    {
+      text: Utils.formatNumberReport(
+        listTrialBalanceSheet.value.totalnextbalancecredit
+      ),
+      alignment: "right",
+    },
+  ]);
+  // body.push([
+  //   { colSpan: 2, text: "รวม", bold: true, alignment: "center" },
+  //   {},
+  //   {
+  //     text: Utils.formatNumber(totalnextbalancedebit),
+  //     bold: true,
+  //     alignment: "right",
+  //   },
+  //   {
+  //     text: Utils.formatNumber(totalnextbalancecredit),
+  //     bold: true,
+  //     alignment: "right",
+  //   },
+  // ]);
+
+  return body;
+}
+
+function DownloadExampleExcel() {
+  console.log("DownloadExampleExcel");
+  let listTrialBalanceSheet = [];
+  listTrialBalanceSheet.value = dataReport.value;
+  detail_example.value.push({
+    1: "ชื่อบัญชี",
+    2: "รหัสบัญชี",
+    3: "ยอดยกมา",
+    4: "",
+    5: "ยอดประจำงวด",
+    6: "",
+    7: "ยอดสะสม",
+    8: "",
+  });
+  detail_example.value.push({
+    1: "วันที่",
+    2: "เลขที่เอกสาร",
+    3: "เดบิต",
+    4: "เครดิต",
+    5: "เดบิต",
+    6: "เครดิต",
+    7: "เดบิต",
+    8: "เครดิต",
+  });
+  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
+    detail_example.value.push({
+      1: detailAccount.accountname,
+      2: detailAccount.accountcode,
+      3: Utils.formatNumber(detailAccount.balancedebitamount),
+      4: Utils.formatNumber(detailAccount.balancecreditamount),
+      5: Utils.formatNumber(detailAccount.debitamount),
+      6: Utils.formatNumber(detailAccount.creditamount),
+      7: Utils.formatNumber(detailAccount.nextbalancedebitamount),
+      8: Utils.formatNumber(detailAccount.nextbalancecreditamount),
+    });
+  }
+  detail_example.value.push({
+    1: "",
+    2: "ยอดรวม",
+    3: listTrialBalanceSheet.value.totalbalancedebit,
+    4: listTrialBalanceSheet.value.totalbalancecredit,
+    5: listTrialBalanceSheet.value.totalamountdebit,
+    6: listTrialBalanceSheet.value.totalamountcredit,
+    7: listTrialBalanceSheet.value.totalnextbalancedebit,
+    8: listTrialBalanceSheet.value.totalnextbalancecredit,
+  });
+  // dataReport.value.forEach((data) => {
+  //   detail_example.value.push({
+  //     รหัสบัญชี: data.accountdetails.tot,
+
+  //     ชื่อผังบัญชี: data.accountname,
+  //     รหัสผังบัญชีคุม: data.consolidateaccountcode,
+  //     สถานะ: data.accountgroup,
+  //   });
+  // });
+
+  var config = { raw: true, type: "string" };
+  var Example = XLSX.utils.json_to_sheet(
+    detail_example.value,
+    detail_examplenumbertwo.value,
+    head_example.value,
+    config
+  );
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, Example, "รายงานงบทดลอง");
+  XLSX.writeFile(wb, "รายงานงบทดลอง.xlsx");
+}
 
 async function exportPDF() {
   isvisible.value = true;
@@ -388,12 +700,7 @@ async function exportPDF() {
   startdate = Utils.getYearBuddhist(startDate.value);
   enddate = Utils.getYearBuddhist(endDate.value);
   var docDefinition = pageSetup(body, startdate, enddate);
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  pdfDocGenerator.getDataUrl((dataUrl) => {
-    const targetElement = document.querySelector("#iframeContainer");
-
-    targetElement.src = dataUrl;
-  });
+  pdfMake.createPdf(docDefinition).download("รายงานงบทดลอง.pdf");
 }
 
 function getDate() {
@@ -428,16 +735,17 @@ function pageSetup(data, startdate, enddate) {
         style: "tableExample",
         table: {
           heights: "auto",
-          widths: ["46%", "10%", "22%", "22%"],
+          widths: ["19%", "9%", "12%", "12%", "12%", "12%", "12%", "12%"],
           body: data,
         },
+        // layout: "noBorders",
       },
     ],
     pageOrientation: "portrait",
-    pageMargins: [8, 8, 8, 8],
+    pageMargins: [12, 12, 12, 12],
     defaultStyle: {
       font: "Sarabun",
-      fontSize: 12,
+      fontSize: 10,
       columnGap: 20,
       color: "#0A065D",
     },
@@ -464,88 +772,6 @@ function getAccountGroupList() {
     .catch((err) => {
       console.log(err);
     });
-}
-
-async function buildFromJson() {
-  let body = [];
-  let listTrialBalanceSheet = [];
-
-  let totalnextbalancedebit = "";
-  let totalnextbalancecredit = "";
-
-  let accountgroup = accountGroup.value;
-  let startdate = Utils.getDateFromYear(startDate.value);
-  let enddate = Utils.getDateFromYear(endDate.value);
-  console.log("ica", ica.value);
-
-  let icax = "0";
-  if (ica.value) {
-    icax = "1";
-  }
-  try {
-    const res = await ReportService.getTrialBalanceSheet(
-      accountgroup,
-      startdate,
-      enddate,
-      icax
-    );
-    if (res.success) {
-      console.log(res.data);
-      listTrialBalanceSheet.value = res.data;
-      totalnextbalancedebit = res.data.totalnextbalancedebit;
-      totalnextbalancecredit = res.data.totalnextbalancecredit;
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  body.push([
-    { text: "ชื่อบัญชี", style: "header", margin: [0, 9, 0, 0] },
-    { text: "เลขที่บัญชี", style: "header", margin: [0, 9, 0, 0] },
-    { text: "ยอดคงเหลือบัญชีหมวด\nสินทรัพย์ / ค่าใช้จ่าย", style: "header" },
-    { text: "ยอดคงเหลือบัญชีหมวด\nหนี้สิ้น / ทุน / รายได้", style: "header" },
-  ]);
-
-  for (let detailAccount of listTrialBalanceSheet.value.accountdetails) {
-    body.push([
-      { text: detailAccount.accountname },
-      { text: detailAccount.accountcode, alignment: "center" },
-      {
-        text:
-          detailAccount.accountcategory == 1 ||
-          detailAccount.accountcategory == 5
-            ? Utils.formatNumber(detailAccount.nextbalanceamount)
-            : "",
-        alignment: "right",
-      },
-      {
-        text:
-          detailAccount.accountcategory == 2 ||
-          detailAccount.accountcategory == 3 ||
-          detailAccount.accountcategory == 4
-            ? Utils.formatNumber(detailAccount.nextbalanceamount)
-            : "",
-        alignment: "right",
-      },
-    ]);
-  }
-
-  body.push([
-    { colSpan: 2, text: "รวม", bold: true, alignment: "center" },
-    {},
-    {
-      text: Utils.formatNumber(totalnextbalancedebit),
-      bold: true,
-      alignment: "right",
-    },
-    {
-      text: Utils.formatNumber(totalnextbalancecredit),
-      bold: true,
-      alignment: "right",
-    },
-  ]);
-
-  return body;
 }
 
 function formatCurrency(value) {
@@ -800,10 +1026,15 @@ function puttaxValid() {
 </script>
 
 <style scoped>
+.p-galleria-thumbnails-top {
+  width: 100% !important;
+}
+
 iframe {
   display: block; /* iframes are inline by default */
+  background: #000;
   border: none; /* Reset default border */
-  height: 73vh; /* Viewport-relative units */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
 }
 </style>

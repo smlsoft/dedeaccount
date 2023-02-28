@@ -7,6 +7,42 @@ export const menus = [
     children: [],
   },
 
+  {
+    title: "อัพโหลดเอกสาร",
+    name: "images_job_upload",
+    icon: "pi pi-upload",
+    to: "/images/job_upload",
+    children: [],
+  },
+
+
+  {
+    title: "ตรวจสอบเอกสาร",
+    name: "images_job_approve",
+    icon: "pi pi-check-circle",
+    to: "/images/job_approve",
+    children: [],
+  },
+
+
+
+  // แบบ2
+  // {
+  //   title: "คลังรูปภาพเอกสาร",
+  //   icon: "pi pi-inbox",
+  //   to: "/document_images/list",
+  //   name: "document_images",
+  //   children: [],
+  // },
+  // แบบ1
+  // {
+  //   title: "คลังรูปภาพ",
+  //   icon: "pi pi-image",
+  //   to: "/images_group/list",
+  //   name: "pic_group_docref",
+  //   children: [],
+  // },
+
   /*
     {
       title: "ผังบัญชี",
@@ -62,62 +98,21 @@ export const menus = [
       //   to: "/daily/images_landing",
       //   name: "daily_images_list",
       // },
+      // {
+      //   title: "บันทึกรายวันจากรูป",
+      //   icon: "pi pi-images",
+      //   to: "/daily/images_landing",
+      //   name: "daily_images_group_list",
+      // },
       {
-        title: "บันทึกรายวันจากรูป",
-        icon: "pi pi-images",
-        to: "/daily/images_landing",
-        name: "daily_images_group_list",
-      }
+        title: "บันทึกรายวันจากรูป (New)",
+        icon: "pi pi-link",
+        to: "/images/job_daily",
+        name: "images_job_daily",
+      },
     ],
   },
 
-  /*
-  {
-    title: "ข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/list",
-    name: "daily_list",
-    children: [],
-  },
-  {
-    title: "นำเข้าข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/import",
-    name: "daily_import",
-    children: [],
-  },
-  */
-
-
-  // {
-  //   title: "รูปภาพเอกสาร",
-  //   icon: "pi pi-image",
-  //   to: "/images/list",
-  //   name: "pic_group",
-  //   children: [
-  //     // {
-  //     //   title: "อัพโหลดรูปเอกสาร",
-  //     //   icon: "pi pi-images",
-  //     //   to: "/images/gallery",
-  //     //   name: "images_upload",
-  //     // },
-  //     // {
-  //     //   title: "รูปภาพเอกสาร",
-  //     //   icon: "pi pi-folder-open",
-  //     //   to: "/images/list",
-  //     //   name: "images_list",
-  //     // },
-
-
-  //   ],
-  // },
-  {
-    title: "คลังรูปภาพ",
-    icon: "pi pi-image",
-    to: "/images_group/list",
-    name: "pic_group_docref",
-    children: [],
-  },
 
   {
     title: "รายงานทางการเงิน",
@@ -138,7 +133,7 @@ export const menus = [
         to: "/report/profitandloss",
       },
       {
-        title: "งบแสดงฐานะทางการเงิน (งบดุล)",
+        title: "งบแสดงฐานะทางการเงิน",
         icon: "pi pi-chart-line",
         name: "report_balancesheet",
         to: "/report/balancesheet",
@@ -164,6 +159,27 @@ export const menus = [
 
     ],
   },
+
+  /*
+  {
+    title: "ข้อมูลรายวัน",
+    icon: "pi pi-file",
+    to: "/daily/list",
+    name: "daily_list",
+    children: [],
+  },
+  {
+    title: "นำเข้าข้อมูลรายวัน",
+    icon: "pi pi-file",
+    to: "/daily/import",
+    name: "daily_import",
+    children: [],
+  },
+  */
+
+
+
+
   {
     title: "กำหนดค่า",
     icon: "pi pi-cog",
@@ -202,33 +218,33 @@ export const menus = [
       },
     ],
   },
-  {
-    title: "แนะนำการใช้งาน",
-    icon: "pi pi-exclamation-circle",
-    to: "",
-    name: "manual_list",
-    children: [
-      {
-        title: "วิธีใช้งานรูปภาพและเอกสาร",
-        icon: "pi pi-exclamation-circle",
-        name: "photoanddoc",
-        to: "/manual/photoanddoc",
-      },
-      {
-        title: "วิธีนำเข้าผังบัญชี",
-        icon: "pi pi-exclamation-circle",
-        name: "manual_chart",
-        to: "/manual/import_chart",
-      },
-      {
-        title: "วิธีนำเข้ารายการบัญชี",
-        icon: "pi pi-exclamation-circle",
-        name: "manual_daily",
-        to: "/manual/import_daily",
-      },
+  // {
+  //   title: "แนะนำการใช้งาน",
+  //   icon: "pi pi-exclamation-circle",
+  //   to: "",
+  //   name: "manual_list",
+  //   children: [
+  //     {
+  //       title: "วิธีใช้งานรูปภาพและเอกสาร",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "photoanddoc",
+  //       to: "/manual/photoanddoc",
+  //     },
+  //     {
+  //       title: "วิธีนำเข้าผังบัญชี",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "manual_chart",
+  //       to: "/manual/import_chart",
+  //     },
+  //     {
+  //       title: "วิธีนำเข้ารายการบัญชี",
+  //       icon: "pi pi-exclamation-circle",
+  //       name: "manual_daily",
+  //       to: "/manual/import_daily",
+  //     },
 
-    ],
-  },
+  //   ],
+  // },
 
   // {
   //   title: "Logout",

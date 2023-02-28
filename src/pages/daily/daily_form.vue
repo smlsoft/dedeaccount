@@ -161,6 +161,9 @@ const taxes_valid = ref([
 ]);
 const readMode = ref(false);
 
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
+const showOveray = ref(false);
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -172,14 +175,12 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
+
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
-
-  if (route.params.mode == "read") {
-    readMode.value = true;
-  } else {
-    readMode.value = false;
-  }
 
   if (
     route.params.id != "" &&
@@ -188,31 +189,20 @@ onMounted(() => {
   ) {
     storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
     onLoad.value = true;
-    updateMode.value = true;
+    readMode.value = false;
     setTimeout(() => {
       getGLDetail(route.params.id);
     }, 1000);
   } else {
     storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
     daily_form.value.docno = Utils.getDocNoDate("JO");
+    readMode.value = false;
   }
 
   getAccountChart();
   getJournalBook();
   getAccountGroup();
 });
-
-function setWidthPanelForm2(left, right) {
-  setTimeout(() => {
-    let box = document.getElementById("maincontainer");
-    let width = box.offsetWidth;
-
-    console.log("maincontainer: " + width);
-
-    let boxtable = document.getElementById("galleriabox");
-    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
-  }, 500);
-}
 
 function getImagesByDocref(data) {
   console.log(data);
@@ -304,7 +294,7 @@ function getGLDetail(id) {
             creditamount: 0,
           });
         }
-        if ((daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z")) {
+        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
           daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
@@ -391,7 +381,6 @@ function getGLDetail(id) {
           console.log();
         }
         if (res.data.documentref != "") {
-          console.log("222");
           MasterdataService.getImagesByDocref(res.data.documentref)
             .then((res) => {
               if (res.success) {
@@ -403,8 +392,6 @@ function getGLDetail(id) {
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
-
-                  setWidthPanelForm2(50, 50);
                 }
               }
             })
@@ -457,7 +444,7 @@ function goList() {
   setTimeout(() => {
     console.log(readMode.value);
     if (readMode.value) {
-      router.push({ name: "pic_group_docref" });
+      router.push({ name: "dailyList" });
     } else {
       router.push({ name: "dailyList" });
     }
@@ -623,8 +610,12 @@ function verifyData() {
     daily_form_valid.value.bookcode = false;
   }
 
-  var sumCredit = 0;
-  var sumDebit = 0;
+  if (daily_form.value.accountperiod == null) {
+    errorCount += 1;
+    daily_form_valid.value.docdate = true;
+  } else {
+    daily_form_valid.value.docdate = false;
+  }
 
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
@@ -660,25 +651,62 @@ function verifyData() {
     ) {
       deletIndex.push(index);
     }
+  });
 
-    // if (ele.accountcode == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
-    // if (ele.accountname == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
+  // ลบ row accountcode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    daily_form.value.journaldetail.splice(idx, 1);
+  });
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+
+  if (daily_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (daily_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  var sumCredit = 0;
+  var sumDebit = 0;
+  daily_form.value.journaldetail.forEach((ele, index) => {
+    if (ele.accountcode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
+        life: 4000,
+      });
+    }
+    if (ele.accountname == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
 
     var debit = 0;
     var credit = 0;
@@ -697,12 +725,6 @@ function verifyData() {
       sumDebit += debit;
       //console.log(sumDebit);
     }
-  });
-
-  // ลบ row accountcode ที่เป็นค่าว่าง
-  deletIndex.forEach((ele, index) => {
-    let idx = ele - index;
-    daily_form.value.journaldetail.splice(idx, 1);
   });
 
   //console.log(sumCredit);
@@ -1322,7 +1344,7 @@ function showpanel() {
     panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
   }, 50);
 }
 function isImage(file) {
@@ -1356,6 +1378,9 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
+
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
     accountname: "",
@@ -1546,53 +1571,6 @@ function getSumTaxBase(data) {
   return sum.toFixed(2);
 }
 
-const setTransform = () => {
-  zoomStyle.value =
-    "transform:translate(" +
-    pointX.value +
-    "px, " +
-    pointY.value +
-    "px) scale(" +
-    scale.value +
-    ")";
-};
-
-function onmousedown(e) {
-  //console.log(e);
-  e.preventDefault();
-  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
-  panning.value = true;
-}
-
-function onmouseup(e) {
-  //console.log(e);
-  panning.value = false;
-}
-
-function onmousemove(e) {
-  //console.log(e);
-  e.preventDefault();
-  if (!panning.value) {
-    return;
-  }
-  pointX.value = e.clientX - start.value.x;
-  pointY.value = e.clientY - start.value.y;
-  setTransform();
-}
-
-function onwheel(e) {
-  //console.log(e);
-  e.preventDefault();
-  var xs = (e.clientX - pointX.value) / scale.value,
-    ys = (e.clientY - pointY.value) / scale.value,
-    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
-  pointX.value = e.clientX - xs * scale.value;
-  pointY.value = e.clientY - ys * scale.value;
-
-  setTransform();
-}
-
 function selectSortOrder(data) {
   console.log(data);
   sortOrder.value = data;
@@ -1608,19 +1586,9 @@ function getDocumentImageGroupDefualt() {
   getDocumentImageGroup();
 }
 
-function resetZoomImage() {
-  scale.value = 1;
-  panning.value = false;
-  pointX.value = 0;
-  pointY.value = 0;
-  start.value = { x: 0, y: 0 };
-  zoomStyle.value = "";
-}
-
-function resizeGalleria(e) {
-  console.log("resizeGalleria");
-  console.log(e.sizes);
-  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
+function resizeSplitter(isOveray) {
+  showOveray.value = isOveray;
+  console.log(isOveray);
 }
 </script>
 
@@ -1849,7 +1817,11 @@ function resizeGalleria(e) {
           class="surface-card p-4 shadow-2 border-round p-fluid"
           v-if="!onLoad"
         >
-          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
+          <Splitter
+            layout="horizontal"
+            @resizestart="resizeSplitter(true)"
+            @resizeend="resizeSplitter(false)"
+          >
             <SplitterPanel
               :size="1"
               class="relative"
@@ -1877,94 +1849,79 @@ function resizeGalleria(e) {
                     "
                   />
                 </div>
-                <div v-if="!readMode">
-                  <Button
+                <!-- <Button
                     v-if="selectedImg && selectedImgUrl != ''"
                     icon="pi pi-trash"
                     class="p-button-text text-red-500"
                     @click="confirmRejectDialog = true"
-                  />
-                  <Button
-                    v-if="selectedImg && selectedImgUrl != ''"
-                    icon="pi pi-times"
-                    class="p-button-text"
-                    @click="
-                      removeSelectImg();
-                      removeMagnify();
-                    "
-                  />
-                </div>
-              </div>
-              <Button
-                v-if="selectedImgUrl == ''"
-                icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0"
-                @click="
-                  showSelectFrom = true;
-                  getDocumentImageGroup();
-                  removeMagnify();
-                "
-              />
-              <div class="p-0" v-if="selectedImg">
-                <Message
-                  severity="error"
-                  :closable="false"
-                  v-if="selectedImgData.isreject == true"
-                >
-                  <span class="flex align-items-center justify-content-center">
-                    *Warning Message รูปโดนยกเลิก
-                  </span>
-                </Message>
-                <Message
-                  severity="warn"
-                  :closable="false"
-                  v-if="selectedImgData.references.length > 0"
-                >
-                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว
-                </Message>
+                  /> -->
+                <Button
+                  v-if="selectedImg && selectedImgUrl != '' && !readMode"
+                  icon="pi pi-trash"
+                  class="p-button-text"
+                  @click="
+                    removeSelectImg();
+                    removeMagnify();
+                  "
+                />
               </div>
               <KeepAlive>
                 <div
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
                 >
-                  <Galleria
-                    :numVisible="doc_images.length > 5 ? 10 : doc_images.length"
-                    :value="doc_images"
-                    :thumbnailsPosition="'top'"
-                    :showThumbnails="doc_images.length > 1"
-                    v-model:activeIndex="activeIndex"
-                    @update:activeIndex="resetZoomImage()"
-                  >
+                  <Galleria :value="doc_images" :showThumbnails="false">
                     <template #item="slotProps">
-                      <div class="p-0 img-magnifier-container mt-0">
-                        <div class="zoom_outer">
+                      <div class="grid w-full">
+                        <div class="col-12">
                           <div
-                            id="zoom"
-                            :style="zoomStyle"
-                            @mousedown="onmousedown($event)"
-                            @mouseup="onmouseup($event)"
-                            @mousemove="onmousemove($event)"
-                            @wheel="onwheel($event)"
+                            class="flex justify-content-between flex-wrap card-container purple-container"
                           >
-                            <img
-                              v-if="slotProps.item != null"
-                              :src="slotProps.item.imageuri"
-                              class="p-image-preview zoom"
+                            <Chip
+                              :label="slotProps.item.name"
+                              icon="pi pi-image"
+                              class="mt-2"
+                            />
+                            <Chip
+                              :label="
+                                'วันที่ : ' +
+                                Utils.getDateTimeFormat(
+                                  slotProps.item.uploadedat
+                                )
+                              "
+                              icon="pi pi-calendar"
+                              class="mr-2 mt-2"
                             />
                           </div>
                         </div>
-                        <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
-                        class="w-full" :style="imagePreviewStyle" id="myimage" /> -->
+                        <div class="col-12" :style="heightIamgeDivCheckGl">
+                          <div
+                            class="relative"
+                            style="margin: 0px; padding: 0px; height: 100%"
+                          >
+                            <iframe
+                              :name="slotProps.item.imageuri"
+                              :src="
+                                '/images/components/zoom?uri=' +
+                                slotProps.item.imageuri
+                              "
+                              class="static"
+                            >
+                            </iframe>
+                            <div
+                              v-if="showOveray"
+                              class="absolute top-0 left-0"
+                              style="
+                                width: 100%;
+                                height: 100%;
+                                background-color: white;
+                                opacity: 0;
+                              "
+                            ></div>
+                          </div>
+                        </div>
                       </div>
                     </template>
-                    <template #thumbnail="slotProps">
-                      <img
-                        :src="slotProps.item.imageuri"
-                        style="width: 40px; height: 40px"
-                      />
-                    </template>
-                    <template #footer></template>
                   </Galleria>
                 </div>
               </KeepAlive>
@@ -1974,72 +1931,84 @@ function resizeGalleria(e) {
                 icon="pi pi-image"
                 class="p-button-raised p-button-rounded absolute bottom-0 left-0"
                 @click="
-                  showSelectFrom = true;
+                  chooseFile();
+                  // showSelectFrom = true;
                   getDocumentImageGroup();
                   removeMagnify();
                 "
               />
+              <input
+                id="chooseFile"
+                ref="fileInput"
+                type="file"
+                @change="onFileSelect"
+                :multiple="false"
+                accept="image/*"
+                style="display: none"
+              />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
-              <TabView class="tabview-custom" ref="tabview">
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-book mr-1"></i>
-                    <span> ข้อมูลรายวัน</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <JournalForm
-                      :isUpdate="readMode"
-                      :daily_form="daily_form"
-                      :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail"
-                      :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail"
-                      v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail"
-                      v-on:reload="reload"
-                      v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder"
-                      v-on:selectAccount="selectAccount"
-                    >
-                    </JournalForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ข้อมูลภาษี</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <VatForm
-                      :isUpdate="readMode"
-                      :vats="vats"
-                      :vats_valid="vats_valid"
-                      v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat"
-                      v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat"
-                      v-on:setBranch="setBranch"
-                    ></VatForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <TaxForm
-                      :isUpdate="readMode"
-                      :taxes="taxes"
-                      :taxes_valid="taxes_valid"
-                      v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax"
-                      v-on:getSumTaxBase="getSumTaxBase"
-                    ></TaxForm>
-                  </div>
-                </TabPanel>
-              </TabView>
+              <div ref="divCheckGl">
+                <TabView class="tabview-custom" ref="tabview">
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-book mr-1"></i>
+                      <span> ข้อมูลรายวัน</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <JournalForm
+                        :isUpdate="readMode"
+                        :daily_form="daily_form"
+                        :daily_form_valid="daily_form_valid"
+                        :accountChart_detail="accountChart_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:reload="reload"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectAccount="selectAccount"
+                      >
+                      </JournalForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ข้อมูลภาษี</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <VatForm
+                        :isUpdate="readMode"
+                        :vats="vats"
+                        :vats_valid="vats_valid"
+                        v-on:addBoxVat="addBoxVat"
+                        v-on:deleteDetailVat="deleteDetailVat"
+                        v-on:calVatAmount="calVatAmount"
+                        v-on:checkDateFormat="checkDateFormat"
+                        v-on:setBranch="setBranch"
+                      ></VatForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <TaxForm
+                        :isUpdate="readMode"
+                        :taxes="taxes"
+                        :taxes_valid="taxes_valid"
+                        v-on:addBoxTax="addBoxTax"
+                        v-on:deleteDetailTax="deleteDetailTax"
+                        v-on:getSumTaxBase="getSumTaxBase"
+                      ></TaxForm>
+                    </div>
+                  </TabPanel>
+                </TabView>
+              </div>
             </SplitterPanel>
           </Splitter>
 
@@ -2095,26 +2064,11 @@ function resizeGalleria(e) {
   padding: 10px 15px 10px 15px;
 }
 
-.zoom_outer {
-  padding: 0;
-  outline: 0;
-  overflow: hidden;
-  width: auto;
-  height: auto;
-  margin: 0 auto;
-}
-
-#zoom {
-  padding: 0px;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #ffffff;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
-}
-
-div#zoom > img {
-  width: 100%;
-  height: auto;
 }
 </style>

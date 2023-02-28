@@ -7,7 +7,7 @@ const props = defineProps({
   textContent: String,
   textContent2: String,
   confirmDialog: Boolean,
-
+  textDetail: Array,
   mode: Number,
 });
 
@@ -24,7 +24,7 @@ function onConfirm() {
 </script>
 
 <template>
-  <Dialog
+  <!-- <Dialog
     :visible="props.confirmDialog"
     @update:visible="onClose"
     :style="{ width: '450px' }"
@@ -46,11 +46,72 @@ function onConfirm() {
         class="p-button-outlined p-button-danger"
         @click="onClose"
       />
-      <Button
-        label="ใช่"
-        icon="pi pi-check"
-        @click="onConfirm"
-      />
+      <Button label="ใช่" icon="pi pi-check" @click="onConfirm" />
+    </template>
+  </Dialog> -->
+  <Dialog
+    :visible="props.confirmDialog"
+    @update:visible="onClose"
+    appendTo="body"
+    :modal="true"
+    :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+    :style="{ width: '40vw' }"
+  >
+    <template #header>
+      <div class="flex align-items-center">
+        <span
+          class="flex align-items-center justify-content-center bg-cyan-100 text-cyan-800 mr-3 border-circle"
+          style="width: 32px; height: 32px"
+        >
+          <i class="pi pi-info text-lg"></i>
+        </span>
+        <span class="font-medium text-2xl text-900">Confirm </span>
+      </div>
+    </template>
+
+    <div class="flex flex-column justify-content-center align-items-center">
+      <p
+        class="line-height-3 p-0 m-0"
+        style="font-size: 1.2rem; text-align: center"
+      >
+        <span
+          >{{ props.textContent }}
+
+          {{ props.textContent2 }} ใช่หรือไม่ ?
+        </span>
+      </p>
+    </div>
+    <div class="flex flex-column justify-content-center align-items-center">
+      <span
+        class="text-xl text-900 font-medium"
+        v-for="(data, index) in props.textDetail"
+      >
+        {{ index + 1 + ". " + data.documentimageguid.name }}</span
+      >
+    </div>
+
+    <template #footer>
+      <div class="border-top-1 surface-border pt-3">
+        <Button
+          icon="pi pi-times"
+          @click="onClose"
+          label="ไม่"
+          class="p-button-text"
+        ></Button>
+        <Button
+          class="p-button-success"
+          icon="pi pi-save"
+          @click="onConfirm"
+          label="ใช่"
+        ></Button>
+      </div>
     </template>
   </Dialog>
 </template>
+<style scoped>
+.p-dialog.p-component.p-ripple-disabled {
+  background-color: #fff;
+}
+
+
+</style>

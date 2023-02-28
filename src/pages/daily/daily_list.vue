@@ -26,8 +26,8 @@ const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
 
-const sortField = ref("docno");
-const sortOrder = ref(1);
+const sortField = ref("docdate");
+const sortOrder = ref(-1);
 const searchItem = ref("");
 const limitPage = ref(20);
 const confirmDeleteDialog = ref(false);
@@ -239,8 +239,6 @@ function getSumCreditAmount(data) {
             scrollHeight="77vh"
             v-model:expandedRows="expandedRows"
             :rowHover="true"
-            showGridlines
-            
           >
             <template #header>
               <div class="flex justify-content-between">

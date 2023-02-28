@@ -59,19 +59,45 @@ import ToggleButton from 'primevue/togglebutton';
 import SelectButton from 'primevue/selectbutton';
 import Toolbar from 'primevue/toolbar';
 import MultiSelect from 'primevue/multiselect';
+import Carousel from 'primevue/carousel';
+import DataView from 'primevue/dataview';
+import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
+import Password from 'primevue/password';
+import { createI18n } from 'vue-i18n';
+import messages from '@/assets/i18n';
+import Chips from 'primevue/chips';
+import OrderList from 'primevue/orderlist';
 
-import 'primevue/resources/themes/saga-blue/theme.css'
+
+
+
+//theme https://primefaces.org/primevue/setup
+import '@/assets/theme/theme.css'
+import '@/assets/theme/custom-theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
+
+const language = localStorage.getItem('activeLang') || 'th';
+
+
+const i18n = createI18n({
+    legacy: false,
+    messages,
+    locale: language,
+});
+
+
 const app = createApp(App)
 
-app.use(PrimeVue);
-app.use(router);
-app.use(ToastService);
-
+app.component('OrderList', OrderList);
+app.component('Chips', Chips);
+app.component('Password', Password);
+app.component('DataViewLayoutOptions', DataViewLayoutOptions);
+app.component('DataView', DataView);
+app.component('Carousel', Carousel);
 app.component('MultiSelect', MultiSelect);
 app.component('Toolbar', Toolbar);
 app.component('SelectButton', SelectButton);
@@ -104,7 +130,6 @@ app.component('Galleria', Galleria);
 app.component('Card', Card);
 app.component('Image', Image);
 app.component('Paginator', Paginator);
-//app.component('Calendar', Calendar);
 app.component('Avatar', Avatar);
 app.component('Button', Button);
 app.component('Dialog', Dialog);
@@ -130,6 +155,9 @@ app.directive('badge', BadgeDirective);
 
 const pinia = createPinia()
 pinia.use(piniaPersist)
-
 app.use(pinia)
+app.use(PrimeVue);
+app.use(router);
+app.use(ToastService);
+app.use(i18n);
 app.mount('#app')

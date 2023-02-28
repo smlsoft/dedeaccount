@@ -3,17 +3,13 @@
     <div class="card p-2">
       <div class="flex flex-column">
         <div class="flex align-items-center justify-content-center m-1">
-          {{ props.headDataReport.shopName }}
-        </div>
-
-        <div class="flex align-items-center justify-content-center m-1">
-          งบทดลอง ประจำวันที่ :
-          {{ props.headDataReport.startDateShow }} ถึงวันที่ :
+          {{ $t("trial") }} {{ $t("sincetime") }} :
+          {{ props.headDataReport.startDateShow }} {{ $t("totime") }} :
           {{ props.headDataReport.endDateShow }}
         </div>
       </div>
     </div>
-    <div class="card" style="height: calc(100vh - 17.8vh)">
+    <div class="card" :style="screenHeight">
       <DataTable
         :value="props.dataReport.accountdetails"
         showGridlines
@@ -25,23 +21,50 @@
         selectionMode="single"
         @row-click="rowClick"
         :loading="props.loading"
+        style="z-index: 0"
       >
         <ColumnGroup type="header">
           <Row>
-            <Column header="ชื่อบัญชี" :rowspan="2" />
-            <Column header="เลขที่บัญชี" :rowspan="2" />
-            <Column header="ยอดยกมา" :colspan="2" />
-            <Column header="ยอดประจำงวด" :colspan="2" />
-            <Column header="ยอดสะสม" :colspan="2" />
+            <Column header="" :rowspan="2">
+              <template #header>{{ $t("account_name") }}</template></Column
+            >
+
+            <Column header="" :rowspan="2">
+              <template #header>{{ $t("account_code") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("balanceamount") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("monthly_statement") }}</template></Column
+            >
+
+            <Column header="" :colspan="2">
+              <template #header>{{ $t("nextbalanceamount") }}</template></Column
+            >
           </Row>
 
           <Row>
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
-            <Column header="เดบิต" />
-            <Column header="เครดิต" />
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("debit") }}</template></Column
+            >
+            <Column header="">
+              <template #header>{{ $t("credit") }}</template></Column
+            >
           </Row>
         </ColumnGroup>
         <Column field="accountcode" />
@@ -68,36 +91,47 @@
         </Column>
         <Column bodyStyle="text-align: right;flex-direction: row-reverse;">
           <template #body="slotProps">
-            {{ Utils.formatNumberReport(slotProps.data.nextbalancedebitamount) }}
+            {{
+              Utils.formatNumberReport(slotProps.data.nextbalancedebitamount)
+            }}
           </template>
         </Column>
         <Column bodyStyle="text-align: right;flex-direction: row-reverse;">
           <template #body="slotProps">
-            {{ Utils.formatNumberReport(slotProps.data.nextbalancecreditamount) }}
+            {{
+              Utils.formatNumberReport(slotProps.data.nextbalancecreditamount)
+            }}
           </template>
         </Column>
 
         <ColumnGroup type="footer">
           <Row>
+            <Column footer="" :colspan="2" footerStyle="text-align:right">
+              <template #footer>{{ $t("amount") }}</template>
+            </Column>
+
             <Column
-              footer="ยอดรวม :"
-              :colspan="2"
+              :footer="
+                Utils.formatNumberReport(props.dataReport.totalbalancedebit)
+              "
               footerStyle="text-align:right"
             />
             <Column
-              :footer="Utils.formatNumberReport(props.dataReport.totalbalancedebit)"
+              :footer="
+                Utils.formatNumberReport(props.dataReport.totalbalancecredit)
+              "
               footerStyle="text-align:right"
             />
             <Column
-              :footer="Utils.formatNumberReport(props.dataReport.totalbalancecredit)"
+              :footer="
+                Utils.formatNumberReport(props.dataReport.totalamountdebit)
+              "
               footerStyle="text-align:right"
             />
             <Column
-              :footer="Utils.formatNumberReport(props.dataReport.totalamountdebit)"
-              footerStyle="text-align:right"
-            />
-            <Column
-              :footer="Utils.formatNumberReport(props.dataReport.totalbalancecredit)"
+              :footer="
+                Utils.formatNumberReport(props.dataReport.totalamountcredit)
+              "
               footerStyle="text-align:right"
             />
             <Column
@@ -108,7 +142,9 @@
             />
             <Column
               :footer="
-                Utils.formatNumberReport(props.dataReport.totalnextbalancecredit)
+                Utils.formatNumberReport(
+                  props.dataReport.totalnextbalancecredit
+                )
               "
               footerStyle="text-align:right"
             />
@@ -127,6 +163,8 @@
 import { ref, onMounted } from "vue";
 import Utils from "@/utils/";
 const selectedRow = ref();
+const screenHeight = ref("height: calc(100vh - 25.6vh)");
+
 const props = defineProps({
   headDataReport: Object,
   dataReport: Object,
@@ -134,7 +172,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["showSplitterLedger"]);
-onMounted(() => {});
+onMounted(() => {
+  //console.log(screen.height);
+  if (screen.height < 1440) {
+    screenHeight.value = "height: calc(100vh - 35vh)";
+  }
+});
 
 function rowClick(event) {
   //console.log(event.data);

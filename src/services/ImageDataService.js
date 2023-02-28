@@ -17,29 +17,42 @@ export default {
         return instanceApi(true).post(`/documentimage/bulk`, data).then(res => res.data);
     },
 
-    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, showBy, fromDate, toDate) {
+    getDocumentImageGroup(limitPage, page, search, sortField, sortOrder, status, fromDate, toDate, taskguid) {
         let q = "";     // search
         let filterDate = "";
+        let sorttaskguid = "";
+        let sortStatus = "";
 
-        let sortShowBy = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
-        }
-
-        if (showBy == "save") {
-            sortShowBy = "&ref=2"
-        } else if (showBy == "unsave") {
-            sortShowBy = "&ref=1&reject=0"
-        } else if (showBy == "reject") {
-            sortShowBy = "&reject=1"
         }
 
         if (fromDate != "" && fromDate != undefined && fromDate != null) {
             filterDate = "&fromdate=" + fromDate + "&todate=" + toDate;
         }
 
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${sortShowBy}${filterDate}`).then(res => res.data);
+        if (taskguid == 'all') {
+            sorttaskguid = "";
+        } else {
+            if (taskguid != "" && taskguid != undefined && taskguid != null) {
+                sorttaskguid = "&taskguid=" + taskguid
+            }
+        }
+
+        if (status != "" && status != undefined && status != null) {
+            sortStatus = "&status=" + status
+        }
+
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},guidfixed:1${filterDate}${sorttaskguid}${sortStatus}`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder},guidfixed:1${filterDate}${sorttaskguid}${sortStatus}`).then(res => res.data);
+    },
+    // add update tags in document image group
+    putDocumentImageGroupTags(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/tags`, data).then(res => res.data);
+    },
+    //add update status in document image group
+    putDocumentImageGroupStatus(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },
 
     // ดึงกลุ่มรูปทั้งหมด
@@ -89,12 +102,13 @@ export default {
     },
 
     //noreserve
-    documentimagegroupnoreserve(limitPage, page, search) {
+    documentimagegroupnoreserve(limitPage, page, search, sorttaskguid) {
         var q = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&reserve=1&ref=1&reject=0`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`).then(res => res.data);
     },
 
     // เพิ่มรูปใน Group Image
@@ -106,4 +120,20 @@ export default {
     getDocumentImageByDocNo(id) {
         return instanceApi(true).get(`/documentimagegroup/docref/` + id).then(res => res.data);
     },
+
+    // ลบ
+    deleteDocumentImageGroup(data) {
+        return instanceApi(true).delete(`/documentimagegroup`, { data: data }).then(res => res.data);
+    },
+
+    //เรียงรูปใน JOB
+    putDocumentImageXsort(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/xsort/${id}`, data).then(res => res.data);
+    },
+
+    // Commenty
+    putDocumentImageComment(id, data) {
+        return instanceApi(true).put(`/documentimage/` + id + `/comment`, data).then(res => res.data);
+    },
+
 }

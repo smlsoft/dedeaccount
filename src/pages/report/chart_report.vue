@@ -3,131 +3,177 @@
     <MainContentWarp>
       <div class="p-2 surface-section flex-auto">
         <div class="grid p-fluid">
-          <!--
-                <div class="field mb-4 col-6 md:col-3">
-                  <label for="accountGroup" class="font-medium text-900">กลุ่มบัญชี</label>
-                  <Dropdown v-model="accountGroup" autofocus :options="data_list" :filter="true"
-                    :filterFields="['code', 'name1']" filterPlaceholder="ค้นหา" placeholder="เลือก">
-                    <template #value="slotProps">
-                      <div v-if="slotProps.value">
-                        <div>{{ slotProps.value.code }} ~ {{ slotProps.value.name1 }}</div>
-                      </div>
-                      <span v-else>
-                        {{ slotProps.placeholder }}
-                      </span>
-                    </template>
-                    <template #option="slotProps">
-                      <div>{{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}</div>
-                    </template>
-                  </Dropdown>
-                </div>
-                -->
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="iHeader pi pi-book" style="font-size: 2rem">
-              | รายงานทางการเงิน</i
-            >
-          </div>
-          <div class="field mb-12 col-12 md:col-12">
-            <div class="flex flex-wrap card-container blue-container">
-              <h1 for="selectedgroup" class="font-medium text-900"></h1>
-              <i
-                style="font-size: 2rem"
-                class="iclass field mb-4 col-4 md:col-3"
-                >รายงานรหัสบัญชี</i
+          <Dialog
+            v-model:visible="showSearch"
+            :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+            :style="{ width: '50vw' }"
+            :modal="true"
+          >
+            <template #header>
+              <i class="pi pi-cog" style="font-size: 1.5rem">
+                {{ $t("search") }}</i
               >
+            </template>
+
+            <div class="grid p-fluid formgrid">
+              <div class="field mb-4 col-6 md:col-3 ml-3">
+                <label for="startDate" class="font-medium text-900"
+                  >{{ $t("from_acc_code") }}
+                </label>
+
+                <Dropdown
+                  :disabled="state == true"
+                  v-model="accountcode"
+                  :showClear="true"
+                  :filter="true"
+                  :filterFields="['accountcode', 'accountname']"
+                  field="accountcode"
+                  :options="groups"
+                  filterPlaceholder="ค้นหา"
+                  placeholder="เลือกทั้งหมด"
+                  @change="selectAccount($event)"
+                  optionLabel="label"
+                  optionValue="accountcode"
+                >
+                  <template #option="groups">
+                    <div>
+                      {{ groups.option.accountcode }} ~
+                      {{ groups.option.accountname }}
+                    </div>
+                  </template>
+                  <!-- <template #footer>
+                    <div class="align-right">
+                      <Button
+                        style="font-size: 0.9rem"
+                        label="เคลียร์ข้อความ"
+                        icon="pi pi-times"
+                        class="p-button-danger-sm"
+                        @click="cleartext($event)"
+                      />
+                    </div>
+                  </template> -->
+                </Dropdown>
+              </div>
+              <div class="field mb-4 col-6 md:col-3">
+                <label for="endDate" class="font-medium text-900">
+                  {{ $t("to_acc_code") }}
+                </label>
+                <Dropdown
+                  :disabled="state == true"
+                  v-model="accountcode2"
+                  :showClear="true"
+                  :filter="true"
+                  :filterFields="['accountcode', 'accountname']"
+                  field="accountcode"
+                  :options="groups"
+                  filterPlaceholder="ค้นหา"
+                  placeholder="เลือก"
+                  @change="selectAccount2($event)"
+                  optionLabel="label"
+                  optionValue="accountcode"
+                />
+              </div>
+              <div class="field col-2 md:col-3">
+                <label for="closeyear" class="font-medium text-900"
+                  >{{ $t("all_acc") }} :</label
+                >
+                <div class="field-checkbox mt-2">
+                  <Checkbox :binary="true" v-model="state" />
+                  <label>{{ $t("all_acc") }}</label>
+                </div>
+              </div>
+
+              <div class="field-checkbox col-12 md:col-12 p-button-outlined">
+                <Button
+                  label="จัดทำรายงาน"
+                  icon="pi pi-book"
+                  iconPos="left"
+                  @click="exreport2()"
+                  ><i class="pi pi-book"></i>
+
+                  <label style="text-align: center; margin: auto"
+                    >{{ $t("process") }}
+                  </label></Button
+                >
+              </div>
             </div>
-          </div>
-
-          <div class="field mb-4 col-6 md:col-3 ml-4">
-            <label for="startDate" class="font-medium text-900"
-              >ผังบัญชีที่
-            </label>
-
-            <Dropdown
-              class="field mb-12 col-12 md:col-12"
-              v-model="accountcode"
-              field="accountcode"
-              :options="groups"
-              :filter="true"
-              :editable="true"
-              filterPlaceholder="ค้นหา"
-              @change="selectAccount($event)"
-              optionLabel="accountcode"
-              optionValue="accountcode"
-              placeholder="เลือกทั้งหมด"
-              :disabled="state == true"
-            />
-          </div>
-          <div class="field mb-4 col-6 md:col-3 ml-4">
-            <label for="endDate" class="font-medium text-900"
-              >ถึงผังบัญชีที่
-            </label>
-            <Dropdown
-              class="field mb-10 col-12 md:col-12"
-              v-model="accountcode2"
-              field="accountcode"
-              :options="groups"
-              :filter="true"
-              :editable="true"
-              filterPlaceholder="ค้นหา"
-              @change="selectAccount2($event)"
-              optionLabel="accountcode"
-              optionValue="accountcode"
-              placeholder="เลือกทั้งหมด"
-              :disabled="state == true"
-            />
-          </div>
-          <div class="field-checkbox mb-12 col-12 md:col-3">
-            <Checkbox v-model="state" :binary="true" />
-            <label>รวมทุกรหัสผังบัญชี</label>
-          </div>
-          <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
-            <Button
-              class="field mb-12 col-12 md:col-2"
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exreport2()"
-            />
-          </div>
+          </Dialog>
         </div>
-        <div class="col-12">
-          <div class="overflow-auto surface-overlay">
-            <div class="flex">
-              <div class="flex">
-                <Button
-                  label="ส่งออก Excel"
-                  class="p-button-primary"
-                  icon="pi pi-file-excel"
-                  @click="DownloadExampleExcel()"
-                  :disabled="isvisible === false"
-                />
+        <div class="surface-card p-3 shadow-2 border-round">
+          <div class="mb-2 flex align-items-center justify-content-between">
+            <span class="text-xl font-medium text-900">
+              <i class="pi pi-book" style="font-size: 1.5rem">
+                {{ $t("statement") }} / {{ $t("chart_of_acc") }}</i
+              >
+            </span>
+            <Button
+              label="ค้นหา"
+              icon="pi pi-cog"
+              @click="showSearch = true"
+              class="p-button-rounded mr-2"
+            ></Button>
+          </div>
+          <div class="p-2 surface-section flex-auto">
+            <div class="p-2 surface-section flex-auto" v-if="isvisible">
+              <div class="card p-2">
+                <div class="flex flex-column">
+                  <div
+                    class="flex align-items-center justify-content-center m-1"
+                  >
+                    {{ $t("chart_of_acc") }} {{ nameCheck(accountcode1) }}
+                    {{ nameCheck2(accountcode2) }}
+                  </div>
+                </div>
+                <div class="flex">
+                  <div class="flex">
+                    <Button
+                      label="ส่งออก Excel"
+                      class="p-button-primary"
+                      icon="pi pi-file-excel"
+                      @click="DownloadExampleExcel()"
+                      :disabled="isvisible === false"
+                    >
+                      <i class="pi pi-file-excel"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} Excel</label
+                      ></Button
+                    >
+                  </div>
+                  <div class="flex ml-2">
+                    <Button
+                      label="ส่งออก PDF"
+                      icon="pi pi-file-pdf"
+                      class="p-button-primary"
+                      @click="exportdowloadPDF()"
+                      :disabled="isvisible === false"
+                    >
+                      <i class="pi pi-file-pdf"></i>
+
+                      <label style="text-align: center; margin: auto"
+                        >{{ $t("export") }} PDF</label
+                      ></Button
+                    >
+                  </div>
+                </div>
               </div>
-              <div class="flex ml-2">
-                <Button
-                  label="ส่งออก PDF"
-                  icon="pi pi-file-pdf"
-                  class="p-button-primary"
-                  @click="exportdowloadPDF()"
-                  :disabled="isvisible === false"
-                />
-              </div>
-            </div>
-            <DataTable
-              id="section"
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              stripedRows
-              responsiveLayout="scroll"
-              @sort="sortBy"
-            >
-              <template #header>
-                <div class="flex justify-content-between">
-                  <div>
-                    <div class="flex">
+              <DataTable
+                id="section"
+                :value="data_list"
+                dataKey="accountcode"
+                class="p-datatable-sm"
+                stripedRows
+                responsiveLayout="scroll"
+                :scrollable="true"
+                scrollHeight="1000px"
+                @sort="sortBy"
+              >
+                <template #header>
+                  <div class="flex justify-content-between">
+                    <div>
                       <div class="flex">
-                        <!-- <Button
+                        <div class="flex">
+                          <!-- <Button
                           label="ส่งออก Excel"
                           class="p-button-primary"
                           icon="pi pi-file-excel"
@@ -141,194 +187,45 @@
                           class="p-button-primary"
                           @click="exportPDF()"
                         /> -->
+                        </div>
                       </div>
                     </div>
+                    <span class="p-input-icon-left">
+                      <i class="pi pi-search" />
+                      <InputText
+                        v-model="filters"
+                        placeholder="ค้นหา...."
+                        @keyup="keyup()"
+                        @keydown="keydown()"
+                      />
+                    </span>
                   </div>
-                  <span class="p-input-icon-left">
-                    <i class="pi pi-search" />
-                    <InputText
-                      v-model="filters"
-                      placeholder="ค้นหา...."
-                      @keyup="keyup()"
-                      @keydown="keydown()"
-                    />
-                  </span>
-                </div>
-              </template>
-              <template #loading :loading="loading"> กำลังประมวลผล </template>
+                </template>
+                <template #loading :loading="loading"> กำลังประมวลผล </template>
 
-              <Column
-                field="accountcode"
-                header="รหัสผังบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountname"
-                header="ชื่อผังบัญชี"
-                class="accountname"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="consolidateaccountcode"
-                header="รหัสผังบัญชีคุม"
-                :sortable="true"
-              ></Column>
-              <Column field="accountgroup" header="สถานะ" :sortable="true">
-                <template #body="{ data, field }">
-                  {{ newResultmainClose(data[field]) }}
-                </template></Column
-              >
-            </DataTable>
+                <Column field="accountcode" header=""
+                  ><template #header>{{ $t("accountcode") }}</template></Column
+                >
+                <Column field="accountname" header="" class="accountname"
+                  ><template #header>{{ $t("accountname") }}</template></Column
+                >
+                <Column field="consolidateaccountcode" header=""
+                  ><template #header>{{
+                    $t("consolidate_acc")
+                  }}</template></Column
+                >
+                <Column field="accountgroup" header="">
+                  <template #header>{{ $t("status") }}</template>
+                  <template #body="{ data, field }">
+                    {{ newResultmainClose(data[field]) }}
+                  </template></Column
+                >
+              </DataTable>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- <iframe
-          v-if="isvisible"
-          style="height: 90vh"
-          class="w-full"
-          frameborder="0"
-          scrolling="no"
-          id="iframeContainer"
-          type="application/pdf"
-        /> -->
-
-      <!-- <div>
-          <div class="flex">
-            <div class="flex">
-              <Button
-                label="ส่งออก Excel"
-                class="p-button-primary"
-                icon="pi pi-file-excel"
-                @click="DownloadExampleExcel()"
-              />
-            </div>
-            <div class="flex ml-2">
-              <Button
-                label="ส่งออก PDF"
-                icon="pi pi-file-pdf"
-                class="p-button-primary"
-                @click="exportPDF()"
-              />
-            </div>
-          </div>
-        </div> -->
-      <!-- <div class="grid">
-          <div class="col-12" v-if="isvisible">
-            <div class="flex justify-content-between">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  v-model="filters"
-                  placeholder="ค้นหา...."
-                  @keyup="keyup()"
-                  @keydown="keydown()"
-                />
-              </span>
-            </div>
-
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <DataTable>
-                <Column header="วันที่" style="width: 8%"> </Column>
-                <Column header="เลขที่เอกสาร" style="width: 10%"> </Column>
-                <Column header="รายละเอียด" style="width: 10%"> </Column>
-                <Column header="เดบิต" style="width: 10%"> </Column>
-                <Column header="เครดิต" style="width: 10%"> </Column>
-                <Column header="มูลค่าคงเหลือ" style="width: 10%"> </Column>
-              </DataTable>
-              <Column field="accountcode" header="รหัสบัญชี" style="width: 10%">
-              </Column>
-              <Column field="accountname" header="ชื่อบัญชี" style="width: 10%">
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column
-                :expander="true"
-                headerStyle="width: 3rem"
-                style="width: 10%"
-              />
-            </DataTable>
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <Column style="width: 15%"></Column>
-              <Column style="width: 10%">
-                <template #body>ยกมา</template>
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 30%"></Column>
-              <Column field="balance" style="width: 8%"> </Column>
-
-              <Column> </Column>
-
-              <template #expansion="mainProps">
-                <div class="orders-subtable">
-                  <DataTable
-                    :value="mainProps.data.details"
-                    responsiveLayout="scroll"
-                    dataKey="accountcode"
-                  >
-                    <template #empty> รหัสบัญชีนี้ไม่มีข้อมูล </template>
-                    <template #loading>
-                      กำลังประมวลผล กรุณารอซักครู่..</template
-                    >
-                    <Column field="docdate" style="width: 15%">
-                      <template #body="slotProps">
-                        {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
-                      </template>
-                    </Column>
-                    <Column field="docno" style="width: 18%"> </Column>
-                    <Column field="accountdescription" style="width: 17%">
-                    </Column>
-                    <Column field="debit" style="width: 17%"> </Column>
-                    <Column field="credit" style="width: 18%">
-                      <template #body="{ data, field }">
-                        {{ checkzero(data[field]) }}
-                      </template>
-                    </Column>
-                    <Column field="amount"> </Column>
-                  </DataTable>
-                </div>
-              </template>
-            </DataTable>
-            <DataTable
-              :value="data_list"
-              dataKey="accountcode"
-              class="p-datatable-sm"
-              :loading="loading"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <Column style="width: 15%"></Column>
-              <Column style="width: 10%">
-                <template #body>ยกไป</template>
-              </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 10%"> </Column>
-              <Column style="width: 30%"></Column>
-              <Column field="balance" style="width: 5%"> </Column>
-
-              <Column> </Column
-            ></DataTable>
-          </div>
-        </div> -->
       <div><p></p></div>
     </MainContentWarp>
   </AppLayout>
@@ -358,6 +255,7 @@ const head_example = ref([]);
 const detail_example = ref([]);
 const detail_examplenumbertwo = ref([]);
 const textChart = ref("");
+const showSearch = ref(true);
 const toast = useToast();
 const deleteDetailDialog = ref(false);
 const totalItemsCount = ref(0);
@@ -368,7 +266,7 @@ const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
 const accDescript = ref("");
-const sortField = ref("docno");
+const sortField = ref("accountcode");
 const sortOrder = ref(1);
 const searchItem = ref("");
 const limitPage = ref(1000);
@@ -442,13 +340,37 @@ async function expandAll() {
   expandedRows.value = data_list.value.filter();
   toast.add({ severity: "success", summary: "All Rows Expanded", life: 3000 });
 }
-
+function nameCheck(data) {
+  if (data == "") {
+    return (data = "รหัสผังบัญชีทั้งหมด");
+  } else if (data == accountcode1.value) {
+    return (data = accountcode1.value);
+  }
+}
+function nameCheck2(data) {
+  if (data == "") {
+    return (data = "");
+  } else if (data == accountcode2.value) {
+    return (data = "ถึง" + accountcode2.value);
+  }
+}
 async function getAccountChart() {
   try {
-    const res = await MasterdataService.getAccountChartList(limitPage.value);
+    const res = await MasterdataService.getAccountChartList(
+      limitPage.value,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
     console.log(res);
     if (res.success) {
-      groups.value = res.data;
+      groups.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      groups.value.forEach((ele) => {
+        ele.label = ele.accountcode + "~" + ele.accountname;
+      });
     }
   } catch (err) {
     console.log(err);
@@ -555,6 +477,7 @@ function exreport2() {
           // console.log(totalItemsCount.value);
         }
         loading.value = false;
+        showSearch.value = false;
       })
       .catch((err) => {
         toast.add({
@@ -683,6 +606,7 @@ function getAccountChartList() {
         // getAllSelectImage();
       }
       loading.value = false;
+      showSearch.value = false;
     })
     .catch((err) => {
       loading.value = false;

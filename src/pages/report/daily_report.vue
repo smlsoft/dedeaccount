@@ -22,84 +22,102 @@
             </Dropdown>
           </div>
           -->
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem"> รายงานทางการเงิน</i>
-          </div>
-          <div class="field mb-12 col-12 md:col-12">
-            <div class="flex flex-wrap card-container blue-container">
-              <h1 for="selectedgroup" class="font-medium text-900"></h1>
-              <h3 class="field mb-4 col-4 md:col-3">ข้อมูลรายวัน</h3>
-              <h4 class="field mb-4 col-4 md:col-1">สำหรับชุดบัญชี:</h4>
-              <div class="field mb-4 col-4 md:col-3">
+          <Dialog
+            v-model:visible="showSearch"
+            :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+            :style="{ width: '50vw' }"
+            :modal="true"
+          >
+            <template #header>
+              <i class="pi pi-cog" style="font-size: 1.5rem"> ค้นหา</i>
+            </template>
+            <div class="grid p-fluid formgrid">
+              <div class="field col-12 md:col-6">
+                <label for="startDate" class="font-medium text-900"
+                  >สำหรับชุดบัญชี :</label
+                >
                 <Dropdown
-                  class="field mb-12 col-12 md:col-12"
                   v-model="accountGroup"
                   :options="groups"
                   optionValue="code"
                   optionLabel="name1"
-                  @change="selectAccount($event)"
-                  placeholder="Select a City"
+                  placeholder="กรุณาเลือกชุดบัญชี"
                 />
-                <!-- <RadioButton
-                  :id="group.code"
-                  name="group"
-                  :value="group.code"
-                  v-model="accountGroup"
+              </div>
+              <div class="field col-12 md:col-6">
+                <label for="closeyear" class="font-medium text-900"> </label>
+                <div class="field-checkbox mt-2"></div>
+              </div>
+              <div class="field col-12 md:col-6">
+                <label for="startDate" class="font-medium text-900"
+                  >ช่วงระหว่างวันที่ :</label
+                >
+                <DatePicker
+                  dateFormat="d/m/yy"
+                  v-model="startDate"
+                  :modelValue="startDate"
+                  :showIcon="true"
+                  :buddhist="buddhistYear"
+                  :hideOnDateTimeSelect="true"
+                  :hiddenTime="true"
                 />
-                <label :for="group.code"
-                  >{{ group.code }} ~{{ group.name1 }}</label
-                > -->
+              </div>
+              <div class="field col-12 md:col-6">
+                <label for="endDate" class="font-medium text-900"
+                  >ถึงวันที่ :</label
+                >
+                <DatePicker
+                  dateFormat="d/m/yy"
+                  v-model="endDate"
+                  :modelValue="endDate"
+                  :showIcon="true"
+                  :buddhist="buddhistYear"
+                  :hideOnDateTimeSelect="true"
+                  :hiddenTime="true"
+                />
+              </div>
+
+              <div class="field-checkbox col-12 md:col-12 p-button-outlined">
+                <Button
+                  label="จัดทำรายงาน"
+                  icon="pi pi-book"
+                  iconPos="left"
+                  @click="exreport()"
+                  :disabled="
+                    startDate === null ||
+                    endDate === null ||
+                    accountGroup.length == 0
+                  "
+                />
               </div>
             </div>
-          </div>
-
-          <div class="field mb-4 col-6 md:col-3 ml-3">
-            <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="startDate"
-              :modelValue="startDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field mb-4 col-6 md:col-3">
-            <label for="endDate" class="font-medium text-900"
-              >ถึงวันที่ :</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="endDate"
-              :modelValue="endDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-
-          <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
-            <Button
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exreport()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
-            />
-          </div>
+          </Dialog>
         </div>
-        <div class="grid">
-          <div class="col-12" v-if="isvisible">
-            <div class="flex justify-content-between">
-              <div>
+        <div class="surface-card p-3 shadow-2 border-round">
+          <div class="mb-2 flex align-items-center justify-content-between">
+            <span class="text-xl font-medium text-900">
+              <i class="pi pi-book" style="font-size: 1.5rem">
+                {{ $t("statement") }} / {{ $t("journal") }}</i
+              >
+            </span>
+            <Button
+              label="ค้นหา"
+              icon="pi pi-cog"
+              @click="showSearch = true"
+              class="p-button-rounded mr-2"
+            ></Button>
+          </div>
+          <div class="p-2 surface-section flex-auto">
+            <div class="p-2 surface-section flex-auto" v-if="isvisible">
+              <div class="card p-2">
+                <div class="flex flex-column">
+                  <div
+                    class="flex align-items-center justify-content-center m-1"
+                  >
+                    <!-- รายงานรหัสบัญชี {{ nameCheck(accountcode1) }}
+                    {{ nameCheck2(accountcode2) }} -->
+                  </div>
+                </div>
                 <div class="flex">
                   <div class="flex">
                     <Button
@@ -107,6 +125,7 @@
                       class="p-button-primary"
                       icon="pi pi-file-excel"
                       @click="DownloadExampleExcel()"
+                      :disabled="isvisible === false"
                     />
                   </div>
                   <div class="flex ml-2">
@@ -114,93 +133,59 @@
                       label="ส่งออก PDF"
                       icon="pi pi-file-pdf"
                       class="p-button-primary"
-                      @click="exportPDF()"
+                      @click="exportdowloadPDF()"
+                      :disabled="isvisible === false"
                     />
                   </div>
                 </div>
               </div>
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText
-                  v-model="filters"
-                  placeholder="ค้นหา...."
-                  @keyup="keyup()"
-                  @keydown="keydown()"
-                />
-              </span>
-            </div>
+              <DataTable
+                :value="data_list"
+                dataKey="docno"
+                class="p-datatable-sm"
+                :loading="loading"
+                @sort="sortBy"
+                scrollHeight="69vh"
+                v-model:expandedRows="expandedRows"
+              >
+                <template #header> </template>
+                <template #empty> ไม่พบข้อมูล </template>
+                <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
+                <Column :expander="true" headerStyle="width: 3rem" />
+                <Column field="docno" header=""
+                  ><template #header>{{ $t("docno") }}</template></Column
+                >
+                <Column field="docdate" header="" dataType="date">
+                  <template #header>{{ $t("date") }}</template>
+                  <template #body="slotProps">
+                    {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+                  </template>
+                </Column>
+                <Column field="accountyear" header="">
+                  <template #header>{{ $t("acc_years") }}</template></Column
+                >
+                <Column field="accountperiod" header=""
+                  ><template #header>{{ $t("acc_period") }}</template></Column
+                >
+                <Column field="accountgroup" header="">
+                  <template #header>{{ $t("accountgroup") }}</template>
+                </Column>
+                <Column field="accountdescription" header="">
+                  <template #header>{{ $t("description") }} </template></Column
+                >
+                <Column
+                  field="amount"
+                  header="มูลค่า"
+                  class="text-header-right"
+                  headerStyle="text-align: right;"
+                >
+                  <template #header>{{ $t("amount") }} </template>
+                  <template #body="{ data, field }">
+                    {{ Utils.formatCurrency(data[field]) }}
+                  </template>
+                </Column>
 
-            <DataTable
-              :value="data_list"
-              dataKey="docno"
-              class="p-datatable-sm"
-              :loading="loading"
-              stripedRows
-              responsiveLayout="scroll"
-              @sort="sortBy"
-              scrollHeight="69vh"
-              v-model:expandedRows="expandedRows"
-            >
-              <template #header> </template>
-              <template #empty> ไม่พบข้อมูล </template>
-              <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-              <Column :expander="true" headerStyle="width: 3rem" />
-              <Column
-                field="docno"
-                header="เลชที่เอกสาร"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="docdate"
-                header="วันที่"
-                dataType="date"
-                :sortable="true"
-              >
-                <template #body="slotProps">
-                  {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
-                </template>
-              </Column>
-              <Column
-                field="accountyear"
-                header="ปีบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountperiod"
-                header="งวดบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountgroup"
-                header="กลุ่มบัญชี"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="accountdescription"
-                header="รายละเอียด"
-                :sortable="true"
-              ></Column>
-              <Column
-                field="amount"
-                header="มูลค่า"
-                class="text-header-right"
-                headerStyle="text-align: right;"
-                :sortable="true"
-              >
-                <template #body="{ data, field }">
-                  {{ Utils.formatCurrency(data[field]) }}
-                </template>
-              </Column>
-              <Column bodyStyle="text-align:center" style="width: 5%">
-                <template #body="slotProps">
-                  <!-- <Button
-                    icon="pi pi-eye"
-                    class="p-button-rounded p-button-warning p-button-text"
-                    @click="goDetail(slotProps.data)"
-                  /> -->
-                </template>
-              </Column>
-              <!-- <Column bodyStyle="text-align:center" style="width: 5%">
+                <!-- <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
                 <Button
                   icon="pi pi-trash"
@@ -209,76 +194,58 @@
                 />
               </template>
                 </Column> -->
-              <template #expansion="mainProps">
-                <h5
-                  class="my-1"
-                  v-if="mainProps.data.journaldetail.length == 0"
-                >
-                  ไม่พบรายการตัวเลือก
-                </h5>
-                <div
-                  class="orders-subtable"
-                  v-if="mainProps.data.journaldetail.length > 0"
-                >
-                  <DataTable
-                    :value="mainProps.data.journaldetail"
-                    responsiveLayout="scroll"
-                    dataKey="guidfixed"
+                <template #expansion="mainProps">
+                  <h5
+                    class="my-1"
+                    v-if="mainProps.data.journaldetail.length == 0"
                   >
-                    <Column
-                      field="accountcode"
-                      header="รหัสบัญชี"
-                      style="width: 20%"
-                    ></Column>
-                    <Column
-                      field="accountname"
-                      header="ชื่อบัญชี"
-                      footerStyle="text-align: right "
-                      footer="รวม"
-                    ></Column>
-                    <Column
-                      field="debitamount"
-                      header="เดบิต"
-                      style="width: 20%"
+                    ไม่พบรายการตัวเลือก
+                  </h5>
+                  <div
+                    class="orders-subtable"
+                    v-if="mainProps.data.journaldetail.length > 0"
+                  >
+                    <DataTable
+                      :value="mainProps.data.journaldetail"
+                      responsiveLayout="scroll"
+                      dataKey="guidfixed"
                     >
-                      <template #footer>
-                        {{
-                          Utils.formatCurrency(
-                            getSumDebitAmount(mainProps.data.journaldetail)
-                          )
-                        }}
-                      </template>
-                      <template #body="{ data, field }">
-                        {{ Utils.formatCurrency(data[field]) }}
-                      </template>
-                    </Column>
-                    <Column
-                      field="creditamount"
-                      header="เครดิต"
-                      style="width: 20%"
-                    >
-                      <template #footer>
-                        {{
-                          Utils.formatCurrency(
-                            getSumCreditAmount(mainProps.data.journaldetail)
-                          )
-                        }}
-                      </template>
-                      <template #body="{ data, field }">
-                        {{ Utils.formatCurrency(data[field]) }}
-                      </template>
-                    </Column>
-                  </DataTable>
-                </div>
-              </template>
-            </DataTable>
-            <!-- <Paginator
-              :rows="100"
-              :totalRecords="totalItemsCount"
-              @page="onPage($event)"
-              :rowsPerPageOptions="[100]"
-            >
-            </Paginator> -->
+                      <Column field="accountcode" header="รหัสบัญชี"></Column>
+                      <Column
+                        field="accountname"
+                        header="ชื่อบัญชี"
+                        footerStyle="text-align: right "
+                        footer="รวม"
+                      ></Column>
+                      <Column field="debitamount" header="เดบิต">
+                        <template #footer>
+                          {{
+                            Utils.formatCurrency(
+                              getSumDebitAmount(mainProps.data.journaldetail)
+                            )
+                          }}
+                        </template>
+                        <template #body="{ data, field }">
+                          {{ Utils.formatCurrency(data[field]) }}
+                        </template>
+                      </Column>
+                      <Column field="creditamount" header="เครดิต">
+                        <template #footer>
+                          {{
+                            Utils.formatCurrency(
+                              getSumCreditAmount(mainProps.data.journaldetail)
+                            )
+                          }}
+                        </template>
+                        <template #body="{ data, field }">
+                          {{ Utils.formatCurrency(data[field]) }}
+                        </template>
+                      </Column>
+                    </DataTable>
+                  </div>
+                </template>
+              </DataTable>
+            </div>
           </div>
         </div>
       </div>
@@ -313,7 +280,7 @@ const activePage = ref(1);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
-
+const showSearch = ref(true);
 const sortField = ref("docno");
 const sortOrder = ref(1);
 const searchItem = ref("");
@@ -363,19 +330,23 @@ async function getAccountGroup() {
     const res = await MasterdataService.getAccountGroup();
     //console.log(res);
     if (res.success) {
-      groups.value = res.data
-        .sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        })
-        .map((acc) => {
-          acc.label = `${acc.code} ~ ${acc.name1}`;
-          return acc;
+      groups.value.push({
+        code: "gruupAll",
+        name1: "ทั้งหมด",
+      });
+
+      res.data.forEach((element) => {
+        groups.value.push({
+          code: element.code,
+          name1: element.name1,
         });
+      });
       setTimeout(() => {
         if (accountGroup.value == "") {
           accountGroup.value = groups.value[0].code;
         }
       }, 100);
+      console.log(groups.value);
     }
   } catch (err) {
     console.log(err);
@@ -643,6 +614,7 @@ function getGLJournalList() {
         data_list.value = res.data;
         totalItemsCount.value = res.pagination.total;
         // console.log(totalItemsCount.value);
+        showSearch.value = false;
       }
       loading.value = false;
     })
@@ -653,9 +625,9 @@ function getGLJournalList() {
 }
 
 function exreport() {
-  getGLJournalList();
   // expandAll();
   isvisible.value = true;
+  getGLJournalList();
 }
 
 function goDetail(data) {

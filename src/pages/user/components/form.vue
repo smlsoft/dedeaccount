@@ -28,7 +28,9 @@ const props = defineProps({
 
 const emit = defineEmits(["save"]);
 
-onMounted(async () => {});
+onMounted(async () => {
+  form_model.value = props.form_model;
+});
 
 async function onSave() {
   var isPass = await verifyData();

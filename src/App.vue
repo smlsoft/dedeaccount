@@ -5,6 +5,7 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import { onMounted } from "vue";
 import { usePrimeVue } from "primevue/config";
 
+
 const primevue = usePrimeVue();
 onMounted(() => {
   document.title = "Village Fund GL";
