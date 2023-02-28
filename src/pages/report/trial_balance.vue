@@ -125,6 +125,7 @@
                 <i class="pi pi-image mr-1"></i>
                 <span> {{ $t("img") }}</span>
               </template>
+              {{ dataImage.imagereferences.length }}
               <Galleria
                 :value="dataImage.imagereferences"
                 :circular="true"
@@ -180,57 +181,6 @@
                   />
                 </template>
               </Galleria>
-              <!-- <Galleria
-                :value="dataImage.imagereferences"
-                :circular="true"
-                thumbnailsPosition="top"
-                :show-thumbnails="dataImage.imagereferences.length > 1"
-                v-model:activeIndex="activeIndexList"
-                :numVisible="
-                  dataImage.imagereferences.length > 10
-                    ? 10
-                    : dataImage.imagereferences.length
-                "
-              >
-                <template #header>
-                  <div class="flex justify-content-between mb-2">
-                    <div class="flex">
-                      {{ $t("img_name") }} :
-                      {{ dataImage.imagereferences[[activeIndexList]].name }}
-                    </div>
-                    <div class="flex">
-                      {{ $t("date") }} :{{
-                        Utils.getDateTimeFormat(
-                          dataImage.imagereferences[[activeIndexList]]
-                            .uploadedat
-                        )
-                      }}
-                      {{ $t("by") }}
-                      {{
-                        dataImage.imagereferences[[activeIndexList]].uploadedby
-                      }}
-                    </div>
-                  </div>
-                </template>
-                <template #item="slotProps">
-                  <div>
-                    <iframe
-                      :name="slotProps.item.imageuri"
-                      :src="
-                        '/images/components/zoom?uri=' + slotProps.item.imageuri
-                      "
-                    >
-                    </iframe>
-                    
-                  </div>
-                </template>
-                <template #thumbnail="slotProps">
-                  <img
-                    :src="slotProps.item.imageuri"
-                    style="width: 50px; height: 50px"
-                  />
-                </template>
-              </Galleria> -->
             </TabPanel>
           </TabView>
         </div>

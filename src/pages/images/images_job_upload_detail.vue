@@ -37,7 +37,7 @@ const firstPage = ref(0);
 const uploadmodel = ref(false);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(1000);
+const limitPage = ref(100);
 
 const fileLimit = ref(100);
 const uploadedFileCount = ref(0);
@@ -173,6 +173,7 @@ function onClose() {
 }
 
 function getDocumentImageGroupScroll() {
+  limitPage.value = 50;
   showSkeleton.value = true;
   ImageDataService.getDocumentImageGroup(
     limitPage.value,
@@ -1754,9 +1755,7 @@ async function saveComment(id, data, index) {
         </div>
         <div style="margin: 0px; padding: 0px">
           <iframe
-            :src="
-              '/images/components/zoom?uri=' + dataImageDialog.imageuri
-            "
+            :src="'/images/components/zoom?uri=' + dataImageDialog.imageuri"
           >
           </iframe>
         </div>
