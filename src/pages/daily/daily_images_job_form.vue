@@ -1583,6 +1583,11 @@ function clearData() {
   // ];
   // daily_form.value.parid = "0000000";
 
+  daily_form.value.journaldetail.forEach((element) => {
+    element.debitamount = 0;
+    element.creditamount = 0;
+  });
+
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,

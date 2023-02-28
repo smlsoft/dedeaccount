@@ -601,7 +601,9 @@ async function updateStatus(guidfixed, data_status) {
         </div>
         <p class="text-700 text-3xl mt-0 mb-6">
           Please select an image in jobName
-          <span class="text-primary font-medium underline"> #{{ job.name }}</span>
+          <span class="text-primary font-medium underline">
+            #{{ job.name }}</span
+          >
         </p>
       </div>
     </div>
