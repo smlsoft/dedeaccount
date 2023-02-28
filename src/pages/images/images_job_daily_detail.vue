@@ -29,7 +29,7 @@ const activePage = ref(1);
 const firstPage = ref(0);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(50);
+const limitPage = ref(1000);
 
 const showSkeleton = ref(false);
 const totalPage = ref(0);
@@ -1116,7 +1116,7 @@ async function saveComment(id, data, index) {
         <div style="margin: 0px; padding: 0px">
           <iframe
             :src="
-              '/images_group/components/zoom?uri=' + dataImageDialog.imageuri
+              '/images/components/zoom?uri=' + dataImageDialog.imageuri
             "
           >
           </iframe>

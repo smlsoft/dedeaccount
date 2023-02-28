@@ -26,7 +26,7 @@ const activePage = ref(1);
 const firstPage = ref(0);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(50);
+const limitPage = ref(1000);
 
 const showSkeleton = ref(false);
 const totalPage = ref(0);

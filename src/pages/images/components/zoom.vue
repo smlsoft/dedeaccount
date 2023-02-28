@@ -8,7 +8,7 @@
       @mousemove="onmousemove($event)"
       @wheel="onwheel($event)"
     >
-      <img :src="uri" alt="zoom" :style="{ width: '100%', height: 'auto' }" />
+      <img :src="uri" alt="zoom" />
     </div>
   </div>
 </template>
@@ -48,7 +48,7 @@ function setTransform() {
 }
 
 function onmousedown(e) {
-  // console.log(e);
+ // console.log(e);
   e.preventDefault();
   start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
   panning.value = true;
