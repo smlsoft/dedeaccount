@@ -133,6 +133,7 @@ const draggedItemIndex = ref(null);
 const data_sort = ref([]);
 const startIndex = ref();
 const endIndex = ref();
+const dialogComment = ref();
 onUnmounted(() => {});
 onMounted(() => {
   jobId.value = route.params.id;
@@ -1090,7 +1091,6 @@ function showImg(data) {
   showImgData.value.forEach((element, index) => {
     getDocumentImageById(element.documentimageguid, index);
   });
-
 }
 
 async function getDocumentImageById(id, index) {
@@ -1511,7 +1511,9 @@ async function saveComment(id, data, index) {
       });
       loading.value = false;
 
-      getDocumentImageById(id, index);
+      await getDocumentImageById(id, index);
+
+      dialogComment.value.scrollToBottom();
     }
   } catch (err) {
     console.log(err);
@@ -1709,6 +1711,7 @@ async function saveComment(id, data, index) {
               <p class="text-600">เลือกเอกสารเพื่อแสดง</p>
             </div>
             <DocumentPreview
+              ref="dialogComment"
               v-if="showImgData != null"
               :allimage_used="AllImageUsed"
               :showOveray="showOveray"

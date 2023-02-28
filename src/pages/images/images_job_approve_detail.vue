@@ -101,6 +101,8 @@ const totalDocumentStatus_0 = ref("0");
 const totalDocumentStatus_1 = ref("0");
 const totalDocumentStatus_1_1 = ref("0");
 const totalDocumentStatus_2 = ref("0");
+
+const dialogComment = ref();
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
@@ -1175,7 +1177,9 @@ async function saveComment(id, data, index) {
       });
       loading.value = false;
 
-      getDocumentImageById(id, index);
+      await getDocumentImageById(id, index);
+
+      dialogComment.value.scrollToBottom();
     }
   } catch (err) {
     console.log(err);
@@ -1408,6 +1412,7 @@ async function saveComment(id, data, index) {
               <p class="text-600">เลือกเอกสารเพื่อแสดง</p>
             </div>
             <DocumentPreview
+              ref="dialogComment"
               v-if="showImgData != null"
               :allimage_used="AllImageUsed"
               :showOveray="showOveray"

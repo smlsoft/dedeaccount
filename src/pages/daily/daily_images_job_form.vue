@@ -2145,14 +2145,13 @@ async function updateStatus() {
 
           <div class="flex justify-content-between">
             <div class="mt-4 ml-0">
-              {{ isChange }}
-              <Button
+              <!-- <Button
                 :disabled="!isChange"
                 @click="confirmClearImageDialog = true"
                 :label="'ยกเลิกอัพเดท'"
                 icon="pi pi-refresh"
                 class="w-auto p-button-danger"
-              ></Button>
+              ></Button> -->
             </div>
             <div class="mt-4 ml-0">
               <Button

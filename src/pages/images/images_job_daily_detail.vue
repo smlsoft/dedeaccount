@@ -122,6 +122,8 @@ const idrandom = ref("");
 const countIsOpenPopupImage = ref(0);
 const myInterval = ref(null);
 
+const dialogComment = ref();
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -945,7 +947,9 @@ async function saveComment(id, data, index) {
       });
       loading.value = false;
 
-      getDocumentImageById(id, index);
+      await getDocumentImageById(id, index);
+
+      dialogComment.value.scrollToBottom();
     }
   } catch (err) {
     console.log(err);
@@ -1068,6 +1072,7 @@ async function saveComment(id, data, index) {
               <p class="text-600">เลือกเอกสารเพื่อแสดง</p>
             </div>
             <DocumentPreview
+              ref="dialogComment"
               v-if="showImgData != null"
               :allimage_used="AllImageUsed"
               :showOveray="showOveray"

@@ -2,7 +2,7 @@
 import DialogForm from "@/components/form/DialogForm.vue";
 import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, defineExpose } from "vue";
 import Utils from "@/utils/";
 const userName = localStorage._usercode;
 const toast = useToast();
@@ -338,16 +338,16 @@ function saveComment() {
   );
 
   comment.value = "";
-
-  setTimeout(() => {
-    scrollToBottom();
-  }, 500);
 }
 
 function scrollToBottom() {
   const dialogContent = document.querySelector(".p-dialog-content");
   dialogContent.scrollTop = dialogContent.scrollHeight;
 }
+
+defineExpose({
+  scrollToBottom,
+});
 </script>
 
 <template>
