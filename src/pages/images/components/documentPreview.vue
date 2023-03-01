@@ -340,6 +340,25 @@ function saveComment() {
   comment.value = "";
 }
 
+function heightDocumentPreview() {
+  let styleHeight = "";
+  if (props.modeMenu != 4) {
+    if (props.showImgData.length == 1) {
+      styleHeight = "height: 70vh";
+    } else {
+      styleHeight = "height: 63vh";
+    }
+  } else if (props.modeMenu == 4) {
+    if (props.showImgData.length == 1) {
+      styleHeight = "height: 84.5vh";
+    } else {
+      styleHeight = "height: 80vh";
+    }
+  }
+
+  return styleHeight;
+}
+
 function scrollToBottom() {
   const dialogContent = document.querySelector(".p-dialog-content");
   dialogContent.scrollTop = dialogContent.scrollHeight;
@@ -506,14 +525,7 @@ defineExpose({
         <div
           class="relative"
           style="margin: 0px; padding: 0px; width: 100%"
-          :style="[
-            props.showImgData.length === 1 && props.modeMenu != 4
-              ? 'height: 70vh'
-              : 'height: 63vh',
-            props.showImgData.length === 1 && props.modeMenu == 4
-              ? 'height: 84.5vh'
-              : 'height: 80vh',
-          ]"
+          :style="heightDocumentPreview()"
         >
           <iframe
             :name="slotProps.item.imageuri"
