@@ -13,6 +13,7 @@ import ImageBlock from "./components/ImagesBlock.vue";
 import $ from "jquery";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import DocumentPreview from "./components/documentPreview.vue";
+import { async } from "pdfmake/build/pdfmake";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -299,9 +300,7 @@ function showImg(data) {
   showImgData.value = data.imagereferences;
   showDocumentPreview.value = true;
 
-  showImgData.value.forEach((element, index) => {
-    getDocumentImageById(element.documentimageguid, index);
-  });
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {
@@ -416,6 +415,33 @@ async function updateStatus(guidfixed, data_status) {
   }
 }
 
+// Update status All
+async function updateStatusAll(guidfixed, data_status) {
+  let status = {
+    status: data_status,
+  };
+  try {
+    const res = await ImageDataService.putDocumentImageGroupStatusAll(
+      guidfixed,
+      status
+    );
+    if (res.success) {
+      getTaskById(jobId.value);
+      return true;
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err,
+      life: 3000,
+    });
+
+    return false;
+  }
+}
+
 async function updateStatusFrist(data) {
   if (isSelectedDocument.value) {
     selectImg(data);
@@ -504,6 +530,7 @@ async function upDateStatusImage(data) {
   });
 
   const updateData = await updateStatus(data.guidfixed, data.status);
+
   setTimeout(() => {
     if (updateData) {
       data_list.value.filter(function (ele) {
@@ -538,56 +565,33 @@ function checkImageApprove() {
   }
 }
 
-function updateAllStatusImage() {
+async function updateAllStatusImage() {
+  let statusAll = 0;
   if (!statusAllImage.value) {
-    data_list.value.forEach((element) => {
-      // 99= ตั้งค่าสถานะให้ icon โหลด
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == element.guidfixed) {
-          ele.status = 99;
-        }
-      });
-
-      const updateData = updateStatus(element.guidfixed, 1);
-      setTimeout(() => {
-        if (updateData) {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 1;
-            }
-          });
-        } else {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 0;
-            }
-          });
-        }
-
-        checkImageApprove();
-      }, 300);
-    });
+    statusAll = 1;
   } else {
-    data_list.value.forEach((element) => {
-      // 99= ตั้งค่าสถานะให้ icon โหลด
-      data_list.value.filter(function (ele) {
-        if (ele.guidfixed == element.guidfixed) {
-          ele.status = 99;
-        }
-      });
-      const updateData = updateStatus(element.guidfixed, 0);
-      setTimeout(() => {
-        if (updateData) {
-          data_list.value.filter(function (ele) {
-            if (ele.guidfixed == element.guidfixed) {
-              ele.status = 0;
-            }
-          });
-        }
-        checkImageApprove();
-      }, 300);
-    });
+    statusAll = 0;
   }
+
+  // 99= ตั้งค่าสถานะให้ icon โหลด
+  data_list.value.filter(function (ele) {
+    ele.status = 99;
+  });
+  const updateData = await updateStatusAll(jobId.value, statusAll);
+  setTimeout(() => {
+    if (updateData) {
+      if (!statusAllImage.value) {
+        data_list.value.filter(function (ele) {
+          ele.status = 1;
+        });
+      } else {
+        data_list.value.filter(function (ele) {
+          ele.status = 0;
+        });
+      }
+    }
+    checkImageApprove();
+  }, 300);
 }
 function selectSizeImageBloc() {
   if (sizeImageBloc.value) {

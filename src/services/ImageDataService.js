@@ -55,6 +55,11 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },
 
+    //add update status ALL in job document image group
+    putDocumentImageGroupStatusAll(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/task/` + id + `/status`, data).then(res => res.data);
+    },
+
     // ดึงกลุ่มรูปทั้งหมด
     getDocumentImageGroupAll(limitPage, page) {
         //console.log(`/documentimagegroup?limit=${limitPage}&page=${page}`);

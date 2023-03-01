@@ -1089,12 +1089,11 @@ function showImg(data) {
   showImgData.value = data.imagereferences;
   showDocumentPreview.value = true;
 
-  showImgData.value.forEach((element, index) => {
-    getDocumentImageById(element.documentimageguid, index);
-  });
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {
+  console.log(index);
   try {
     let res = await ImageDataService.getDocumentImageById(id);
     // console.log(res)
@@ -1727,6 +1726,7 @@ async function saveComment(id, data, index) {
               v-on:updateTagImage="updateTagImage"
               v-on:updateXorderImageReferences="updateXorderImageReferences"
               v-on:saveComment="saveComment"
+              v-on:getDocumentImage="getDocumentImageById"
             />
           </SplitterPanel>
         </Splitter>

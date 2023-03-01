@@ -476,9 +476,7 @@ function showImg(data) {
 
   resetIndex.value = 1;
 
-  showImgData.value.forEach((element, index) => {
-    getDocumentImageById(element.documentimageguid, index);
-  });
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {
@@ -1116,9 +1114,7 @@ async function saveComment(id, data, index) {
         </div>
         <div style="margin: 0px; padding: 0px">
           <iframe
-            :src="
-              '/images/components/zoom?uri=' + dataImageDialog.imageuri
-            "
+            :src="'/images/components/zoom?uri=' + dataImageDialog.imageuri"
           >
           </iframe>
         </div>

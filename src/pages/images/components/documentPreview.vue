@@ -58,6 +58,7 @@ const emit = defineEmits([
   "viewGL",
   "updateXorderImageReferences",
   "saveComment",
+  "getDocumentImage",
 ]);
 
 onUnmounted(() => {});
@@ -340,6 +341,14 @@ function saveComment() {
   comment.value = "";
 }
 
+function getDocumentImage() {
+  emit(
+    "getDocumentImage",
+    props.showImgData[activeIndex.value].documentimageguid,
+    activeIndex.value
+  );
+}
+
 function heightDocumentPreview() {
   let styleHeight = "";
   if (props.modeMenu != 4) {
@@ -520,6 +529,7 @@ defineExpose({
       :numVisible="
         props.showImgData.length > 10 ? 10 : props.showImgData.length
       "
+      @update:activeIndex="getDocumentImage()"
     >
       <template #item="slotProps">
         <div
