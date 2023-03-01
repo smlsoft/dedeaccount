@@ -161,7 +161,7 @@ const items = computed({
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
               props.jobStatus == 3,
-            label: "แก้ไขรูปภาพในชุด",
+            label: "เรียงรูปภาพในชุด",
             icon: "pi pi-image",
             command: () => {
               sortImageReferences();
@@ -519,16 +519,14 @@ defineExpose({
       </div>
       <div class="flex" v-if="props.modeMenu == 4"></div>
     </div>
+
     <Galleria
       :value="props.showImgData"
       :circular="true"
-      containerStyle="max-width: 100%"
       thumbnailsPosition="buttom"
       :show-thumbnails="props.showImgData.length > 1"
       v-model:activeIndex="activeIndexList"
-      :numVisible="
-        props.showImgData.length > 10 ? 10 : props.showImgData.length
-      "
+      :numVisible="6"
       @update:activeIndex="getDocumentImage()"
     >
       <template #item="slotProps">
@@ -772,9 +770,9 @@ iframe {
   width: 100%;
 }
 
-.p-galleria {
+/* .p-galleria {
   width: 100% !important;
-}
+} */
 
 .p-galleria .p-galleria-thumbnail-container {
   background: rgba(0, 0, 0, 0.9);

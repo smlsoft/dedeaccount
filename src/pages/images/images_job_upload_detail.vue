@@ -134,6 +134,7 @@ const data_sort = ref([]);
 const startIndex = ref();
 const endIndex = ref();
 const dialogComment = ref();
+const screenHeight = window.screen.height;
 onUnmounted(() => {});
 onMounted(() => {
   jobId.value = route.params.id;
@@ -1085,11 +1086,15 @@ function resizeSplitter(isOveray) {
 }
 
 function showImg(data) {
-  selectedImag.value = data;
-  showImgData.value = data.imagereferences;
-  showDocumentPreview.value = true;
+  showImgData.value = null;
 
-  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
+  setTimeout(() => {
+    selectedImag.value = data;
+    showImgData.value = data.imagereferences;
+    showDocumentPreview.value = true;
+
+    getDocumentImageById(showImgData.value[0].documentimageguid, 0);
+  }, 200);
 }
 
 async function getDocumentImageById(id, index) {
@@ -1640,13 +1645,13 @@ async function saveComment(id, data, index) {
         >
           <SplitterPanel :size="50">
             <div
-              style="height: 90vh"
               @scroll="onScroll"
               id="content"
               :style="[
                 data_list.length == 0
                   ? 'overflow-y: hidden'
                   : 'overflow-y: auto',
+                screenHeight <= 768 ? 'height: 86.8vh' : 'height: 92vh',
               ]"
               class="m-2"
             >

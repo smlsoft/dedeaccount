@@ -235,9 +235,7 @@
     >
       <template #body="slotProps">
         <Button
-          :disabled="
-            slotProps.data.status != 0 
-          "
+          :disabled="slotProps.data.status != 0"
           class="p-button-text"
           type="button"
           icon="pi pi-cog"
@@ -320,6 +318,7 @@ const emit = defineEmits([
   "showDialogConfigJob",
   "keyup",
   "keydown",
+  "onPage",
 ]);
 
 function onRowSelect(event) {
@@ -358,6 +357,12 @@ function textstatus(data) {
     text = "ยกเลิกงาน";
   }
   return text;
+}
+
+function onPage(event) {
+  let activePage = event.page + 1;
+  let limitPage = event.rows;
+  emit("onPage", activePage, limitPage);
 }
 </script>
 <style>
