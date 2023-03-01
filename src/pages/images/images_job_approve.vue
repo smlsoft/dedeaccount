@@ -48,6 +48,7 @@ function getTaskList() {
       if (res.success) {
         loading.value = false;
         data_list.value = res.data;
+        totalItemsCount.value = res.pagination.total;
       }
     })
     .catch((err) => {
@@ -112,6 +113,12 @@ function doneTyping() {
       console.log(err);
     });
 }
+
+function onPage(active, limit) {
+  activePage.value = active;
+  limitPage.value = limit;
+  getTaskList();
+}
 </script>
 
 <template>
@@ -129,6 +136,7 @@ function doneTyping() {
             v-on:onRowSelect="onRowSelect"
             v-on:keyup="keyup"
             v-on:keydown="keydown"
+            v-on:onPage="onPage"
           />
         </div>
       </div>

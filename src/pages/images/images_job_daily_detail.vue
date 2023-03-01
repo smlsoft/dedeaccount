@@ -123,6 +123,7 @@ const countIsOpenPopupImage = ref(0);
 const myInterval = ref(null);
 
 const dialogComment = ref();
+const screenHeight = window.screen.height;
 
 onUnmounted(() => {
   console.log(
@@ -1013,13 +1014,13 @@ async function saveComment(id, data, index) {
         >
           <SplitterPanel :size="50">
             <div
-              style="height: 90vh"
               @scroll="onScroll"
               id="content"
               :style="[
                 data_list.length == 0
                   ? 'overflow-y: hidden'
                   : 'overflow-y: auto',
+                screenHeight <= 768 ? 'height: 86.8vh' : 'height: 92vh',
               ]"
               class="m-2"
             >

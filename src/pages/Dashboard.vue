@@ -159,7 +159,7 @@ function goTo(path) {
               </span>
             </div>
             <div
-              @click="goTo('pic_group_docref')"
+              @click="goTo('images_job_upload')"
               class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
             >
               <div class="flex align-items-center mb-3">
