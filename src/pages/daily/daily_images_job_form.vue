@@ -2015,14 +2015,10 @@ async function updateStatus() {
                     <Galleria
                       :value="doc_images.imagereferences"
                       :thumbnailsPosition="'top'"
-                      :showThumbnails="showThumbnails"
                       v-model:activeIndex="activeIndex"
-                      :numVisible="
-                        doc_images.imagereferences.length > 5
-                          ? 10
-                          : doc_images.imagereferences.length
-                      "
                       @update:activeIndex="resetZoomImage()"
+                      :showThumbnails="false"
+                      :showIndicators="doc_images.imagereferences.length > 1"
                     >
                       <template #item="slotProps">
                         <div class="grid w-full">

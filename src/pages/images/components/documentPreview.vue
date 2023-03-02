@@ -36,6 +36,7 @@ const draggedItemIndex = ref(null);
 const tempImageReferences = ref([]);
 const dialogComment = ref(false);
 const comment = ref("");
+
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -522,12 +523,11 @@ defineExpose({
 
     <Galleria
       :value="props.showImgData"
-      :circular="true"
-      thumbnailsPosition="buttom"
-      :show-thumbnails="props.showImgData.length > 1"
       v-model:activeIndex="activeIndexList"
-      :numVisible="6"
       @update:activeIndex="getDocumentImage()"
+      :circular="true"
+      :showThumbnails="false"
+      :showIndicators="props.showImgData.length > 1"
     >
       <template #item="slotProps">
         <div
@@ -552,12 +552,6 @@ defineExpose({
             "
           ></div>
         </div>
-      </template>
-      <template #thumbnail="slotProps">
-        <img
-          :src="slotProps.item.imageuri"
-          style="width: 50px; height: 50px; display: block"
-        />
       </template>
     </Galleria>
 

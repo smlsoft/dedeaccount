@@ -135,6 +135,7 @@ const startIndex = ref();
 const endIndex = ref();
 const dialogComment = ref();
 const screenHeight = window.screen.height;
+
 onUnmounted(() => {});
 onMounted(() => {
   jobId.value = route.params.id;
@@ -1083,11 +1084,11 @@ function verifyData() {
 
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
+
 }
 
 function showImg(data) {
   showImgData.value = null;
-
   setTimeout(() => {
     selectedImag.value = data;
     showImgData.value = data.imagereferences;

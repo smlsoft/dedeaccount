@@ -32,3 +32,6 @@
     background: var(--primary-hold-700);
 }
 
+.p-galleria-indicators {
+    flex-wrap: wrap;
+}
