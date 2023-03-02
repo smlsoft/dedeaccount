@@ -6,9 +6,10 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
-import moment from "moment";
 import Utils from "@/utils/";
 import DialogForm from "@/components/form/DialogForm.vue";
+import DatePicker from "@/components/widget/DatePicker.vue";
+import dayjs from "dayjs";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -19,7 +20,6 @@ const dailynum = ref("");
 const data_list = ref([]);
 const deleteDetailDialog = ref(false);
 const totalItemsCount = ref(0);
-const filters = ref(null);
 const loading = ref(true);
 const activePage = ref(1);
 const typingTimer = ref(null);
@@ -33,6 +33,20 @@ const limitPage = ref(20);
 const confirmDeleteDialog = ref(false);
 const expandedRows = ref([]);
 
+const showfilters = ref(false);
+const tempCheckDate = ref(null);
+const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
+const filtersByDocNo = ref(null);
+const filtersByDocDate = ref(null);
+const sendFiltersByDocDate = ref(null);
+const filtersByAccYear = ref(null);
+const filtersByAccPeriod = ref(null);
+const filtersByDescription = ref(null);
+const filtersByAmount = ref(null);
+const filtersByCreateDate = ref(null);
+const sendFiltersByCreateDate = ref(null);
+const filtersByCreateBy = ref(null);
+
 onMounted(() => {
   getGLJournalList();
   storeApp.setPageTitle("รายการข้อมูลรายวัน");
@@ -45,7 +59,14 @@ function getGLJournalList() {
   MasterdataService.getGLJournalList(
     limitPage.value,
     activePage.value,
-    searchItem.value,
+    filtersByDocNo.value,
+    sendFiltersByDocDate.value,
+    filtersByAccYear.value,
+    filtersByAccPeriod.value,
+    filtersByDescription.value,
+    filtersByAmount.value,
+    sendFiltersByCreateDate.value,
+    filtersByCreateBy.value,
     sortField.value,
     sortOrder.value
   )
@@ -64,23 +85,6 @@ function getGLJournalList() {
     });
 }
 
-function goForm() {
-  router.push({ name: "dailyForm" });
-}
-function goDetail(data) {
-  router.push({
-    name: "dailyUpdate",
-    params: { id: data.guidfixed, mode: "edit" },
-  });
-}
-
-function confirmDeleteDetail(data) {
-  detail.value = data;
-  dailynum.value = data.docno;
-
-  confirmDeleteDialog.value = true;
-}
-
 function keyup() {
   clearTimeout(typingTimer.value);
   typingTimer.value = setTimeout(doneTyping, doneTypingInterval.value);
@@ -91,11 +95,17 @@ function keydown() {
 function doneTyping() {
   activePage.value = 1;
   firstPage.value = 0;
-  //MasterdataService.getGLJournalList(activePage.value, filters.value)
   MasterdataService.getGLJournalList(
     limitPage.value,
     activePage.value,
-    filters.value,
+    filtersByDocNo.value,
+    sendFiltersByDocDate.value,
+    filtersByAccYear.value,
+    filtersByAccPeriod.value,
+    filtersByDescription.value,
+    filtersByAmount.value,
+    sendFiltersByCreateDate.value,
+    filtersByCreateBy.value,
     sortField.value,
     sortOrder.value
   )
@@ -114,6 +124,46 @@ function doneTyping() {
     });
 }
 
+function clearFilter(key) {
+  if (key == "docno") {
+    filtersByDocNo.value = null;
+  } else if (key == "docdate") {
+    filtersByDocDate.value = null;
+    sendFiltersByDocDate.value = null;
+  } else if (key == "accountyear") {
+    filtersByAccYear.value = null;
+  } else if (key == "accountperiod") {
+    filtersByAccPeriod.value = null;
+  } else if (key == "description") {
+    filtersByDescription.value = null;
+  } else if (key == "amount") {
+    filtersByAmount.value = null;
+  } else if (key == "createdate") {
+    filtersByCreateDate.value = null;
+    sendFiltersByCreateDate.value = null;
+  } else if (key == "createby") {
+    filtersByCreateBy.value = null;
+  }
+
+  doneTyping();
+}
+
+function goForm() {
+  router.push({ name: "dailyForm" });
+}
+function goDetail(data) {
+  router.push({
+    name: "dailyUpdate",
+    params: { id: data.guidfixed, mode: "edit" },
+  });
+}
+
+function confirmDeleteDetail(data) {
+  detail.value = data;
+  dailynum.value = data.docno;
+
+  confirmDeleteDialog.value = true;
+}
 function deleteDetail() {
   MasterdataService.deleteGLJournal(detail.value.guidfixed)
     .then((res) => {
@@ -155,7 +205,14 @@ function onPage(event) {
   MasterdataService.getGLJournalList(
     limitPage.value,
     activePage.value,
-    searchItem.value,
+    filtersByDocNo.value,
+    sendFiltersByDocDate.value,
+    filtersByAccYear.value,
+    filtersByAccPeriod.value,
+    filtersByDescription.value,
+    filtersByAmount.value,
+    sendFiltersByCreateDate.value,
+    filtersByCreateBy.value,
     sortField.value,
     sortOrder.value
   )
@@ -183,7 +240,14 @@ function sortBy(data) {
   MasterdataService.getGLJournalList(
     limitPage.value,
     activePage.value,
-    searchItem.value,
+    filtersByDocNo.value,
+    sendFiltersByDocDate.value,
+    filtersByAccYear.value,
+    filtersByAccPeriod.value,
+    filtersByDescription.value,
+    filtersByAmount.value,
+    sendFiltersByCreateDate.value,
+    filtersByCreateBy.value,
     sortField.value,
     sortOrder.value
   )
@@ -222,6 +286,52 @@ function getSumCreditAmount(data) {
   }
   return sum;
 }
+
+function filterDocDate(event, mode, key) {
+  console.log(event);
+  let keyDate = "";
+  if (tempCheckDate.value != null) {
+    clearTimeout(tempCheckDate.value);
+  }
+  tempCheckDate.value = setTimeout(() => {
+    if (mode == 0) {
+      keyDate = Utils.getDateFromYear(event);
+    } else if (mode == 1) {
+      const dateString = event.value;
+      const dateParts = dateString.split("/");
+      const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
+      keyDate = isoDate; // 2022-12-20
+    }
+    // console.log(dayjs(keyDate).format("YYYY-MM-DD"));
+    if (key == "docdate") {
+      sendFiltersByDocDate.value = dayjs(keyDate).format("YYYY-MM-DD");
+    } else {
+      sendFiltersByCreateDate.value = dayjs(keyDate).format("YYYY-MM-DD");
+    }
+    doneTyping();
+  }, 100);
+}
+
+function showfiltersColum() {
+  showfilters.value = true;
+}
+
+function closefiltersColum() {
+  showfilters.value = false;
+
+  filtersByDocNo.value = null;
+  filtersByDocDate.value = null;
+  sendFiltersByDocDate.value = null;
+  filtersByAccYear.value = null;
+  filtersByAccPeriod.value = null;
+  filtersByDescription.value = null;
+  filtersByAmount.value = null;
+  filtersByCreateDate.value = null;
+  sendFiltersByCreateDate.value = null;
+  filtersByCreateBy.value = null;
+
+  doneTyping();
+}
 </script>
 
 <template>
@@ -239,6 +349,7 @@ function getSumCreditAmount(data) {
             scrollHeight="77vh"
             v-model:expandedRows="expandedRows"
             :rowHover="true"
+            :filterDisplay="showfilters ? 'row' : ''"
           >
             <template #header>
               <div class="flex justify-content-between">
@@ -248,17 +359,23 @@ function getSumCreditAmount(data) {
                     icon="pi pi-plus"
                     class="w-auto"
                     @click="goForm()"
-                  ></Button>
-                </div>
-                <span class="p-input-icon-left">
-                  <i class="pi pi-search" />
-                  <InputText
-                    v-model="filters"
-                    placeholder="ค้นหา...."
-                    @keyup="keyup()"
-                    @keydown="keydown()"
                   />
-                </span>
+                </div>
+                <div>
+                  <Button
+                    :label="!showfilters ? 'ค้นหา' : 'ปิดการค้นหา'"
+                    :icon="!showfilters ? 'pi pi-filter' : 'pi pi-filter-slash'"
+                    class="w-auto"
+                    :class="
+                      !showfilters
+                        ? 'p-button-outlined p-button-info'
+                        : 'p-button-info'
+                    "
+                    @click="
+                      !showfilters ? showfiltersColum() : closefiltersColum()
+                    "
+                  />
+                </div>
               </div>
             </template>
             <template #empty> ไม่พบข้อมูล </template>
@@ -266,35 +383,138 @@ function getSumCreditAmount(data) {
             <Column :expander="true" headerStyle="width: 3rem" />
             <Column
               field="docno"
-              header="เลชที่เอกสาร"
+              header="เลขที่เอกสาร"
               :sortable="true"
-            ></Column>
+              :showFilterMenu="false"
+              :showClearButton="false"
+            >
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByDocNo"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('docno')"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column
               field="docdate"
               header="วันที่"
               dataType="date"
               :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
             >
               <template #body="slotProps">
                 {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <DatePicker
+                    placeholder="ค้นหา...."
+                    dateFormat="d/m/yy"
+                    v-model="filtersByDocDate"
+                    :modelValue="filtersByDocDate"
+                    :showIcon="true"
+                    :buddhist="buddhistYear"
+                    :hideOnDateTimeSelect="true"
+                    :hiddenTime="true"
+                    @date-select="filterDocDate($event, 0, 'docdate')"
+                    @blur="filterDocDate($event, 1, 'docdate')"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('docdate')"
+                  />
+                </div>
               </template>
             </Column>
             <Column
               field="accountyear"
               header="ปีบัญชี"
               :sortable="true"
-            ></Column>
+              :showFilterMenu="false"
+              :showClearButton="false"
+            >
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByAccYear"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                    type="number"
+                    :min="0"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('accountyear')"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column
               field="accountperiod"
               header="งวดบัญชี"
               :sortable="true"
-            ></Column>
+              :showFilterMenu="false"
+              :showClearButton="false"
+            >
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByAccPeriod"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                    type="number"
+                    :min="0"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('accountperiod')"
+                  />
+                </div>
+              </template>
+            </Column>
             <!-- <Column field="accountgroup" header="กลุ่มบัญชี" :sortable="true"></Column> -->
             <Column
               field="accountdescription"
               header="รายละเอียด"
               :sortable="true"
-            ></Column>
+              :showFilterMenu="false"
+              :showClearButton="false"
+            >
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByDescription"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('description')"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column
               field="amount"
               header="มูลค่า"
@@ -302,9 +522,27 @@ function getSumCreditAmount(data) {
               headerStyle="text-align: right;"
               bodyStyle="text-align: right;"
               :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
             >
               <template #body="{ data, field }">
                 {{ Utils.formatCurrency(data[field]) }}
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByAmount"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('amount')"
+                  />
+                </div>
               </template>
             </Column>
             <Column
@@ -312,16 +550,58 @@ function getSumCreditAmount(data) {
               header="วันที่สร้าง"
               dataType="date"
               :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
             >
               <template #body="slotProps">
                 {{ Utils.getDateFormatDMY(slotProps.data.createdat) }}
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <DatePicker
+                    placeholder="ค้นหา...."
+                    dateFormat="d/m/yy"
+                    v-model="filtersByCreateDate"
+                    :modelValue="filtersByCreateDate"
+                    :showIcon="true"
+                    :buddhist="buddhistYear"
+                    :hideOnDateTimeSelect="true"
+                    :hiddenTime="true"
+                    @date-select="filterDocDate($event, 0, 'createdate')"
+                    @blur="filterDocDate($event, 1, 'createdate')"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('createdate')"
+                  />
+                </div>
               </template>
             </Column>
             <Column
               field="createdby"
               header="ผู้สร้าง"
               :sortable="true"
-            ></Column>
+              :showFilterMenu="false"
+              :showClearButton="false"
+            >
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="filtersByCreateBy"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('createby')"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
                 <Button

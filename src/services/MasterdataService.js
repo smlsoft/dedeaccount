@@ -30,14 +30,50 @@ export default {
     ImportGLJournal(data) {
         return instanceApi(true).post(`/gl/journal/bulk`, data).then(res => res.data);
     },
-    getGLJournalList(limitPage, page, search, sortField, sortOrder) {
+    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDescription, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
         //console.log('Page' + page);
-        var q = "";
-        if (search != "" && search != undefined && search != null) {
-            q = "&q=" + search
+        var docno = "";
+        var docdate = "";
+        var accountyear = "";
+        var accountperiod = "";
+        var description = "";
+        var amount = "";
+        var createdate = "";
+        var careteby = "";
+
+        if (filtersByDocNo != "" && filtersByDocNo != undefined && filtersByDocNo != null) {
+            docno = "&docno=" + filtersByDocNo
         }
-        //console.log(`/gl/journal?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        if (filtersByDocDate != "" && filtersByDocDate != undefined && filtersByDocDate != null) {
+            docdate = "&docdate=" + filtersByDocDate
+        }
+
+        if (filtersByAccYear != "" && filtersByAccYear != undefined && filtersByAccYear != null) {
+            accountyear = "&accountyear=" + filtersByAccYear
+        }
+
+        if (filtersByAccPeriod != "" && filtersByAccPeriod != undefined && filtersByAccPeriod != null) {
+            accountperiod = "&accountperiod=" + filtersByAccPeriod
+        }
+
+        if (filtersByDescription != "" && filtersByDescription != undefined && filtersByDescription != null) {
+            description = "&accountdescription=" + filtersByDescription
+        }
+
+        if (filtersByAmount != "" && filtersByAmount != undefined && filtersByAmount != null) {
+            amount = "&amount=" + filtersByAmount
+        }
+
+        if (sendFiltersByCreateDate != "" && sendFiltersByCreateDate != undefined && sendFiltersByCreateDate != null) {
+            createdate = "&createdby=" + sendFiltersByCreateDate
+        }
+
+        if (filtersByCreateBy != "" && filtersByCreateBy != undefined && filtersByCreateBy != null) {
+            careteby = "&createdby=" + filtersByCreateBy
+        }
+
+        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${careteby}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${careteby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getGLJournalListByDocref(data) {
         return instanceApi(true).get(`/gl/journal/docref/` + data).then(res => res.data);
@@ -115,15 +151,15 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-      //  console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        //  console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getAccountledger(startdate, enddate, accountcode) {
 
-         console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`);
+        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`);
         return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`).then(res => res.data);
     },
-    
+
     postAccountChart(data) {
         return instanceApi(true).post(`/gl/chartofaccount`, data).then(res => res.data);
     },
