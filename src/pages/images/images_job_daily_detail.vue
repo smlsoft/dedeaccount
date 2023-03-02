@@ -471,13 +471,17 @@ function resizeSplitter(isOveray) {
 }
 
 function showImg(data) {
-  selectedImag.value = data;
-  showImgData.value = data.imagereferences;
-  showDocumentPreview.value = true;
+  showImgData.value = null;
 
-  resetIndex.value = 1;
+  setTimeout(() => {
+    selectedImag.value = data;
+    showImgData.value = data.imagereferences;
+    showDocumentPreview.value = true;
 
-  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
+    resetIndex.value = 1;
+
+    getDocumentImageById(showImgData.value[0].documentimageguid, 0);
+  }, 200);
 }
 
 async function getDocumentImageById(id, index) {
