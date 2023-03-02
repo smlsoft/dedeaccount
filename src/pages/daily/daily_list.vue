@@ -429,6 +429,7 @@ function closefiltersColum() {
                     :hiddenTime="true"
                     @date-select="filterDocDate($event, 0, 'docdate')"
                     @blur="filterDocDate($event, 1, 'docdate')"
+                    inputStyle="padding: 0.875rem 0.875rem;"
                   />
                   <Button
                     icon="pi pi-filter-slash"
@@ -569,6 +570,7 @@ function closefiltersColum() {
                     :hiddenTime="true"
                     @date-select="filterDocDate($event, 0, 'createdate')"
                     @blur="filterDocDate($event, 1, 'createdate')"
+                    inputStyle="padding: 0.875rem 0.875rem;"
                   />
                   <Button
                     icon="pi pi-filter-slash"
