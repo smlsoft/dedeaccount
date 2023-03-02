@@ -289,6 +289,9 @@ function getSumCreditAmount(data) {
 
 function filterDocDate(event, mode, key) {
   console.log(event);
+  if (event.value == "") {
+    return;
+  }
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
