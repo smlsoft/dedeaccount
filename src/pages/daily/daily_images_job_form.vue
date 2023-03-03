@@ -168,11 +168,6 @@ watch(daily_form.value, (newValue, oldValue) => {
   if (
     JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)
   ) {
-    console.log("daily_form :");
-    console.log(daily_form.value);
-    console.log("daily_form_has");
-    console.log(daily_form.value);
-
     isChange.value = true;
     sendChange(1);
   } else {
@@ -563,7 +558,7 @@ function getDataGL(references) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
-        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+        if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
           daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
@@ -689,7 +684,7 @@ function goList() {
 }
 
 async function confirmSave() {
-  //console.log(daily_form.value);
+  // console.log(daily_form.value);
   //console.log(vats.value);
   //console.log(taxes.value);
 

@@ -308,9 +308,11 @@ function filterDocDate(event, mode, key) {
     // console.log(dayjs(keyDate).format("YYYY-MM-DD"));
     if (key == "docdate") {
       sendFiltersByDocDate.value = dayjs(keyDate).format("YYYY-MM-DD");
-    } else {
+    } else if (key == "createdate") {
       sendFiltersByCreateDate.value = dayjs(keyDate).format("YYYY-MM-DD");
     }
+
+    console.log(sendFiltersByCreateDate.value);
     doneTyping();
   }, 100);
 }

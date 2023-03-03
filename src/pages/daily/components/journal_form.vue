@@ -217,7 +217,7 @@ function checkAccountPeriod(event, mode) {
       const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
       keyDate = isoDate; // 2022-12-20
     }
-    // console.log(dayjs(keyDate).format("YYYY-MM-DD"));
+    console.log(dayjs(keyDate).format("YYYY-MM-DD"));
     getAccountPeriodByDate(dayjs(keyDate).format("YYYY-MM-DD"));
   }, 100);
 }

@@ -39,7 +39,7 @@ export default {
         var description = "";
         var amount = "";
         var createdate = "";
-        var careteby = "";
+        var createdby = "";
 
         if (filtersByDocNo != "" && filtersByDocNo != undefined && filtersByDocNo != null) {
             docno = "&docno=" + filtersByDocNo
@@ -65,15 +65,15 @@ export default {
         }
 
         if (sendFiltersByCreateDate != "" && sendFiltersByCreateDate != undefined && sendFiltersByCreateDate != null) {
-            createdate = "&createdby=" + sendFiltersByCreateDate
+            createdate = "&createdat=" + sendFiltersByCreateDate
         }
 
         if (filtersByCreateBy != "" && filtersByCreateBy != undefined && filtersByCreateBy != null) {
-            careteby = "&createdby=" + filtersByCreateBy
+            createdby = "&createdby=" + filtersByCreateBy
         }
 
-        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${careteby}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${careteby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getGLJournalListByDocref(data) {
         return instanceApi(true).get(`/gl/journal/docref/` + data).then(res => res.data);

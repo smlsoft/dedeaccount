@@ -294,16 +294,17 @@ function getGLDetail(id) {
             creditamount: 0,
           });
         }
-        if (daily_form.value.exdocrefdate == "0001-01-01T00:00:00Z") {
+        if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
           daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
             res.data.exdocrefdate
           );
         }
+
         daily_form.value.exdocrefno = res.data.exdocrefno;
 
-        // console.log(daily_form.value);
+        console.log(daily_form.value);
 
         if (res.data.vats.length > 0) {
           vats.value = [];

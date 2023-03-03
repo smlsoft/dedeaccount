@@ -79,13 +79,18 @@ const uuidv4 = () => {
 };
 
 const getFormatDateTime = (format) => {
+
   var d = new Date(format);
   if (process.env.VUE_APP_DATE == "th") {
-    d.setFullYear(d.getFullYear());
-  }
-  //console.log(d.toISOString())
 
-  return d.toISOString();
+    var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+    var localISOTime = (new Date(d - tzoffset)).toISOString();
+
+    console.log(localISOTime)
+
+  }
+
+  return localISOTime;
 };
 
 const remove_duplicates_array = (arr) => {
