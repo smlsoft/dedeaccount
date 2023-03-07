@@ -299,13 +299,11 @@ function resizeSplitter(isOveray) {
 function showImg(data) {
   showImgData.value = null;
 
-  setTimeout(() => {
-    selectedImag.value = data;
-    showImgData.value = data.imagereferences;
-    showDocumentPreview.value = true;
+  selectedImag.value = data;
+  showImgData.value = data.imagereferences;
+  showDocumentPreview.value = true;
 
-    getDocumentImageById(showImgData.value[0].documentimageguid, 0);
-  }, 200);
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {
@@ -918,23 +916,24 @@ function getDocumentImageGroupById(id) {
           );
         }
 
-        // เรียง xorder ใหม่
-        data_list.value = data_list.value.map((item, index) => {
-          return { ...item, xorder: index };
-        });
-        //เก็บค่า xorder ใหม่ ไป update
-        data_list.value.forEach((element, index) => {
-          data_sort.value.push({
-            guidfixed: element.guidfixed,
-            xorder: index,
-          });
-        });
-
         selectedImg.value = [];
+
         setTimeout(() => {
+          // เรียง xorder ใหม่
+          data_list.value.forEach((element, index) => {
+            element.xorder = index;
+            data_sort.value.push({
+              guidfixed: element.guidfixed,
+              xorder: index,
+            });
+          });
+
+          // console.log(data_list.value);
+          // console.log(data_sort.value);
+
           //update xorder ใหม่
           updateDocumentImageXsort();
-        }, 100);
+        }, 300);
       }
     })
     .catch((err) => {

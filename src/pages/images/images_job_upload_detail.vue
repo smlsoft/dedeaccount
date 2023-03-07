@@ -575,11 +575,8 @@ async function documentImageUnGroup(data) {
 
         setTimeout(() => {
           // เรียง xorder ใหม่
-          data_list.value = data_list.value.map((item, index) => {
-            return { ...item, xorder: index };
-          });
-
           data_list.value.forEach((element, index) => {
+            element.xorder = index;
             data_sort.value.push({
               guidfixed: element.guidfixed,
               xorder: index,
@@ -591,7 +588,7 @@ async function documentImageUnGroup(data) {
 
           //update xorder ใหม่
           updateDocumentImageXsort();
-        }, 200);
+        }, 300);
       }
     })
     .catch((err) => {
@@ -1084,18 +1081,15 @@ function verifyData() {
 
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
-
 }
 
 function showImg(data) {
   showImgData.value = null;
-  setTimeout(() => {
-    selectedImag.value = data;
-    showImgData.value = data.imagereferences;
-    showDocumentPreview.value = true;
+  selectedImag.value = data;
+  showImgData.value = data.imagereferences;
+  showDocumentPreview.value = true;
 
-    getDocumentImageById(showImgData.value[0].documentimageguid, 0);
-  }, 200);
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {

@@ -22,7 +22,7 @@ const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 const data_list = ref([]);
-
+const accountBook_detail = ref([]);
 const totalItemsCount = ref(10);
 const loading = ref(true);
 const activePage = ref(1);
@@ -473,15 +473,13 @@ function resizeSplitter(isOveray) {
 function showImg(data) {
   showImgData.value = null;
 
-  setTimeout(() => {
-    selectedImag.value = data;
-    showImgData.value = data.imagereferences;
-    showDocumentPreview.value = true;
+  selectedImag.value = data;
+  showImgData.value = data.imagereferences;
+  showDocumentPreview.value = true;
 
-    resetIndex.value = 1;
+  resetIndex.value = 1;
 
-    getDocumentImageById(showImgData.value[0].documentimageguid, 0);
-  }, 200);
+  getDocumentImageById(showImgData.value[0].documentimageguid, 0);
 }
 
 async function getDocumentImageById(id, index) {
@@ -735,6 +733,24 @@ function puttaxValid() {
   });
 }
 
+function getJournalBook() {
+  MasterdataService.getJournalBook()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        accountBook_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.code - obj2.code;
+        });
+        accountBook_detail.value.forEach((ele) => {
+          ele.label = ele.code + "~" + ele.name1;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
 function getGLDetail(docno) {
   console.log(docno);
 
@@ -837,6 +853,7 @@ function getGLDetail(docno) {
             taxes.value.push(taxes_temp);
           }
         }
+        getJournalBook();
 
         // console.log(daily_form.value);
         // console.log(vats.value);
@@ -1153,6 +1170,7 @@ async function saveComment(id, data, index) {
             </template>
             <JournalForm
               :isUpdate="true"
+              :accountBook_detail="accountBook_detail"
               :daily_form="daily_form"
               :daily_form_valid="daily_form_valid"
             >
