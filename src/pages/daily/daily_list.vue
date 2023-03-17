@@ -15,7 +15,7 @@ const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
 const detail = ref();
-const textContent = ref("ต้องการลบข้อมูลรายวัน เลขที่เอกสาร");
+const textContent = ref("");
 const dailynum = ref("");
 const data_list = ref([]);
 const deleteDetailDialog = ref(false);
@@ -46,6 +46,8 @@ const filtersByAmount = ref(null);
 const filtersByCreateDate = ref(null);
 const sendFiltersByCreateDate = ref(null);
 const filtersByCreateBy = ref(null);
+const confirmDeleteDialogBatchId = ref(false);
+const listGlBatchId = ref([]);
 
 onMounted(() => {
   getGLJournalList();
@@ -159,10 +161,19 @@ function goDetail(data) {
 }
 
 function confirmDeleteDetail(data) {
-  detail.value = data;
-  dailynum.value = data.docno;
+  console.log(data);
 
-  confirmDeleteDialog.value = true;
+  if (data.batchid == "") {
+    detail.value = data;
+    dailynum.value = data.docno;
+    textContent.value = "ต้องการลบข้อมูลรายวัน เลขที่เอกสาร";
+    confirmDeleteDialog.value = true;
+  } else {
+    detail.value = data;
+    dailynum.value = data.batchid;
+    textContent.value = "ต้องการลบข้อมูลรายวันของ Statement";
+    confirmDeleteDialogBatchId.value = true;
+  }
 }
 function deleteDetail() {
   MasterdataService.deleteGLJournal(detail.value.guidfixed)
@@ -177,6 +188,26 @@ function deleteDetail() {
           life: 3000,
         });
         confirmDeleteDialog.value = false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function deleteDetailBatchId() {
+  MasterdataService.deleteGLJournalBatchId(detail.value.batchid)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        getGLJournalList();
+        toast.add({
+          severity: "success",
+          summary: "ทำรายการสำเร็จ",
+          detail: "ลบเอกสารรายวันสำเร็จ",
+          life: 3000,
+        });
+        confirmDeleteDialogBatchId.value = false;
       }
     })
     .catch((err) => {
@@ -444,7 +475,7 @@ function closefiltersColum() {
                 </div>
               </template>
             </Column>
-            <Column
+            <!-- <Column
               field="accountyear"
               header="ปีบัญชี"
               :sortable="true"
@@ -469,7 +500,7 @@ function closefiltersColum() {
                   />
                 </div>
               </template>
-            </Column>
+            </Column> -->
             <Column
               field="accountperiod"
               header="งวดบัญชี"
@@ -705,6 +736,13 @@ function closefiltersColum() {
         :textContent2="dailynum"
         v-on:close="onClose"
         v-on:confirm="deleteDetail"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmDeleteDialogBatchId"
+        :textContent="textContent"
+        :textContent2="dailynum"
+        v-on:close="confirmDeleteDialogBatchId = false"
+        v-on:confirm="deleteDetailBatchId"
       ></DialogForm>
     </MainContentWarp>
   </AppLayout>
