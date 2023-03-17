@@ -125,60 +125,56 @@
                 <i class="pi pi-image mr-1"></i>
                 <span> {{ $t("img") }}</span>
               </template>
-              {{ dataImage.imagereferences.length }}
               <Galleria
-                :value="dataImage.imagereferences"
+                :value="dataImage"
+                :showThumbnails="false"
                 :circular="true"
+                :showIndicators="dataImage.length > 1"
                 containerStyle="max-width: 100%"
-                thumbnailsPosition="buttom"
-                :show-thumbnails="dataImage.imagereferences.length > 1"
-                v-model:activeIndex="activeIndexList"
-                :numVisible="
-                  dataImage.imagereferences.length > 10
-                    ? 10
-                    : dataImage.imagereferences.length
-                "
               >
-                <template #header>
-                  <div class="flex justify-content-between mb-2">
-                    <div class="flex">
-                      {{ $t("img_name") }} :
-                      {{ dataImage.imagereferences[[activeIndexList]].name }}
-                    </div>
-                    <div class="flex">
-                      {{ $t("date") }} :{{
-                        Utils.getDateTimeFormat(
-                          dataImage.imagereferences[[activeIndexList]]
-                            .uploadedat
-                        )
-                      }}
-                      {{ $t("by") }}
-                      {{
-                        dataImage.imagereferences[[activeIndexList]].uploadedby
-                      }}
-                    </div>
-                  </div>
-                </template>
                 <template #item="slotProps">
-                  <div
-                    class="relative"
-                    style="margin: 0px; padding: 0px; width: 100%; height: 63vh"
-                  >
-                    <iframe
-                      :name="slotProps.item.imageuri"
-                      :src="
-                        '/images/components/zoom?uri=' + slotProps.item.imageuri
-                      "
-                      class="static"
-                    >
-                    </iframe>
+                  <div class="grid w-full">
+                    <div class="col-12">
+                      <div
+                        class="flex justify-content-between flex-wrap card-container purple-container"
+                      >
+                        <Chip
+                          :label="slotProps.item.name"
+                          icon="pi pi-image"
+                          class="mt-2"
+                        />
+                        <Chip
+                          :label="
+                            'วันที่ : ' +
+                            Utils.getDateTimeFormat(slotProps.item.uploadedat)
+                          "
+                          icon="pi pi-calendar"
+                          class="mr-2 mt-2"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div
+                        class="relative"
+                        style="
+                          margin: 0px;
+                          padding: 0px;
+                          width: 100%;
+                          height: 63vh;
+                        "
+                      >
+                        <iframe
+                          :name="slotProps.item.imageuri"
+                          :src="
+                            '/images/components/zoom?uri=' +
+                            slotProps.item.imageuri
+                          "
+                          class="static"
+                        >
+                        </iframe>
+                      </div>
+                    </div>
                   </div>
-                </template>
-                <template #thumbnail="slotProps">
-                  <img
-                    :src="slotProps.item.imageuri"
-                    style="width: 50px; height: 50px; display: block"
-                  />
                 </template>
               </Galleria>
             </TabPanel>
@@ -289,7 +285,7 @@ import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
 import { ref, onMounted } from "vue";
-import pdfMake from "pdfmake/build/pdfmake";
+import pdfMake, { async } from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
@@ -376,7 +372,7 @@ const vats_valid = ref([
   },
 ]);
 const showTabImage = ref(false);
-const dataImage = ref({});
+const dataImage = ref([]);
 const loadingLedger = ref(false);
 const loadingTrialBalance = ref(false);
 
@@ -857,7 +853,7 @@ function showSplitterLedger(data) {
     });
 }
 
-function getGLDetail(docno) {
+async function getGLDetail(docno) {
   console.log(docno);
 
   MasterdataService.getGLledger(docno)
@@ -867,6 +863,7 @@ function getGLDetail(docno) {
         getDocumentImageByDocNo(docno);
 
         openDetailDocNo.value = true;
+
         const vat = res.data.vats;
         const tax = res.data.taxes;
 
@@ -992,7 +989,9 @@ function getDocumentImageByDocNo(docno) {
       if (res.success) {
         console.log(res);
         showTabImage.value = true;
-        dataImage.value = res.data.imagereferences[0];
+        setTimeout(() => {
+          dataImage.value = res.data.imagereferences;
+        }, 1000);
       }
     })
     .catch((err) => {

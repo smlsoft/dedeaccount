@@ -4,6 +4,7 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted } from "vue";
@@ -13,6 +14,7 @@ import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import dayjs from "dayjs";
 import $ from "jquery";
 
 const conreject = "ต้องการยกเลิกรูปภาพ";
@@ -164,6 +166,7 @@ const readMode = ref(false);
 const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const showOveray = ref(false);
+const warringAccountperiod = ref(false);
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -175,10 +178,6 @@ onUnmounted(() => {
 });
 
 onMounted(() => {
-  // set height ifram
-  heightIamgeDivCheckGl.value =
-    "height:" + divCheckGl.value.offsetHeight + "px";
-
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
@@ -202,6 +201,11 @@ onMounted(() => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getAccountPeriodByDate(dayjs(new Date()).format("YYYY-MM-DD"));
+
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
 });
 
 function getImagesByDocref(data) {
@@ -393,6 +397,9 @@ function getGLDetail(id) {
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
+                  // set height ifram
+                  heightIamgeDivCheckGl.value =
+                    "height:" + divCheckGl.value.offsetHeight + "px";
                 }
               }
             })
@@ -867,6 +874,27 @@ function verifyVat() {
   } else {
     return true;
   }
+}
+
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        daily_form.value.accountperiod = res.data.period;
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      daily_form.value.accountperiod = null;
+      warringAccountperiod.value = true;
+      // toast.add({
+      //   severity: "warn",
+      //   summary: "แจ้งเตือน",
+      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      //   life: 3000,
+      // });
+    });
 }
 
 function getDocumentImageGroup() {
@@ -1871,7 +1899,12 @@ function resizeSplitter(isOveray) {
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
                 >
-                  <Galleria :value="doc_images" :showThumbnails="false">
+                  <Galleria
+                    :value="doc_images"
+                    :showThumbnails="false"
+                    :circular="true"
+                    :showIndicators="doc_images.length > 1"
+                  >
                     <template #item="slotProps">
                       <div class="grid w-full">
                         <div class="col-12">
@@ -1949,14 +1982,14 @@ function resizeSplitter(isOveray) {
               />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
-              <div ref="divCheckGl">
-                <TabView class="tabview-custom" ref="tabview">
-                  <TabPanel>
-                    <template #header>
-                      <i class="pi pi-book mr-1"></i>
-                      <span> ข้อมูลรายวัน</span>
-                    </template>
-                    <div v-if="!onLoad">
+              <TabView class="tabview-custom" ref="tabview">
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-book mr-1"></i>
+                    <span> ข้อมูลรายวัน</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <div ref="divCheckGl">
                       <JournalForm
                         :isUpdate="readMode"
                         :daily_form="daily_form"
@@ -1970,46 +2003,47 @@ function resizeSplitter(isOveray) {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
+                        v-on:getAccountPeriodByDate="getAccountPeriodByDate"
                       >
                       </JournalForm>
                     </div>
-                  </TabPanel>
-                  <TabPanel>
-                    <template #header>
-                      <i class="pi pi-wallet mr-1"></i>
-                      <span> ข้อมูลภาษี</span>
-                    </template>
-                    <div v-if="!onLoad">
-                      <VatForm
-                        :isUpdate="readMode"
-                        :vats="vats"
-                        :vats_valid="vats_valid"
-                        v-on:addBoxVat="addBoxVat"
-                        v-on:deleteDetailVat="deleteDetailVat"
-                        v-on:calVatAmount="calVatAmount"
-                        v-on:checkDateFormat="checkDateFormat"
-                        v-on:setBranch="setBranch"
-                      ></VatForm>
-                    </div>
-                  </TabPanel>
-                  <TabPanel>
-                    <template #header>
-                      <i class="pi pi-wallet mr-1"></i>
-                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                    </template>
-                    <div v-if="!onLoad">
-                      <TaxForm
-                        :isUpdate="readMode"
-                        :taxes="taxes"
-                        :taxes_valid="taxes_valid"
-                        v-on:addBoxTax="addBoxTax"
-                        v-on:deleteDetailTax="deleteDetailTax"
-                        v-on:getSumTaxBase="getSumTaxBase"
-                      ></TaxForm>
-                    </div>
-                  </TabPanel>
-                </TabView>
-              </div>
+                  </div>
+                </TabPanel>
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-wallet mr-1"></i>
+                    <span> ข้อมูลภาษี</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <VatForm
+                      :isUpdate="readMode"
+                      :vats="vats"
+                      :vats_valid="vats_valid"
+                      v-on:addBoxVat="addBoxVat"
+                      v-on:deleteDetailVat="deleteDetailVat"
+                      v-on:calVatAmount="calVatAmount"
+                      v-on:checkDateFormat="checkDateFormat"
+                      v-on:setBranch="setBranch"
+                    ></VatForm>
+                  </div>
+                </TabPanel>
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-wallet mr-1"></i>
+                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <TaxForm
+                      :isUpdate="readMode"
+                      :taxes="taxes"
+                      :taxes_valid="taxes_valid"
+                      v-on:addBoxTax="addBoxTax"
+                      v-on:deleteDetailTax="deleteDetailTax"
+                      v-on:getSumTaxBase="getSumTaxBase"
+                    ></TaxForm>
+                  </div>
+                </TabPanel>
+              </TabView>
             </SplitterPanel>
           </Splitter>
 

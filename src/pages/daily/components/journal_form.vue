@@ -63,6 +63,7 @@ const emit = defineEmits([
   "addColumn",
   "onRowReorder",
   "selectAccount",
+  "getAccountPeriodByDate"
 ]);
 
 onMounted(async () => {
@@ -203,6 +204,7 @@ function focusNext(field, index) {
 }
 
 function checkAccountPeriod(event, mode) {
+
   console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
@@ -223,24 +225,26 @@ function checkAccountPeriod(event, mode) {
 }
 
 function getAccountPeriodByDate(keyDate) {
-  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        props.daily_form.accountperiod = res.data.period;
-      }
-    })
-    .catch((err) => {
-      console.log(err.response.data.message);
-      props.daily_form.accountperiod = null;
-      warringAccountperiod.value = true;
-      // toast.add({
-      //   severity: "warn",
-      //   summary: "แจ้งเตือน",
-      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      //   life: 3000,
-      // });
-    });
+  emit("getAccountPeriodByDate", keyDate);
+  // AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+  //   .then((res) => {
+  //     console.log(res);
+  //     if (res.success) {
+      
+  //       props.daily_form.accountperiod = res.data.period;
+  //     }
+  //   })
+  //   .catch((err) => {
+  //     console.log(err.response.data.message);
+  //     props.daily_form.accountperiod = null;
+  //     warringAccountperiod.value = true;
+  //     // toast.add({
+  //     //   severity: "warn",
+  //     //   summary: "แจ้งเตือน",
+  //     //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+  //     //   life: 3000,
+  //     // });
+  //   });
 }
 
 function headerNextFocus(filedName) {
@@ -452,7 +456,7 @@ function headerNextFocus(filedName) {
           class="batchid"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-3 hidden">
+      <div class="field mb-4 col-12 md:col-3 ">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
@@ -653,47 +657,7 @@ function headerNextFocus(filedName) {
     </template>
   </Dialog>
 
-  <Dialog
-    :visible="warringAccountperiod"
-    appendTo="body"
-    :modal="true"
-    :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
-    :style="{ width: '40vw' }"
-    :closable="false"
-  >
-    <template #header>
-      <div class="flex align-items-center">
-        <span
-          class="flex align-items-center justify-content-center bg-cyan-100 text-cyan-800 mr-3 border-circle"
-          style="width: 32px; height: 32px"
-        >
-          <i class="pi pi-exclamation-triangle text-lg"></i>
-        </span>
-        <span class="font-medium text-2xl text-900">แจ้งเตือนระบบ </span>
-      </div>
-    </template>
 
-    <div class="flex flex-column justify-content-center align-items-center">
-      <p
-        class="line-height-3 p-0 m-0"
-        style="font-size: 1.2rem; text-align: center"
-      >
-        <span>
-          วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี
-        </span>
-      </p>
-    </div>
-
-    <template #footer>
-      <div class="border-top-1 surface-border pt-3">
-        <Button
-          class="w-full"
-          @click="warringAccountperiod = false"
-          label="ตกลง"
-        ></Button>
-      </div>
-    </template>
-  </Dialog>
 </template>
 <style>
 .p-dialog.p-component.p-ripple-disabled {

@@ -635,6 +635,59 @@
                 <span> {{ $t("img") }}</span>
               </template>
               <Galleria
+                :value="dataImage"
+                :showThumbnails="false"
+                :circular="true"
+                :showIndicators="dataImage.length > 1"
+                containerStyle="max-width: 100%"
+              >
+                <template #item="slotProps">
+                  <div class="grid w-full">
+                    <div class="col-12">
+                      <div
+                        class="flex justify-content-between flex-wrap card-container purple-container"
+                      >
+                        <Chip
+                          :label="slotProps.item.name"
+                          icon="pi pi-image"
+                          class="mt-2"
+                        />
+                        <Chip
+                          :label="
+                            'วันที่ : ' +
+                            Utils.getDateTimeFormat(slotProps.item.uploadedat)
+                          "
+                          icon="pi pi-calendar"
+                          class="mr-2 mt-2"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div
+                        class="relative"
+                        style="
+                          margin: 0px;
+                          padding: 0px;
+                          width: 100%;
+                          height: 63vh;
+                        "
+                      >
+                        <iframe
+                          :name="slotProps.item.imageuri"
+                          :src="
+                            '/images/components/zoom?uri=' +
+                            slotProps.item.imageuri
+                          "
+                          class="static"
+                        >
+                        </iframe>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </Galleria>
+
+              <!-- <Galleria
                 :value="dataImage.imagereferences"
                 :circular="true"
                 thumbnailsPosition="top"
@@ -686,7 +739,7 @@
                     style="width: 50px; height: 50px"
                   />
                 </template>
-              </Galleria>
+              </Galleria> -->
             </TabPanel>
           </TabView>
         </div>
@@ -785,7 +838,7 @@ const isvisible2 = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const startDate = ref();
 const endDate = ref();
-const dataImage = ref({});
+const dataImage = ref([]);
 const accountGroup = ref("");
 const accountcode = ref([]);
 const accountcode1 = ref([]);
@@ -1045,7 +1098,9 @@ function getDocumentImageByDocNo(docno) {
       if (res.success) {
         console.log(res);
         showTabImage.value = true;
-        dataImage.value = res.data;
+        setTimeout(() => {
+          dataImage.value = res.data.imagereferences;
+        }, 1000);
       }
     })
     .catch((err) => {

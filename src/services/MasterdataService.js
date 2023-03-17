@@ -81,6 +81,9 @@ export default {
     deleteGLJournal(data) {
         return instanceApi(true).delete(`/gl/journal/` + data).then(res => res.data);
     },
+    deleteGLJournalBatchId(data) {
+        return instanceApi(true).delete(`/gl/journal/batchid/` + data).then(res => res.data);
+    },
     getGLDetail(id) {
         return instanceApi(true).get(`/gl/journal/${id}`).then(res => res.data);
     },

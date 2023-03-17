@@ -74,11 +74,15 @@ function onConfirm() {
         class="line-height-3 p-0 m-0"
         style="font-size: 1.2rem; text-align: center"
       >
-        <span
-          >{{ props.textContent }}
-
-          {{ props.textContent2 }} ใช่หรือไม่ ?
+        <span>
+          {{ props.textContent }}
         </span>
+        <div>
+          {{ props.textContent2 }}
+        </div>
+        <div>
+          <span> ใช่หรือไม่ ? </span>
+        </div>
       </p>
     </div>
     <div class="flex flex-column justify-content-center align-items-center">
@@ -112,6 +116,4 @@ function onConfirm() {
 .p-dialog.p-component.p-ripple-disabled {
   background-color: #fff;
 }
-
-
 </style>

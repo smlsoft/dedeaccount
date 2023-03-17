@@ -27,7 +27,7 @@ function lockSlideBar(data) {
       widthscreen < 992 ? 'w-14rem' : '',
     ]"
     class="main-menu h-screen hidden lg:block flex-shrink-0 absolute left-0 top-0"
-    style="overflow-x: hidden; overflow-y: auto"
+    style="overflow-x: hidden; overflow-y: auto;"
   >
     <header>
       <div class="image-text">

@@ -24,7 +24,13 @@ export const menus = [
     children: [],
   },
 
-
+  {
+    title: "บันทึกรายการ Statement",
+    name: "statement_upload",
+    icon: "pi pi-file-pdf",
+    to: "/statement/statement_upload",
+    children: [],
+  },
 
   // แบบ2
   // {
