@@ -147,6 +147,7 @@ const listStatusImagesByDaily = ref([
 ]);
 
 const statusImage = ref();
+const warringAccountperiod = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -236,6 +237,7 @@ onMounted(async () => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getAccountPeriodByDate(dayjs(new Date()).format("YYYY-MM-DD"));
 
   websocketConnect();
   WSImageConnect();
@@ -469,26 +471,25 @@ function checkActiveIndex() {
   }, 30);
 }
 
-async function getAccountPeriodByDate(keyDate) {
-  let newDate = dayjs(keyDate).format("YYYY-MM-DD");
-  try {
-    const res = await AccountPeriodDataService.getAccountPeriodByDate(newDate);
-    if (res.success) {
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
       console.log(res);
-      const newData = res.data.period;
-      console.log(newData);
-      return newData;
-    }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: err.response.data.message,
-      life: 3000,
+      if (res.success) {
+        daily_form.value.accountperiod = res.data.period;
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      daily_form.value.accountperiod = null;
+      warringAccountperiod.value = true;
+      // toast.add({
+      //   severity: "warn",
+      //   summary: "แจ้งเตือน",
+      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      //   life: 3000,
+      // });
     });
-    return 0;
-  }
 }
 
 function getAllSelectImage() {
@@ -2098,6 +2099,7 @@ async function updateStatus() {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
+                        v-on:getAccountPeriodByDate="getAccountPeriodByDate"
                       >
                       </JournalForm>
                     </div>
@@ -2253,6 +2255,48 @@ async function updateStatus() {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
+
+      <Dialog
+        :visible="warringAccountperiod"
+        appendTo="body"
+        :modal="true"
+        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+        :style="{ width: '40vw' }"
+        :closable="false"
+      >
+        <template #header>
+          <div class="flex align-items-center">
+            <span
+              class="flex align-items-center justify-content-center bg-cyan-100 text-cyan-800 mr-3 border-circle"
+              style="width: 32px; height: 32px"
+            >
+              <i class="pi pi-exclamation-triangle text-lg"></i>
+            </span>
+            <span class="font-medium text-2xl text-900">แจ้งเตือนระบบ </span>
+          </div>
+        </template>
+
+        <div class="flex flex-column justify-content-center align-items-center">
+          <p
+            class="line-height-3 p-0 m-0"
+            style="font-size: 1.2rem; text-align: center"
+          >
+            <span>
+              วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี
+            </span>
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="border-top-1 surface-border pt-3">
+            <Button
+              class="w-full"
+              @click="warringAccountperiod = false"
+              label="ตกลง"
+            ></Button>
+          </div>
+        </template>
+      </Dialog>
     </MainContentWarp>
   </AppLayout>
 </template>

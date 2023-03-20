@@ -1,12 +1,11 @@
 <script setup>
 import AppLayout from "@/components/layout/AppLayout.vue";
-import MasterdataService from "@/services/MasterdataService";
-import ImageDataService from "@/services/ImageDataService";
-import UsersDataService from "@/services/UsersDataService";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import { onMounted, ref } from "vue";
 import { useApp } from "@/stores/app.js";
 import { useRouter } from "vue-router";
+
+import DashboardDataService from "@/services/DashboardDataService";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -33,7 +32,7 @@ onMounted(() => {
 
 function getAccountChart() {
   showSkeletonAccount.value = true;
-  MasterdataService.getAccountChartList()
+  DashboardDataService.getAccountChart()
     .then((res) => {
       // console.log(res);
       if (res.success) {
@@ -51,7 +50,7 @@ function getAccountChart() {
 
 function getGLJournalList() {
   showSkeletonJourna.value = true;
-  MasterdataService.getGLJournalList()
+  DashboardDataService.getGLJournalList()
     .then((res) => {
       // console.log(res);
       if (res.success) {
@@ -69,7 +68,7 @@ function getGLJournalList() {
 
 function getDocImageList() {
   showSkeletonImage.value = true;
-  ImageDataService.getDocumentImageGroup()
+  DashboardDataService.getDocumentImageGroup()
     .then((res) => {
       // console.log(res);
       if (res.success) {
@@ -87,7 +86,7 @@ function getDocImageList() {
 
 function getUserShop() {
   showSkeletonUser.value = true;
-  UsersDataService.getUserShop()
+  DashboardDataService.getUserShop()
     .then((res) => {
       //console.log(res);
       if (res.success) {
@@ -159,7 +158,7 @@ function goTo(path) {
               </span>
             </div>
             <div
-              @click="goTo('images_job_upload')"
+              @click="goTo('pic_group_docref')"
               class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
             >
               <div class="flex align-items-center mb-3">

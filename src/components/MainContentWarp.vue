@@ -6,7 +6,7 @@
 </template>
 <style>
 .main-div {
-  height: 93vh;
+  height: 95vh;
   overflow-y: scroll;
 }
 </style>
