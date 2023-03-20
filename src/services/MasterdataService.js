@@ -75,6 +75,7 @@ export default {
         console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
+
     getGLJournalListByDocref(data) {
         return instanceApi(true).get(`/gl/journal/docref/` + data).then(res => res.data);
     },
