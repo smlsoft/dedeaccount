@@ -93,7 +93,6 @@ const sortField = ref([
 const showImageBy = ref("0");
 const sortOrder = ref(0);
 const firstPage = ref(0);
-const isGallery = ref(false);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
@@ -201,7 +200,6 @@ onMounted(() => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
-  getAccountPeriodByDate(dayjs(new Date()).format("YYYY-MM-DD"));
 
   // set height ifram
   heightIamgeDivCheckGl.value =
@@ -881,13 +879,17 @@ function getAccountPeriodByDate(keyDate) {
     .then((res) => {
       console.log(res);
       if (res.success) {
-        daily_form.value.accountperiod = res.data.period;
+        if (res.data[0].perioddata.guidfixed != "") {
+          daily_form.value.accountperiod =
+            res.data[0].perioddata.guidfixed.period;
+        } else {
+          daily_form.value.accountperiod = null;
+          warringAccountperiod.value = true;
+        }
       }
     })
     .catch((err) => {
       console.log(err.response.data.message);
-      daily_form.value.accountperiod = null;
-      warringAccountperiod.value = true;
       // toast.add({
       //   severity: "warn",
       //   summary: "แจ้งเตือน",
@@ -1619,6 +1621,9 @@ function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
   console.log(isOveray);
 }
+function setAccountPeriod(data) {
+  daily_form.value.accountperiod = data;
+}
 </script>
 
 <template>
@@ -2003,7 +2008,7 @@ function resizeSplitter(isOveray) {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
-                        v-on:getAccountPeriodByDate="getAccountPeriodByDate"
+                        v-on:setAccountPeriod="setAccountPeriod"
                       >
                       </JournalForm>
                     </div>

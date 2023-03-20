@@ -14,7 +14,6 @@ import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "@/services/ImageDataService";
 import dayjs from "dayjs";
-import AccountPeriodDataService from "@/services/AccountPeriodService";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -58,7 +57,7 @@ const activeIndexList = ref(0);
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: "1",
+  accountperiod: null,
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -147,7 +146,6 @@ const listStatusImagesByDaily = ref([
 ]);
 
 const statusImage = ref();
-const warringAccountperiod = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -237,7 +235,6 @@ onMounted(async () => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
-  getAccountPeriodByDate(dayjs(new Date()).format("YYYY-MM-DD"));
 
   websocketConnect();
   WSImageConnect();
@@ -469,27 +466,6 @@ function checkActiveIndex() {
       }
     });
   }, 30);
-}
-
-function getAccountPeriodByDate(keyDate) {
-  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        daily_form.value.accountperiod = res.data.period;
-      }
-    })
-    .catch((err) => {
-      console.log(err.response.data.message);
-      daily_form.value.accountperiod = null;
-      warringAccountperiod.value = true;
-      // toast.add({
-      //   severity: "warn",
-      //   summary: "แจ้งเตือน",
-      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      //   life: 3000,
-      // });
-    });
 }
 
 function getAllSelectImage() {
@@ -1561,7 +1537,7 @@ function clearData() {
   daily_form.value.docno = Utils.getDocNoDate("JO");
   daily_form.value.accountdescription = "";
   // daily_form.value.accountgroup = "";
-  // daily_form.value.accountperiod = "1";
+  // daily_form.value.accountperiod = null;
   // daily_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
   // daily_form.value.amount = "";
   // daily_form.value.batchId = "";
@@ -1607,6 +1583,7 @@ function clearData() {
     ],
     parid: daily_form.value.parid,
   };
+
   daily_form_valid.value = {
     accountdescription: false,
     accountgroup: false,
@@ -1906,6 +1883,11 @@ async function updateStatus() {
     });
   }
 }
+
+function setAccountPeriod(data) {
+  console.log(data);
+  daily_form.value.accountperiod = data;
+}
 </script>
 
 <template>
@@ -2099,7 +2081,7 @@ async function updateStatus() {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
-                        v-on:getAccountPeriodByDate="getAccountPeriodByDate"
+                        v-on:setAccountPeriod="setAccountPeriod"
                       >
                       </JournalForm>
                     </div>
@@ -2255,48 +2237,6 @@ async function updateStatus() {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
-
-      <Dialog
-        :visible="warringAccountperiod"
-        appendTo="body"
-        :modal="true"
-        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
-        :style="{ width: '40vw' }"
-        :closable="false"
-      >
-        <template #header>
-          <div class="flex align-items-center">
-            <span
-              class="flex align-items-center justify-content-center bg-cyan-100 text-cyan-800 mr-3 border-circle"
-              style="width: 32px; height: 32px"
-            >
-              <i class="pi pi-exclamation-triangle text-lg"></i>
-            </span>
-            <span class="font-medium text-2xl text-900">แจ้งเตือนระบบ </span>
-          </div>
-        </template>
-
-        <div class="flex flex-column justify-content-center align-items-center">
-          <p
-            class="line-height-3 p-0 m-0"
-            style="font-size: 1.2rem; text-align: center"
-          >
-            <span>
-              วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี
-            </span>
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="border-top-1 surface-border pt-3">
-            <Button
-              class="w-full"
-              @click="warringAccountperiod = false"
-              label="ตกลง"
-            ></Button>
-          </div>
-        </template>
-      </Dialog>
     </MainContentWarp>
   </AppLayout>
 </template>
