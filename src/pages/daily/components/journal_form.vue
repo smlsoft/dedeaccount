@@ -10,6 +10,7 @@ import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
 import { useToast } from "primevue/usetoast";
 import dayjs from "dayjs";
+import DialogWarringPeriod from "@/components/form/DialogWarringPeriod.vue";
 
 const tempCheckDate = ref(null);
 const toast = useToast();
@@ -650,7 +651,12 @@ function headerNextFocus(filedName) {
     </template>
   </Dialog>
 
-  <Dialog
+  <DialogWarringPeriod
+    :confirmDialog="warringAccountperiod"
+    v-on:confirm="warringAccountperiod = false"
+  />
+
+  <!-- <Dialog
     :visible="warringAccountperiod"
     appendTo="body"
     :modal="true"
@@ -690,7 +696,7 @@ function headerNextFocus(filedName) {
         ></Button>
       </div>
     </template>
-  </Dialog>
+  </Dialog> -->
 </template>
 <style>
 .p-dialog.p-component.p-ripple-disabled {

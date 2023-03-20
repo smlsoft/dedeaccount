@@ -19,6 +19,7 @@ import utc from "dayjs/plugin/utc";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useRouter } from "vue-router";
 import Numeral from "numeral";
+import DialogWarringPeriod from "@/components/form/DialogWarringPeriod.vue";
 
 import VuePdfApp from "vue3-pdf-app";
 
@@ -63,6 +64,7 @@ const showDataPDF = ref(false);
 
 const ramdomNumber = ref();
 const dialogSaveDaily = ref(false);
+const warringAccountperiod = ref(false);
 
 // disable "Previous page" button
 const config = ref({
@@ -100,7 +102,7 @@ const daily_config_valid = ref({
 });
 
 const daily_form_bulk = ref([]);
-const data_accountperiod = ref([]);
+const isDailyPeriod = ref(true);
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -113,13 +115,10 @@ onMounted(() => {
 function modalSelectBank(data) {
   uploadStatement.value = true;
   selectedBank.value = data;
-  //   if (selectedBank.value.code == "ktb") {
-  //     filepassword.value = "1529900568447";
-  //   } else if (selectedBank.value.code == "kma") {
-  //     filepassword.value = "02081968";
-  //   } else {
-  //     filepassword.value = "";
-  //   }
+
+  if (selectedBank.value.code == "ttb") {
+    filepassword.value = "";
+  }
 }
 
 function closeUploadStatement() {
@@ -145,7 +144,7 @@ async function uploadFile() {
     formData.append("pdf", myFiles.value.files[0]);
 
     await axios
-      .post("http://192.168.2.56:3001/", formData, {
+      .post("http://192.168.2.64:3001/", formData, {
         params: {
           bank: selectedBank.value.code,
           password: filepassword.value,
@@ -235,7 +234,7 @@ function cancelStatement() {
   showDataPDF.value = false;
   dataArrayBuffer.value = null;
   showDataListDaily.value = false;
-  daily_form_bulk.value = false;
+  daily_form_bulk.value = [];
 
   closeUploadStatement();
 }
@@ -319,7 +318,6 @@ async function verifyDataSave() {
 
 async function generateDoc() {
   loading.value = true;
-  //   let checkPeriodData = await checkPeriod();
 
   // head gl
   const batchId = Utils.getBatchID();
@@ -444,14 +442,31 @@ async function generateDoc() {
     });
   });
 
+  console.log(daily_form_bulk.value);
+
+  await checkPeriod();
+
   modalConfigDaily.value = false;
+  closeConfigDaily();
+
   showDataPDF.value = false;
   setTimeout(() => {
     loading.value = false;
+
+    //check account period
+    const checkDailyPeriod = daily_form_bulk.value.filter(
+      (data) => data.accountperiod == 0
+    );
+
+    if (checkDailyPeriod.length == 0) {
+      isDailyPeriod.value = false;
+    } else {
+      isDailyPeriod.value = true;
+      warringAccountperiod.value = true;
+    }
+
     showDataListDaily.value = true;
   }, 500);
-
-  console.log(daily_form_bulk.value);
 }
 
 function covertDateToService(data) {
@@ -472,51 +487,42 @@ function covertDateToService(data) {
 }
 
 async function checkPeriod() {
-  await getAccountPeriod();
-  let datePDF = [];
-  pdfData.value.forEach((element) => {
-    let dateString = element.date;
-    let dateObj = dayjs(dateString, "DD/MM/YY HH:mm").format("YYYY-MM-DD");
-    datePDF.push(dateObj);
-  });
+  // group date and covert 2023-01-31T00:00:00.000Z to 2023-01-31
+  const groupedData = daily_form_bulk.value.reduce((groups, item) => {
+    const date = new Date(item.docdate).toISOString().split("T")[0];
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(item.id);
+    return groups;
+  }, {});
 
-  let groupDatePDF = new Set(datePDF);
+  //2022-01-29, 2023-01-30, 2023-01-31
+  const docDates = Object.keys(groupedData).reverse().join(",");
 
-  console.log(data_accountperiod.value);
-  console.log(groupDatePDF);
-
-  // AccountPeriodDataService.getAccountPeriodByDate(dateObj)
-  //   .then((res) => {
-  //     console.log(res);
-  //     if (res.success) {
-  //       console.log(true);
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     console.log(false);
-  //   });
-}
-
-async function getAccountPeriod() {
-  AccountPeriodDataService.getAccountPeriod()
+  AccountPeriodDataService.getAccountPeriodByDate(docDates)
     .then((res) => {
       console.log(res);
       if (res.success) {
-        res.data.forEach((element) => {
-          element.startdateshow = Utils.getDateFormatDMY(element.startdate);
-          element.enddateshow = Utils.getDateFormatDMY(element.enddate);
+        // check ข้อมูลถ้าวันที่ตรงกันให้เพิ่มใน daily_form_bulk
+        res.data.forEach((group) => {
+          daily_form_bulk.value.forEach((record) => {
+            const date = new Date(record.docdate);
+            date.setUTCHours(0, 0, 0, 0);
+            const newDateString = date.toISOString();
+
+            if (
+              newDateString ===
+              dayjs.utc(group.date, "YYYY-MM-DD").toISOString()
+            ) {
+              record.accountperiod = group.perioddata.period;
+            }
+          });
         });
-        data_accountperiod.value = res.data;
       }
     })
     .catch((err) => {
-      console.log(err.response.data.message);
-      toast.add({
-        severity: "error",
-        summary: "error",
-        detail: "ดึงข้อมูลไม่สำเร็จ " + err.response.data.message,
-        life: 3000,
-      });
+      console.log(err);
     });
 }
 
@@ -585,6 +591,7 @@ function createDaily() {
             />
             <Button
               v-if="showDataListDaily"
+              :disabled="isDailyPeriod"
               class="p-button-success"
               icon="pi pi-save"
               label="บันทึกรายวัน"
@@ -770,6 +777,11 @@ function createDaily() {
     v-on:close="dialogSaveDaily = false"
     v-on:confirmJob="createDaily()"
     v-on:confirmJobFalse="confirmSaveDailyFalse()"
+  />
+
+  <DialogWarringPeriod
+    :confirmDialog="warringAccountperiod"
+    v-on:confirm="warringAccountperiod = false"
   />
 </template>
 

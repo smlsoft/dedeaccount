@@ -38,6 +38,16 @@ function getSumAmount() {
 
   return sum;
 }
+
+function accountPeriod(data) {
+  if (data === 0) {
+    return "text-red-500";
+  }
+}
+
+function rowClass(data) {
+  return [{ "bg-red-100": data.accountperiod === 0 }];
+}
 </script>
 
 <template>
@@ -50,18 +60,32 @@ function getSumAmount() {
     v-model:expandedRows="expandedRows"
     :rowHover="true"
     tableStyle="font-size: 12px;"
+    :rowClass="rowClass"
   >
     <template #empty> ไม่พบข้อมูล </template>
     <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
     <Column :expander="true" headerStyle="width: 3rem" />
-    <Column field="docno" header="เลขที่เอกสาร" style="width: 25%"> </Column>
+    <Column field="docno" header="เลขที่เอกสาร" style="width: 25%">
+      <template #body="slotProps">
+        <div :class="accountPeriod(slotProps.data.accountperiod)">
+          {{ slotProps.data.docno }}
+        </div>
+      </template>
+    </Column>
     <Column field="docdate" header="วันที่" dataType="date" style="width: 10%">
       <template #body="slotProps">
-        {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+        <div :class="accountPeriod(slotProps.data.accountperiod)">
+          {{ Utils.getDateFormatDMY(slotProps.data.docdate) }}
+        </div>
       </template>
     </Column>
 
     <Column field="accountperiod" header="งวดบัญชี" style="width: 10%">
+      <template #body="slotProps">
+        <div :class="accountPeriod(slotProps.data.accountperiod)">
+          {{ slotProps.data.accountperiod }}
+        </div>
+      </template>
     </Column>
     <Column
       field="accountdescription"
@@ -70,6 +94,11 @@ function getSumAmount() {
       footerStyle="text-align: right !important"
       footer="รวม"
     >
+      <template #body="slotProps">
+        <div :class="accountPeriod(slotProps.data.accountperiod)">
+          {{ slotProps.data.accountdescription }}
+        </div>
+      </template>
     </Column>
     <Column
       field="amount"
@@ -79,8 +108,10 @@ function getSumAmount() {
       bodyStyle="text-align: right;"
       style="width: 10%"
     >
-      <template #body="{ data, field }">
-        {{ Utils.formatCurrency(data[field]) }}
+      <template #body="slotProps">
+        <div :class="accountPeriod(slotProps.data.accountperiod)">
+          {{ Utils.formatCurrency(slotProps.data.amount) }}
+        </div>
       </template>
       <template #footer>
         {{ Utils.formatCurrency(getSumAmount()) }}
@@ -145,7 +176,6 @@ function getSumAmount() {
               {{ Utils.formatCurrency(data[field]) }}
             </template>
           </Column>
-          
         </DataTable>
       </div>
     </template>
