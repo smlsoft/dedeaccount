@@ -86,7 +86,7 @@ const getFormatDateTime = (format) => {
     var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
     var localISOTime = (new Date(d - tzoffset)).toISOString();
 
-    console.log(localISOTime)
+    // console.log(localISOTime)
 
   }
 

@@ -135,7 +135,11 @@ const startIndex = ref();
 const endIndex = ref();
 const dialogComment = ref();
 const screenHeight = window.screen.height;
-
+const countDataImage = ref({
+  images: 0,
+  images_success: 0,
+  images_false: 0,
+});
 onUnmounted(() => {});
 onMounted(() => {
   jobId.value = route.params.id;
@@ -782,7 +786,8 @@ function onScroll() {
   }
 }
 
-function closeDialogUpload() {
+function closeDialogUpload(data) {
+  countDataImage.value = data;
   uploadmodel.value = false;
 }
 
@@ -1526,6 +1531,14 @@ async function saveComment(id, data, index) {
     });
   }
 }
+
+function sentCountDataImage(data) {
+  countDataImage.value = {
+    images: data.images,
+    images_success: data.images_success,
+    images_false: data.images_false,
+  };
+}
 </script>
 <template>
   <AppLayout>
@@ -1826,11 +1839,58 @@ async function saveComment(id, data, index) {
       :closable="false"
       contentStyle="padding: 0rem;"
     >
+      <template #header>
+        <div class="w-full">
+          <div class="flex justify-content-between flex-wrap">
+            <div class="flex align-items-center justify-content-center">
+              <div class="font-medium text-1xl text-900">
+                อัพโหลดรูปภาพ เลขที่งาน :
+                <span class="font-bold">{{ taskDetail.code }}</span>
+                ชื่องาน :
+                <span class="font-bold">{{ taskDetail.name }}</span>
+              </div>
+            </div>
+            <div class="flex align-items-center justify-content-center">
+              <div class="flex flex-row flex-wrap">
+                <div class="flex align-items-center justify-content-center">
+                  <Tag
+                    icon="pi pi-image"
+                    severity="info"
+                    class="mr-2"
+                    :value="'จำนวน ' + countDataImage.images + ' รูป'"
+                    rounded
+                  >
+                  </Tag>
+                </div>
+                <div class="flex align-items-center justify-content-center">
+                  <Tag
+                    class="mr-2"
+                    icon="pi pi-check"
+                    severity="success"
+                    :value="'สำเร็จ ' + countDataImage.images_success + ' รูป'"
+                    rounded
+                  ></Tag>
+                </div>
+                <div class="flex align-items-center justify-content-center">
+                  <Tag
+                    icon="pi pi-times"
+                    severity="danger"
+                    :value="'ไม่สำเร็จ ' + countDataImage.images_false + ' รูป'"
+                    rounded
+                  >
+                  </Tag>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
       <ImageUpload
         :task_number="taskDetail"
         v-on:success="uploadSuccess()"
         :data_ondrop="data_import"
-        v-on:closeDialogUpload="closeDialogUpload()"
+        v-on:closeDialogUpload="closeDialogUpload"
+        v-on:countDataImage="sentCountDataImage"
       ></ImageUpload>
     </Dialog>
     <DialogForm
