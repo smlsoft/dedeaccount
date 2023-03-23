@@ -159,8 +159,19 @@ async function uploadFile() {
           pdfData.value = response.data.result;
           showDataPDF.value = true;
           console.log(pdfData.value);
-          loading.value = false;
-          showViewerPDF(dataPdfFile);
+          if (pdfData.value.length == 0) {
+            toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: "รูปแบบไฟล์ไม่ถูกต้อง กรุณาตรวจสอบ",
+              life: 3000,
+            });
+            loading.value = false;
+            return;
+          } else {
+            loading.value = false;
+            showViewerPDF(dataPdfFile);
+          }
         }, 500);
       })
       .catch((error) => {
@@ -703,7 +714,7 @@ function createDaily() {
           class="w-full"
         />
       </div>
-      <div class="col-12">
+      <div class="col-12" >
         <span class="p-float-label">
           <InputText
             type="password"

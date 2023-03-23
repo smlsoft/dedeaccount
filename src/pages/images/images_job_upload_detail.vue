@@ -1427,6 +1427,7 @@ async function deleteImage() {
       isSelectedDocument.value = false;
       confirmDeleteImage.value = false;
       getDocumentImageGroup();
+      getTaskById(jobId.value);
     }
   } catch (err) {
     console.log(err);
