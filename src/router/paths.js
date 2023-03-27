@@ -514,6 +514,36 @@ export default [
     component: () => import("../pages/statement/components/daily_config.vue"),
   },
 
+  {
+    path: "/setting/account_book/main",
+    name: "account_book",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/account_book/main.vue"),
+  },
+
+  {
+    path: "/setting/account_group/main",
+    name: "account_group",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/account_group/main.vue"),
+  },
+
+  {
+    path: "/setting/account_period/main",
+    name: "account_period",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/account_period/main.vue"),
+  },
+
+
+
+
 
 
 ];

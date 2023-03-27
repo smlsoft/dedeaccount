@@ -1,8 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
-const textContent = ref("");
-const textContent2 = ref("");
-const detail = ref();
+
 const props = defineProps({
   textContent: String,
   textContent2: String,
@@ -13,7 +11,9 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "confirm"]);
 
-onMounted(() => {});
+onMounted(() => {
+
+});
 function onClose() {
   emit("close");
 }
@@ -21,34 +21,12 @@ function onClose() {
 function onConfirm() {
   emit("confirm");
 }
+
+
 </script>
 
 <template>
-  <!-- <Dialog
-    :visible="props.confirmDialog"
-    @update:visible="onClose"
-    :style="{ width: '450px' }"
-    header="Confirm"
-    :modal="true"
-  >
-    <div class="confirmation-content">
-      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-      <span
-        >{{ props.textContent }}
 
-        {{ props.textContent2 }} ใช่หรือไม่ ?
-      </span>
-    </div>
-    <template #footer>
-      <Button
-        label="ไม่"
-        icon="pi pi-times"
-        class="p-button-outlined p-button-danger"
-        @click="onClose"
-      />
-      <Button label="ใช่" icon="pi pi-check" @click="onConfirm" />
-    </template>
-  </Dialog> -->
   <Dialog
     :visible="props.confirmDialog"
     @update:visible="onClose"
@@ -103,7 +81,7 @@ function onConfirm() {
           class="p-button-text"
         ></Button>
         <Button
-          class="p-button-success"
+          class="p-button-success btnEnter"
           icon="pi pi-save"
           @click="onConfirm"
           label="ใช่"

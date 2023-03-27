@@ -612,7 +612,7 @@ function createDaily() {
         </div>
         <div class="surface-section flex-auto">
           <Splitter :style="screenHeight">
-            <SplitterPanel :size="50">
+            <SplitterPanel :size="50" :minSize="40">
               <VuePdfApp
                 v-if="dataArrayBuffer != null"
                 style="height: 78vh"
