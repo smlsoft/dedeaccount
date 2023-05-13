@@ -1,4 +1,9 @@
 export const menus = [
+
+
+
+
+
   {
     title: "หน้าหลัก",
     name: "dashboard",
@@ -24,7 +29,13 @@ export const menus = [
     children: [],
   },
 
-
+  {
+    title: "บันทึกรายการ Statement",
+    name: "statement_upload",
+    icon: "pi pi-file-pdf",
+    to: "/statement/statement_upload",
+    children: [],
+  },
 
   // แบบ2
   // {
@@ -160,26 +171,40 @@ export const menus = [
     ],
   },
 
-  /*
-  {
-    title: "ข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/list",
-    name: "daily_list",
-    children: [],
-  },
-  {
-    title: "นำเข้าข้อมูลรายวัน",
-    icon: "pi pi-file",
-    to: "/daily/import",
-    name: "daily_import",
-    children: [],
-  },
-  */
+
+  // //แบบใหม่
+  // {
+  //   title: "กำหนดค่า",
+  //   icon: "pi pi-cog",
+  //   to: "",
+  //   name: "master",
+  //   children: [
+
+  //     {
+  //       title: "กำหนดสมุดรายวันขึ้นต้น",
+  //       icon: "pi pi-cog",
+  //       to: "/setting/account_book/main",
+  //       name: "account_book",
+  //     },
+  //     {
+  //       title: "กำหนดชุดบัญชีที่ใช้งาน",
+  //       icon: "pi pi-cog",
+  //       to: "/setting/account_group/main",
+  //       name: "account_group",
+  //     },
+  //     {
+  //       title: "กำหนดงวดบัญชี",
+  //       icon: "pi pi-cog",
+  //       to: "/setting/account_period/main",
+  //       name: "account_period",
+  //     },
+
+  //   ],
+  // },
 
 
 
-
+  // แบบเก่า
   {
     title: "กำหนดค่า",
     icon: "pi pi-cog",
@@ -198,17 +223,29 @@ export const menus = [
         to: "/chart/import",
         name: "import_chart",
       },
+      // {
+      //   title: "กำหนดสมุดรายวันขึ้นต้น",
+      //   icon: "pi pi-book",
+      //   to: "/book/list",
+      //   name: "book_list",
+      // },
+      // {
+      //   title: "กำหนดชุดบัญชีที่ใช้งาน",
+      //   icon: "pi pi-sitemap",
+      //   to: "/group/list",
+      //   name: "group_list",
+      // },
       {
         title: "กำหนดสมุดรายวันขึ้นต้น",
-        icon: "pi pi-book",
-        to: "/book/list",
-        name: "book_list",
+        icon: "pi pi-cog",
+        to: "/setting/account_book/main",
+        name: "account_book",
       },
       {
         title: "กำหนดชุดบัญชีที่ใช้งาน",
-        icon: "pi pi-sitemap",
-        to: "/group/list",
-        name: "group_list",
+        icon: "pi pi-cog",
+        to: "/setting/account_group/main",
+        name: "account_group",
       },
       {
         title: "กำหนดงวดบัญชี",
@@ -218,6 +255,9 @@ export const menus = [
       },
     ],
   },
+
+
+
   // {
   //   title: "แนะนำการใช้งาน",
   //   icon: "pi pi-exclamation-circle",

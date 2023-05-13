@@ -1,12 +1,6 @@
 <template>
   <div class="flex bg-primary-50 p-2">
     <div class="surface-section flex-1 p-2">
-      <div class="py-2">
-        <span class="font-medium text-xl">Job Name </span>
-        <span class="font-medium text-xl text-primary-700"
-          >#{{ props.task_number.name }}</span
-        >
-      </div>
       <div class="p-fluid">
         <Chips
           v-model="tags"
@@ -16,51 +10,6 @@
           :addOnBlur="true"
         />
       </div>
-      <div class="flex justify-content-between py-2">
-        <div class="flex align-items-center justify-content-center">
-          <div class="flex">
-            <FileUpload
-              ref="fileInput"
-              :disabled="loading == true"
-              name="Image[]"
-              mode="basic"
-              @select="selectedFile"
-              :multiple="true"
-              accept="image/*"
-              chooseLabel="เลือกรูป"
-              :maxFileSize="10000000"
-            >
-            </FileUpload>
-          </div>
-          <div class="flex ml-2">
-            <Button
-              :disabled="loading == true || data_import.length == 0"
-              class="p-button-success"
-              icon="pi pi-save"
-              label="อัพโหลด"
-              @click="uploadClick()"
-            />
-          </div>
-          <div class="flex ml-2">
-            <Button
-              :disabled="loading == true || data_import.length == 0"
-              class="p-button-warning"
-              icon="pi pi-trash"
-              label="ยกเลิกรูปภาพ"
-              @click="clear()"
-            />
-          </div>
-        </div>
-        <div class="flex align-items-center justify-content-center">
-          <Button
-            class="p-button-danger"
-            icon="pi pi-times"
-            label="ปิด"
-            @click="closeDialogUpload()"
-          />
-        </div>
-      </div>
-
       <div
         ref="content"
         class="p-fileupload-content mt-3 p-3 surface-card shadow-2 border-rounded"
@@ -68,40 +17,11 @@
         @dragover="onDragOver"
         @dragleave="onDragLeave"
         @drop="onDrop"
+        :style="'height:' + screenHeight + 'px; overflow-y: scroll'"
       >
         <!-- <ProgressBar class="" v-if="loading" :value="onUploadProgress" style="height: 0.9em; font-size: 14px">
         {{ onUploadProgress }}% ({{ loadImg }}/{{ data_import.length }})</ProgressBar> -->
-
-        <div class="flex flex-row flex-wrap" v-if="data_import.length > 0">
-          <div class="flex align-items-center justify-content-center">
-            <Tag
-              icon="pi pi-image"
-              severity="info"
-              class="mr-2"
-              :value="'จำนวน ' + data_import.length + ' รูป'"
-              rounded
-            >
-            </Tag>
-          </div>
-          <div class="flex align-items-center justify-content-center">
-            <Tag
-              class="mr-2"
-              icon="pi pi-check"
-              severity="success"
-              :value="'สำเร็จ ' + data_import_success.length + ' รูป'"
-              rounded
-            ></Tag>
-          </div>
-          <div class="flex align-items-center justify-content-center">
-            <Tag
-              icon="pi pi-times"
-              severity="danger"
-              :value="'ไม่สำเร็จ ' + data_import_false.length + ' รูป'"
-              rounded
-            >
-            </Tag>
-          </div>
-        </div>
+        <div class="hidden">{{ data_import_success.length }}</div>
         <div class="p-fileupload-files pt-3" v-if="data_import.length > 0">
           <div class="relative mb-1">
             <div class="flex flex-wrap justify-content-center gap-1">
@@ -123,6 +43,7 @@
                     <div class="flex justify-content-center pt-1">
                       <span class="text-900 font-medium titletext">
                         {{ file.name }}
+                        {{ file.isdelete }}
                       </span>
                     </div>
                     <div
@@ -170,19 +91,54 @@
             </div>
           </div>
         </div>
-        <div class="p-fileupload-empty" v-if="data_import.length == 0">
-          <p>ลากไฟล์ที่ต้องการอัพโหลดวางที่นี่.</p>
+        <div
+          class="flex align-items-center justify-content-center h-full"
+          v-if="data_import.length == 0"
+        >
+          <div class="p-fileupload-empty">
+            <p>ลากไฟล์ที่ต้องการอัพโหลดวางที่นี่.</p>
+          </div>
         </div>
       </div>
-      <div class="flex justify-content-end pt-5">
-        <Button
-          class="p-button-success"
-          icon="pi pi-save"
-          label="บันทึก"
-          :disabled="!queSuccess"
-          :loading="queDocRefSuccess"
-          @click="saveDocumentImage()"
-        />
+      <div class="flex justify-content-between mt-3">
+        <div class="flex align-items-center justify-content-center">
+          <div class="flex">
+            <FileUpload
+              ref="fileInput"
+              name="Image[]"
+              mode="basic"
+              @select="selectedFile"
+              :multiple="true"
+              accept="image/*"
+              chooseLabel="เลือกรูป"
+              :maxFileSize="10000000"
+            >
+            </FileUpload>
+          </div>
+        </div>
+        <div class="flex align-items-center justify-content-center">
+          <Button
+            class="p-button-danger mr-2"
+            icon="pi pi-times"
+            label="ยกเลิก"
+            @click="closeDialogUpload()"
+          />
+          <!-- <Button
+            :disabled="loading == true || data_import.length == 0"
+            class="p-button-success mr-2"
+            icon="pi pi-save"
+            label="อัพโหลด"
+            @click="uploadClick()"
+          /> -->
+          <Button
+            class="p-button-success"
+            icon="pi pi-save"
+            label="อัพโหลด"
+            :disabled="!queSuccess"
+            :loading="queDocRefSuccess"
+            @click="saveDocumentImage()"
+          />
+        </div>
       </div>
       <div class="pt-1">
         <ProgressBar mode="indeterminate" v-if="loadingSaveDocumentImage" />
@@ -267,8 +223,14 @@ const selectedFolder = ref({
 });
 const tags = ref();
 const separatorExp = ref(/,| /);
+const countDataImage = ref({
+  images: 0,
+  images_success: 0,
+  images_false: 0,
+});
 
-const emit = defineEmits(["success", "closeDialogUpload"]);
+const screenHeight = (window.screen.height * 55) / 100;
+const emit = defineEmits(["success", "closeDialogUpload", "countDataImage"]);
 
 const props = defineProps({
   data_ondrop: Array,
@@ -295,10 +257,16 @@ function isImage(file) {
 }
 
 function closeDialogUpload() {
+  countDataImage.value = {
+    images: 0,
+    images_success: 0,
+    images_false: 0,
+  };
+
   if (upLoadQue.value) {
     showCloseDialogUpload.value = true;
   } else {
-    emit("closeDialogUpload");
+    emit("closeDialogUpload", countDataImage.value);
   }
 }
 
@@ -310,7 +278,12 @@ function cancelUploadImage() {
   upLoadQue.value = 0;
   queSuccess.value = false;
 
-  emit("closeDialogUpload");
+  countDataImage.value = {
+    images: 0,
+    images_success: 0,
+    images_false: 0,
+  };
+  emit("closeDialogUpload", countDataImage.value);
 }
 
 function remove(cmd, index) {
@@ -347,9 +320,9 @@ function onDragEnter(event) {
 }
 
 function isFileLimitExceeded() {
-  console.log(
-    fileLimit.value < data_import.value.length + uploadedFileCount.value
-  );
+  // console.log(
+  //   fileLimit.value < data_import.value.length + uploadedFileCount.value
+  // );
   return fileLimit.value < data_import.value.length + uploadedFileCount.value;
 }
 function checkFileLimit() {
@@ -383,7 +356,9 @@ function checkDulicate(array) {
     }
   }
   a.forEach((ele) => {
-    ele.cmd = "wait";
+    if (ele.cmd != "success") {
+      ele.cmd = "wait";
+    }
   });
   data_import.value = a;
 }
@@ -392,10 +367,6 @@ function onDragOver(event) {
   DomHandler.addClass(content.value, "p-fileupload-highlight");
   event.stopPropagation();
   event.preventDefault();
-}
-
-function clear() {
-  data_import.value = [];
 }
 
 function onDragLeave() {
@@ -411,19 +382,21 @@ function onDrop(event) {
     : event.target.files;
   const allowDrop = true || (files && files.length === 1);
 
-  if (allowDrop) {
-    if (data_import_success.value.length > 0) {
-      toast.add({
-        severity: "warn",
-        summary: "แจ้งเตือน",
-        detail: "กรุณาบันทึกข้อมูลก่อน Upload รูปใหม่",
-        life: 3000,
-      });
-      return;
-    } else {
-      onFileSelect(event);
-    }
-  }
+  // if (allowDrop) {
+  //   if (data_import_success.value.length > 0) {
+  //     toast.add({
+  //       severity: "warn",
+  //       summary: "แจ้งเตือน",
+  //       detail: "กรุณาบันทึกข้อมูลก่อน Upload รูปใหม่",
+  //       life: 3000,
+  //     });
+  //     return;
+  //   } else {
+  //     onFileSelect(event);
+  //   }
+  // }
+
+  onFileSelect(event);
 }
 function onFileSelect(event) {
   console.log(event);
@@ -443,6 +416,13 @@ function onFileSelect(event) {
   }
 
   fileInput.value.files = "";
+  countDataImage.value = {
+    images: data_import.value.length,
+    images_success: 0,
+    images_false: 0,
+  };
+  emit("countDataImage", countDataImage.value);
+  uploadClick();
 }
 
 function onImageSelectUpload(datax) {
@@ -534,24 +514,44 @@ function selectedFile(event) {
   uploadedFileCount.value = event.files.length;
 
   if (checkFileLimit()) {
-    console.log(checkFileLimit());
+    // console.log(checkFileLimit());
     for (let file of event.files) {
       data_import.value.push(file);
     }
 
     checkDulicate(data_import.value);
   }
-  console.log(data_import.value);
 
   fileInput.value.files = "";
+
+  countDataImage.value = {
+    images: data_import.value.length,
+    images_success: 0,
+    images_false: 0,
+  };
+  emit("countDataImage", countDataImage.value);
+
+  uploadClick();
 }
 
 function uploadClick() {
-  data_import.value.forEach((element) => {
-    element.cmd = "progress";
+  data_import.value.forEach((element, index) => {
+    if (element.cmd == "wait") {
+      element.cmd = "progress";
+    }
   });
+
   queProcess.value = true;
   queSuccess.value = false;
+
+  const result = data_import.value.filter((data) => data.cmd == "success");
+
+  if (result.length > 1) {
+    upLoadQue.value = result.length;
+  } else {
+    upLoadQue.value = 0;
+  }
+
   myUploader();
 }
 
@@ -609,6 +609,8 @@ function myUploader() {
               console.log(res);
               if (res.success) {
                 file.cmd = "success";
+                console.log(file);
+                console.log(data_import.value);
 
                 upLoadQue.value++;
 
@@ -638,9 +640,22 @@ function myUploader() {
                   setTimeout(() => {
                     myUploader();
                   }, 1000);
+                  countDataImage.value = {
+                    images: data_import.value.length,
+                    images_success: data_import_success.value.length,
+                    images_false: data_import_false.value.length,
+                  };
+                  emit("countDataImage", countDataImage.value);
                 } else {
                   queSuccess.value = true;
                   queProcess.value = false;
+
+                  countDataImage.value = {
+                    images: data_import.value.length,
+                    images_success: data_import_success.value.length,
+                    images_false: data_import_false.value.length,
+                  };
+                  emit("countDataImage", countDataImage.value);
                 }
               }
             })

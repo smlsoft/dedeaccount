@@ -1,11 +1,21 @@
 import { instanceApi } from '@/services/ProviderService'
 
 export default {
-    getAccountPeriod() {
-        return instanceApi(true).get(`/gl/accountperiodmaster?limit=99999`).then(res => res.data);
+
+
+    getAccountPeriod(limitPage, page, search, sortField, sortOrder) {
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        console.log(`/gl/accountperiodmaster?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/accountperiodmaster?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
+
+
     getAccountPeriodByDate(date) {
-        return instanceApi(true).get(`/gl/accountperiodmaster/bydate?date=${date}`).then(res => res.data);
+        return instanceApi(true).get(`/gl/accountperiodmaster/by-date?date-list=${date}`).then(res => res.data);
     },
 
     postAccountPeriod(data) {

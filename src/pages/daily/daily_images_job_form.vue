@@ -14,7 +14,6 @@ import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "@/services/ImageDataService";
 import dayjs from "dayjs";
-import AccountPeriodDataService from "@/services/AccountPeriodService";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -58,7 +57,7 @@ const activeIndexList = ref(0);
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: "1",
+  accountperiod: null,
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -467,28 +466,6 @@ function checkActiveIndex() {
       }
     });
   }, 30);
-}
-
-async function getAccountPeriodByDate(keyDate) {
-  let newDate = dayjs(keyDate).format("YYYY-MM-DD");
-  try {
-    const res = await AccountPeriodDataService.getAccountPeriodByDate(newDate);
-    if (res.success) {
-      console.log(res);
-      const newData = res.data.period;
-      console.log(newData);
-      return newData;
-    }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: err.response.data.message,
-      life: 3000,
-    });
-    return 0;
-  }
 }
 
 function getAllSelectImage() {
@@ -1560,7 +1537,7 @@ function clearData() {
   daily_form.value.docno = Utils.getDocNoDate("JO");
   daily_form.value.accountdescription = "";
   // daily_form.value.accountgroup = "";
-  // daily_form.value.accountperiod = "1";
+  // daily_form.value.accountperiod = null;
   // daily_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
   // daily_form.value.amount = "";
   // daily_form.value.batchId = "";
@@ -1606,6 +1583,7 @@ function clearData() {
     ],
     parid: daily_form.value.parid,
   };
+
   daily_form_valid.value = {
     accountdescription: false,
     accountgroup: false,
@@ -1905,6 +1883,11 @@ async function updateStatus() {
     });
   }
 }
+
+function setAccountPeriod(data) {
+  console.log(data);
+  daily_form.value.accountperiod = data;
+}
 </script>
 
 <template>
@@ -2098,6 +2081,7 @@ async function updateStatus() {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
+                        v-on:setAccountPeriod="setAccountPeriod"
                       >
                       </JournalForm>
                     </div>

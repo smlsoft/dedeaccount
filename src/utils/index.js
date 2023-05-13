@@ -86,7 +86,7 @@ const getFormatDateTime = (format) => {
     var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
     var localISOTime = (new Date(d - tzoffset)).toISOString();
 
-    console.log(localISOTime)
+    // console.log(localISOTime)
 
   }
 
@@ -116,6 +116,19 @@ const getDocNoDate = (format) => {
 
   return format + "-" + [year, month, day].join("") + uuidv4();
 };
+
+const getBatchID = () => {
+  var d = new Date(),
+    month = "" + (d.getMonth() + 1),
+    day = "" + d.getDate(),
+    year = d.getFullYear();
+
+  if (month.length < 2) month = "0" + month;
+  if (day.length < 2) day = "0" + day;
+
+  return [year, month, day].join("") + uuidv4();
+};
+
 const getYear = () => {
   var d = new Date(),
     month = "" + (d.getMonth() + 1),
@@ -338,5 +351,7 @@ export default {
   formatNumberReport,
   getYearDC,
   formatNumberforamount,
-  generateRandomNumber
+  generateRandomNumber,
+  getBatchID
+
 };

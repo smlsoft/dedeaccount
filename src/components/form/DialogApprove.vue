@@ -11,6 +11,7 @@ const props = defineProps({
   ramdomNumber: Number,
   title: String,
   mode: String,
+  loading: Boolean,
 });
 
 const emit = defineEmits(["close", "confirmJob", "confirmJobFalse"]);
@@ -59,13 +60,16 @@ function onConfirm() {
               ? ' bg-cyan-100 text-cyan-800'
               : props.mode == 'cancel'
               ? ' bg-yellow-100 text-yellow-800'
-              : ' bg-red-100 text-red-800'
+              : props.mode == 'gl'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
           "
           style="width: 64px; height: 64px"
         >
           <i class="pi pi-lock text-5xl" v-if="props.mode == 'approve'"></i>
           <i class="pi pi-trash text-5xl" v-if="props.mode == 'delete'"></i>
           <i class="pi pi-times text-5xl" v-if="props.mode == 'cancel'"></i>
+          <i class="pi pi-file text-5xl" v-if="props.mode == 'gl'"></i>
         </span>
       </div>
       <div class="flex">
@@ -99,16 +103,17 @@ function onConfirm() {
           class="p-button-outlined w-6 mr-2"
         ></Button>
         <Button
+          :loading="props.loading"
           @click="onConfirm"
           :label="
-            props.mode == 'approve'
+            props.mode == 'approve' || props.mode == 'gl'
               ? 'ยืนยัน'
               : props.mode == 'cancel'
               ? 'ยกเลิกงาน'
               : 'ลบงาน'
           "
           :class="
-            props.mode == 'approve'
+            props.mode == 'approve' || 'gl'
               ? ''
               : props.mode == 'cancel'
               ? 'p-button-warning'

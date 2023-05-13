@@ -4,6 +4,7 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted } from "vue";
@@ -13,6 +14,7 @@ import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import dayjs from "dayjs";
 import $ from "jquery";
 
 const conreject = "ต้องการยกเลิกรูปภาพ";
@@ -91,7 +93,6 @@ const sortField = ref([
 const showImageBy = ref("0");
 const sortOrder = ref(0);
 const firstPage = ref(0);
-const isGallery = ref(false);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
@@ -164,6 +165,7 @@ const readMode = ref(false);
 const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const showOveray = ref(false);
+const warringAccountperiod = ref(false);
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -870,6 +872,31 @@ function verifyVat() {
   } else {
     return true;
   }
+}
+
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (res.data[0].perioddata.guidfixed != "") {
+          daily_form.value.accountperiod =
+            res.data[0].perioddata.guidfixed.period;
+        } else {
+          daily_form.value.accountperiod = null;
+          warringAccountperiod.value = true;
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      // toast.add({
+      //   severity: "warn",
+      //   summary: "แจ้งเตือน",
+      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      //   life: 3000,
+      // });
+    });
 }
 
 function getDocumentImageGroup() {
@@ -1594,6 +1621,9 @@ function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
   console.log(isOveray);
 }
+function setAccountPeriod(data) {
+  daily_form.value.accountperiod = data;
+}
 </script>
 
 <template>
@@ -1874,6 +1904,7 @@ function resizeSplitter(isOveray) {
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
                 >
+<<<<<<< HEAD
                   <!-- <Galleria
                     :value="doc_images"
                     v-model:activeIndex="activeIndexList"
@@ -1910,6 +1941,8 @@ function resizeSplitter(isOveray) {
                     </template>
                   </Galleria> -->
 
+=======
+>>>>>>> develop
                   <Galleria
                     :value="doc_images"
                     :showThumbnails="false"
@@ -2014,6 +2047,7 @@ function resizeSplitter(isOveray) {
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
+                        v-on:setAccountPeriod="setAccountPeriod"
                       >
                       </JournalForm>
                     </div>

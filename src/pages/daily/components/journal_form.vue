@@ -10,6 +10,7 @@ import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
 import { useToast } from "primevue/usetoast";
 import dayjs from "dayjs";
+import DialogWarringPeriod from "@/components/form/DialogWarringPeriod.vue";
 
 const tempCheckDate = ref(null);
 const toast = useToast();
@@ -63,6 +64,7 @@ const emit = defineEmits([
   "addColumn",
   "onRowReorder",
   "selectAccount",
+  "setAccountPeriod",
 ]);
 
 onMounted(async () => {
@@ -202,22 +204,14 @@ function focusNext(field, index) {
   }, 100);
 }
 
-function checkAccountPeriod(event, mode) {
+function checkAccountPeriod(event) {
   console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
   }
   tempCheckDate.value = setTimeout(() => {
-    if (mode == 0) {
-      keyDate = Utils.getDateFromYear(event);
-    } else if (mode == 1) {
-      const dateString = event.value;
-      const dateParts = dateString.split("/");
-      const isoDate = `${dateParts[2] - 543}-${dateParts[1]}-${dateParts[0]}`;
-      keyDate = isoDate; // 2022-12-20
-    }
-    console.log(dayjs(keyDate).format("YYYY-MM-DD"));
+    keyDate = Utils.getDateFromYear(event);
     getAccountPeriodByDate(dayjs(keyDate).format("YYYY-MM-DD"));
   }, 100);
 }
@@ -227,12 +221,17 @@ function getAccountPeriodByDate(keyDate) {
     .then((res) => {
       console.log(res);
       if (res.success) {
-        props.daily_form.accountperiod = res.data.period;
+        if (res.data[0].perioddata.guidfixed != "") {
+          emit("setAccountPeriod", res.data[0].perioddata.period);
+        } else {
+          emit("setAccountPeriod", null);
+          warringAccountperiod.value = true;
+        }
       }
     })
     .catch((err) => {
       console.log(err.response.data.message);
-      props.daily_form.accountperiod = null;
+      emit("setAccountPeriod", null);
       warringAccountperiod.value = true;
       // toast.add({
       //   severity: "warn",
@@ -249,7 +248,6 @@ function headerNextFocus(filedName) {
     if (filedName == "docdate") {
       $(".docdate").focus();
     } else if (filedName == "batchid") {
-      checkAccountPeriod(props.daily_form.docdate, 1);
       $(".batchid").focus();
     } else if (filedName == "accountperiod") {
       $(".accountperiod").focus();
@@ -270,6 +268,7 @@ function headerNextFocus(filedName) {
     } else if (filedName == "accountRow1") {
       $(".accountcode_" + 0 + " > input").focus();
     } else if (filedName == "docno") {
+      checkAccountPeriod(props.daily_form.docdate, 1);
       $(".docno").focus();
     }
   }, 100);
@@ -291,8 +290,7 @@ function headerNextFocus(filedName) {
             :buddhist="buddhistYear"
             :hideOnDateTimeSelect="true"
             :hiddenTime="true"
-            @date-select="checkAccountPeriod($event, 0)"
-            @blur="checkAccountPeriod($event, 1)"
+            @date-select="checkAccountPeriod($event)"
             @keyup.enter="headerNextFocus('docno')"
             @keydown.tab="headerNextFocus('docno')"
             inputClass="docdate"
@@ -452,7 +450,7 @@ function headerNextFocus(filedName) {
           class="batchid"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-3 hidden">
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
@@ -653,7 +651,12 @@ function headerNextFocus(filedName) {
     </template>
   </Dialog>
 
-  <Dialog
+  <DialogWarringPeriod
+    :confirmDialog="warringAccountperiod"
+    v-on:confirm="warringAccountperiod = false"
+  />
+
+  <!-- <Dialog
     :visible="warringAccountperiod"
     appendTo="body"
     :modal="true"
@@ -693,7 +696,7 @@ function headerNextFocus(filedName) {
         ></Button>
       </div>
     </template>
-  </Dialog>
+  </Dialog> -->
 </template>
 <style>
 .p-dialog.p-component.p-ripple-disabled {

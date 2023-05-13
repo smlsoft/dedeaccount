@@ -368,7 +368,7 @@ export default {
             this.$emit('blur', event);
         },
         onKeyDown(event) {
-            console.log(event);
+            // console.log(event);
             switch (event.code) {
                 case 'ArrowDown':
                     this.onArrowDownKey(event);
