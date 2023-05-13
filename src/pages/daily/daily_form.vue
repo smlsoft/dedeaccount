@@ -1904,45 +1904,6 @@ function setAccountPeriod(data) {
                   id="galleriabox"
                   v-if="doc_images.length > 0 && selectedImg"
                 >
-<<<<<<< HEAD
-                  <!-- <Galleria
-                    :value="doc_images"
-                    v-model:activeIndex="activeIndexList"
-                    @update:activeIndex="getDocumentImage()"
-                    :circular="true"
-                    :showThumbnails="false"
-                    :showIndicators="doc_images.length > 1"
-                  >
-                    <template #item="slotProps">
-                      <div
-                        class="relative"
-                        style="margin: 0px; padding: 0px; width: 100%"
-                      >
-                        <iframe
-                          :name="slotProps.item.imageuri"
-                          :src="
-                            '/images/components/zoom?uri=' +
-                            slotProps.item.imageuri
-                          "
-                          class="static"
-                        >
-                        </iframe>
-                        <div
-                          v-if="showOveray"
-                          class="absolute top-0 left-0"
-                          style="
-                            width: 100%;
-                            height: 100%;
-                            background-color: white;
-                            opacity: 0;
-                          "
-                        ></div>
-                      </div>
-                    </template>
-                  </Galleria> -->
-
-=======
->>>>>>> develop
                   <Galleria
                     :value="doc_images"
                     :showThumbnails="false"
