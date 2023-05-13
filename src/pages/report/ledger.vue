@@ -961,10 +961,10 @@ onMounted(async () => {
   switchOn();
 
   //   newResultdocno();
-  console.log(data_list.value);
+  // console.log(data_list.value);
   // getAccountChartList();
   //   getAccountledger();
-  getGLJournalList();
+  // getGLJournalList();
   checkzero();
   storeApp.setPageTitle("บัญชีแยกประเภท");
   storeApp.setActivePage("report_list");
@@ -1057,7 +1057,7 @@ async function getAccountChart() {
           (ele.accountcode == null && ele.accountname == null) ||
           (ele.accountcode == "" && ele.accountname == "")
         ) {
-          console.log("this is null");
+          // console.log("this is null");
           worm.value = "เลือกทั้งหมด";
           return (ele.label =
             ele.accountcode + "เลือกทั้งหมด" + ele.accountname);
@@ -1474,7 +1474,7 @@ function exreport2() {
             data.details.length == 0
           ) {
           } else if (data.balance != 0 && data.nextbalance != 0) {
-            console.log(data.accountcode + "เงื่อนไข 1919191");
+            // console.log(data.accountcode + "เงื่อนไข 1919191");
             data.details.unshift({
               docdate: "",
               docno: "ยกมา",
