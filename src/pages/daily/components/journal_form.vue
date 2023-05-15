@@ -217,6 +217,7 @@ function checkAccountPeriod(event) {
 }
 
 function getAccountPeriodByDate(keyDate) {
+  console.log(keyDate);
   AccountPeriodDataService.getAccountPeriodByDate(keyDate)
     .then((res) => {
       console.log(res);
@@ -450,17 +451,17 @@ function headerNextFocus(filedName) {
           class="batchid"
         />
       </div>
-      <!-- <div class="field mb-4 col-12 md:col-3">
+      <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
           :min="0"
           v-model="props.daily_form.accountperiod"
-          :disabled="props.isUpdate"
+          :disabled="true"
           @keyup.enter="headerNextFocus('accountyear')"
           class="accountperiod"
         />
-      </div> -->
+      </div>
       <div class="field mb-4 col-12 md:col-3 hidden">
         <label class="font-medium text-900">ปีบัญชี</label>
         <InputText
