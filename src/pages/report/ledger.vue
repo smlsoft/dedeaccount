@@ -589,10 +589,18 @@
       </Dialog>
       <Dialog
         v-model:visible="openDetailDocNo"
-        :header="'เอกสาร : ' + daily_form.docno"
         :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
         :style="{ width: '50vw' }"
       >
+        <template #header>
+          <h3>
+            {{ daily_form.docno }}
+            <i
+              class="pi pi-pencil text-yellow-500 hover:text-blue-500 cursor-pointer"
+              @click="goDetail(daily_form.guidfixed)"
+            ></i>
+          </h3>
+        </template>
         <div class="confirmation-content" id="boxconfirm" style="height: 70vh">
           <TabView class="tabview-custom" ref="tabview">
             <TabPanel>
@@ -986,34 +994,6 @@ function rowClick(event) {
   console.log(event.data.docno);
   getGLDetail(event.data.docno);
 }
-
-function searchCountry(event) {
-  setTimeout(() => {
-    if (!event.query.trim().length) {
-      filteredCountries.value = groups.value;
-    } else {
-      filteredCountries.value = groups.value.filter((groups) => {
-        if (
-          groups.accountcode.toLowerCase().includes(event.query.toLowerCase())
-        ) {
-          // console.log(groups.accountcode);
-          return groups.accountcode
-            .toLowerCase()
-            .includes(event.query.toLowerCase());
-        }
-      });
-    }
-  }, 250);
-}
-
-function onRowGroupCollapse(event) {
-  toast.add({
-    severity: "success",
-    summary: "Row Group Collapsed",
-    detail: "Value: " + event.data,
-    life: 3000,
-  });
-}
 function nameCheck(data) {
   if (data == "") {
     return (data = " รหัสผังบัญชีทั้งหมด");
@@ -1023,9 +1003,6 @@ function nameCheck(data) {
     return (data =
       "ตั้งแต่ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value);
   }
-}
-function goTo(path) {
-  router.push({ name: path });
 }
 function nameCheck2(data) {
   if (data == "") {
@@ -1071,7 +1048,6 @@ async function getAccountChart() {
     console.log(err);
   }
 }
-
 function dateCheck(data) {
   if (data == "NaN/NaN/NaN") {
     return "";
@@ -1081,7 +1057,6 @@ function dateCheck(data) {
     return Utils.getDateFormatDMY(data);
   }
 }
-
 function checkadExceldll() {
   result.value == false;
   console.log(result.value);
@@ -1104,7 +1079,7 @@ function getDocumentImageByDocNo(docno) {
       }
     })
     .catch((err) => {
-      console.log(err);
+      console.log(err + " : ไม่เจอรูป");
       showTabImage.value = false;
     });
 }
@@ -1130,7 +1105,7 @@ function getGLDetail(docno) {
         const vat = res.data.vats;
         const tax = res.data.taxes;
 
-        daily_form.value.docno = res.data.guidfixed;
+        daily_form.value.guidfixed = res.data.guidfixed;
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
         daily_form.value.accountperiod = res.data.accountperiod;
@@ -1310,14 +1285,6 @@ function selectAccount(event) {
 
   console.log(dataaccountcode.value);
 }
-
-function cleartext(event) {
-  console.log(event);
-  event.value = "";
-  console.log(event);
-  dataaccountcode.value = "";
-}
-
 function selectAccount2(event) {
   if ((state.value = false)) {
     accountcode2.value = event.value;
@@ -1338,7 +1305,6 @@ function selectAccount2(event) {
   // accountcode2.value = event.value;
   // dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
 }
-
 function exportreport() {
   exreport2();
   isvisible.value = true;
@@ -1652,171 +1618,6 @@ function exreportpdf() {
   //   getGLJournalList();
   // expandAll();
 }
-async function exportPDF() {
-  isvisible.value = true;
-  var body = [];
-  var enddate = "";
-  var startdate = "";
-  body = await buildFromJson();
-
-  startdate = Utils.getYearBuddhist(startDate.value);
-  enddate = Utils.getYearBuddhist(endDate.value);
-
-  var docDefinition = pageSetup(body, startdate, enddate);
-
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  pdfDocGenerator.getDataUrl((dataUrl) => {
-    const targetElement = document.querySelector("#iframeContainer");
-    targetElement.src = dataUrl;
-  });
-}
-async function exportPDFAll() {
-  isvisible.value = true;
-  var body = [];
-  var enddate = "";
-  var startdate = "";
-  body = await buildFromJson2();
-
-  startdate = Utils.getYearBuddhist(startDate.value);
-  enddate = Utils.getYearBuddhist(endDate.value);
-
-  var docDefinition = pageSetup(body, startdate, enddate);
-
-  const pdfDocGenerator = pdfMake.createPdf(docDefinition);
-  pdfDocGenerator.getDataUrl((dataUrl) => {
-    const targetElement = document.querySelector("#iframeContainer");
-    targetElement.src = dataUrl;
-  });
-}
-function buildFromJson2() {
-  var body = [];
-
-  body.push([
-    { text: "รหัสบัญชี", style: "header" },
-    { text: "ชื่อบัญชี", style: "header" },
-    { colSpan: 5, text: "" },
-    { text: "" },
-    { text: "" },
-    { text: "" },
-    { text: "" },
-  ]);
-  body.push([
-    { text: "วันที่", style: "header" },
-    { text: "เลขที่เอกสาร", style: "header" },
-    { colSpan: 2, text: "รายละเอียด", style: "header" },
-    { text: "" },
-    { text: "เดบิต ", style: "header" },
-    { text: "เครดิต", style: "header" },
-    { text: "ยอดรวม", style: "header" },
-  ]);
-  console.log(data_list.value);
-  data_list.value.forEach((data) => {
-    body.push([
-      { text: data.accountcode, fillColor: "#d8eaf2" },
-
-      { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-      { text: "", fillColor: "#d8eaf2" },
-    ]);
-
-    body.push([
-      { text: "" },
-
-      { text: "ยกมา" },
-      { colSpan: 2, text: "" },
-      { text: "" },
-      { text: "" },
-      { text: "" },
-      { text: Utils.formatNumber(data.balance), alignment: "center" },
-    ]);
-    data.details.forEach((details) => {
-      // console.log(details);
-      body.push([
-        { text: Utils.getDateFormatDMY(details.docdate) },
-        { text: details.docno },
-        { colSpan: 2, text: details.accountdescription },
-        { text: "" },
-        { text: checkzero(Utils.formatNumber(details.debit)) },
-        { text: checkzero(Utils.formatNumber(details.credit)) },
-        { text: Utils.formatNumber(details.amount), alignment: "center" },
-      ]);
-    });
-
-    body.push([
-      { text: "" },
-      { text: "ยกไป" },
-
-      { colSpan: 2, text: "", style: ["header", "textdecoration"] },
-      {
-        text: "",
-      },
-
-      { text: "" },
-      { text: "" },
-      {
-        text: Utils.formatNumber(data.nextbalance),
-        alignment: "center",
-      },
-    ]);
-  });
-
-  return body;
-}
-
-function getGLJournalList() {
-  let startdate = Utils.getDateFromYear(startDate.value);
-  let enddate = Utils.getDateFromYear(endDate.value);
-
-  loading.value = true;
-  MasterdataService.getdailyreport(
-    accountGroup.value,
-    startdate,
-    enddate,
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    sortField.value,
-    sortOrder.value
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        totalItemsCount.value = res.pagination.total;
-        // console.log(totalItemsCount.value);
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-function getAccountChartList() {
-  loading.value = true;
-  MasterdataService.getAccountChartList(
-    limitPage.value,
-    activePage.value,
-    filters.value,
-    sortField.value,
-    sortOrder.value
-  )
-    .then((res) => {
-      //console.log(res);
-      if (res.success) {
-        data_list2.value = res.data;
-        totalItemsCount.value = res.pagination.total;
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
 //output------
 async function exportdowloadPDF() {
   var body = [];
@@ -2032,7 +1833,6 @@ function buildFromJson() {
 
   return body;
 }
-function checkData(data) {}
 function DownloadExampleExcel() {
   result.value == false;
   console.log("DownloadExampleExcel");
@@ -2449,42 +2249,6 @@ function getDate() {
   startDate.value = new Date(date.getFullYear(), date.getMonth(), 1);
   endDate.value = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
-
-function getAccountGroupList() {
-  MasterdataService.getAccountGroup()
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data.sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-}
-function getGLledger() {
-  MasterdataService.getGLledger()
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-//resulstCheck start
-function newResultmain(data) {
-  console.log(data);
-  var result = [];
-  result = accountmaintypeList.value.filter((val) => (val.code = data));
-  return (result = 0 ? "" : data);
-}
-
 function checkzero(data) {
   // console.log(data);
   if (data == 0) {
@@ -2505,36 +2269,6 @@ function checkbalance(data) {
     return data;
   }
 }
-// function checkbalancenext(data) {
-//   balancenext.value = data;
-//   if (balancenext.value == 0 && balancenext.value == balance.value) {
-//     result.value = true;
-//     console.log(result.value);
-//     console.log(balancenext.value);
-//     return;
-//   } else {
-//     return Utils.formatNumber(data);
-//   }
-// }
-// function checkword(data) {
-//   balancenext.value = data;
-//   if (balancenext.value == 0 && balancenext.value == balance.value) {
-//     console.log(true);
-//     return;
-//   } else {
-//     console.log(false);
-//     return data;
-//   }
-// }
-// function checkbalancenextWord(data) {
-//   balancenext.value = data;
-//   if (balancenext.value == 0 && balancenext.value == balance.value) {
-//     console.log(balancenext.value);
-//     return;
-//   } else {
-//     return "ยกไป";
-//   }
-// }
 function checkbalanceWord(data) {
   if (data == 0 && result.value == false) {
     return;
@@ -2542,186 +2276,13 @@ function checkbalanceWord(data) {
     return "ยกมา";
   }
 }
-function docnoCheck(data) {
-  let accDes = "";
-  MasterdataService.getGLledger(data)
-    .then((res) => {
-      if (res.success) {
-        // console.log(data);
-        // console.log(res.data.accountdescription);
-        accDes = res.data.docno;
-      }
-
-      loading.value = false;
-      console.log(accDes);
-      return accDes;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-//resulstCheckEnd
-function getAccountledger() {
-  let startdate = Utils.getDateFromYear(startDate.value);
-  let enddate = Utils.getDateFromYear(endDate.value);
-
-  loading.value = true;
-  MasterdataService.getAccountledger(
-    startdate,
-    enddate,
-    (accountcode.value = 11),
-    limitPage.value
-  )
-    .then((res) => {
-      if (res.success) {
-        console.log(res);
-        data_list.value = res.data;
-
-        // console.log(totalItemsCount.value);
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-
-function exreport() {
-  //   getAccountledger();
-  //   getAccountChartList();
-  //   newResultCategory();
-  //   getGLJournalList();
-  // expandAll();
-  //   isvisible.value = false;
-}
 
 function goDetail(data) {
-  router.push({ name: "dailyUpdate", params: { id: data.guidfixed } });
-}
-
-function confirmDeleteDetail(data) {
-  detail.value = data;
-  dailynum.value = data.docno;
-
-  confirmDeleteDialog.value = true;
-}
-
-function keyup() {
-  clearTimeout(typingTimer.value);
-  typingTimer.value = setTimeout(doneTyping, doneTypingInterval.value);
-}
-function keydown() {
-  clearTimeout(typingTimer.value);
-}
-function doneTyping() {
-  activePage.value = 1;
-  firstPage.value = 0;
-  //MasterdataService.getGLJournalList(activePage.value, filters.value)
-  MasterdataService.getAccountGroup(
-    accountGroup.value,
-    startDate.value,
-    endDate.value,
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    sortField.value,
-    sortOrder.value
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        totalItemsCount.value = res.pagination.total;
-        console.log(totalItemsCount.value);
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-
-function onPage(event) {
-  activePage.value = event.page + 1;
-  limitPage.value = event.rows;
-  loading.value = true;
-
-  MasterdataService.getdailyreport(
-    accountGroup.value,
-    startDate.value,
-    endDate.value,
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    sortField.value,
-    sortOrder.value
-  )
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      console.log(err);
-      loading.value = false;
-    });
-}
-
-function sortBy(data) {
-  //console.log(data);
-  sortField.value = data.sortField;
-  sortOrder.value = data.sortOrder;
-
-  loading.value = true;
-  MasterdataService.getdailyreport(
-    accountGroup.value,
-    startDate.value,
-    endDate.value,
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    sortField.value,
-    sortOrder.value
-  )
-    .then((res) => {
-      //console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        totalItemsCount.value = res.pagination.total;
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-
-function getSumDebitAmount(data) {
   console.log(data);
-  var sum = 0;
-  if (data != null && data.length >= 0) {
-    data.forEach((element) => {
-      sum += element.debitamount;
-    });
-  }
-  return sum;
-}
-
-function getSumCreditAmount(data) {
-  console.log(data);
-  var sum = 0;
-  if (data != null && data.length >= 0) {
-    data.forEach((element) => {
-      sum += element.creditamount;
-    });
-  }
-  return sum;
+  router.push({
+    name: "dailyUpdate",
+    params: { id: data, mode: "edit" },
+  });
 }
 </script>
 <style lang="scss" scoped>

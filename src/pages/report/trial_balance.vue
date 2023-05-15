@@ -82,7 +82,13 @@
         :style="{ width: '50vw' }"
       >
         <template #header>
-          <h3>{{ $t("docno") }} : {{ daily_form.docno }}</h3>
+          <h3>
+            {{ $t("docno") }} : {{ daily_form.docno }}
+            <i
+              class="pi pi-pencil text-yellow-500 hover:text-blue-500 cursor-pointer"
+              @click="goDetail(daily_form.guidfixed)"
+            ></i>
+          </h3>
         </template>
         <div class="confirmation-content" id="boxconfirm" style="height: 70vh">
           <TabView class="tabview-custom" ref="tabview">
@@ -293,6 +299,7 @@ import { useToast } from "primevue/usetoast";
 import TrialBalance from "./components/tableTrialBalance.vue";
 import Ledger from "./components/tableLedger.vue";
 import dayjs from "dayjs";
+import router from "../../router";
 import XLSX from "xlsx";
 import JournalForm from "../daily/components/journal_form.vue";
 import VatForm from "../daily/components/vat_form.vue";
@@ -867,7 +874,7 @@ async function getGLDetail(docno) {
         const vat = res.data.vats;
         const tax = res.data.taxes;
 
-        daily_form.value.docno = res.data.guidfixed;
+        daily_form.value.guidfixed = res.data.guidfixed;
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
         daily_form.value.accountperiod = res.data.accountperiod;
@@ -1025,6 +1032,14 @@ function puttaxValid() {
     taxdocno: false,
     custname: false,
     custtaxid: false,
+  });
+}
+
+function goDetail(data) {
+  console.log(data);
+  router.push({
+    name: "dailyUpdate",
+    params: { id: data, mode: "edit" },
   });
 }
 </script>
