@@ -68,7 +68,7 @@ const emit = defineEmits([
 ]);
 
 onMounted(async () => {
-  checkAccountPeriod(props.daily_form.docdate, 0);
+  // checkAccountPeriod(props.daily_form.docdate);
 });
 
 function selectAccount(data, field, index) {
@@ -268,7 +268,7 @@ function headerNextFocus(filedName) {
     } else if (filedName == "accountRow1") {
       $(".accountcode_" + 0 + " > input").focus();
     } else if (filedName == "docno") {
-      checkAccountPeriod(props.daily_form.docdate, 1);
+      checkAccountPeriod(props.daily_form.docdate);
       $(".docno").focus();
     }
   }, 100);
@@ -450,7 +450,7 @@ function headerNextFocus(filedName) {
           class="batchid"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-3">
+      <!-- <div class="field mb-4 col-12 md:col-3">
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
@@ -460,7 +460,7 @@ function headerNextFocus(filedName) {
           @keyup.enter="headerNextFocus('accountyear')"
           class="accountperiod"
         />
-      </div>
+      </div> -->
       <div class="field mb-4 col-12 md:col-3 hidden">
         <label class="font-medium text-900">ปีบัญชี</label>
         <InputText
