@@ -68,7 +68,7 @@ const emit = defineEmits([
 ]);
 
 onMounted(async () => {
-  // checkAccountPeriod(props.daily_form.docdate);
+  checkAccountPeriod(props.daily_form.docdate);
 });
 
 function selectAccount(data, field, index) {
@@ -555,9 +555,9 @@ function headerNextFocus(filedName) {
           headerStyle="text-align:center;width: 10%"
           style="min-width: 100px"
         >
-          <!-- <template #body="{ data, field }">
+          <template #body="{ data, field }" v-if="props.isUpdate">
             {{ Utils.formatCurrency(data[field]) }}
-          </template> -->
+          </template>
 
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
             <TextInputNumber
@@ -579,9 +579,9 @@ function headerNextFocus(filedName) {
           headerStyle="text-align:center;width: 10%"
           style="min-width: 100px"
         >
-          <!-- <template #body="{ data, field }">
+          <template #body="{ data, field }" v-if="props.isUpdate">
             {{ Utils.formatCurrency(data[field]) }}
-          </template> -->
+          </template>
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
             <TextInputNumber
               :class="'credit_' + index"
