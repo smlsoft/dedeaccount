@@ -91,11 +91,7 @@
               icon="pi pi-book"
               iconPos="left"
               @click="exportPDF()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
+              :disabled="startDate === null || endDate === null"
             />
             <!-- <Button
               label="จัดทำรายงาน"
@@ -172,11 +168,11 @@ async function getAccountGroup() {
           acc.label = `${acc.code} ~ ${acc.name1}`;
           return acc;
         });
-      setTimeout(() => {
-        if (accountGroup.value == "") {
-          accountGroup.value = groups.value[0].code;
-        }
-      }, 100);
+      // setTimeout(() => {
+      //   if (accountGroup.value == "") {
+      //     accountGroup.value = groups.value[0].code;
+      //   }
+      // }, 100);
     }
   } catch (err) {
     console.log(err);
