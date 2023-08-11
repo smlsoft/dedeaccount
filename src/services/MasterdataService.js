@@ -282,6 +282,28 @@ export default {
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&status=0&docref-reserve=1`).then(res => res.data);
     },
 
+    /// document formate
+    getDocumentFormateList(limitPage, page, search) {
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        return instanceApi(true).get(`/transaction/document-formate?limit=${limitPage}&page=${page}${q}`).then(res => res.data);
+
+    },
+
+    postDocumentFormate(data) {
+        return instanceApi(true).post(`/transaction/document-formate`, data).then(res => res.data);
+    },
+
+    putDocumentFormate(data, id) {
+        return instanceApi(true).put(`/transaction/document-formate/` + id, data).then(res => res.data);
+    },
+
+    deleteDocumentFormate(data) {
+        return instanceApi(true).delete(`/transaction/document-formate/` + data).then(res => res.data);
+    },
+
 
 
 }

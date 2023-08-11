@@ -30,6 +30,7 @@ const activePage = ref(1);
 const showContent = ref("");
 const totalItemsCount = ref(10);
 const data_list = ref([]);
+const document_formate = ref([]);
 const selectedImgUrl = ref("");
 const selectedImgData = ref({ guidfixed: "", imagereferences: [] });
 
@@ -235,6 +236,7 @@ onMounted(async () => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getDocumentFormate();
 
   websocketConnect();
   WSImageConnect();
@@ -1888,6 +1890,51 @@ function setAccountPeriod(data) {
   console.log(data);
   daily_form.value.accountperiod = data;
 }
+
+function getDocumentFormate() {
+  MasterdataService.getDocumentFormateList()
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        document_formate.value = res.data.sort(function (obj1, obj2) {
+          return obj1.doccode - obj2.doccode;
+        });
+        document_formate.value.forEach((ele) => {
+          ele.label = ele.doccode + "~" + ele.description;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function selectDucumentFormat(data) {
+  if (data != null) {
+    daily_form.value.journaldetail = [];
+    var ele = document_formate.value.filter((val) => val.doccode == data);
+
+    console.log(ele[0]);
+
+    ele[0].details.forEach((element) => {
+      daily_form.value.journaldetail.push({
+        accountcode: element.accountcode,
+        accountname: element.detail,
+        debitamount: parseInt(element.debit),
+        creditamount: parseInt(element.credit),
+      });
+    });
+  } else {
+    daily_form.value.journaldetail = [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ];
+  }
+}
 </script>
 
 <template>
@@ -2076,12 +2123,14 @@ function setAccountPeriod(data) {
                         :accountChart_detail="accountChart_detail"
                         :accountBook_detail="accountBook_detail"
                         :groupAccount_detail="groupAccount_detail"
+                        :document_formate="document_formate"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
                         v-on:addColumn="addColumn"
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
                         v-on:setAccountPeriod="setAccountPeriod"
+                        v-on:selectDucumentFormat="selectDucumentFormat"
                       >
                       </JournalForm>
                     </div>
