@@ -390,6 +390,8 @@ export default [
     component: () => import("../pages/account_period/account_period_list.vue"),
   },
 
+
+
   {
     path: "/document_images/list",
     name: "document_images",
@@ -540,7 +542,14 @@ export default [
     },
     component: () => import("../pages/setting/account_period/main.vue"),
   },
-
+  {
+    path: "/setting/document_format/main",
+    name: "documentFormat",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/document_formate/main.vue"),
+  },
 
 
 

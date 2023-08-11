@@ -69,6 +69,7 @@ const activeIndex = ref(0);
 const updateMode = ref(false);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
+const document_formate = ref([]);
 const groupAccount_detail = ref([]);
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref();
@@ -119,6 +120,7 @@ const daily_form = ref({
     },
   ],
   parid: "0000000",
+  documentformate: "",
 });
 
 const daily_form_valid = ref({
@@ -166,6 +168,7 @@ const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const showOveray = ref(false);
 const warringAccountperiod = ref(false);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -200,6 +203,7 @@ onMounted(() => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getDocumentFormate();
 
   // set height ifram
   heightIamgeDivCheckGl.value =
@@ -1470,6 +1474,25 @@ function getJournalBook() {
       console.log(err);
     });
 }
+
+function getDocumentFormate() {
+  MasterdataService.getDocumentFormateList()
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        document_formate.value = res.data.sort(function (obj1, obj2) {
+          return obj1.doccode - obj2.doccode;
+        });
+        document_formate.value.forEach((ele) => {
+          ele.label = ele.doccode + "~" + ele.description;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
 function getAccountGroup() {
   MasterdataService.getAccountGroup()
     .then((res) => {
@@ -1623,6 +1646,33 @@ function resizeSplitter(isOveray) {
 }
 function setAccountPeriod(data) {
   daily_form.value.accountperiod = data;
+}
+
+function selectDucumentFormat(data) {
+  if (data != null) {
+    daily_form.value.journaldetail = [];
+    var ele = document_formate.value.filter((val) => val.doccode == data);
+
+    console.log(ele[0]);
+
+    ele[0].details.forEach((element) => {
+      daily_form.value.journaldetail.push({
+        accountcode: element.accountcode,
+        accountname: element.detail,
+        debitamount: parseInt(element.debit),
+        creditamount: parseInt(element.credit),
+      });
+    });
+  } else {
+    daily_form.value.journaldetail = [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ];
+  }
 }
 </script>
 
@@ -2001,6 +2051,7 @@ function setAccountPeriod(data) {
                         :daily_form_valid="daily_form_valid"
                         :accountChart_detail="accountChart_detail"
                         :accountBook_detail="accountBook_detail"
+                        :document_formate="document_formate"
                         :groupAccount_detail="groupAccount_detail"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
@@ -2009,6 +2060,7 @@ function setAccountPeriod(data) {
                         v-on:onRowReorder="onRowReorder"
                         v-on:selectAccount="selectAccount"
                         v-on:setAccountPeriod="setAccountPeriod"
+                        v-on:selectDucumentFormat="selectDucumentFormat"
                       >
                       </JournalForm>
                     </div>

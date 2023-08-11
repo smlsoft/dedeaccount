@@ -53,6 +53,7 @@ const props = defineProps({
   isUpdate: Boolean,
   accountChart_detail: Array,
   accountBook_detail: Array,
+  document_formate: Array,
   groupAccount_detail: Array,
   id: String,
 });
@@ -65,6 +66,7 @@ const emit = defineEmits([
   "onRowReorder",
   "selectAccount",
   "setAccountPeriod",
+  "selectDucumentFormat",
 ]);
 
 onMounted(async () => {
@@ -91,6 +93,10 @@ function deleteDetail() {
   console.log(detail.value.index);
   emit("deleteDetail", detail.value.index);
   deleteDetailDialog.value = false;
+}
+
+function selectDucumentFormat(event) {
+  emit("selectDucumentFormat", event.value);
 }
 
 function confirmDeleteDetail(data, index) {
@@ -475,22 +481,64 @@ function headerNextFocus(filedName) {
         />
       </div>
 
-      <div class="surface-border border-top-1 opacity-50 mb-4 col-12"></div>
+      <div class="surface-border border-top-1 opacity-50 col-12"></div>
     </div>
-    <div class="py-1">
-      <FileUpload
-        mode="basic"
-        name="input file"
-        accept=".xls,.xlsx"
-        ref="myFiles"
-        :customUpload="true"
-        v-if="!props.isUpdate"
-        @change="ImportFile()"
-        class="p-button-plain p-button-primary p-button-sm"
-        chooseLabel="นำเข้าไฟล์"
-      >
-      </FileUpload>
+
+    <div
+      class="flex flex-column lg:flex-row gap-3 justify-content-between lg:align-items-center border-primary py-5"
+      style="border-top: 6px solid"
+    >
+      <div class="flex flex-column gap-2">
+        <div class="flex align-items-center gap-2">
+          <h1 class="m-0 font-semibold text-900 text-xl line-height-3">
+            นำเข้ารายการบัญชี
+          </h1>
+          <FileUpload
+            mode="basic"
+            name="input file"
+            accept=".xls,.xlsx"
+            ref="myFiles"
+            :customUpload="true"
+            v-if="!props.isUpdate"
+            @change="ImportFile()"
+            class="p-button-plain p-button-primary p-button-sm"
+            chooseLabel=".xml"
+          >
+          </FileUpload>
+        </div>
+        <p class="mb-0 mt-0 text-base text-600">
+          นำเข้าข้อมูลรายการบัญชีจาก Excel.
+        </p>
+      </div>
+      <div class="flex flex-column gap-2">
+        <div class="flex align-items-center gap-2">
+          <Dropdown
+            showClear
+            class="w-full md:w-14rem"
+            v-model="props.daily_form.documentformate"
+            :options="props.document_formate"
+            :disabled="props.isUpdate"
+            :filter="true"
+            :filterFields="['doccode', 'description']"
+            optionValue="doccode"
+            optionLabel="label"
+            filterPlaceholder="ค้นหา"
+            placeholder="เลือก"
+            :autoFilterFocus="true"
+            @change="selectDucumentFormat($event)"
+          >
+            <template #option="slotProps">
+              <div>
+                {{ slotProps.option.doccode }} ~
+                {{ slotProps.option.description }}
+              </div>
+            </template>
+          </Dropdown>
+        </div>
+        <p class="mb-0 mt-0 text-base text-600">เลือกรูปแบบการบันทึกบัญชี.</p>
+      </div>
     </div>
+
     <div>
       <DataTable
         :value="props.daily_form.journaldetail"

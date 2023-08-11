@@ -37,7 +37,7 @@ export const menus = [
     children: [],
   },
 
-  // แบบ2
+  // // แบบ2
   // {
   //   title: "คลังรูปภาพเอกสาร",
   //   icon: "pi pi-inbox",
@@ -45,7 +45,7 @@ export const menus = [
   //   name: "document_images",
   //   children: [],
   // },
-  // แบบ1
+  // // แบบ1
   // {
   //   title: "คลังรูปภาพ",
   //   icon: "pi pi-image",
@@ -252,6 +252,12 @@ export const menus = [
         icon: "pi pi-link",
         to: "/accountPeriod/list",
         name: "accountPeriod",
+      },
+      {
+        title: "กำหนดรูปแบบการบันทึกบัญชี",
+        icon: "pi pi-link",
+        to: "/setting/document_format/main",
+        name: "document_format",
       },
     ],
   },
