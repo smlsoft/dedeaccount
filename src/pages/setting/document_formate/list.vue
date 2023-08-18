@@ -65,23 +65,28 @@ function doneTyping() {
 </script>
 
 <template>
-  <div class="flex justify-content-between p-2">
+  <div
+    class="px-2 lg:px-2 py-4 flex flex-column flex-wrap md:flex-row gap-3 w-full md:justify-content-between md:align-items-center"
+  >
     <Button
       label="เพิ่มรูปแบบบันทึกบัญชี"
       icon="pi pi-plus"
       @click="docCodeFocus"
     />
-    <span class="p-input-icon-left">
-      <i class="pi pi-search" />
+
+    <span class="p-input-icon-right w-full mt-2 md:mt-0 md:w-15rem">
+      <i class="pi pi-search"></i>
       <InputText
+        type="text"
+        class="w-full md:w-15rem border-round p-inputtext-sm"
         v-model="filters"
         placeholder="ค้นหา...."
         @keyup="keyup()"
         @keydown="keydown()"
-        class="p-inputtext-sm"
       />
     </span>
   </div>
+
   <DataTable
     :value="props.data_list"
     dataKey="guidfixed"

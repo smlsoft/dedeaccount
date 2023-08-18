@@ -1896,6 +1896,8 @@ function getDocumentFormate() {
     .then((res) => {
       console.log(res);
       if (res.success) {
+        /// remove res.data where module != GL
+        res.data = res.data.filter((val) => val.module == "GL");
         document_formate.value = res.data.sort(function (obj1, obj2) {
           return obj1.doccode - obj2.doccode;
         });
