@@ -798,8 +798,7 @@ async function sentOCR() {
 
       res.data.forEach((ele) => {
         if (ele.code == 200) {
-          // isSentOCR.value = true;
-          getDataOCR();
+          getInitDataOCR();
           toast.add({
             severity: "success",
             summary: "SENT TO API OCR",
@@ -835,15 +834,15 @@ async function sentOCR() {
 }
 
 async function getDataOCR() {
-  // if (documentFormateSelected.value == null) {
-  //   toast.add({
-  //     severity: "warn",
-  //     summary: "แจ้งเตือน",
-  //     detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
-  //     life: 4000,
-  //   });
-  //   return;
-  // }
+  if (documentFormateSelected.value == null) {
+    toast.add({
+      severity: "warn",
+      summary: "แจ้งเตือน",
+      detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
+      life: 4000,
+    });
+    return;
+  }
 
   var data = {
     resourcekey: doc_images.value.guidfixed,
@@ -2443,7 +2442,9 @@ function selectDucumentFormat(data) {
               </ul>
             </div>
 
-            <div class="mt-4 ml-0  flex align-items-center justify-content-center">
+            <div
+              class="mt-4 ml-0 flex align-items-center justify-content-center"
+            >
               <Button
                 @click="onSave"
                 label="บันทึกรายวัน"
