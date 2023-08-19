@@ -2442,7 +2442,7 @@ function selectDucumentFormat(data) {
               </ul>
             </div>
 
-            <div class="mt-4 ml-0">
+            <div class="mt-4 ml-0  flex align-items-center justify-content-center">
               <Button
                 @click="onSave"
                 label="บันทึกรายวัน"
