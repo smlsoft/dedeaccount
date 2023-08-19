@@ -151,7 +151,8 @@ async function uploadFile() {
       .then((response) => {
         uploadStatement.value = false;
         setTimeout(() => {
-          pdfData.value = response.data.result;
+          console.log(response);
+          pdfData.value = response.result;
           showDataPDF.value = true;
           console.log(pdfData.value);
           if (pdfData.value.length == 0) {
