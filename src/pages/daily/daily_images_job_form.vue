@@ -915,15 +915,9 @@ function saveDataOCR(data) {
   daily_form.value.accountdescription = data[0].body_json.sender_name;
 
   daily_form.value.journaldetail.forEach((ele) => {
-    if (ele.actioncode == "summary_total") {
+    if (data[0].body_json.hasOwnProperty(ele.actioncode)) {
       ele.debitamount = parseFloat(
-        data[0].body_json.summary_total.replace(/,/g, "")
-      );
-    }
-
-    if (ele.actioncode == "summary_vat_total") {
-      ele.debitamount = parseFloat(
-        data[0].body_json.summary_vat_total.replace(/,/g, "")
+        data[0].body_json[ele.actioncode].replace(/,/g, "")
       );
     }
   });
