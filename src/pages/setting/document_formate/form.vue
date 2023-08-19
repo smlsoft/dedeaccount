@@ -68,7 +68,7 @@ function unFocusGroupCode() {
 
 function headerNextFocus(filedName) {
   if (filedName == "description") {
-    $(".namdescriptione1").focus();
+    $(".description").focus();
   } else if (filedName == "btnSave") {
     onSave();
   }
@@ -106,7 +106,9 @@ function selectAccount(data, field, index) {
 function focusNext(field, index) {
   console.log(field);
   setTimeout(() => {
-    if (field == "accountcode") {
+    if (field == "actioncode") {
+      $(".accountcode_" + index + " > input").focus();
+    } else if (field == "accountcode") {
       $(".debit_" + index + " > input").focus();
     } else if (field == "debit") {
       $(".credit_" + index + " > input ").focus();
@@ -114,7 +116,7 @@ function focusNext(field, index) {
       addColumn(index);
       setTimeout(() => {
         if (props.form_model.details.length > index + 1) {
-          $(".accountcode_" + (index + 1) + " > input").focus();
+          $(".actioncode_" + (index + 1) + " > input").focus();
         }
       }, 100);
     }
@@ -190,6 +192,24 @@ function deleteDetail() {
             style="width: 5%"
             v-if="!props.readMode"
           >
+          </Column>
+          <Column
+            field="actioncode"
+            header="Action Code"
+            headerStyle="text-align:center;width: 15%"
+            style="min-width: 80px"
+          >
+            <template #body="{ data, field }" v-if="props.readMode">
+              {{ data[field] }}
+            </template>
+
+            <template #body="{ data, field, index }" v-if="!props.readMode">
+              <InputText
+                :class="'actioncode_' + index"
+                v-model="data[field]"
+                @enter="focusNext(field, index)"
+              ></InputText>
+            </template>
           </Column>
           <Column
             field="accountcode"
