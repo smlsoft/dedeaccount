@@ -4,6 +4,7 @@ import MainContentWarp from "@/components/MainContentWarp.vue";
 import DialogApprove from "@/components/form/DialogApprove.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import MasterdataService from "@/services/MasterdataService";
+import BankStatementReaderService from "@/services/BankStatementReaderService";
 import { ref, onMounted, onUnmounted } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
@@ -142,21 +143,16 @@ async function uploadFile() {
     const formData = new FormData();
     const dataPdfFile = myFiles.value.files[0];
     formData.append("pdf", myFiles.value.files[0]);
-
-    await axios
-      .post("http://192.168.2.64:3001/", formData, {
-        params: {
-          bank: selectedBank.value.code,
-          password: filepassword.value,
-        },
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
+    BankStatementReaderService.pdfReader(
+      formData,
+      selectedBank.value.code,
+      filepassword.value
+    )
       .then((response) => {
         uploadStatement.value = false;
         setTimeout(() => {
-          pdfData.value = response.data.result;
+          console.log(response);
+          pdfData.value = response.result;
           showDataPDF.value = true;
           console.log(pdfData.value);
           if (pdfData.value.length == 0) {
@@ -184,6 +180,48 @@ async function uploadFile() {
           life: 3000,
         });
       });
+
+    // await axios
+    //   .post("https://api.dev.dedepos.com/bankstatementreader/", formData, {
+    //     params: {
+    //       bank: selectedBank.value.code,
+    //       password: filepassword.value,
+    //     },
+    //     headers: {
+    //       "Content-Type": "multipart/form-data",
+    //     },
+    //   })
+    //   .then((response) => {
+    //     uploadStatement.value = false;
+    //     setTimeout(() => {
+    //       pdfData.value = response.data.result;
+    //       showDataPDF.value = true;
+    //       console.log(pdfData.value);
+    //       if (pdfData.value.length == 0) {
+    //         toast.add({
+    //           severity: "error",
+    //           summary: "Error",
+    //           detail: "รูปแบบไฟล์ไม่ถูกต้อง กรุณาตรวจสอบ",
+    //           life: 3000,
+    //         });
+    //         loading.value = false;
+    //         return;
+    //       } else {
+    //         loading.value = false;
+    //         showViewerPDF(dataPdfFile);
+    //       }
+    //     }, 500);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error.response);
+    //     loading.value = false;
+    //     toast.add({
+    //       severity: "error",
+    //       summary: "Error",
+    //       detail: error.response.data.message,
+    //       life: 3000,
+    //     });
+    //   });
   } else {
     loading.value = false;
   }
@@ -714,7 +752,7 @@ function createDaily() {
           class="w-full"
         />
       </div>
-      <div class="col-12" >
+      <div class="col-12">
         <span class="p-float-label">
           <InputText
             type="password"

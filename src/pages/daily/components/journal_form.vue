@@ -554,7 +554,7 @@ function headerNextFocus(filedName) {
           v-if="!props.isUpdate"
         >
         </Column>
-        <Column field="accountcode" header="รหัสบัญชี" style="min-width: 150px">
+        <Column field="accountcode" header="รหัสบัญชี" style="min-width: 100px">
           <template #body="{ data, field, index }" v-if="!props.isUpdate">
             <TextAutoComplete
               v-model="data[field]"
@@ -601,7 +601,7 @@ function headerNextFocus(filedName) {
           :footer="Utils.formatCurrency(sumTableDebit)"
           bodyStyle="text-align: right !important"
           headerStyle="text-align:center;width: 10%"
-          style="min-width: 100px"
+          style="min-width: 180px"
         >
           <template #body="{ data, field }" v-if="props.isUpdate">
             {{ Utils.formatCurrency(data[field]) }}
@@ -625,7 +625,7 @@ function headerNextFocus(filedName) {
           :footer="Utils.formatCurrency(sumTableCredit)"
           bodyStyle="text-align: right !important"
           headerStyle="text-align:center;width: 10%"
-          style="min-width: 100px"
+          style="min-width: 180px"
         >
           <template #body="{ data, field }" v-if="props.isUpdate">
             {{ Utils.formatCurrency(data[field]) }}

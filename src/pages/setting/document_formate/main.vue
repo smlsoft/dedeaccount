@@ -33,6 +33,7 @@ const form_model = ref({
   module: "GL",
   details: [
     {
+      actioncode: "",
       accountcode: "",
       debit: "0",
       credit: "0",
@@ -79,6 +80,9 @@ function getDocumentFormateList() {
     .then((res) => {
       console.log(res);
       if (res.success) {
+        /// remove res.data where module != GL
+        res.data = res.data.filter((val) => val.module == "GL");
+
         data_list.value = res.data.sort(function (obj1, obj2) {
           return obj1.code - obj2.code;
         });
@@ -107,6 +111,7 @@ function clearForm() {
     module: "GL",
     details: [
       {
+        actioncode: "",
         accountcode: "",
         debit: "0",
         credit: "0",
@@ -157,6 +162,7 @@ async function confirmSave() {
   if (form_model.value.details.length > 0) {
     form_model.value.details.forEach((element) => {
       form_model_save.value.details.push({
+        actioncode: element.actioncode,
         accountcode: element.accountcode,
         debit: element.debit.toString(),
         credit: element.credit.toString(),
@@ -358,6 +364,7 @@ function selectAccount(data, index) {
 
 function addColumn(index) {
   form_model.value.details.splice(index + 1, 0, {
+    actioncode: "",
     accountcode: "",
     detail: "",
     debit: 0,
@@ -371,6 +378,7 @@ function deleteDetail(data) {
 
   if (form_model.value.details.length == 0) {
     form_model.value.details.push({
+      actioncode: "",
       accountcode: "",
       detail: "",
       debit: 0,

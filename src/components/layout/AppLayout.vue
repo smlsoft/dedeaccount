@@ -9,7 +9,9 @@ import { useRouter } from "vue-router";
 import slideMenu from "@/components/layout/SlideMenu.vue";
 import topMenu from "@/components/layout/TopBar.vue";
 import getListShop from "@/components/ListShop.vue";
+import { getAuth, signOut } from "firebase/auth";
 
+const auth = getAuth();
 const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
@@ -101,7 +103,9 @@ async function isFavorite(data, favorite) {
   }
 }
 
-function goLogout() {
+async function goLogout() {
+  await signOut(auth);
+  console.log(auth);
   router.push({
     name: "logout",
   });

@@ -221,9 +221,9 @@ watch(taxes.value, (newValue, oldValue) => {
 
 onMounted(() => {
   // set height ifram
-  heightIamgeDivCheckGl.value = 'height:' + divCheckGl.value.offsetHeight + 'px';
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
 
-  
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_images_list");
 
@@ -1174,7 +1174,8 @@ function deleteDetail(data) {
   });
 }
 function addColumn(index) {
-  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
 
   daily_form.value.journaldetail.splice(index + 1, 0, {
     index: index + 1,
@@ -1739,7 +1740,7 @@ function resizeGalleria(e) {
               id="panelForm2"
               @mouseleave="removeMagnify()"
             >
-              <div >
+              <div>
                 <div class="flex justify-content-between align-items-right">
                   <div>
                     <Button
@@ -1761,6 +1762,7 @@ function resizeGalleria(e) {
                       "
                     />
                   </div>
+      
                   <!-- <div>
                     <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
                       class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
@@ -1787,7 +1789,6 @@ function resizeGalleria(e) {
                       *Warning Message รูปโดนยกเลิก
                     </span>
                   </Message>
-
                 </div>
 
                 <KeepAlive>
@@ -1805,7 +1806,7 @@ function resizeGalleria(e) {
                       @update:activeIndex="resetZoomImage()"
                     >
                       <template #item="slotProps">
-                        <div class="grid w-full" >
+                        <div class="grid w-full">
                           <div class="col-12">
                             <div
                               class="flex justify-content-between flex-wrap card-container purple-container"
@@ -1829,11 +1830,7 @@ function resizeGalleria(e) {
                           </div>
                           <div class="col-12" :style="heightIamgeDivCheckGl">
                             <div
-                              style="
-                                margin: 0px;
-                                padding: 0px;
-                                height: 100%;
-                              "
+                              style="margin: 0px; padding: 0px; height: 100%"
                             >
                               <iframe
                                 :name="slotProps.item.imageuri"
@@ -1846,7 +1843,6 @@ function resizeGalleria(e) {
                             </div>
                           </div>
                         </div>
-                        
                       </template>
                       <template #thumbnail="slotProps">
                         <img

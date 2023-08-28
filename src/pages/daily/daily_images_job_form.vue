@@ -3,6 +3,7 @@ import DialogForm from "@/components/form/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
+import OcrService from "@/services/OcrService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted, watch } from "vue";
@@ -147,6 +148,11 @@ const listStatusImagesByDaily = ref([
 ]);
 
 const statusImage = ref();
+const dialogOCR = ref(false);
+const responseDataOCR = ref();
+const documentFormateSelected = ref();
+const isSentOCR = ref(false);
+const isTackingStatus = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -410,6 +416,7 @@ function websocketConnect() {
               disableAllinput(res.data.status);
               setTimeout(() => {
                 checkActiveIndex();
+                getInitDataOCR();
               }, 100);
             }
           }
@@ -762,6 +769,160 @@ async function confirmSave() {
         console.log(err);
       });
   }
+}
+
+async function sentOCR() {
+  if (isSentOCR.value) {
+    toast.add({
+      severity: "info",
+      summary: "TACKING ID",
+      detail: responseDataOCR.value.tracking_id,
+      life: 5000,
+    });
+    return;
+  }
+
+  var data = {
+    resourcekey: doc_images.value.guidfixed,
+    urlresources: [],
+  };
+
+  doc_images.value.imagereferences.forEach((ele) => {
+    data.urlresources.push(ele.imageuri);
+  });
+
+  try {
+    const res = await OcrService.postOCR(data);
+    if (res.success) {
+      console.log(res);
+
+      res.data.forEach((ele) => {
+        if (ele.code == 200) {
+          getInitDataOCR();
+          toast.add({
+            severity: "success",
+            summary: "SENT TO API OCR",
+            detail: "OCR SENT SUCCESS",
+            life: 3000,
+          });
+        } else if (ele.code == 513) {
+          toast.add({
+            severity: "warn",
+            summary: "SENT TO API OCR",
+            detail: "The tracking id has already been taken. tracking id ซ้ำ ",
+            life: 3000,
+          });
+        } else {
+          toast.add({
+            severity: "error",
+            summary: "SENT TO API OCR",
+            detail: "OCR SENT FAIL" + ele.message,
+            life: 3000,
+          });
+        }
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: err.response.data.message,
+      life: 3000,
+    });
+  }
+}
+
+async function getDataOCR() {
+  if (documentFormateSelected.value == null) {
+    toast.add({
+      severity: "warn",
+      summary: "แจ้งเตือน",
+      detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
+      life: 4000,
+    });
+    return;
+  }
+
+  var data = {
+    resourcekey: doc_images.value.guidfixed,
+    urlresources: [],
+  };
+
+  doc_images.value.imagereferences.forEach((ele) => {
+    data.urlresources.push(ele.imageuri);
+  });
+
+  try {
+    const res = await OcrService.getOCR(data);
+    if (res.success) {
+      responseDataOCR.value = res.data[0];
+
+      if (responseDataOCR.value.data[0].tracking_status == "ReadyToCheck") {
+        isTackingStatus.value = true;
+      } else {
+        isTackingStatus.value = false;
+      }
+
+      dialogOCR.value = true;
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: err.response.data.message,
+      life: 3000,
+    });
+  }
+}
+
+async function getInitDataOCR() {
+  var data = {
+    resourcekey: doc_images.value.guidfixed,
+    urlresources: [],
+  };
+
+  doc_images.value.imagereferences.forEach((ele) => {
+    data.urlresources.push(ele.imageuri);
+  });
+
+  try {
+    const res = await OcrService.getOCR(data);
+    if (res.success) {
+      if (res.data[0].data[0].tracking_status === "not_found") {
+        isSentOCR.value = false;
+      } else {
+        responseDataOCR.value = res.data[0];
+        isSentOCR.value = true;
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: err.response.data.message,
+      life: 3000,
+    });
+  }
+}
+
+function saveDataOCR(data) {
+  dialogOCR.value = false;
+
+  console.log(data);
+  daily_form.value.accountdescription = data[0].body_json.sender_name;
+
+  daily_form.value.journaldetail.forEach((ele) => {
+    if (data[0].body_json.hasOwnProperty(ele.actioncode)) {
+      ele.debitamount = parseFloat(
+        data[0].body_json[ele.actioncode].replace(/,/g, "")
+      );
+    }
+  });
+
+  console.log(daily_form.value);
 }
 
 async function onSave() {
@@ -1887,7 +2048,7 @@ async function updateStatus() {
 }
 
 function setAccountPeriod(data) {
-  console.log(data);
+  // console.log(data);
   daily_form.value.accountperiod = data;
 }
 
@@ -1896,6 +2057,8 @@ function getDocumentFormate() {
     .then((res) => {
       console.log(res);
       if (res.success) {
+        /// remove res.data where module != GL
+        res.data = res.data.filter((val) => val.module == "GL");
         document_formate.value = res.data.sort(function (obj1, obj2) {
           return obj1.doccode - obj2.doccode;
         });
@@ -1910,6 +2073,7 @@ function getDocumentFormate() {
 }
 
 function selectDucumentFormat(data) {
+  documentFormateSelected.value = data;
   if (data != null) {
     daily_form.value.journaldetail = [];
     var ele = document_formate.value.filter((val) => val.doccode == data);
@@ -1918,6 +2082,7 @@ function selectDucumentFormat(data) {
 
     ele[0].details.forEach((element) => {
       daily_form.value.journaldetail.push({
+        actioncode: element.actioncode,
         accountcode: element.accountcode,
         accountname: element.detail,
         debitamount: parseInt(element.debit),
@@ -2173,16 +2338,107 @@ function selectDucumentFormat(data) {
           </Splitter>
 
           <div class="flex justify-content-between">
-            <div class="mt-4 ml-0">
-              <!-- <Button
+            <!-- <div class="mt-4 ml-0">
+              <Button
                 :disabled="!isChange"
                 @click="confirmClearImageDialog = true"
                 :label="'ยกเลิกอัพเดท'"
                 icon="pi pi-refresh"
                 class="w-auto p-button-danger"
-              ></Button> -->
-            </div>
+              ></Button>
+            </div> -->
             <div class="mt-4 ml-0">
+              <!-- <Button
+                @click="sentOCR"
+                label="OCR"
+                icon="pi pi-send"
+                class="w-auto p-button-info"
+              ></Button>
+              <Button
+                :disabled="documentFormateSelected == null"
+                @click="getDataOCR"
+                label="GET DATA OCR"
+                icon="pi pi-cloud-download"
+                class="w-auto p-button-warning ml-2"
+              ></Button> -->
+              <ul class="list-none p-0 m-0 flex flex-column md:flex-row">
+                <li
+                  class="relative mr-0 md:mr-8 flex-auto"
+                  :class="!isSentOCR ? 'cursor-pointer' : 'cursor-not-allowed'"
+                  @click="!isSentOCR ? sentOCR() : null"
+                >
+                  <div
+                    class="surface-card border-round p-3 flex flex-column md:flex-row align-items-center z-1"
+                    :class="
+                      !isSentOCR
+                        ? 'border-2 border-blue-500'
+                        : 'border-1 surface-border '
+                    "
+                  >
+                    <i
+                      class="text-2xl md:text-4xl mb-2 md:mb-0 mr-0 md:mr-3"
+                      :class="
+                        isSentOCR
+                          ? ' pi pi-check-circle text-gray-500'
+                          : ' pi pi-upload text-blue-600 '
+                      "
+                    ></i>
+                    <div>
+                      <div class="text-900 font-medium mb-1" v-if="isSentOCR">
+                        ส่งข้อมูลสำเร็จ
+                      </div>
+                      <div
+                        class="text-900 font-medium mb-1 text-blue-600"
+                        v-if="!isSentOCR"
+                      >
+                        ส่งข้อมูลไปยังระบบ OCR
+                      </div>
+                      <span class="text-600 text-sm hidden md:block"
+                        >ส่งข้อมูลเข้าระบบ OCR เรียบร้อยแล้ว</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    class="w-full absolute top-50 left-100 surface-300 hidden md:block"
+                    style="transform: translateY(-50%); height: 2px"
+                  ></div>
+                </li>
+                <li
+                  class="relative mr-0 md:mr-8 flex-auto"
+                  :class="isSentOCR ? 'cursor-pointer' : 'cursor-not-allowed'"
+                  @click="isSentOCR ? getDataOCR() : null"
+                >
+                  <div
+                    class="surface-card border-round p-3 flex flex-column md:flex-row align-items-center z-1"
+                    :class="
+                      isSentOCR
+                        ? 'border-2 border-blue-500'
+                        : 'border-1 surface-border '
+                    "
+                  >
+                    <i
+                      class="pi pi-cloud-download text-2xl md:text-4xl mb-2 md:mb-0 mr-0 md:mr-3"
+                      :class="isSentOCR ? 'text-blue-600' : 'text-gray-500'"
+                    ></i>
+                    <div>
+                      <div
+                        class="text-blue-600 font-medium mb-1"
+                        :class="isSentOCR ? 'text-blue-600' : 'text-gray-500'"
+                      >
+                        ดึงข้อมูลจากระบบ OCR
+                      </div>
+                      <span class="text-600 text-sm hidden md:block"
+                        >กรุณาเลือกรูปแบบการบันทึกบัญชีก่อนดึงข้อมูล</span
+                      >
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div
+              class="mt-4 ml-0 flex align-items-center justify-content-center"
+            >
               <Button
                 @click="onSave"
                 label="บันทึกรายวัน"
@@ -2286,6 +2542,39 @@ function selectDucumentFormat(data) {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
+      <Dialog
+        v-model:visible="dialogOCR"
+        appendTo="body"
+        :modal="true"
+        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+        :style="{ width: '40vw' }"
+        header="DATA RESPONSE OCR"
+      >
+        <div class="flex flex-column align-items-center">
+          <span
+            class="flex align-items-center justify-content-center text-cyan-800 mr-3 border-circle mb-3"
+            v-if="!isTackingStatus"
+          >
+            <ProgressSpinner />
+          </span>
+          <div class="font-medium text-1xl text-900" v-if="!isTackingStatus">
+            กำลังประมวลผลข้อมูล OCR
+          </div>
+        </div>
+        <p class="line-height-3 p-0 m-0" v-if="isTackingStatus">
+          {{ responseDataOCR.data }}
+        </p>
+        <template #footer>
+          <div class="border-top-1 surface-border pt-3">
+            <Button
+              icon="pi pi-save"
+              :disabled="!isTackingStatus"
+              @click="saveDataOCR(responseDataOCR.data)"
+              label="นำเข้าข้อมูล"
+            ></Button>
+          </div>
+        </template>
+      </Dialog>
     </MainContentWarp>
   </AppLayout>
 </template>

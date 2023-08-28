@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import languageButton from "@/components/page/LanguageButton.vue";
 
-const emit = defineEmits(["loginMode", "registerMode"]);
+const emit = defineEmits(["loginMode", "registerMode" , "loginWithGoogle"]);
 
 function loginMode() {
   emit("loginMode", "loginMenu");
@@ -10,6 +10,10 @@ function loginMode() {
 
 function registerMode() {
   emit("registerMode", "register");
+}
+
+function loginWithGoogle() {
+  emit("loginWithGoogle", "loginWithGoogle");
 }
 </script>
 
@@ -27,12 +31,13 @@ function registerMode() {
   </div>
   <div class="flex flex-column">
     <Button
+    @click="loginWithGoogle"
       class="w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <i class="pi pi-google text-red-500" style="font-size: 20px"></i>
       <span class="ml-2">{{ $t("signUp_with") }} Google</span>
     </Button>
-    <Button
+    <!-- <Button
       class="mt-3 w-12 font-medium border-1 surface-border surface-100 py-2 px-5 p-component hover:surface-200 active:surface-300 text-900 cursor-pointer transition-colors transition-duration-150 inline-flex align-items-center"
     >
       <img src="@/assets/img/iconline.svg" width="20" height="20" />
@@ -55,7 +60,7 @@ function registerMode() {
     >
       <i class="pi pi-phone text-teal-900" style="font-size: 20px"></i>
       <span class="ml-2">{{ $t("signUp_with_telephone") }}</span>
-    </Button>
+    </Button> -->
   </div>
   <Divider align="center" class="my-4">
     <span class="text-600 font-normal text-sm"> {{ $t("or") }}</span>

@@ -10,7 +10,10 @@ import loginMenu from "@/components/page/login/LoginMenu.vue";
 import loginUser from "@/components/page/login/LoginUser.vue";
 import registerMenu from "@/components/page/login/RegisterMenu.vue";
 import registerUser from "@/components/page/login/RegisterUser.vue";
-import adsSlide from "@/components/page/login//AdsSlide.vue";
+import adsSlide from "@/components/page/login/AdsSlide.vue";
+
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+
 const toast = useToast();
 const storeApp = useApp();
 const store = useAuthen();
@@ -148,6 +151,43 @@ function createShopScuuess(status) {
       });
   }
 }
+
+async function loginWithGoogle() {
+  loading.value = true;
+  const auth = getAuth();
+  const provider = new GoogleAuthProvider();
+
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    // console.log("User signed in: ", user.displayName);
+    if (user.accessToken != "") {
+      localStorage.removeItem("_token");
+      await store.loginGoogle(user.accessToken, user.displayName);
+      if (store.loginSuccess) {
+        // select shop
+        AuthenService.getListShop()
+          .then((res) => {
+            console.log(res);
+            if (res.success) {
+              showShopList.value = true;
+              listShop.value = res.data;
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else {
+        console.log(store.loginErrorMsg);
+        loginFailed.value = true;
+      }
+    }
+  } catch (error) {
+    loading.value = false;
+
+    console.log(error);
+  }
+}
 </script>
 
 <template>
@@ -168,6 +208,7 @@ function createShopScuuess(status) {
           <loginMenu
             v-on:loginMode="loginMode"
             v-on:registerMode="loginMode"
+            v-on:loginWithGoogle="loginWithGoogle"
             v-if="isLoginMode == 'loginMenu'"
           />
           <loginUser
@@ -181,6 +222,7 @@ function createShopScuuess(status) {
           <registerMenu
             v-on:loginMode="loginMode"
             v-on:registerMode="loginMode"
+            v-on:loginWithGoogle="loginWithGoogle"
             v-if="isLoginMode == 'registerMenu'"
           />
         </div>
