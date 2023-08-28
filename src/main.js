@@ -68,7 +68,7 @@ import messages from '@/assets/i18n';
 import Chips from 'primevue/chips';
 import OrderList from 'primevue/orderlist';
 
-
+import { setup as setupFirebase } from '@/services/firebase.service'
 
 
 //theme https://primefaces.org/primevue/setup
@@ -79,7 +79,7 @@ import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
-
+setupFirebase()
 const language = localStorage.getItem('activeLang') || 'th';
 
 
@@ -91,6 +91,8 @@ const i18n = createI18n({
 
 
 const app = createApp(App)
+
+
 
 app.component('OrderList', OrderList);
 app.component('Chips', Chips);

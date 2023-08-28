@@ -4,6 +4,11 @@ export default {
     login(username, password) {
         return instanceApi(false).post(`/login`, { "name": username, "username": username, "password": password });
     },
+
+    loginToken(token) {
+        return instanceApi(false).post(`/tokenlogin`, { "token": token });
+
+    },
     getListShop() {
         return instanceApi(true).get(`/list-shop`).then(res => res.data);
     },
