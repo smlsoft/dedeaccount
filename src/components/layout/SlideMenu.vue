@@ -41,7 +41,8 @@ function lockSlideBar(data) {
         </span>
         <div class="text logo-text">
           <span class="name">BC </span>
-          <span class="profession">CLOUD ACCOUNT</span>
+          <span class="profession">CLOUD </span>
+          <span class="profession"> ACCOUNT</span>
         </div>
       </div>
     </header>
