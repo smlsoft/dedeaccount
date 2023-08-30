@@ -416,7 +416,6 @@ function websocketConnect() {
               disableAllinput(res.data.status);
               setTimeout(() => {
                 checkActiveIndex();
-                getInitDataOCR();
               }, 100);
             }
           }
@@ -771,17 +770,24 @@ async function confirmSave() {
   }
 }
 
-async function sentOCR() {
-  if (isSentOCR.value) {
+function readOCR() {
+  if (documentFormateSelected.value == null) {
     toast.add({
-      severity: "info",
-      summary: "TACKING ID",
-      detail: responseDataOCR.value.tracking_id,
-      life: 5000,
+      severity: "warn",
+      summary: "แจ้งเตือน",
+      detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
+      life: 4000,
     });
     return;
   }
 
+  dialogOCR.value = true;
+  responseDataOCR.value = null;
+  isTackingStatus.value = false;
+  sentOCR();
+}
+
+async function sentOCR() {
   var data = {
     resourcekey: doc_images.value.guidfixed,
     urlresources: [],
@@ -798,20 +804,21 @@ async function sentOCR() {
 
       res.data.forEach((ele) => {
         if (ele.code == 200) {
-          getInitDataOCR();
-          toast.add({
-            severity: "success",
-            summary: "SENT TO API OCR",
-            detail: "OCR SENT SUCCESS",
-            life: 3000,
-          });
+          getDataOCR();
+          // toast.add({
+          //   severity: "success",
+          //   summary: "SENT TO API OCR",
+          //   detail: "OCR SENT SUCCESS",
+          //   life: 3000,
+          // });
         } else if (ele.code == 513) {
-          toast.add({
-            severity: "warn",
-            summary: "SENT TO API OCR",
-            detail: "The tracking id has already been taken. tracking id ซ้ำ ",
-            life: 3000,
-          });
+          getDataOCR();
+          // toast.add({
+          //   severity: "warn",
+          //   summary: "SENT TO API OCR",
+          //   detail: "The tracking id has already been taken. tracking id ซ้ำ ",
+          //   life: 3000,
+          // });
         } else {
           toast.add({
             severity: "error",
@@ -834,16 +841,6 @@ async function sentOCR() {
 }
 
 async function getDataOCR() {
-  if (documentFormateSelected.value == null) {
-    toast.add({
-      severity: "warn",
-      summary: "แจ้งเตือน",
-      detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
-      life: 4000,
-    });
-    return;
-  }
-
   var data = {
     resourcekey: doc_images.value.guidfixed,
     urlresources: [],
@@ -860,42 +857,16 @@ async function getDataOCR() {
 
       if (responseDataOCR.value.data[0].tracking_status == "ReadyToCheck") {
         isTackingStatus.value = true;
-      } else {
+      } else if (
+        responseDataOCR.value.data[0].tracking_status == "processing"
+      ) {
         isTackingStatus.value = false;
+        setTimeout(() => {
+          getDataOCR();
+        }, 30000);
       }
 
       dialogOCR.value = true;
-    }
-  } catch (err) {
-    console.log(err);
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: err.response.data.message,
-      life: 3000,
-    });
-  }
-}
-
-async function getInitDataOCR() {
-  var data = {
-    resourcekey: doc_images.value.guidfixed,
-    urlresources: [],
-  };
-
-  doc_images.value.imagereferences.forEach((ele) => {
-    data.urlresources.push(ele.imageuri);
-  });
-
-  try {
-    const res = await OcrService.getOCR(data);
-    if (res.success) {
-      if (res.data[0].data[0].tracking_status === "not_found") {
-        isSentOCR.value = false;
-      } else {
-        responseDataOCR.value = res.data[0];
-        isSentOCR.value = true;
-      }
     }
   } catch (err) {
     console.log(err);
@@ -2157,19 +2128,8 @@ function selectDucumentFormat(data) {
                       "
                     />
                   </div>
+
                   <div class="flex">
-                    <!-- <Button
-                      v-if="selectedImg"
-                      label="ไม่ผ่าน"
-                      @click="upDateStatusImage(4)"
-                      class="p-button-danger p-button-sm mr-1"
-                    />
-                    <Button
-                      v-if="selectedImg"
-                      label="ห้ามบันทึกรายวัน"
-                      @click="upDateStatusImage(3)"
-                      class="p-button-warning p-button-sm"
-                    /> -->
                     <!-- <div
                       v-if="selectedImg"
                       v-for="listStatusImage of listStatusImagesByDaily"
@@ -2196,6 +2156,14 @@ function selectDucumentFormat(data) {
                       onIcon="pi pi-times"
                       @change="openImageNewWindow()"
                       class="p-button-text"
+                    />
+                  </div>
+                  <div class="flex">
+                    <Button
+                      label="OCR"
+                      icon="pi pi-eye"
+                      class="p-button-text"
+                      @click="readOCR()"
                     />
                   </div>
                 </div>
@@ -2361,79 +2329,6 @@ function selectDucumentFormat(data) {
                 icon="pi pi-cloud-download"
                 class="w-auto p-button-warning ml-2"
               ></Button> -->
-              <ul class="list-none p-0 m-0 flex flex-column md:flex-row">
-                <li
-                  class="relative mr-0 md:mr-8 flex-auto"
-                  :class="!isSentOCR ? 'cursor-pointer' : 'cursor-not-allowed'"
-                  @click="!isSentOCR ? sentOCR() : null"
-                >
-                  <div
-                    class="surface-card border-round p-3 flex flex-column md:flex-row align-items-center z-1"
-                    :class="
-                      !isSentOCR
-                        ? 'border-2 border-blue-500'
-                        : 'border-1 surface-border '
-                    "
-                  >
-                    <i
-                      class="text-2xl md:text-4xl mb-2 md:mb-0 mr-0 md:mr-3"
-                      :class="
-                        isSentOCR
-                          ? ' pi pi-check-circle text-gray-500'
-                          : ' pi pi-upload text-blue-600 '
-                      "
-                    ></i>
-                    <div>
-                      <div class="text-900 font-medium mb-1" v-if="isSentOCR">
-                        ส่งข้อมูลสำเร็จ
-                      </div>
-                      <div
-                        class="text-900 font-medium mb-1 text-blue-600"
-                        v-if="!isSentOCR"
-                      >
-                        ส่งข้อมูลไปยังระบบ OCR
-                      </div>
-                      <span class="text-600 text-sm hidden md:block"
-                        >ส่งข้อมูลเข้าระบบ OCR เรียบร้อยแล้ว</span
-                      >
-                    </div>
-                  </div>
-                  <div
-                    class="w-full absolute top-50 left-100 surface-300 hidden md:block"
-                    style="transform: translateY(-50%); height: 2px"
-                  ></div>
-                </li>
-                <li
-                  class="relative mr-0 md:mr-8 flex-auto"
-                  :class="isSentOCR ? 'cursor-pointer' : 'cursor-not-allowed'"
-                  @click="isSentOCR ? getDataOCR() : null"
-                >
-                  <div
-                    class="surface-card border-round p-3 flex flex-column md:flex-row align-items-center z-1"
-                    :class="
-                      isSentOCR
-                        ? 'border-2 border-blue-500'
-                        : 'border-1 surface-border '
-                    "
-                  >
-                    <i
-                      class="pi pi-cloud-download text-2xl md:text-4xl mb-2 md:mb-0 mr-0 md:mr-3"
-                      :class="isSentOCR ? 'text-blue-600' : 'text-gray-500'"
-                    ></i>
-                    <div>
-                      <div
-                        class="text-blue-600 font-medium mb-1"
-                        :class="isSentOCR ? 'text-blue-600' : 'text-gray-500'"
-                      >
-                        ดึงข้อมูลจากระบบ OCR
-                      </div>
-                      <span class="text-600 text-sm hidden md:block"
-                        >กรุณาเลือกรูปแบบการบันทึกบัญชีก่อนดึงข้อมูล</span
-                      >
-                    </div>
-                  </div>
-                </li>
-              </ul>
             </div>
 
             <div
