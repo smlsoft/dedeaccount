@@ -8,7 +8,7 @@ import { usePrimeVue } from "primevue/config";
 
 const primevue = usePrimeVue();
 onMounted(() => {
-  document.title = "BC CLOUD ACCOUNT";
+  document.title = "DEDE ACCOUT";
 
   if (process.env.VUE_APP_DATE == "th") {
     primevue.config.locale.dayNames = [
