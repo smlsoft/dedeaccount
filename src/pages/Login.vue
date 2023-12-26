@@ -29,9 +29,11 @@ const isLoginMode = ref("loginMenu");
 
 function selectShop(data) {
   localStorage.shopid = data.shopid;
-  localStorage.shop_name = data.name;
+  const thNameObj = data.names.find(nameObj => nameObj.code === 'th');
+  localStorage.shop_name = thNameObj.name;
   localStorage.shop_role = data.role;
   localStorage.setLockSlideBar = false;
+
 
   AuthenService.selectShop().then((res) => {
     if (res.success) {

@@ -35,7 +35,8 @@ onMounted(() => {});
 
 async function selectShop(item) {
   localStorage.shopid = item.shopid;
-  localStorage.shop_name = item.name;
+  const thNameObj = data.names.find(nameObj => nameObj.code === 'th');
+  localStorage.shop_name = thNameObj.name;
   localStorage.shop_role = item.role;
 
   AuthenService.selectShop()
@@ -73,6 +74,8 @@ function checkShop() {
     }
   });
 }
+
+
 </script>
 
 <template>

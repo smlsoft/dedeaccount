@@ -110,6 +110,11 @@ function verifyData() {
     return false;
   }
 }
+
+function getNameByCode(names) {
+  const nameObj = names.find((name) => name.code === "th");
+  return nameObj ? nameObj.name : "Default Name";
+}
 </script>
 <template>
   <DataView
@@ -233,7 +238,7 @@ function verifyData() {
               class="shop-name white-space-nowrap overflow-hidden text-overflow-ellipsis"
               style="height: 30px"
             >
-              {{ slotProps.data.name }}
+              {{ getNameByCode(slotProps.data.names) }}
             </div>
           </div>
           <div class="shop-grid-item-bottom mt-2">
