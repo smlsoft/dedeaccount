@@ -63,7 +63,12 @@ async function saveCreateShop() {
 
   if (isPass) {
     let data = {
-      name1: nameShop.value,
+      names: [
+        {
+          code: "th",
+          name: nameShop.value,
+        },
+      ],
       telephone: telShop.value,
     };
     try {
@@ -198,7 +203,11 @@ function getNameByCode(names) {
             <div
               class="shop-name white-space-nowrap overflow-hidden text-overflow-ellipsis"
             >
-              {{ slotProps.data.name }}
+              {{
+                slotProps.data.names
+                  ? getNameByCode(slotProps.data.names)
+                  : slotProps.data.name
+              }}
             </div>
           </div>
           <div class="shop-list-action">
@@ -238,7 +247,11 @@ function getNameByCode(names) {
               class="shop-name white-space-nowrap overflow-hidden text-overflow-ellipsis"
               style="height: 30px"
             >
-              {{ getNameByCode(slotProps.data.names) }}
+              {{
+                slotProps.data.names
+                  ? getNameByCode(slotProps.data.names)
+                  : slotProps.data.name
+              }}
             </div>
           </div>
           <div class="shop-grid-item-bottom mt-2">
