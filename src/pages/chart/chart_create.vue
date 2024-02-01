@@ -1,9 +1,9 @@
 <script setup>
-import Form from "./components/form.vue";
+import FromChart from "./components/FormInput.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
-import { useRouter } from "vue-router";
+import { useRouter , useRoute} from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed } from "vue";
 import Utils from "@/utils/";
@@ -11,6 +11,7 @@ import { useApp } from "@/stores/app.js";
 
 const storeApp = useApp();
 const router = useRouter();
+const route = useRoute();
 const toast = useToast();
 
 const form_model = ref({
@@ -34,7 +35,15 @@ function goTo(path, param) {
   if (param != "") {
     router.push({ name: path, params: { id: param } });
   } else {
-    router.push({ name: path });
+    router.push({
+      name: path,
+      params: {
+        activePage: route.params.activePage,
+        rowpage: route.params.rowpage,
+        firstPage: route.params.firstPage,
+        filters: route.params.filters,
+      },
+    });
   }
 }
 
@@ -70,7 +79,7 @@ async function onSave(data) {
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-2">
-        <Form
+        <FromChart
           :form_model="form_model"
           v-on:save="onSave"
           v-on:back="goTo('chartList', '')"

@@ -159,7 +159,7 @@ function goTo(path) {
             </div>
             <div
               @click="goTo('images_job_upload')"
-              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+              class="cursor-pointer border-bottom-1  md:border-bottom-none surface-border flex-auto p-3"
             >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-image text-cyan-500 text-xl mr-2"></i>
@@ -176,7 +176,7 @@ function goTo(path) {
                 >{{ dataImages }}</span
               >
             </div>
-            <div
+            <!-- <div
               class="cursor-pointer flex-auto p-3"
               @click="goTo('user_list')"
             >
@@ -194,7 +194,7 @@ function goTo(path) {
                 v-if="!showSkeletonUser"
                 >{{ dataUser }}</span
               >
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

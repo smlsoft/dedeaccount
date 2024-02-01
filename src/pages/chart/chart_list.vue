@@ -17,20 +17,18 @@ const toast = useToast();
 const detail = ref();
 const myFiles = ref();
 const data_list = ref([]);
-const deleteDetailDialog = ref(false);
 const sortField = ref("accountcode");
 const sortOrder = ref(1);
 const totalItemsCount = ref(0);
 const limitPage = ref(20);
 const filters = ref(null);
 const loading = ref(true);
-const activePage = ref(1);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
-const firstPage = ref(1);
 const import_data = ref([]);
 const confirmDeleteDialog = ref(false);
-const pagerow = ref();
+const activePage = ref(1);
+const firstPage = ref(1);
 const props = defineProps({
   chartlistcode: Object,
 });
@@ -49,16 +47,11 @@ const accountbalancetypeList = ref([
 ]);
 const groupAccount_detail = ref([]);
 
-onUnmounted(() => {
-  localStorage.removeItem("activePage");
-  localStorage.removeItem("rowpage");
-  localStorage.removeItem("firstPage");
-});
-
 onMounted(() => {
-  console.log("localStorage.activePage :" + localStorage.activePage);
-  console.log("localStorage.rowpage :" + localStorage.rowpage);
-  console.log("localStorage.firstPage : " + localStorage.firstPage);
+  activePage.value = route.params.activePage ?? 1;
+  limitPage.value = route.params.rowpage ?? 20;
+  firstPage.value = route.params.firstPage ?? 0;
+  filters.value = route.params.filters ?? null;
 
   getAccountChartList();
   getAccountGroup();
@@ -81,10 +74,10 @@ function newResultBalance(data) {
 }
 
 function getAccountChartList() {
-  if (localStorage.activePage != null || localStorage.rowpage != null) {
-    limitPage.value = parseInt(localStorage.rowpage);
-    activePage.value = localStorage.activePage;
-    firstPage.value = parseInt(localStorage.firstPage);
+  if (activePage.value != null || limitPage.value != null) {
+    limitPage.value = parseInt(limitPage.value);
+    activePage.value = activePage.value;
+    firstPage.value = parseInt(firstPage.value);
   }
 
   loading.value = true;
@@ -151,11 +144,28 @@ function sortBy(data) {
 }
 
 function goCreate() {
-  router.push({ name: "chartCreate" });
+  router.push({
+    name: "chartCreate",
+    params: {
+      activePage: activePage.value,
+      rowpage: limitPage.value,
+      firstPage: firstPage.value,
+      filters: filters.value,
+    },
+  });
 }
 
 function goEdit(data) {
-  router.push({ name: "chartEdit", params: { id: data.guidfixed } });
+  router.push({
+    name: "chartEdit",
+    params: {
+      id: data.guidfixed,
+      activePage: activePage.value,
+      rowpage: limitPage.value,
+      firstPage: firstPage.value,
+      filters: filters.value,
+    },
+  });
 }
 
 function confirmDeleteDetail(data) {
@@ -223,13 +233,13 @@ function onClose() {
 }
 
 function onPage(event) {
-  localStorage.rowpage = event.rows;
-  localStorage.activePage = event.page + 1;
-  localStorage.firstPage = event.first;
+  limitPage.value = event.rows;
+  activePage.value = event.page + 1;
+  firstPage.value = event.first;
 
-  console.log(localStorage.activePage);
-  console.log(localStorage.rowpage);
-  console.log(localStorage.firstPage);
+  console.log(activePage.value);
+  console.log(limitPage.value);
+  console.log(firstPage.value);
 
   console.log(event);
   activePage.value = event.page + 1;
@@ -343,7 +353,7 @@ function rowClass(data) {
   } else {
     weghtFo = 0;
   }
-  console.log(level + data.accountlevel + weghtFo);
+  // console.log(level + data.accountlevel + weghtFo);
   return level + data.accountlevel + weghtFo;
 }
 
@@ -449,6 +459,20 @@ function rowClass(data) {
                 </div>
               </div>
             </template>
+            <template #footer>
+              <div
+                class="flex-1 flex align-items-center justify-content-center"
+              >
+                <Paginator
+                  :rows="limitPage"
+                  v-model:first="firstPage"
+                  :totalRecords="totalItemsCount"
+                  @page="onPage($event)"
+                  :rowsPerPageOptions="[20, 50, 100]"
+                >
+                </Paginator>
+              </div>
+            </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
             <Column
@@ -462,28 +486,19 @@ function rowClass(data) {
               class="accountname"
             ></Column>
 
-            <Column field="accountcategory" header="หมวดบัญชี" >
+            <Column field="accountcategory" header="หมวดบัญชี">
               <template #body="{ data, field }">
                 {{ newResultCategory(data[field]) }}
               </template>
             </Column>
-            <Column
-              field="accountbalancetype"
-              header="ด้านบัญชี"
-            >
+            <Column field="accountbalancetype" header="ด้านบัญชี">
               <template #body="{ data, field }">
                 {{ newResultBalance(data[field]) }}
               </template>
             </Column>
-            <Column
-              field="accountgroup"
-              header="กลุ่มบัญชี"
-            ></Column>
+            <Column field="accountgroup" header="กลุ่มบัญชี"></Column>
 
-            <Column
-              field="accountlevel"
-              header="ระดับบัญชี"
-            ></Column>
+            <Column field="accountlevel" header="ระดับบัญชี"></Column>
             <Column
               field="consolidateaccountcode"
               header="รหัสผังบัญชีกลาง"
