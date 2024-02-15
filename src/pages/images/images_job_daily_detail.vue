@@ -300,12 +300,28 @@ function getAllSelectImage() {
       console.log(res);
       if (res.success) {
         AllImageUsed.value = res.data;
-    
+
         if (checkUseImgByUser(localStorage._usercode)) {
-          /// goto form job daily
-          router.push({
-            name: "daily_images_job_form",
-            params: { id: jobId.value },
+          /// get docref by user
+          let docrefseleted = "";
+          AllImageUsed.value.forEach((element) => {
+            if (element.username == localStorage._usercode) {
+              docrefseleted = element.docref;
+            } else {
+              docrefseleted = "";
+            }
+          });
+          console.log("docrefseleted" + docrefseleted);
+
+          /// find docrefseleted in data_list
+          data_list.value.forEach((element) => {
+            if (element.guidfixed == docrefseleted) {
+              /// goto form job daily
+              router.push({
+                name: "daily_images_job_form",
+                params: { id: jobId.value },
+              });
+            }
           });
         }
       }
