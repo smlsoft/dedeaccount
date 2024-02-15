@@ -648,10 +648,21 @@ function getDataGL(references) {
 }
 
 function sendChange(data) {
-  connection.value.send(
-    JSON.stringify({ event: "change", payload: { status: data } })
-  );
+  // Check if the WebSocket is already in the OPEN state
+  if (connection.value.readyState === WebSocket.OPEN) {
+    connection.value.send(
+      JSON.stringify({ event: "change", payload: { status: data } })
+    );
+  } else {
+    // Listen for the 'open' event before sending data
+    connection.value.addEventListener('open', function() {
+      connection.value.send(
+        JSON.stringify({ event: "change", payload: { status: data } })
+      );
+    }, { once: true }); // Use the { once: true } option to only listen once
+  }
 }
+
 
 function goList() {
   removeSelectImg();

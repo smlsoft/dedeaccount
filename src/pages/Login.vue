@@ -162,10 +162,10 @@ async function loginWithGoogle() {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    // console.log("User signed in: ", user.displayName);
+    console.log("User signed in: ", user);
     if (user.accessToken != "") {
       localStorage.removeItem("_token");
-      await store.loginGoogle(user.accessToken, user.displayName);
+      await store.loginGoogle(user.accessToken, user.email);
       if (store.loginSuccess) {
         // select shop
         AuthenService.getListShop()
