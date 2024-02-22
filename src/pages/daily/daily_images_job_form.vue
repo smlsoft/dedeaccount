@@ -33,6 +33,7 @@ const totalItemsCount = ref(10);
 const data_list = ref([]);
 const document_formate = ref([]);
 const selectedImgUrl = ref("");
+
 const selectedImgData = ref({ guidfixed: "", imagereferences: [] });
 
 const scale = ref(1);
@@ -150,14 +151,14 @@ const listStatusImagesByDaily = ref([
 const statusImage = ref();
 const dialogOCR = ref(false);
 const responseDataOCR = ref();
+const responseDataOCRArr = ref([]);
+const dataOCRArr = ref([]);
 const documentFormateSelected = ref();
 const isSentOCR = ref(false);
 const isTackingStatus = ref(false);
 
 onUnmounted(() => {
-  console.log(
-    "unmounted--------------------------------------------------------"
-  );
+  console.log("unmounted--------------------------------------------------------");
 
   // removeSelectImg();
 
@@ -171,9 +172,7 @@ onUnmounted(() => {
 });
 
 watch(daily_form.value, (newValue, oldValue) => {
-  if (
-    JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)
-  ) {
+  if (JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)) {
     isChange.value = true;
     sendChange(1);
   } else {
@@ -203,8 +202,7 @@ watch(taxes.value, (newValue, oldValue) => {
 
 onMounted(async () => {
   // set height ifram
-  heightIamgeDivCheckGl.value =
-    "height:" + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value = "height:" + divCheckGl.value.offsetHeight + "px";
 
   jobId.value = route.params.id;
   storeApp.setActivePage("daily");
@@ -259,10 +257,7 @@ onMounted(async () => {
 });
 
 function WSImageConnect() {
-  WsConnectImage.value = new WebSocket(
-    "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
-      localStorage.getItem("_token")
-  );
+  WsConnectImage.value = new WebSocket("wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" + localStorage.getItem("_token"));
   WsConnectImage.value.onopen = function (event) {
     // console.log(event);
     // console.log(
@@ -278,11 +273,7 @@ function WSImageConnect() {
     //   e.reason
     // );
     setTimeout(function () {
-      if (
-        localStorage._token != "" &&
-        localStorage._token != undefined &&
-        route.name == "daily_images_job_form"
-      ) {
+      if (localStorage._token != "" && localStorage._token != undefined && route.name == "daily_images_job_form") {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
         //   e.reason
@@ -294,10 +285,7 @@ function WSImageConnect() {
 }
 
 function WsAllImageConnect() {
-  WsConnectAllImage.value = new WebSocket(
-    "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
-      localStorage.getItem("_token")
-  );
+  WsConnectAllImage.value = new WebSocket("wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" + localStorage.getItem("_token"));
   WsConnectAllImage.value.onopen = function (event) {
     // console.log(event);
     // console.log(
@@ -345,11 +333,7 @@ function WsAllImageConnect() {
     //   e.reason
     // );
     setTimeout(function () {
-      if (
-        localStorage._token != "" &&
-        localStorage._token != undefined &&
-        route.name == "daily_images_job_form"
-      ) {
+      if (localStorage._token != "" && localStorage._token != undefined && route.name == "daily_images_job_form") {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
         //   e.reason
@@ -362,10 +346,7 @@ function WsAllImageConnect() {
 }
 
 function websocketConnect() {
-  connection.value = new WebSocket(
-    "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
-      localStorage.getItem("_token")
-  );
+  connection.value = new WebSocket("wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" + localStorage.getItem("_token"));
   connection.value.onopen = function (event) {
     //console.log(event);
     //console.log("Successfully connected to the echo websocket server...");
@@ -384,9 +365,7 @@ function websocketConnect() {
               doc_images.value = res.data;
               countDocImage.value = doc_images.value.references.length;
 
-              var check_dup = data_list.value.filter(
-                (val) => val.guidfixed == doc_images.value.guidfixed
-              );
+              var check_dup = data_list.value.filter((val) => val.guidfixed == doc_images.value.guidfixed);
 
               if (check_dup.length == 0) {
                 data_list.value.splice(0, 0, doc_images.value);
@@ -429,16 +408,9 @@ function websocketConnect() {
   };
 
   connection.value.onclose = function (e) {
-    console.log(
-      "Socket is closed. Reconnect will be attempted in 1 second.",
-      e.reason
-    );
+    console.log("Socket is closed. Reconnect will be attempted in 1 second.", e.reason);
     setTimeout(function () {
-      if (
-        localStorage._token != "" &&
-        localStorage._token != undefined &&
-        route.name == "daily_images_job_form"
-      ) {
+      if (localStorage._token != "" && localStorage._token != undefined && route.name == "daily_images_job_form") {
         // console.log(
         //   "Socket is closed. Reconnect will be attempted in 1 second.",
         //   e.reason
@@ -546,9 +518,7 @@ function getDataGL(references) {
         if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
-          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
-            res.data.exdocrefdate
-          );
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
         }
         daily_form.value.exdocrefno = res.data.exdocrefno;
 
@@ -650,19 +620,18 @@ function getDataGL(references) {
 function sendChange(data) {
   // Check if the WebSocket is already in the OPEN state
   if (connection.value.readyState === WebSocket.OPEN) {
-    connection.value.send(
-      JSON.stringify({ event: "change", payload: { status: data } })
-    );
+    connection.value.send(JSON.stringify({ event: "change", payload: { status: data } }));
   } else {
     // Listen for the 'open' event before sending data
-    connection.value.addEventListener('open', function() {
-      connection.value.send(
-        JSON.stringify({ event: "change", payload: { status: data } })
-      );
-    }, { once: true }); // Use the { once: true } option to only listen once
+    connection.value.addEventListener(
+      "open",
+      function () {
+        connection.value.send(JSON.stringify({ event: "change", payload: { status: data } }));
+      },
+      { once: true }
+    ); // Use the { once: true } option to only listen once
   }
 }
-
 
 function goList() {
   removeSelectImg();
@@ -711,10 +680,7 @@ async function confirmSave() {
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
     docno: daily_form.value.docno,
-    exdocrefdate:
-      daily_form.value.exdocrefdate != ""
-        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
-        : "0001-01-01T00:00:00Z",
+    exdocrefdate: daily_form.value.exdocrefdate != "" ? Utils.getFormatDateTime(daily_form.value.exdocrefdate) : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
     journaldetail: daily_form.value.journaldetail,
@@ -798,6 +764,78 @@ function readOCR() {
   sentOCR();
 }
 
+function readOCRAll() {
+  console.log(data_list.value);
+  const promises = data_list.value.map((ele) => {
+    console.log(ele.guidfixed);
+    return sentOCRAll(ele);
+  });
+
+  Promise.all(promises)
+    .then(() => {
+      console.log("All OCR processes completed successfully.");
+
+      return Promise.all(responseDataOCRArr.value.map((ele) => getDataOCRAll(ele)));
+    })
+    .then(() => {
+      console.log("All getDataOCRAll operations completed successfully.");
+      console.log("dataOCRArr",dataOCRArr.value)
+      dialogOCR.value = true;
+    })
+    .catch((error) => {
+      console.error("An error occurred during OCR processing:", error);
+    });
+}
+
+const sentOCRAll = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      var send = {
+        resourcekey: data.guidfixed,
+        urlresources: [],
+      };
+
+      data.imagereferences.forEach((ele) => {
+        send.urlresources.push(ele.imageuri);
+      });
+
+      const res = await OcrService.postOCR(send); // Ensure send object is passed correctly
+      if (res.success) {
+        responseDataOCRArr.value.push(data);
+        console.log("OCR Process completed for:", data);
+        resolve("OCR Process completed successfully for " + data.guidfixed);
+      } else {
+        console.error("OCR service response not successful for:", data);
+        reject(new Error("OCR service response not successful for " + data.guidfixed));
+      }
+    } catch (error) {
+      console.error("OCR Process failed for:", data, "with error:", error);
+      reject(error);
+    }
+  });
+};
+
+async function getDataOCRAll(data) {
+  return new Promise(async (resolve, reject) => {
+    var send = {
+      resourcekey: data.guidfixed,
+      urlresources: [],
+    };
+
+    data.imagereferences.forEach((ele) => {
+      send.urlresources.push(ele.imageuri);
+    });
+    const res = await OcrService.getOCR(send);
+    if (res.success) {
+      dataOCRArr.value.push(res.data[0]);
+
+      resolve();
+    } else {
+      reject("Failed to fetch OCR data");
+    }
+  });
+}
+
 async function sentOCR() {
   var data = {
     resourcekey: doc_images.value.guidfixed,
@@ -868,9 +906,7 @@ async function getDataOCR() {
 
       if (responseDataOCR.value.data[0].tracking_status == "ReadyToCheck") {
         isTackingStatus.value = true;
-      } else if (
-        responseDataOCR.value.data[0].tracking_status == "processing"
-      ) {
+      } else if (responseDataOCR.value.data[0].tracking_status == "processing") {
         isTackingStatus.value = false;
         setTimeout(() => {
           getDataOCR();
@@ -898,9 +934,7 @@ function saveDataOCR(data) {
 
   daily_form.value.journaldetail.forEach((ele) => {
     if (data[0].body_json.hasOwnProperty(ele.actioncode)) {
-      ele.debitamount = parseFloat(
-        data[0].body_json[ele.actioncode].replace(/,/g, "")
-      );
+      ele.debitamount = parseFloat(data[0].body_json[ele.actioncode].replace(/,/g, ""));
     }
   });
 
@@ -958,35 +992,15 @@ function verifyData() {
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
-    if (
-      ele.accountcode == "" &&
-      ele.creditamount == "" &&
-      ele.debitamount == ""
-    ) {
+    if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount == "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount != "" &&
-      ele.debitamount != ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount != "" &&
-      ele.debitamount == ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount == "" &&
-      ele.debitamount != ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode != "" &&
-      ele.creditamount == "" &&
-      ele.debitamount == ""
-    ) {
+    } else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == "") {
       deletIndex.push(index);
     }
   });
@@ -1099,10 +1113,7 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod =
-      daily_form.value.accountperiod != null
-        ? parseInt(daily_form.value.accountperiod.toString())
-        : null;
+    daily_form.value.accountperiod = daily_form.value.accountperiod != null ? parseInt(daily_form.value.accountperiod.toString()) : null;
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }
@@ -1207,12 +1218,7 @@ function verifyVat() {
 }
 
 function getDocImageList() {
-  ImageDataService.documentimagegroupnoreserve(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    jobId.value
-  )
+  ImageDataService.documentimagegroupnoreserve(limitPage.value, activePage.value, searchItem.value, jobId.value)
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -1243,20 +1249,13 @@ function getDocImageList() {
 }
 
 function getNewDocImageList() {
-  ImageDataService.documentimagegroupnoreserve(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    jobId.value
-  )
+  ImageDataService.documentimagegroupnoreserve(limitPage.value, activePage.value, searchItem.value, jobId.value)
     .then((res) => {
       console.log(res);
       if (res.success) {
         data_list.value = res.data;
 
-        var check_dup = data_list.value.filter(
-          (val) => val.guidfixed == doc_images.value.guidfixed
-        );
+        var check_dup = data_list.value.filter((val) => val.guidfixed == doc_images.value.guidfixed);
 
         if (check_dup.length == 0) {
           data_list.value.splice(0, 0, doc_images.value);
@@ -1359,10 +1358,7 @@ function verifyTax() {
         toast.add({
           severity: "error",
           summary: "ไม่สามารถทำรายการได้",
-          detail:
-            "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " +
-            (index + 1) +
-            " ให้ครบ",
+          detail: "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " + (index + 1) + " ให้ครบ",
           life: 4000,
         });
         // ele.details.forEach((detail, indexx) => {
@@ -1412,9 +1408,7 @@ function ImportDaliy(data) {
 }
 
 function deleteDetail(data) {
-  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
-    (val) => val.index !== data
-  );
+  daily_form.value.journaldetail = daily_form.value.journaldetail.filter((val) => val.index !== data);
 
   if (daily_form.value.journaldetail.length == 0) {
     daily_form.value.journaldetail.push({
@@ -1433,8 +1427,7 @@ function deleteDetail(data) {
   });
 }
 function addColumn(index) {
-  heightIamgeDivCheckGl.value =
-    "height : " + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
 
   daily_form.value.journaldetail.splice(index + 1, 0, {
     index: index + 1,
@@ -1456,9 +1449,7 @@ function onRowReorder(data) {
 }
 
 function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter(
-    (val) => val.accountcode == data.accountcode
-  );
+  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
   daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
   daily_form.value.journaldetail[index].accountname = ele[0].accountname;
 }
@@ -1657,11 +1648,7 @@ function nextImage(index) {
 
   if (index > data_list.value.length - 6) {
     if (data_list.value.length - 6 < totalItemsCount.value - 6) {
-      MasterdataService.getDocImage(
-        limitPage.value,
-        activePage.value + 1,
-        searchItem.value
-      )
+      MasterdataService.getDocImage(limitPage.value, activePage.value + 1, searchItem.value)
         .then((res) => {
           console.log(res);
           if (res.success) {
@@ -2001,10 +1988,7 @@ async function updateStatus() {
     status: statusImage.value,
   };
   try {
-    const res = await ImageDataService.putDocumentImageGroupStatus(
-      doc_images.value.guidfixed,
-      data
-    );
+    const res = await ImageDataService.putDocumentImageGroupStatus(doc_images.value.guidfixed, data);
     if (res.success) {
       confirmRejectDialog.value = false;
 
@@ -2088,37 +2072,16 @@ function selectDucumentFormat(data) {
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-0">
-        <Button
-          label="กลับหน้ารายการ"
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-sm p-button-info"
-          @click="!isChange ? goList() : (confirmBackImageDialog = true)"
-        />
+        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info" @click="!isChange ? goList() : (confirmBackImageDialog = true)" />
 
         <div class="surface-card p-4 shadow-2 border-round p-fluid">
-          <Splitter
-            layout="horizontal"
-            @resizestart="resizeSplitter(true)"
-            @resizeend="resizeSplitter(false)"
-          >
-            <SplitterPanel
-              class="relative"
-              id="panelForm2"
-              @mouseleave="removeMagnify()"
-              :size="50"
-            >
-              <div
-                class="flex align-items-center justify-content-center"
-                style="min-height: 60vh"
-                v-if="onLoad"
-              >
+          <Splitter layout="horizontal" @resizestart="resizeSplitter(true)" @resizeend="resizeSplitter(false)">
+            <SplitterPanel class="relative" id="panelForm2" @mouseleave="removeMagnify()" :size="50">
+              <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
                 <ProgressSpinner animationDuration="10s" />
               </div>
               <div v-if="!onLoad">
-                <div
-                  class="flex justify-content-between"
-                  :class="!selectedImg ? 'flex-column' : ''"
-                >
+                <div class="flex justify-content-between" :class="!selectedImg ? 'flex-column' : ''">
                   <div class="flex">
                     <Button
                       v-if="selectedImg == false"
@@ -2170,12 +2133,8 @@ function selectDucumentFormat(data) {
                     />
                   </div>
                   <div class="flex">
-                    <Button
-                      label="OCR"
-                      icon="pi pi-eye"
-                      class="p-button-text"
-                      @click="readOCR()"
-                    />
+                    <Button label="OCR" icon="pi pi-eye" class="p-button-text" @click="readOCR()" />
+                    <Button label="OCRAll" icon="pi pi-eye" class="p-button-text" @click="readOCRAll()" />
                   </div>
                 </div>
 
@@ -2192,59 +2151,21 @@ function selectDucumentFormat(data) {
                       <template #item="slotProps">
                         <div class="grid w-full">
                           <div class="col-12">
-                            <div
-                              class="flex justify-content-between flex-wrap card-container purple-container"
-                            >
-                              <Chip
-                                :label="slotProps.item.name"
-                                icon="pi pi-image"
-                                class="mt-2"
-                              />
-                              <Chip
-                                :label="
-                                  'วันที่ : ' +
-                                  Utils.getDateTimeFormat(
-                                    slotProps.item.uploadedat
-                                  )
-                                "
-                                icon="pi pi-calendar"
-                                class="mr-2 mt-2"
-                              />
+                            <div class="flex justify-content-between flex-wrap card-container purple-container">
+                              <Chip :label="slotProps.item.name" icon="pi pi-image" class="mt-2" />
+                              <Chip :label="'วันที่ : ' + Utils.getDateTimeFormat(slotProps.item.uploadedat)" icon="pi pi-calendar" class="mr-2 mt-2" />
                             </div>
                           </div>
                           <div class="col-12" :style="heightIamgeDivCheckGl">
-                            <div
-                              class="relative"
-                              style="margin: 0px; padding: 0px; height: 100%"
-                            >
-                              <iframe
-                                :name="slotProps.item.imageuri"
-                                :src="
-                                  '/images/components/zoom?uri=' +
-                                  slotProps.item.imageuri
-                                "
-                                class="static"
-                              >
-                              </iframe>
-                              <div
-                                v-if="showOveray"
-                                class="absolute top-0 left-0"
-                                style="
-                                  width: 100%;
-                                  height: 100%;
-                                  background-color: white;
-                                  opacity: 0;
-                                "
-                              ></div>
+                            <div class="relative" style="margin: 0px; padding: 0px; height: 100%">
+                              <iframe :name="slotProps.item.imageuri" :src="'/images/components/zoom?uri=' + slotProps.item.imageuri" class="static"> </iframe>
+                              <div v-if="showOveray" class="absolute top-0 left-0" style="width: 100%; height: 100%; background-color: white; opacity: 0"></div>
                             </div>
                           </div>
                         </div>
                       </template>
                       <template #thumbnail="slotProps">
-                        <img
-                          :src="slotProps.item.imageuri"
-                          style="width: 40px; height: 40px"
-                        />
+                        <img :src="slotProps.item.imageuri" style="width: 40px; height: 40px" />
                       </template>
                       <template #footer> </template>
                     </Galleria>
@@ -2342,30 +2263,14 @@ function selectDucumentFormat(data) {
               ></Button> -->
             </div>
 
-            <div
-              class="mt-4 ml-0 flex align-items-center justify-content-center"
-            >
-              <Button
-                @click="onSave"
-                label="บันทึกรายวัน"
-                icon="pi pi-save"
-                class="w-auto p-button-success"
-              ></Button>
+            <div class="mt-4 ml-0 flex align-items-center justify-content-center">
+              <Button @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
             </div>
           </div>
         </div>
         <div class="flex mt-4 align-items-center justify-content-between">
-          <div
-            class="flex-grow-1 flex align-items-center justify-content-center"
-          >
-            <Galleria
-              :value="data_list"
-              thumbnailsPosition="top"
-              :showThumbnails="true"
-              :numVisible="10"
-              v-model:activeIndex="activeIndexList"
-              @update:activeIndex="nextImage"
-            >
+          <div class="flex-grow-1 flex align-items-center justify-content-center">
+            <Galleria :value="data_list" thumbnailsPosition="top" :showThumbnails="true" :numVisible="10" v-model:activeIndex="activeIndexList" @update:activeIndex="nextImage">
               <template #item="slotProps"> </template>
               <template #thumbnail="slotProps">
                 <div class="p-1 cursor-pointer">
@@ -2385,9 +2290,7 @@ function selectDucumentFormat(data) {
                         class="fadein p-link w-2rem h-2rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
                         style="top: 0rem; right: 0rem"
                       >
-                        <span class="font-bold text-white">{{
-                          slotProps.item.imagereferences.length
-                        }}</span>
+                        <span class="font-bold text-white">{{ slotProps.item.imagereferences.length }}</span>
                       </button>
                     </div>
                   </div>
@@ -2432,12 +2335,7 @@ function selectDucumentFormat(data) {
           confirmClearImageDialog = false;
         "
       ></DialogForm>
-      <DialogForm
-        :confirmDialog="confirmSaveDialog"
-        :textContent="conSave"
-        v-on:close="confirmSaveDialog = false"
-        v-on:confirm="confirmSave"
-      ></DialogForm>
+      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false" v-on:confirm="confirmSave"></DialogForm>
       <DialogForm
         :confirmDialog="confirmChangeImageDialog"
         :textContent="conchange"
@@ -2448,36 +2346,19 @@ function selectDucumentFormat(data) {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
-      <Dialog
-        v-model:visible="dialogOCR"
-        appendTo="body"
-        :modal="true"
-        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
-        :style="{ width: '40vw' }"
-        header="DATA RESPONSE OCR"
-      >
+      <Dialog v-model:visible="dialogOCR" appendTo="body" :modal="true" :breakpoints="{ '960px': '75vw', '640px': '100vw' }" :style="{ width: '40vw' }" header="DATA RESPONSE OCR">
         <div class="flex flex-column align-items-center">
-          <span
-            class="flex align-items-center justify-content-center text-cyan-800 mr-3 border-circle mb-3"
-            v-if="!isTackingStatus"
-          >
+          <span class="flex align-items-center justify-content-center text-cyan-800 mr-3 border-circle mb-3" v-if="!isTackingStatus">
             <ProgressSpinner />
           </span>
-          <div class="font-medium text-1xl text-900" v-if="!isTackingStatus">
-            กำลังประมวลผลข้อมูล OCR
-          </div>
+          <div class="font-medium text-1xl text-900" v-if="!isTackingStatus">กำลังประมวลผลข้อมูล OCR</div>
         </div>
         <p class="line-height-3 p-0 m-0" v-if="isTackingStatus">
           {{ responseDataOCR.data }}
         </p>
         <template #footer>
           <div class="border-top-1 surface-border pt-3">
-            <Button
-              icon="pi pi-save"
-              :disabled="!isTackingStatus"
-              @click="saveDataOCR(responseDataOCR.data)"
-              label="นำเข้าข้อมูล"
-            ></Button>
+            <Button icon="pi pi-save" :disabled="!isTackingStatus" @click="saveDataOCR(responseDataOCR.data)" label="นำเข้าข้อมูล"></Button>
           </div>
         </template>
       </Dialog>
