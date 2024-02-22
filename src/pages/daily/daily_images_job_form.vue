@@ -57,6 +57,10 @@ const conchange = "ต้องการเปลี่ยนรูปภาพ"
 const connamechange = "";
 const activeIndexList = ref(0);
 
+const dialogOCRAll = ref(false);
+const progress = ref(0);
+const totalOperations = ref(0);
+
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
@@ -763,27 +767,41 @@ function readOCR() {
   isTackingStatus.value = false;
   sentOCR();
 }
-
 function readOCRAll() {
   console.log(data_list.value);
+  responseDataOCRArr.value = [];
+  progress.value = 0;
+  totalOperations.value = data_list.value.length * 2;
+  dialogOCRAll.value = true;
+
   const promises = data_list.value.map((ele) => {
     console.log(ele.guidfixed);
-    return sentOCRAll(ele);
+    return sentOCRAll(ele).then(() => {
+      progress.value++;
+    });
   });
 
   Promise.all(promises)
     .then(() => {
       console.log("All OCR processes completed successfully.");
-
-      return Promise.all(responseDataOCRArr.value.map((ele) => getDataOCRAll(ele)));
+      dataOCRArr.value = [];
+      return Promise.all(
+        responseDataOCRArr.value.map((ele) => {
+          return getDataOCRAll(ele).then(() => {
+            progress.value++;
+          });
+        })
+      );
     })
     .then(() => {
       console.log("All getDataOCRAll operations completed successfully.");
-      console.log("dataOCRArr",dataOCRArr.value)
-      dialogOCR.value = true;
+      console.log("dataOCRArr", dataOCRArr.value);
     })
     .catch((error) => {
       console.error("An error occurred during OCR processing:", error);
+    })
+    .finally(() => {
+      progress.value = totalOperations.value;
     });
 }
 
@@ -2359,6 +2377,26 @@ function selectDucumentFormat(data) {
         <template #footer>
           <div class="border-top-1 surface-border pt-3">
             <Button icon="pi pi-save" :disabled="!isTackingStatus" @click="saveDataOCR(responseDataOCR.data)" label="นำเข้าข้อมูล"></Button>
+          </div>
+        </template>
+      </Dialog>
+      <Dialog
+        v-model:visible="dialogOCRAll"
+        appendTo="body"
+        :modal="true"
+        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+        :style="{ width: '40vw' }"
+        header="DATA RESPONSE OCR"
+      >
+        <div class="align-items-center ">
+          <progress  class="w-full" :value="progress" :max="totalOperations" v-if="progress != totalOperations" ></progress>
+        </div>
+        <p class="line-height-3 p-0 m-0" v-if="progress == totalOperations">
+          {{ dataOCRArr }}
+        </p>
+        <template #footer>
+          <div class="border-top-1 surface-border pt-3">
+            <!-- <Button icon="pi pi-save" :disabled="!isTackingStatus" @click="saveDataOCR(responseDataOCR.data)" label="นำเข้าข้อมูล"></Button> -->
           </div>
         </template>
       </Dialog>
