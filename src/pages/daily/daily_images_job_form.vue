@@ -775,7 +775,6 @@ function readOCRAll() {
   dialogOCRAll.value = true;
 
   const promises = data_list.value.map((ele) => {
-    console.log(ele.guidfixed);
     return sentOCRAll(ele).then(() => {
       progress.value++;
     });
@@ -820,7 +819,7 @@ const sentOCRAll = (data) => {
       const res = await OcrService.postOCR(send); // Ensure send object is passed correctly
       if (res.success) {
         responseDataOCRArr.value.push(data);
-        console.log("OCR Process completed for:", data);
+        console.log("OCR Process completed for:", data.guidfixed);
         resolve("OCR Process completed successfully for " + data.guidfixed);
       } else {
         console.error("OCR service response not successful for:", data);
@@ -845,9 +844,17 @@ async function getDataOCRAll(data) {
     });
     const res = await OcrService.getOCR(send);
     if (res.success) {
-      dataOCRArr.value.push(res.data[0]);
-
-      resolve();
+      if (res.data.length > 0) {
+        if (res.data[0].data[0].tracking_status == "ReadyToCheck") {
+          console.log("OCR Get completed for:", data.guidfixed);
+          dataOCRArr.value.push(res.data[0]);
+          resolve();
+        } else if (res.data[0].data[0].tracking_status == "processing") {
+          setTimeout(() => {
+            getDataOCR(data);
+          }, 30000);
+        }
+      }
     } else {
       reject("Failed to fetch OCR data");
     }
@@ -2388,8 +2395,8 @@ function selectDucumentFormat(data) {
         :style="{ width: '40vw' }"
         header="DATA RESPONSE OCR"
       >
-        <div class="align-items-center ">
-          <progress  class="w-full" :value="progress" :max="totalOperations" v-if="progress != totalOperations" ></progress>
+        <div class="align-items-center">
+          <progress class="w-full" :value="progress" :max="totalOperations" v-if="progress != totalOperations"></progress>
         </div>
         <p class="line-height-3 p-0 m-0" v-if="progress == totalOperations">
           {{ dataOCRArr }}
