@@ -1,5 +1,5 @@
 <script setup>
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted } from "vue";
 import Utils from "@/utils/";

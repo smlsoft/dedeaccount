@@ -8,7 +8,7 @@ import { useApp } from "@/stores/app.js";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import dayjs from "dayjs";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import Utils from "@/utils/";
 
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");

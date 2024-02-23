@@ -239,7 +239,7 @@ import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import { imagesUpload } from "@/stores/imagesUpload.js";
 import $ from "jquery";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import Utils from "@/utils/";
 
 const storeApp = useApp();

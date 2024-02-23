@@ -1,5 +1,5 @@
 <script setup>
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
 import { ref, onMounted, onUnmounted, computed } from "vue";

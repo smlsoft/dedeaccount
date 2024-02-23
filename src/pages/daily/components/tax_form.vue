@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 const deleteDetailTaxDialog = ref(false);
 const del_data = ref({ data: null, index: 0 });
 

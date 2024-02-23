@@ -9,8 +9,8 @@ import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
-import DialogForm from "@/components/form/DialogForm.vue";
-import DialogApprove from "@/components/form/DialogApprove.vue";
+import DialogForm from "@/components/DialogForm.vue";
+import DialogApprove from "@/components/DialogApprove.vue";
 
 const storeApp = useApp();
 const router = useRouter();

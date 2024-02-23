@@ -9,7 +9,7 @@ import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
 import ImageBlock from "../images_group/components/ImagesBlock.vue";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import $ from "jquery";
 
 const content = ref();

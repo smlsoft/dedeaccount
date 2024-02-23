@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from "@/components/layout/AppLayout.vue";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { ref, onMounted } from "vue";

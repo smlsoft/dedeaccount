@@ -6,7 +6,7 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import Form from "./components/form.vue";
 
 const storeApp = useApp();

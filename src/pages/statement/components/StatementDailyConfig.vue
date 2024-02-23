@@ -1,5 +1,4 @@
 <script setup>
-import Utils from "@/utils/";
 import MasterdataService from "@/services/MasterdataService";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
@@ -9,7 +8,6 @@ onMounted(() => {
   getAccountChart();
   getJournalBook();
 });
-
 
 const accountBook_detail = ref([]);
 const accountChart_detail = ref([]);
@@ -158,7 +156,6 @@ function returnTexReversal() {
           :inputClass="
             props.daily_config_valid.accountpassbook ? 'p-invalid' : ''
           "
-          :forceSelection="true"
           @item-select="setTextOtionPassbook($event)"
         >
           <template #item="slotProps">

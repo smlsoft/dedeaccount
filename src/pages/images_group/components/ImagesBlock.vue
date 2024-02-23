@@ -271,7 +271,7 @@ import Utils from "@/utils/";
 import $ from "jquery";
 import MasterdataService from "@/services/MasterdataService";
 import { useToast } from "primevue/usetoast";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 
 const toast = useToast();
 const confirmSaveImg = ref(false);

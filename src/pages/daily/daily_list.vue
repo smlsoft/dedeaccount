@@ -7,7 +7,7 @@ import { ref, onMounted, computed } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import dayjs from "dayjs";
 

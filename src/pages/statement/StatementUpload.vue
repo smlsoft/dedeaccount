@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
-import DialogApprove from "@/components/form/DialogApprove.vue";
+import DialogApprove from "@/components/DialogApprove.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import MasterdataService from "@/services/MasterdataService";
 import BankStatementReaderService from "@/services/BankStatementReaderService";
@@ -9,18 +9,15 @@ import { ref, onMounted, onUnmounted } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
 import { useToast } from "primevue/usetoast";
-import axios from "axios";
-import ktb from "./components/json_ktb.vue";
-import kma from "./components/json_kma.vue";
-import ttb from "./components/json_ttb.vue";
-import dailyConfig from "./components/daily_config.vue";
-import dailyList from "./components/daily_list.vue";
+import JsonDataTable from "./components/JsonTableData.vue";
+import StatementDailyConfig from "./components/StatementDailyConfig.vue";
+import StatementDailyList from "./components/StatementDailyList.vue";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useRouter } from "vue-router";
 import Numeral from "numeral";
-import DialogWarringPeriod from "@/components/form/DialogWarringPeriod.vue";
+import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
 
 import VuePdfApp from "vue3-pdf-app";
 
@@ -42,6 +39,21 @@ const bank_list = ref([
     code: "ttb",
     name: "ธนาคารทหารไทยธนชาต",
     logo: "ttb.png",
+  },
+  {
+    code: "uob",
+    name: "ธนาคารยูโอบี",
+    logo: "uob.png",
+  },
+  {
+    code: "kbank",
+    name: "ธนาคารกสิกรไทย",
+    logo: "kbank.png",
+  },
+  {
+    code: "bbl",
+    name: "ธนาคารกรุงเทพ",
+    logo: "bbl.png",
   },
 ]);
 
@@ -66,7 +78,7 @@ const showDataPDF = ref(false);
 const ramdomNumber = ref();
 const dialogSaveDaily = ref(false);
 const warringAccountperiod = ref(false);
-
+const isShowInputPassword = ref(false);
 // disable "Previous page" button
 const config = ref({
   sidebar: false,
@@ -114,12 +126,11 @@ onMounted(() => {
 });
 
 function modalSelectBank(data) {
-  uploadStatement.value = true;
   selectedBank.value = data;
-
-  if (selectedBank.value.code == "ttb") {
-    filepassword.value = "";
-  }
+  
+  filepasswordValid.value = false;
+  myFiles.value = null;
+  isShowInputPassword.value = false;
 }
 
 function closeUploadStatement() {
@@ -131,6 +142,7 @@ function closeUploadStatement() {
   };
   filepasswordValid.value = false;
   myFiles.value = null;
+  isShowInputPassword.value = false;
 }
 
 async function uploadFile() {
@@ -171,57 +183,26 @@ async function uploadFile() {
         }, 500);
       })
       .catch((error) => {
-        console.log(error.response);
         loading.value = false;
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: error.response.data.message,
-          life: 3000,
-        });
+        if (error.response.data.message == "No password given") {
+          filepasswordValid.value = true;
+          isShowInputPassword.value = true;
+          toast.add({
+            severity: "warn",
+            summary: "แจ้งเตือน",
+            detail: "กรุณากรอกรหัสผ่าน",
+            life: 3000,
+          });
+        } else if (error.response.data.message == "Incorrect Password") {
+          filepasswordValid.value = true;
+          toast.add({
+            severity: "error",
+            summary: "แจ้งเตือน",
+            detail: "รหัสผ่านไม่ถูกต้อง",
+            life: 3000,
+          });
+        }
       });
-
-    // await axios
-    //   .post("https://api.dev.dedepos.com/bankstatementreader/", formData, {
-    //     params: {
-    //       bank: selectedBank.value.code,
-    //       password: filepassword.value,
-    //     },
-    //     headers: {
-    //       "Content-Type": "multipart/form-data",
-    //     },
-    //   })
-    //   .then((response) => {
-    //     uploadStatement.value = false;
-    //     setTimeout(() => {
-    //       pdfData.value = response.data.result;
-    //       showDataPDF.value = true;
-    //       console.log(pdfData.value);
-    //       if (pdfData.value.length == 0) {
-    //         toast.add({
-    //           severity: "error",
-    //           summary: "Error",
-    //           detail: "รูปแบบไฟล์ไม่ถูกต้อง กรุณาตรวจสอบ",
-    //           life: 3000,
-    //         });
-    //         loading.value = false;
-    //         return;
-    //       } else {
-    //         loading.value = false;
-    //         showViewerPDF(dataPdfFile);
-    //       }
-    //     }, 500);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error.response);
-    //     loading.value = false;
-    //     toast.add({
-    //       severity: "error",
-    //       summary: "Error",
-    //       detail: error.response.data.message,
-    //       life: 3000,
-    //     });
-    //   });
   } else {
     loading.value = false;
   }
@@ -240,19 +221,6 @@ async function verifyData() {
     errorCount += 1;
   }
 
-  if (filepassword.value == "" && selectedBank.value.code != "ttb") {
-    toast.add({
-      severity: "warn",
-      summary: "แจ้งเตือน",
-      detail: "กรุณากรอกรหัสผ่าน",
-      life: 3000,
-    });
-    filepasswordValid.value = true;
-    errorCount += 1;
-  } else {
-    filepasswordValid.value = false;
-  }
-
   if (errorCount != 0) {
     return false;
   } else {
@@ -265,8 +233,7 @@ async function showViewerPDF(myFiles) {
   fileReader.readAsArrayBuffer(myFiles);
 
   fileReader.onload = () => {
-    const arrayBuffer = fileReader.result;
-    dataArrayBuffer.value = arrayBuffer;
+    dataArrayBuffer.value = fileReader.result;
 
     setTimeout(() => {
       const inpPdfPwd = document.getElementById("password");
@@ -312,6 +279,7 @@ function closeConfigDaily() {
 
 async function saveStatement() {
   let isPass = await verifyDataSave();
+  console.log(isPass);
   if (isPass) {
     generateDoc();
   }
@@ -394,83 +362,47 @@ async function generateDoc() {
     let float_deposit = 0;
     let float_withdraw = 0;
 
-    if (selectedBank.value.code == "ktb" || selectedBank.value.code == "kma") {
-      float_deposit = parseFloat(element.deposit.replace(",", ""));
-      float_withdraw = parseFloat(element.withdraw.replace(",", ""));
-      //ถอน
-      if (element.withdraw != "") {
-        journaldetail[0].accountcode =
-          daily_config.value.accountpassbook.accountcode;
-        journaldetail[0].accountname =
-          daily_config.value.accountpassbook.accountname;
-        journaldetail[0].debitamount = 0;
-        journaldetail[0].creditamount = float_withdraw;
+    float_deposit = parseFloat(element.deposit.replace(",", ""));
+    float_withdraw = parseFloat(element.withdraw.replace(",", ""));
 
-        journaldetail[1].accountcode = daily_config.value.reversal.accountcode;
-        journaldetail[1].accountname = daily_config.value.reversal.accountname;
-        journaldetail[1].debitamount = float_withdraw;
-        journaldetail[1].creditamount = 0;
-      }
-      //ฝาก
-      if (element.deposit != "") {
-        journaldetail[0].accountcode =
-          daily_config.value.accountpassbook.accountcode;
-        journaldetail[0].accountname =
-          daily_config.value.accountpassbook.accountname;
-        journaldetail[0].debitamount = float_deposit;
-        journaldetail[0].creditamount = 0;
+    //ถอน
+    if (element.withdraw != "") {
+      journaldetail[0].accountcode = daily_config.value.reversal.accountcode;
+      journaldetail[0].accountname = daily_config.value.reversal.accountname;
+      journaldetail[0].debitamount = float_withdraw;
+      journaldetail[0].creditamount = 0;
 
-        journaldetail[1].accountcode = daily_config.value.reversal.accountcode;
-        journaldetail[1].accountname = daily_config.value.reversal.accountname;
-        journaldetail[1].debitamount = 0;
-        journaldetail[1].creditamount = float_deposit;
-      }
-
-      //รายละเอียด
-      accountdescription =
-        selectedBank.value.name +
-        " ~ " +
-        element.name +
-        " " +
-        element.description;
-
-      accountdescription.trim();
-    } else if (selectedBank.value.code == "ttb") {
-      const regexDeposit = /^\+.*/g;
-      const regexWithdraw = /^\-.*/g;
-      if (regexDeposit.test(element.quantity)) {
-        float_deposit = Numeral(element.quantity.replace("+", "")).value();
-
-        journaldetail[0].accountcode =
-          daily_config.value.accountpassbook.accountcode;
-        journaldetail[0].accountname =
-          daily_config.value.accountpassbook.accountname;
-        journaldetail[0].debitamount = float_deposit;
-        journaldetail[0].creditamount = 0;
-
-        journaldetail[1].accountcode = daily_config.value.reversal.accountcode;
-        journaldetail[1].accountname = daily_config.value.reversal.accountname;
-        journaldetail[1].debitamount = 0;
-        journaldetail[1].creditamount = float_deposit;
-      } else if (regexWithdraw.test(element.quantity)) {
-        float_withdraw = Numeral(element.quantity.replace("-", "")).value();
-
-        journaldetail[0].accountcode =
-          daily_config.value.accountpassbook.accountcode;
-        journaldetail[0].accountname =
-          daily_config.value.accountpassbook.accountname;
-        journaldetail[0].debitamount = 0;
-        journaldetail[0].creditamount = float_withdraw;
-
-        journaldetail[1].accountcode = daily_config.value.reversal.accountcode;
-        journaldetail[1].accountname = daily_config.value.reversal.accountname;
-        journaldetail[1].debitamount = float_withdraw;
-        journaldetail[1].creditamount = 0;
-      }
-
-      //รายละเอียด
-      accountdescription = selectedBank.value.name + " ~ " + element.name;
+      journaldetail[1].accountcode =
+        daily_config.value.accountpassbook.accountcode;
+      journaldetail[1].accountname =
+        daily_config.value.accountpassbook.accountname;
+      journaldetail[1].debitamount = 0;
+      journaldetail[1].creditamount = float_withdraw;
     }
+    //ฝาก
+    if (element.deposit != "") {
+      journaldetail[0].accountcode =
+        daily_config.value.accountpassbook.accountcode;
+      journaldetail[0].accountname =
+        daily_config.value.accountpassbook.accountname;
+      journaldetail[0].debitamount = float_deposit;
+      journaldetail[0].creditamount = 0;
+
+      journaldetail[1].accountcode = daily_config.value.reversal.accountcode;
+      journaldetail[1].accountname = daily_config.value.reversal.accountname;
+      journaldetail[1].debitamount = 0;
+      journaldetail[1].creditamount = float_deposit;
+    }
+
+    //รายละเอียด
+    accountdescription =
+      selectedBank.value.name +
+      " ~ " +
+      element.name +
+      " " +
+      element.description;
+
+    accountdescription.trim();
 
     daily_form_bulk.value.push({
       docdate: covertDateToService(element.date),
@@ -521,17 +453,11 @@ async function generateDoc() {
 function covertDateToService(data) {
   let dateString = data;
 
-  // Convert the date object to ISO 8601 format
-  let dateObj = null;
-  if (selectedBank.value.code == "ktb") {
-    dateObj = dayjs.utc(dateString, "DD/MM/YY HH:mm");
-  } else if (selectedBank.value.code == "kma") {
-    dateObj = dayjs.utc(dateString, "DD/MM/YYYY HH:mm:ss");
-  } else if (selectedBank.value.code == "ttb") {
-    dateObj = dayjs.utc(dateString, "DD/MM/YYYY");
-  }
+  // Convert date format yyyy/mm/dd to ISO
+  let isoDate = new Date(
+    dateString.split("/").reverse().join("-") + "T00:00:00.000Z"
+  ).toISOString();
 
-  let isoDate = dateObj.toISOString();
   return isoDate;
 }
 
@@ -667,21 +593,10 @@ function createDaily() {
                 <ProgressSpinner animationDuration="10s" />
               </div>
               <div v-if="showDataPDF">
-                <ktb
-                  :pdfData="pdfData"
-                  v-if="selectedBank.code == 'ktb' && pdfData.length != 0"
-                />
-                <kma
-                  :pdfData="pdfData"
-                  v-if="selectedBank.code == 'kma' && pdfData.length != 0"
-                />
-                <ttb
-                  :pdfData="pdfData"
-                  v-if="selectedBank.code == 'ttb' && pdfData.length != 0"
-                />
+                <JsonDataTable :pdfData="pdfData" v-if="pdfData.length != 0" />
               </div>
 
-              <dailyList
+              <StatementDailyList
                 :data_list="daily_form_bulk"
                 v-if="showDataListDaily"
               />
@@ -706,7 +621,7 @@ function createDaily() {
     </div>
 
     <div class="grid">
-      <div class="col-12 lg:col-6 p-3" v-for="bank in bank_list">
+      <div class="col-12 lg:col-6 p-3" v-for="bank in bank_list" :key="bank.id">
         <div
           class="shadow-2 surface-card p-4 border-2 border-transparent cursor-pointer"
           style="border-radius: 10px"
@@ -752,7 +667,7 @@ function createDaily() {
           class="w-full"
         />
       </div>
-      <div class="col-12">
+      <div class="col-12" v-if="isShowInputPassword">
         <span class="p-float-label">
           <InputText
             type="password"
@@ -793,7 +708,7 @@ function createDaily() {
     :style="{ width: '60vw' }"
     header="กำหนดค่ารายวัน"
   >
-    <dailyConfig
+    <StatementDailyConfig
       :daily_config="daily_config"
       :daily_config_valid="daily_config_valid"
     />

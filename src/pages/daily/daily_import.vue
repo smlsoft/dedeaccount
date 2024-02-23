@@ -11,7 +11,7 @@ import XLSX from "xlsx";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 const storeApp = useApp();
 
 const router = useRouter();

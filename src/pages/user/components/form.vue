@@ -1,6 +1,6 @@
 <script setup>
-import DialogForm from "@/components/form/DialogForm.vue";
-import TextRequire from "@/components/form/TextRequire.vue";
+import DialogForm from "@/components/DialogForm.vue";
+import TextRequire from "@/components/TextRequire.vue";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted } from "vue";
 

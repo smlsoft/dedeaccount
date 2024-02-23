@@ -1,5 +1,5 @@
 <script setup>
-import DialogApprove from "@/components/form/DialogApprove.vue";
+import DialogApprove from "@/components/DialogApprove.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import ImageDataService from "@/services/ImageDataService";
 import MasterdataService from "@/services/MasterdataService";

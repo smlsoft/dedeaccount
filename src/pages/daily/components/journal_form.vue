@@ -10,7 +10,7 @@ import TextAutoComplete from "@/components/widget/TextAutoComplete.vue";
 import $ from "jquery";
 import { useToast } from "primevue/usetoast";
 import dayjs from "dayjs";
-import DialogWarringPeriod from "@/components/form/DialogWarringPeriod.vue";
+import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
 
 const tempCheckDate = ref(null);
 const toast = useToast();

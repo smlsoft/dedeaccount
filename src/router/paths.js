@@ -481,41 +481,8 @@ export default [
     meta: {
       auth: true,
     },
-    component: () => import("../pages/statement/statement_upload.vue"),
+    component: () => import("../pages/statement/StatementUpload.vue"),
   },
-  {
-    path: "/statement/components/json_ktb",
-    name: "json_ktb",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/statement/components/json_ktb.vue"),
-  },
-  {
-    path: "/statement/components/json_kma",
-    name: "json_kma",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/statement/components/json_kma.vue"),
-  },
-  {
-    path: "/statement/components/json_ttb",
-    name: "json_ttb",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/statement/components/json_ttb.vue"),
-  },
-  {
-    path: "/statement/components/daily_config",
-    name: "daily_config",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/statement/components/daily_config.vue"),
-  },
-
   {
     path: "/setting/account_book/main",
     name: "account_book",
