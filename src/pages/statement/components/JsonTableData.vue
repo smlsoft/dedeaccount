@@ -32,12 +32,12 @@
           <Column field="description" header="รายการ" />
           <Column header="เงินเข้า" bodyStyle="text-align: right;width: 10%">
             <template #body="slotProps">
-              {{ slotProps.data.withdraw }}
+              {{ slotProps.data.deposit}}
             </template>
           </Column>
           <Column header="เงินออก" bodyStyle="text-align: right;width: 10%">
             <template #body="slotProps">
-              {{ slotProps.data.deposit }}
+              {{ slotProps.data.withdraw }}
             </template>
           </Column>
   
