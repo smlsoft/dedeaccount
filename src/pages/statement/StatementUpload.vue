@@ -358,6 +358,9 @@ async function verifyDataSave() {
 async function generateDoc() {
   loading.value = true;
 
+  /// remove last row  sum totalDeposit and sum totalWithdraw
+  pdfData.value.pop();
+
   // head gl
   const batchId = Utils.getBatchID();
   const bookcode = daily_config.value.bookcode;
@@ -417,10 +420,7 @@ async function generateDoc() {
     }
 
     //รายละเอียด
-    accountdescription =
-      selectedBank.value.name +
-      " ~ " +
-      element.description;
+    accountdescription = selectedBank.value.name + " ~ " + element.description;
 
     accountdescription.trim();
 
