@@ -127,12 +127,11 @@ onMounted(() => {
 
 function modalSelectBank(data) {
   selectedBank.value = data;
-  
+
   filepassword.value = "";
   filepasswordValid.value = false;
   isShowInputPassword.value = false;
-  myFiles.value.clear(); 
-
+  myFiles.value.clear();
 }
 
 function closeUploadStatement() {
@@ -166,10 +165,30 @@ async function uploadFile() {
       .then((response) => {
         uploadStatement.value = false;
         setTimeout(() => {
+          showDataPDF.value = true;
           console.log(response);
           pdfData.value = response.result;
-          showDataPDF.value = true;
-          console.log(pdfData.value);
+
+          /// add last row sum totalDeposit and sum totalWithdraw and check "" or null replace 0
+          let sumDeposit = 0;
+          let sumWithdraw = 0;
+          pdfData.value.forEach((element) => {
+            if (element.deposit != "") {
+              sumDeposit += parseFloat(element.deposit.replace(",", ""));
+            }
+            if (element.withdraw != "") {
+              sumWithdraw += parseFloat(element.withdraw.replace(",", ""));
+            }
+          });
+
+          pdfData.value.push({
+            date: "",
+            description: "รวม",
+            deposit: Numeral(sumDeposit).format("0,0.00"),
+            withdraw: Numeral(sumWithdraw).format("0,0.00"),
+            balance: "",
+          });
+
           if (pdfData.value.length == 0) {
             toast.add({
               severity: "error",
@@ -401,8 +420,6 @@ async function generateDoc() {
     accountdescription =
       selectedBank.value.name +
       " ~ " +
-      element.name +
-      " " +
       element.description;
 
     accountdescription.trim();
