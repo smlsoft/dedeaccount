@@ -23,7 +23,7 @@
   
           <Column
             header="วันที่ทำรายการ"
-            bodyStyle="text-align: right;width: 15%"
+            bodyStyle="text-align: center;width: 15%"
           >
             <template #body="slotProps">
               {{ dayjs(slotProps.data.date).format("DD/MM/YYYY") }}
