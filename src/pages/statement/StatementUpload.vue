@@ -128,9 +128,11 @@ onMounted(() => {
 function modalSelectBank(data) {
   selectedBank.value = data;
   
+  filepassword.value = "";
   filepasswordValid.value = false;
-  myFiles.value = null;
   isShowInputPassword.value = false;
+  myFiles.value.clear(); 
+
 }
 
 function closeUploadStatement() {
@@ -140,6 +142,7 @@ function closeUploadStatement() {
     name: "ธนาคารกรุงไทย",
     logo: "ktb.png",
   };
+  filepassword.value = "";
   filepasswordValid.value = false;
   myFiles.value = null;
   isShowInputPassword.value = false;

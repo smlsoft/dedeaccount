@@ -29,9 +29,7 @@
               {{ dayjs(slotProps.data.date).format("DD/MM/YYYY") }}
             </template>
           </Column>
-  
-          <Column field="name" header="รายการ" />
-          <Column field="description" header="ผ่านช่องทาง" />
+          <Column field="description" header="รายการ" />
           <Column header="เงินเข้า" bodyStyle="text-align: right;width: 10%">
             <template #body="slotProps">
               {{ slotProps.data.withdraw }}
