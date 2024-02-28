@@ -21,6 +21,7 @@ import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
 
 import VuePdfApp from "vue3-pdf-app";
 
+
 const toast = useToast();
 const router = useRouter();
 const storeApp = useApp();
