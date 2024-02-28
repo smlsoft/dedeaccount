@@ -550,8 +550,22 @@ export default [
     },
     component: () => import("../pages/setting/document_formate/main.vue"),
   },
-
-
+  {
+    path: "/setting/account_debtor/main",
+    name: "account_debtor",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/account_debtor/main.vue"),
+  },
+  {
+    path: "/setting/account_creditor/main",
+    name: "account_creditor",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/account_creditor/main.vue"),
+  },
 
 
 

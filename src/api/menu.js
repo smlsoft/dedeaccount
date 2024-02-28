@@ -248,6 +248,18 @@ export const menus = [
         name: "account_group",
       },
       {
+        title: "กำหนดลูกหนี้",
+        icon: "pi pi-user",
+        to: "/setting/account_debtor/main",
+        name: "account_debtor",
+      },
+      {
+        title: "กำหนดเจ้าหนี้",
+        icon: "pi pi-user",
+        to: "/setting/account_creditor/main",
+        name: "account_creditor",
+      },
+      {
         title: "กำหนดงวดบัญชี",
         icon: "pi pi-link",
         to: "/accountPeriod/list",
