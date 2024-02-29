@@ -91,7 +91,7 @@ function doneTyping() {
         {{ slotProps.data.names[0].name }}
       </template>
     </Column>
-    <Column field="addressforbilling" header="ที่อยู่">
+    <!-- <Column field="addressforbilling" header="ที่อยู่">
       <template #body="slotProps">
         {{ slotProps.data.addressforbilling && slotProps.data.addressforbilling.address ?
           slotProps.data.addressforbilling.address[0] : '' }}
@@ -104,7 +104,7 @@ function doneTyping() {
       <template #body="slotProps">
         {{ slotProps.data.addressforbilling.phoneprimary }}
       </template>
-    </Column>
+    </Column> -->
 
     <Column bodyStyle="text-align:center" style="width: 5%" header="แก้ไข">
       <template #body="slotProps">

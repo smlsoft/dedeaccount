@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onUpdated, onMounted } from "vue";
 import $ from "jquery";
-import RadioButton from 'primevue/radiobutton';
+import Dropdown from 'primevue/dropdown';
+import district from "@/assets/thai_province_data/thai_amphures.json";
+import provinces from "@/assets/thai_province_data/thai_provinces.json";
+import subdistrict from "@/assets/thai_province_data/thai_tambons.json";
+
 
 const props = defineProps({
   form_model: Object,
@@ -13,10 +17,11 @@ const props = defineProps({
 
 const emit = defineEmits(["unFocusDebtorCode", "onSave"]);
 
-onMounted(() => {
+onMounted(() => {  
 });
 
 onUpdated(() => {
+  // console.log(props);
   if (props.debtorFocus) {
     $(".debtorCodeFocus").focus();
   }
@@ -44,15 +49,85 @@ function headerNextFocus(filedName) {
   }
 }
 
-
+///update radioType
 function updatePersonalType(type) {
   this.props.form_model.personaltype = type;
-  return this.props.form_model.personaltype; 
+  return this.props.form_model.personaltype;
 };
 function updateCustomertype(type) {
-  this.props.form_model.customertype= type;
-  return this.props.form_model.customertype; 
+  this.props.form_model.customertype = type;
+  return this.props.form_model.customertype;
 };
+
+/// ThaiProvinces
+const provincedata = ref({
+  provinces: [],
+  district: [],
+  subdistrict: [],
+  filteredDistricts:[],
+  filteredSubdistricts:[],
+  filteredZipcode:[],
+});
+
+provincedata.value.provinces = provinces.map(province => 
+  ({ 
+    name: province.name_th, 
+    id: province.id 
+  }));
+provincedata.value.district = district.map(district => 
+({ 
+  name: district.name_th, 
+  id: district.id, 
+  id_provice: district.province_id 
+}));
+provincedata.value.subdistrict = subdistrict.map(subdistrict => 
+({ 
+  name: subdistrict.name_th, 
+  id_subdistrict: subdistrict.id, 
+  zipcode: subdistrict.zip_code, 
+  id_amphure: subdistrict.amphure_id 
+}));
+
+const searchDistrict = async (id) => {
+  id = id.value.id; 
+  provincedata.value.filteredDistricts = provincedata.value.district
+    .filter(district => district.id_provice === id)
+    .map(filteredDistrict => ({
+      id: filteredDistrict.id,
+      name: filteredDistrict.name,
+      id_provice: filteredDistrict.id_provice 
+    }));
+  // console.log(provincedata.value.filteredDistricts);
+  return provincedata.value.filteredDistricts;
+};
+
+const searchSubdistricts = async (id) => { 
+  id = id.value.id; 
+  provincedata.value.filteredSubdistricts = provincedata.value.subdistrict
+    .filter(subdistrict => subdistrict.id_amphure === id) 
+    .map(filteredSubdistricts => ({ 
+      id_subdistrict: filteredSubdistricts.id_subdistrict, 
+      name: filteredSubdistricts.name,
+      id_amphure: filteredSubdistricts.id_amphure ,
+      zip_code: filteredSubdistricts.zipcode
+    }));
+  // console.log( provincedata.value.filteredSubdistricts);
+  return provincedata.value.filteredSubdistricts;
+};
+
+const searchZipcode = async (id) => { 
+  id = id.value.id_subdistrict; 
+  provincedata.value.filteredZipcode = provincedata.value.subdistrict
+    .filter(subdistrict => subdistrict.id_subdistrict === id) 
+    .map(filteredZipcodes => ({ 
+      zip_code: filteredZipcodes.zipcode.toString() // Convert zip code to string
+    }));
+  // console.log( provincedata.value.filteredZipcode);
+  return provincedata.value.filteredZipcode;
+};
+
+
+
 
 
 </script>
@@ -115,7 +190,7 @@ function updateCustomertype(type) {
 
       <div class="field col-6 md:col-12">
         <span class="p-float-label">
-          <InputText :disabled="readMode||props.form_model.customertype == 0" v-model="props.form_model.branchnumber"
+          <InputText :disabled="readMode || props.form_model.customertype == 0" v-model="props.form_model.branchnumber"
             :class="!props.form_valid.branchnumber ? 'p-invalid ' : ''" class="branchnumber"
             @keyup.enter="headerNextFocus('address')" />
           <label>หมายเลขสาขา</label>
@@ -130,6 +205,25 @@ function updateCustomertype(type) {
           <label>ที่อยู่</label>
         </span>
       </div>
+
+
+      <div class="align-center flex flex-wrap field col-6 md:col-12">
+        <Dropdown :disabled="readMode"  v-model="props.form_model.province" 
+        :options="provincedata.provinces" optionLabel="name"
+          placeholder="จังหวัด" class="md:w-21rem mr-1" @change="searchDistrict" />
+
+        <Dropdown :disabled="readMode"  v-model="props.form_model.district" 
+        :options="provincedata.filteredDistricts" optionLabel="name"
+          placeholder="อำเภอ" class="md:w-21rem mr-1" @change="searchSubdistricts"/>
+      </div>
+      <div class="align-center flex flex-wrap field col-6 md:col-12">
+        <Dropdown :disabled="readMode"  v-model="props.form_model.subdistrict" :options="provincedata.filteredSubdistricts" optionLabel="name"
+          placeholder="ตำบล" class="md:w-21rem mr-1" @change="searchZipcode"/>
+        <Dropdown :disabled="readMode"  v-model="props.form_model.zipcode" :options="provincedata.filteredZipcode" optionLabel="zip_code"
+          placeholder="รหัสไปรษณีย์" class="md:w-21rem mr-1" />
+      </div>  
+
+
 
       <div class="field col-6 md:col-12">
         <span class="p-float-label">

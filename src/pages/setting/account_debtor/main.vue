@@ -34,8 +34,14 @@ const form_model = ref({
   name: "",
   taxid: "",
   branchnumber: "",
-  address: "",
   addressforbilling: "",
+  address: "",
+
+  districtcode: "",
+  provincecode: "",
+  subdistrictcode: "",
+  zipcode: "",
+
   phoneprimary: "",
   personaltype: 0,
   customertype: 0,
@@ -51,6 +57,10 @@ const form_valid = ref({
   phoneprimary: true,
   personaltype: true,
   customertype: true,
+  districtcode: true,
+  provincecode: true,
+  subdistrictcode: true,
+  zipcode: true,
 });
 
 onMounted(() => {
@@ -59,6 +69,7 @@ onMounted(() => {
   storeApp.setActivePage("master");
   storeApp.setActiveChild("account_debtor");
 });
+
 
 function getDebtorList() {
   loading.value = true;
@@ -76,18 +87,27 @@ function getDebtorList() {
 
           let addrZero = (x.addressforbilling.address != null && x.addressforbilling.address.length > 0) ? x.addressforbilling.address[0] : "";
           let telephoneZero = x.addressforbilling.phoneprimary;
+          let district = x.addressforbilling.districtcode;
+          let province = x.addressforbilling.provincecode;
+          let subdistrict = x.addressforbilling.subdistrictcode;
+          let zipcode = x.addressforbilling.zip_code;
           return {
             ...x,
             name: x.names[0].name,
             address: addrZero,
-            phoneprimary: telephoneZero
+            phoneprimary: telephoneZero,
+            districtcode: district,
+            provincecode: province,
+            subdistrictcode: subdistrict,
+            zipcode: zipcode,
           };
         })
-        // console.log(newDataValue);
+
 
         data_list.value = newDataValue.sort(function (obj1, obj2) {
           return obj1.code - obj2.code;
         });
+        console.log(data_list.value);
         totalItemsCount.value = res.pagination.total;
         loading.value = false;
       }
@@ -156,10 +176,15 @@ function transformDebtorModels() {
     branchnumber: form_model.value.branchnumber,
     addressforbilling: {
       address: [form_model.value.address],
-      phoneprimary: form_model.value.phoneprimary
+      districtcode: form_model.value.districtcode,
+      phoneprimary: form_model.value.phoneprimary,
+      provincecode: form_model.value.provincecode,
+      subdistrictcode: form_model.value.subdistrictcode,
+      zipcode: form_model.value.zipcode.zip_code,
     },
     personaltype: form_model.value.personaltype,
     customertype: form_model.value.customertype,
+
   };
 
 
@@ -169,9 +194,6 @@ function transformDebtorModels() {
 
 async function confirmSave() {
   let data = transformDebtorModels()
-
-  // console.log(form_model.value.guidfixed);
-
   if (
     form_model.value.guidfixed == undefined ||
     form_model.value.guidfixed == "" ||
@@ -332,11 +354,12 @@ async function verifyData() {
   }
 }
 
+
 function onRowSelect(data) {
 
   readMode.value = true;
   form_model.value = data;
-
+  // console.log(data);
 }
 
 function editDebtor(data) {
