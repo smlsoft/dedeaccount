@@ -23,13 +23,19 @@
           </div>
           -->
           <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem"> รายงานทางการเงิน</i>
+            <i class="pi pi-book" style="font-size: 2rem">
+              {{ $t("statement") }}</i
+            >
           </div>
           <div class="field mb-12 col-12 md:col-12">
             <div class="flex flex-wrap card-container blue-container">
               <h1 for="selectedgroup" class="font-medium text-900"></h1>
-              <h3 class="field mb-4 col-4 md:col-3">งบดุล</h3>
-              <h4 class="field mb-4 col-4 md:col-1">สำหรับชุดบัญชี:</h4>
+              <h2 class="field mb-4 col-4 md:col-3">
+                {{ $t("balancesheet") }}
+              </h2>
+              <h4 class="field mb-4 col-4 md:col-2">
+                {{ $t("accountgroup") }}:
+              </h4>
               <div class="field mb-4 col-4 md:col-">
                 <Dropdown
                   class="field mb-12 col-12 md:col-12"
@@ -55,7 +61,7 @@
 
           <div class="field mb-4 col-6 md:col-3 ml-1=">
             <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่ :</label
+              >{{ $t("enddate") }} :</label
             >
             <DatePicker
               dateFormat="d/m/yy"
@@ -70,7 +76,7 @@
 
           <div class="field-checkbox mb-1 col-5 md:col-3">
             <Checkbox :binary="true" v-model="ica" />
-            <label>รวมรายการปิดบัญชีสิ้นปี</label>
+            <label>{{ $t("closing_entry") }}</label>
           </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
             <Button
@@ -78,12 +84,12 @@
               icon="pi pi-book"
               iconPos="left"
               @click="exportPDF()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
-            />
+              :disabled="endDate === null || accountGroup.length == 0"
+              ><i class="pi pi-book"></i>
+              <label style="text-align: center; margin: auto"
+                >{{ $t("process") }}
+              </label>
+            </Button>
             <!-- <Button
               label="จัดทำรายงาน"
               class="p-button-raised p-button-text"

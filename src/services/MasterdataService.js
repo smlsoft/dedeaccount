@@ -30,20 +30,60 @@ export default {
     ImportGLJournal(data) {
         return instanceApi(true).post(`/gl/journal/bulk`, data).then(res => res.data);
     },
-    getGLJournalList(limitPage, page, search, sortField, sortOrder) {
+    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDescription, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
         //console.log('Page' + page);
-        var q = "";
-        if (search != "" && search != undefined && search != null) {
-            q = "&q=" + search
+        var docno = "";
+        var docdate = "";
+        var accountyear = "";
+        var accountperiod = "";
+        var description = "";
+        var amount = "";
+        var createdate = "";
+        var createdby = "";
+
+        if (filtersByDocNo != "" && filtersByDocNo != undefined && filtersByDocNo != null) {
+            docno = "&docno=" + filtersByDocNo
         }
-        //console.log(`/gl/journal?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        if (filtersByDocDate != "" && filtersByDocDate != undefined && filtersByDocDate != null) {
+            docdate = "&docdate=" + filtersByDocDate
+        }
+
+        if (filtersByAccYear != "" && filtersByAccYear != undefined && filtersByAccYear != null) {
+            accountyear = "&accountyear=" + filtersByAccYear
+        }
+
+        if (filtersByAccPeriod != "" && filtersByAccPeriod != undefined && filtersByAccPeriod != null) {
+            accountperiod = "&accountperiod=" + filtersByAccPeriod
+        }
+
+        if (filtersByDescription != "" && filtersByDescription != undefined && filtersByDescription != null) {
+            description = "&accountdescription=" + filtersByDescription
+        }
+
+        if (filtersByAmount != "" && filtersByAmount != undefined && filtersByAmount != null) {
+            amount = "&amount=" + filtersByAmount
+        }
+
+        if (sendFiltersByCreateDate != "" && sendFiltersByCreateDate != undefined && sendFiltersByCreateDate != null) {
+            createdate = "&createdat=" + sendFiltersByCreateDate
+        }
+
+        if (filtersByCreateBy != "" && filtersByCreateBy != undefined && filtersByCreateBy != null) {
+            createdby = "&createdby=" + filtersByCreateBy
+        }
+
+        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
+
     getGLJournalListByDocref(data) {
         return instanceApi(true).get(`/gl/journal/docref/` + data).then(res => res.data);
     },
     deleteGLJournal(data) {
         return instanceApi(true).delete(`/gl/journal/` + data).then(res => res.data);
+    },
+    deleteGLJournalBatchId(data) {
+        return instanceApi(true).delete(`/gl/journal/batchid/` + data).then(res => res.data);
     },
     getGLDetail(id) {
         return instanceApi(true).get(`/gl/journal/${id}`).then(res => res.data);
@@ -70,7 +110,12 @@ export default {
     importChart(data) {
         return instanceApi(true).post(`/gl/chartofaccount/bulk`, data).then(res => res.data);
     },
+    // postDocumentImage
+    postDocumentImage(data) {
+        return instanceApi(true).post(`/documentimage`, data).then(res => res.data);
+    },
     getDocImage(limitPage, page, search, sortField, sortOrder, status) {
+        let byguid = "guidfixed:1";
         let s = "";
         let q = "";
         if (search != "" && search != undefined && search != null) {
@@ -79,8 +124,8 @@ export default {
         if (status != "" && status != undefined && status != null) {
             s = "&status=" + status
         }
-        console.log(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${s}`);
-        return instanceApi(true).get(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}${s}`).then(res => res.data);
+        console.log(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`);
+        return instanceApi(true).get(`/documentimage?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}&${byguid}${s}`).then(res => res.data);
     },
     getDocImageGroup(limitPage, page, search, sortField, sortOrder, status) {
         let s = "";
@@ -110,15 +155,15 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        //  console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getAccountledger(startdate, enddate, accountcode) {
-        //console.log('Page' + page);
 
-        // console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`);
         return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`).then(res => res.data);
     },
+
     postAccountChart(data) {
         return instanceApi(true).post(`/gl/chartofaccount`, data).then(res => res.data);
     },
@@ -195,6 +240,7 @@ export default {
         fd.append('file', file)
         return instanceApi(true).post(`/upload/images`, fd).then(res => res.data);
     },
+
     postSelectImage(data) {
         return instanceApi(true).post(`/gl/journal/docref/select`, data).then(res => res.data);
     },
@@ -234,6 +280,81 @@ export default {
         }
         // console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&status=0`);
         return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&status=0&docref-reserve=1`).then(res => res.data);
+    },
+
+    /// document formate
+    getDocumentFormateList(limitPage, page, search) {
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        return instanceApi(true).get(`/transaction/document-formate?limit=${limitPage}&page=${page}${q}`).then(res => res.data);
+
+    },
+
+    postDocumentFormate(data) {
+        return instanceApi(true).post(`/transaction/document-formate`, data).then(res => res.data);
+    },
+
+    putDocumentFormate(data, id) {
+        return instanceApi(true).put(`/transaction/document-formate/` + id, data).then(res => res.data);
+    },
+
+    deleteDocumentFormate(data) {
+        return instanceApi(true).delete(`/transaction/document-formate/` + data).then(res => res.data);
+    },
+
+
+    ///ลูกหนี้
+
+    getDebtorList(limitPage, page, search, sortField, sortOrder) {
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        //console.log(`/gl/journalbook?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/debtaccount/debtor?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+
+    },
+
+    postDebtor(data) {
+        return instanceApi(true).post(`/debtaccount/debtor`, data).then(res => res.data);
+    },
+    getDebtorById(id) {
+        return instanceApi(true).get(`/debtaccount/debtor/` + id).then(res => res.data);
+    },
+    putDebtor(id,data) {
+        return instanceApi(true).put(`/debtaccount/debtor/` + id, data).then(res => res.data);
+    },
+    deleteDebtor(data) {
+        return instanceApi(true).delete(`/debtaccount/debtor/` + data).then(res => res.data);
+    },
+
+    ///เจ้าหนี้
+
+    getCreditorList(limitPage, page, search, sortField, sortOrder) {
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        //console.log(`/gl/journalbook?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/debtaccount/creditor?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+
+    },
+
+    postCreditor(data) {
+        return instanceApi(true).post(`/debtaccount/creditor`, data).then(res => res.data);
+    },
+    getCreditorById(id) {
+        return instanceApi(true).get(`/debtaccount/creditor/` + id).then(res => res.data);
+    },
+    putCreditor(id,data) {
+        return instanceApi(true).put(`/debtaccount/creditor/` + id, data).then(res => res.data);
+    },
+    deleteCreditor(data) {
+        return instanceApi(true).delete(`/debtaccount/creditor/` + data).then(res => res.data);
     },
 
 

@@ -1,5 +1,5 @@
 <script setup>
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
@@ -9,10 +9,11 @@ import { ref, onMounted, computed, onUnmounted, watch } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
 import $ from "jquery";
-import ImageBlock from "../images/components/ImagesBlock.vue";
+import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import ImageDataService from "../../services/ImageDataService";
 
 const storeApp = useApp();
 const content = ref();
@@ -39,7 +40,7 @@ const totalItemsCount = ref(10);
 const data_gallery = ref([]);
 const data_list = ref([]);
 const selectedImgUrl = ref("");
-const selectedImgData = ref({ documentref: "", documentimages: [] });
+const selectedImgData = ref({ guidfixed: "", imagereferences: [] });
 const rotate = ref(0);
 
 const scale = ref(1);
@@ -50,6 +51,7 @@ const start = ref({ x: 0, y: 0 });
 const zoomStyle = ref("");
 
 const doc_images = ref([]);
+const countDocImage = ref();
 const WsConnectImage = ref();
 const AllImageUsed = ref([]);
 const WsConnectAllImage = ref();
@@ -99,6 +101,8 @@ const daily_form = ref({
   batchId: "",
   docdate: Utils.getDateTime(),
   docno: Utils.getDocNoDate("JO"),
+  exdocrefdate: "",
+  exdocrefno: "",
   journaltype: "0",
   bookcode: "",
   journaldetail: [
@@ -160,9 +164,14 @@ const newDocRefImage = ref("");
 const showThumbnails = ref(false);
 const modeEdit = ref(false);
 
+const confirmRemoveImgDialog = ref(false);
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
 
 onUnmounted(() => {
-  console.log("unmounted--------------------------------------------------------");
+  console.log(
+    "unmounted--------------------------------------------------------"
+  );
 
   WsConnectAllImage.value.close();
   WsConnectImage.value.close();
@@ -170,7 +179,9 @@ onUnmounted(() => {
 });
 
 watch(daily_form.value, (newValue, oldValue) => {
-  if (JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)) {
+  if (
+    JSON.stringify(daily_form.value) != JSON.stringify(daily_form_has.value)
+  ) {
     isChange.value = true;
     sendChange(1);
   } else {
@@ -198,11 +209,21 @@ watch(taxes.value, (newValue, oldValue) => {
   }
 });
 
-const confirmRemoveImgDialog = ref(false);
-function sendChange(data) {
-  connection.value.send(JSON.stringify({ event: "change", payload: { status: data } }));
-}
+watch(taxes.value, (newValue, oldValue) => {
+  if (taxes.value.length > 0) {
+    isChange.value = true;
+    sendChange(1);
+  } else {
+    isChange.value = false;
+    sendChange(0);
+  }
+});
+
 onMounted(() => {
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
+
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_images_list");
 
@@ -219,6 +240,8 @@ onMounted(() => {
     docno: daily_form.value.docno,
     journaltype: daily_form.value.journaltype,
     bookcode: daily_form.value.bookcode,
+    exdocrefdate: daily_form.value.exdocrefdate,
+    exdocrefno: daily_form.value.exdocrefno,
     journaldetail: [
       {
         accountcode: "",
@@ -239,7 +262,11 @@ onMounted(() => {
   WSImageConnect();
   WsAllImageConnect();
 
+  showpanel();
+  setWidthPanelForm2(30, 70);
+
   // setTimeout(() => {
+  //   console.log(selectedImgUrl.value );
   //   if (selectedImgUrl.value == "") {
   //     reLoadImage();
   //   }
@@ -249,7 +276,7 @@ onMounted(() => {
 function WSImageConnect() {
   WsConnectImage.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   WsConnectImage.value.onopen = function (event) {
     // console.log(event);
@@ -284,8 +311,8 @@ function WSImageConnect() {
 function checkActiveIndex() {
   setTimeout(() => {
     data_list.value.forEach((ele, index) => {
-      // console.log(doc_images.value.documentref + " - " + ele.documentref);
-      if (doc_images.value.documentref == ele.documentref) {
+      // console.log(doc_images.value.guidfixed + " - " + ele.guidfixed);
+      if (doc_images.value.guidfixed == ele.guidfixed) {
         activeIndexList.value = index;
       }
     });
@@ -295,7 +322,7 @@ function checkActiveIndex() {
 function WsAllImageConnect() {
   WsConnectAllImage.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   WsConnectAllImage.value.onopen = function (event) {
     // console.log(event);
@@ -363,43 +390,46 @@ function WsAllImageConnect() {
 function websocketConnect() {
   connection.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   connection.value.onopen = function (event) {
     //console.log(event);
     //console.log("Successfully connected to the echo websocket server...");
   };
   connection.value.onmessage = function (event) {
-    //console.log("onmessage ", event);
+    console.log("onmessage ", event);
     var jsonData = JSON.parse(event.data);
     if (jsonData.docref != "") {
       MasterdataService.getImagesByDocref(jsonData.docref)
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
+              countDocImage.value = doc_images.value.references.length;
 
               var check_dup = data_list.value.filter(
-                (val) => val.documentref == doc_images.value.documentref
+                (val) => val.guidfixed == doc_images.value.guidfixed
               );
 
               if (check_dup.length == 0) {
                 data_list.value.splice(0, 0, doc_images.value);
               }
-              if (res.data.documentimages.length > 1) {
+              if (res.data.imagereferences.length > 1) {
                 showThumbnails.value = true;
               } else {
                 showThumbnails.value = false;
               }
+
               selectedImgData.value = res.data;
-              selectedImgUrl.value = res.data.documentimages[0].imageuri;
-              // console.log(selectedImgUrl.value);
+              selectedImgUrl.value = res.data.imagereferences[0].imageuri;
+
+              //console.log(selectedImgUrl.value);
+
               selectedImg.value = true;
               waitForImages.value = false;
 
-              disableAllinput(res.data.documentimages[0].status);
-              //getGLJournalListByDocref();
+              disableAllinput(res.data.imagereferences[0].isreject);
               setTimeout(() => {
                 checkActiveIndex();
               }, 100);
@@ -413,7 +443,10 @@ function websocketConnect() {
   };
 
   connection.value.onclose = function (e) {
-    console.log("Socket is closed. Reconnect will be attempted in 1 second.", e.reason);
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      e.reason
+    );
     setTimeout(function () {
       if (
         localStorage._token != "" &&
@@ -434,7 +467,7 @@ function websocketConnect() {
 function disableAllinput(data) {
   //console.log(waitForImages.value);
   setTimeout(() => {
-    if (waitForImages.value || data == 1) {
+    if (waitForImages.value || data == true) {
       $("#panelForm3 :input").prop("disabled", true);
       $("#panelForm3 .p-dropdown").prop("disabled", true);
     } else {
@@ -463,11 +496,16 @@ function getAllSelectImage() {
     });
 }
 
+function sendChange(data) {
+  connection.value.send(
+    JSON.stringify({ event: "change", payload: { status: data } })
+  );
+}
+
 function goList() {
   removeSelectImg();
 
   setTimeout(() => {
-
     router.push({ name: "daily_images_list" });
   }, 100);
 }
@@ -493,16 +531,22 @@ async function confirmSave() {
   daily_form.value.amount = sumDebit;
   //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
   // console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  console.log(selectedImgData.value.guidfixed);
   var from_input = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
     accountyear: daily_form.value.accountyear,
-    documentref: selectedImgData.value.documentref,
+    documentref: selectedImgData.value.guidfixed,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
     docno: daily_form.value.docno,
+    exdocrefdate:
+      daily_form.value.exdocrefdate != ""
+        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
+        : "0001-01-01T00:00:00Z",
+    exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
     journaldetail: daily_form.value.journaldetail,
     parid: daily_form.value.parid,
@@ -517,17 +561,16 @@ async function confirmSave() {
     tax.taxdate = Utils.getFormatDateTime(tax.taxdate);
   });
 
-  //console.log(from_input);
+  console.log(from_input);
 
   console.log(modeEdit.value);
-  var old_img = selectedImgData.value.documentref;
+  var old_img = selectedImgData.value.guidfixed;
   if (modeEdit.value) {
     MasterdataService.putGLJournal(from_input, daily_form.value.guidfixed)
       .then((res) => {
-        //console.log(res);
+        console.log(res);
         if (res.success) {
           removeSelectImg();
-
           confirmSaveDialog.value = false;
           toast.add({
             severity: "success",
@@ -547,7 +590,7 @@ async function confirmSave() {
   } else {
     MasterdataService.postGLJournal(from_input)
       .then((res) => {
-        //console.log(res);
+        console.log(res);
         if (res.success) {
           removeSelectImg();
           confirmSaveDialog.value = false;
@@ -621,7 +664,35 @@ function verifyData() {
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
-    if (ele.accountcode == "") {
+    if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount != ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount == ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount != ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode != "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
     }
 
@@ -708,7 +779,9 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod = parseInt(daily_form.value.accountperiod.toString());
+    daily_form.value.accountperiod = parseInt(
+      daily_form.value.accountperiod.toString()
+    );
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }
@@ -813,7 +886,7 @@ function verifyVat() {
 }
 
 function getDocImageList() {
-  MasterdataService.documentimagegroupnoreserve(
+  ImageDataService.documentimagegroupnoreserve(
     limitPage.value,
     activePage.value,
     searchItem.value
@@ -838,23 +911,24 @@ function resizeend(event) {
   // console.log(event);
 }
 function deSelectImg() {
-  selectedImgData.value = { documentref: "", documentimages: [] };
+  selectedImgData.value = { guidfixed: "", imagereferences: [] };
   selectedImg.value = false;
   selectedImgUrl.value = "";
 }
 function removeSelectImg() {
-  var sendData = { docref: selectedImgData.value.documentref };
+  console.log(selectedImgData.value.guidfixed);
+  var sendData = { docref: selectedImgData.value.guidfixed };
   MasterdataService.postUnSelectImage(sendData)
     .then((res) => {
-      // console.log(res);
+      console.log(res);
       if (res.success) {
-        selectedImgData.value = { documentref: "", documentimages: [] };
+        selectedImgData.value = { guidfixed: "", imagereferences: [] };
         selectedImg.value = false;
         selectedImgUrl.value = "";
       }
     })
     .catch((err) => {
-      selectedImgData.value = { documentref: "", documentimages: [] };
+      selectedImgData.value = { guidfixed: "", imagereferences: [] };
       selectedImg.value = false;
       selectedImgUrl.value = "";
     });
@@ -889,7 +963,8 @@ function magnify(imgID, zoom) {
   /*set background properties for the magnifier glass:*/
   glass.style.backgroundImage = "url('" + img.src + "')";
   glass.style.backgroundRepeat = "no-repeat";
-  glass.style.backgroundSize = img.width * zoom + "px " + img.height * zoom + "px";
+  glass.style.backgroundSize =
+    img.width * zoom + "px " + img.height * zoom + "px";
   glass.style.zIndex = 99999;
   bw = 3;
   w = glass.offsetWidth / 2;
@@ -1000,7 +1075,9 @@ function verifyTax() {
           severity: "error",
           summary: "ไม่สามารถทำรายการได้",
           detail:
-            "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " + (index + 1) + " ให้ครบ",
+            "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " +
+            (index + 1) +
+            " ให้ครบ",
           life: 4000,
         });
         // ele.details.forEach((detail, indexx) => {
@@ -1029,15 +1106,15 @@ function verifyTax() {
 
 function rejectImg() {
   var post_data = { status: 1 };
-  console.log(selectedImgData.value.documentimages);
+  console.log(selectedImgData.value.imagereferences);
   MasterdataService.putrejectimagestatusonlyGuiD(
     post_data,
-    selectedImgData.value.documentimages[activeIndex.value].guidfixed
+    selectedImgData.value.imagereferences[activeIndex.value].guidfixed
   )
     .then((res) => {
       console.log(res);
       if (res.success) {
-        selectedImgData.value.documentimages[activeIndex.value].status = 1;
+        selectedImgData.value.imagereferences[activeIndex.value].status = 1;
       }
     })
     .catch((err) => {
@@ -1054,19 +1131,21 @@ function rejectImg() {
 }
 
 function hidepanel() {
-  var panel = document.getElementById("panelForm3");
-  panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
-  var panel2 = document.getElementById("panelForm2");
-  panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
+  setTimeout(() => {
+    var panel = document.getElementById("panelForm3");
+    panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
+    var panel2 = document.getElementById("panelForm2");
+    panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
+  }, 50);
 }
 function showpanel() {
   setTimeout(() => {
     var panel3 = document.getElementById("panelForm3");
-    panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
+    panel3.setAttribute("style", "flex-basis: calc(70% - 4px) !important");
 
     var panel2 = document.getElementById("panelForm2");
-    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
-  }, 30);
+    panel2.setAttribute("style", "flex-basis: calc(30% - 4px) !important");
+  }, 50);
 }
 
 function ImportDaliy(data) {
@@ -1095,6 +1174,9 @@ function deleteDetail(data) {
   });
 }
 function addColumn(index) {
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
+
   daily_form.value.journaldetail.splice(index + 1, 0, {
     index: index + 1,
     accountcode: "",
@@ -1115,7 +1197,9 @@ function onRowReorder(data) {
 }
 
 function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
+  var ele = accountChart_detail.value.filter(
+    (val) => val.accountcode == data.accountcode
+  );
   daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
   daily_form.value.journaldetail[index].accountname = ele[0].accountname;
 }
@@ -1281,8 +1365,9 @@ function getSumTaxBase(data) {
 }
 
 function nextImage(index) {
+  resetZoomImage();
   //console.log(index);
-  var docref = data_list.value[index].documentref;
+  var docref = data_list.value[index].guidfixed;
   var sendData = { docref: docref };
   console.log(checkUseImgByUser(localStorage._usercode));
   if (checkUseImgByUser(localStorage._usercode)) {
@@ -1296,6 +1381,7 @@ function nextImage(index) {
           if (res.data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             clearData();
+            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1344,6 +1430,8 @@ function clearData() {
   daily_form.value.batchId = "";
   daily_form.value.docdate = Utils.getDateTime();
   daily_form.value.docno = Utils.getDocNoDate("JO");
+  daily_form.value.exdocrefdate = "";
+  daily_form.value.exdocrefno = "";
   daily_form.value.bookcode = "";
   daily_form.value.journaldetail = [
     {
@@ -1364,6 +1452,8 @@ function clearData() {
     batchId: daily_form.value.batchId,
     docdate: daily_form.value.docdate,
     docno: daily_form.value.docno,
+    exdocrefdate: daily_form.value.exdocrefdate,
+    exdocrefno: daily_form.value.exdocrefno,
     journaltype: daily_form.value.journaltype,
     bookcode: daily_form.value.bookcode,
     journaldetail: [
@@ -1396,21 +1486,25 @@ function clearData() {
 }
 
 function nextImageOnSave(old_img) {
+  console.log(data_list.value);
   console.log(data_list.value.length);
   console.log(old_img);
   var rebuild = [];
   data_list.value.forEach((ele) => {
-    if (ele.documentref != old_img) {
+    if (ele.guidfixed != old_img) {
       rebuild.push(ele);
     }
   });
 
   data_list.value = rebuild;
   activeIndexList.value = 0;
+  activeIndex.value = 0;
+
   if (data_list.value.length > activeIndexList.value) {
-    console.log(data_list.value[activeIndexList.value].documentref);
-    useImage(data_list.value[activeIndexList.value].documentref);
+    console.log(data_list.value[activeIndexList.value].guidfixed);
+    useImage(data_list.value[activeIndexList.value].guidfixed);
   }
+
   removeImgFromList(old_img);
 }
 function removeImgFromList(data) {
@@ -1486,8 +1580,9 @@ function changeImage(data) {
           if (res.data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             confirmChangeImageDialog.value = false;
-
             clearData();
+
+            setWidthPanelForm2(30, 70);
           }
         }
       })
@@ -1530,7 +1625,7 @@ function changeImage(data) {
 }
 
 function reLoadImage() {
-  clearData();
+  console.log("postNextImage");
   MasterdataService.postNextImage()
     .then((res) => {
       if (res.success) {
@@ -1542,41 +1637,47 @@ function reLoadImage() {
     });
 }
 
-
 const setTransform = () => {
-  zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
-}
+  zoomStyle.value =
+    "transform:translate(" +
+    pointX.value +
+    "px, " +
+    pointY.value +
+    "px) scale(" +
+    scale.value +
+    ")";
+};
 
 function onmousedown(e) {
-  console.log(e);
+  //console.log(e);
   e.preventDefault();
   start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
   panning.value = true;
 }
 
 function onmouseup(e) {
-  console.log(e);
+  // console.log(e);
   panning.value = false;
 }
 
 function onmousemove(e) {
-  console.log(e);
+  // console.log(e);
   e.preventDefault();
   if (!panning.value) {
     return;
   }
-  pointX.value = (e.clientX - start.value.x);
-  pointY.value = (e.clientY - start.value.y);
+  pointX.value = e.clientX - start.value.x;
+  pointY.value = e.clientY - start.value.y;
   setTransform();
 }
 
 function onwheel(e) {
-  console.log(e);
+  // console.log(e);
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
-    delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-  (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
+    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
   pointX.value = e.clientX - xs * scale.value;
   pointY.value = e.clientY - ys * scale.value;
 
@@ -1591,33 +1692,78 @@ function resetZoomImage() {
   start.value = { x: 0, y: 0 };
   zoomStyle.value = "";
 }
+
+function setWidthPanelForm2(left, right) {
+  setTimeout(() => {
+    let box = document.getElementById("maincontainer");
+    let width = box.offsetWidth;
+
+    console.log("maincontainer: " + width);
+
+    let boxtable = document.getElementById("galleriabox");
+    boxtable.setAttribute("style", "width:" + (width * left) / 100 + "px");
+  }, 500);
+}
+
+function resizeGalleria(e) {
+  console.log("resizeGalleria");
+  console.log(e.sizes);
+  setWidthPanelForm2(e.sizes[0], e.sizes[1]);
+}
 </script>
 
 <template>
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-0">
-        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info"
-          @click="(!isChange) ? goList() : confirmBackImageDialog = true" v-if="!onLoad" />
-        <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
+        <Button
+          label="กลับหน้ารายการ"
+          icon="pi pi-arrow-left"
+          class="p-button-text p-button-sm p-button-info"
+          @click="!isChange ? goList() : (confirmBackImageDialog = true)"
+          v-if="!onLoad"
+        />
+        <div
+          class="flex align-items-center justify-content-center"
+          style="min-height: 60vh"
+          v-if="onLoad"
+        >
           <ProgressSpinner animationDuration="10s" />
         </div>
-        <div class="surface-card p-4 shadow-2 border-round p-fluid" v-if="!onLoad">
-          <Splitter layout="horizontal">
-            <SplitterPanel :size="50" class="relative" id="panelForm2" @mouseleave="removeMagnify()">
+        <div
+          class="surface-card p-4 shadow-2 border-round p-fluid"
+          v-if="!onLoad"
+        >
+          <Splitter layout="horizontal" @resizeend="resizeGalleria($event)">
+            <SplitterPanel
+              class="relative"
+              id="panelForm2"
+              @mouseleave="removeMagnify()"
+            >
               <div>
                 <div class="flex justify-content-between align-items-right">
                   <div>
-                    <Button v-if="selectedImg == false" icon="pi pi-angle-double-right" class="p-button-text" @click="
-                      selectedImg = true;
-                      showpanel();
-                    " />
-                    <Button v-if="selectedImg == true" icon="pi pi-angle-double-left" class="p-button-text" @click="
-                      selectedImg = false;
-                      hidepanel();
-                    " />
+                    <Button
+                      v-if="selectedImg == false"
+                      icon="pi pi-angle-double-right"
+                      class="p-button-text"
+                      @click="
+                        selectedImg = true;
+                        showpanel();
+                      "
+                    />
+                    <Button
+                      v-if="selectedImg == true"
+                      icon="pi pi-angle-double-left"
+                      class="p-button-text"
+                      @click="
+                        selectedImg = false;
+                        hidepanel();
+                      "
+                    />
                   </div>
-                  <div>
+      
+                  <!-- <div>
                     <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
                       class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
                     <Button v-if="waitForImages" icon="pi pi-refresh" class="p-button-text text-blue-500"
@@ -1628,149 +1774,261 @@ function resetZoomImage() {
 
                         removeMagnify();
                       " />
-                  </div>
+                  </div> -->
                 </div>
-                <div v-if="waitForImages" class="flex justify-content-center">
-                  <ProgressSpinner />
-                </div>
-                <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
-                  <Message severity="error" :closable="false" v-if="
-                    selectedImgData.documentref != '' &&
-                    selectedImgData.documentimages[activeIndex].status == 1
-                  ">
-                    <span class="flex align-items-center justify-content-center">
+
+                <div class="p-0" v-if="selectedImg">
+                  <Message
+                    severity="error"
+                    :closable="false"
+                    v-if="doc_images.isreject == true"
+                  >
+                    <span
+                      class="flex align-items-center justify-content-center"
+                    >
                       *Warning Message รูปโดนยกเลิก
-                      <Button icon="pi pi-refresh" class="p-button-text w-auto" label="เปลี่ยนรูป" @click="
-                        confirmRemoveImgDialog = true;
-                      
-                        removeMagnify();
-                      " /></span>
+                    </span>
                   </Message>
-                  <Message severity="warn" :closable="false" v-if="
-                    selectedImgData.documentref != '' &&
-                    selectedImgData.documentimages[activeIndex].status == 2
-                  ">
-                    *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
                 </div>
+
                 <KeepAlive>
-                  <Galleria v-if="selectedImg && !waitForImages" :value="doc_images.documentimages"
-                    :thumbnailsPosition="'top'" :showThumbnails="showThumbnails" v-model:activeIndex="activeIndex"
-                    :numVisible="10">
-                    <template #item="slotProps">
-                      <div class="p-3 img-magnifier-container mt-3">
-                        <div class="zoom_outer">
-                          <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)"
-                            @mouseup="onmouseup($event)" @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                            <img :src="slotProps.item.imageuri" class="p-image-preview zoom"
-                              :style="imagePreviewStyle" />
+                  <div id="galleriabox" v-if="selectedImg && !waitForImages">
+                    <Galleria
+                      :value="doc_images.imagereferences"
+                      :thumbnailsPosition="'top'"
+                      :showThumbnails="showThumbnails"
+                      v-model:activeIndex="activeIndex"
+                      :numVisible="
+                        doc_images.imagereferences.length > 5
+                          ? 10
+                          : doc_images.imagereferences.length
+                      "
+                      @update:activeIndex="resetZoomImage()"
+                    >
+                      <template #item="slotProps">
+                        <div class="grid w-full">
+                          <div class="col-12">
+                            <div
+                              class="flex justify-content-between flex-wrap card-container purple-container"
+                            >
+                              <Chip
+                                :label="slotProps.item.name"
+                                icon="pi pi-image"
+                                class="ml-2 mt-2"
+                              />
+                              <Chip
+                                :label="
+                                  'วันที่ : ' +
+                                  Utils.getDateTimeFormat(
+                                    slotProps.item.uploadedat
+                                  )
+                                "
+                                icon="pi pi-calendar"
+                                class="mr-2 mt-2"
+                              />
+                            </div>
+                          </div>
+                          <div class="col-12" :style="heightIamgeDivCheckGl">
+                            <div
+                              style="margin: 0px; padding: 0px; height: 100%"
+                            >
+                              <iframe
+                                :name="slotProps.item.imageuri"
+                                :src="
+                                  '/document_images/components/zoom?uri=' +
+                                  slotProps.item.imageuri
+                                "
+                              >
+                              </iframe>
+                            </div>
                           </div>
                         </div>
-
-                        <!-- <img
+                      </template>
+                      <template #thumbnail="slotProps">
+                        <img
                           :src="slotProps.item.imageuri"
-                          @click="magnify('myimage', 2)"
-                          class="w-full"
-                          :style="imagePreviewStyle"
-                          id="myimage"
-                        /> -->
-                      </div>
-                    </template>
-                    <template #thumbnail="slotProps">
-                      <img :src="slotProps.item.imageuri" style="width: 40px; height: 40px" />
-                    </template>
-                    <template #footer> </template>
-                  </Galleria>
+                          style="width: 40px; height: 40px"
+                        />
+                      </template>
+                      <template #footer> </template>
+                    </Galleria>
+                  </div>
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
-              <TabView class="tabview-custom" ref="tabview">
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-book mr-1"></i>
-                    <span> ข้อมูลรายวัน</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail" v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail" v-on:addColumn="addColumn" v-on:onRowReorder="onRowReorder"
-                      v-on:selectAccount="selectAccount">
-                    </JournalForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ข้อมูลภาษี</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
-                  </div>
-                </TabPanel>
-                <TabPanel>
-                  <template #header>
-                    <i class="pi pi-wallet mr-1"></i>
-                    <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
-                  </template>
-                  <div v-if="!onLoad">
-                    <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
-                  </div>
-                </TabPanel>
-              </TabView>
+            <SplitterPanel @click="removeMagnify()" id="panelForm3">
+              <div ref="divCheckGl">
+                <TabView class="tabview-custom" ref="tabview">
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-book mr-1"></i>
+                      <span> ข้อมูลรายวัน</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <JournalForm
+                        :daily_form="daily_form"
+                        :daily_form_valid="daily_form_valid"
+                        :accountChart_detail="accountChart_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectAccount="selectAccount"
+                      >
+                      </JournalForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ข้อมูลภาษี</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <VatForm
+                        :vats="vats"
+                        :vats_valid="vats_valid"
+                        v-on:addBoxVat="addBoxVat"
+                        v-on:deleteDetailVat="deleteDetailVat"
+                        v-on:calVatAmount="calVatAmount"
+                        v-on:checkDateFormat="checkDateFormat"
+                        v-on:setBranch="setBranch"
+                      ></VatForm>
+                    </div>
+                  </TabPanel>
+                  <TabPanel>
+                    <template #header>
+                      <i class="pi pi-wallet mr-1"></i>
+                      <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
+                    </template>
+                    <div v-if="!onLoad">
+                      <TaxForm
+                        :taxes="taxes"
+                        :taxes_valid="taxes_valid"
+                        v-on:addBoxTax="addBoxTax"
+                        v-on:deleteDetailTax="deleteDetailTax"
+                        v-on:getSumTaxBase="getSumTaxBase"
+                      ></TaxForm>
+                    </div>
+                  </TabPanel>
+                </TabView>
+              </div>
             </SplitterPanel>
           </Splitter>
           <div class="flex justify-content-between">
             <div class="mt-4 ml-0">
-              <Button :disabled="!isChange" @click="confirmClearImageDialog = true" :label="'ยกเลิกอัพเดท'"
-                icon="pi pi-refresh" class="w-auto p-button-danger"></Button>
+              <Button
+                :disabled="!isChange"
+                @click="confirmClearImageDialog = true"
+                :label="'ยกเลิกอัพเดท'"
+                icon="pi pi-refresh"
+                class="w-auto p-button-danger"
+              ></Button>
             </div>
             <div class="mt-4 ml-0">
-              <Button @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
+              <Button
+                @click="onSave"
+                label="บันทึกรายวัน"
+                icon="pi pi-save"
+                class="w-auto p-button-success"
+              ></Button>
             </div>
           </div>
         </div>
         <div class="flex mt-4 align-items-center justify-content-between">
-          <div class="flex-grow-1 flex align-items-center justify-content-center">
-            <Galleria :value="data_list" :thumbnailsPosition="'top'" :showThumbnails="true" :numVisible="10"
-              v-model:activeIndex="activeIndexList" @update:activeIndex="nextImage">
+          <div
+            class="flex-grow-1 flex align-items-center justify-content-center"
+          >
+            <Galleria
+              :value="data_list"
+              :thumbnailsPosition="'top'"
+              :showThumbnails="true"
+              :numVisible="data_list.length > 10 ? 10 : data_list.length"
+              v-model:activeIndex="activeIndexList"
+              @update:activeIndex="nextImage"
+            >
               <template #thumbnail="slotProps">
-                <img v-if="slotProps.item.documentimages.length > 0" :src="slotProps.item.documentimages[0].imageuri"
-                  style="width: 100%; display: block; padding: 5px; height: 80px" />
+                <div class="p-1 cursor-pointer">
+                  <div class="p-1 surface-card border-round">
+                    <div class="relative mb-1">
+                      <img
+                        v-if="slotProps.item.imagereferences.length > 0"
+                        :src="slotProps.item.imagereferences[0].imageuri"
+                        class="w-full"
+                        style="object-fit: cover; height: 100px"
+                      />
+
+                      <button
+                        v-if="slotProps.item.imagereferences.length > 1"
+                        type="text"
+                        v-ripple
+                        class="fadein p-link w-2rem h-2rem bg-blue-500 hover:bg-blue-600 border-circle shadow-2 inline-flex align-items-center justify-content-center absolute transition-colors transition-duration-300"
+                        style="top: 0rem; right: 0rem"
+                      >
+                        <span class="font-bold text-white">{{
+                          slotProps.item.imagereferences.length
+                        }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </template>
             </Galleria>
           </div>
         </div>
       </div>
-      <DialogForm :confirmDialog="confirmRejectDialog" :textContent="conreject" v-on:close="confirmRejectDialog = false"
-        v-on:confirm="rejectImg()"></DialogForm>
-      <DialogForm :confirmDialog="confirmRemoveImgDialog" :textContent="'ต้องการเปลี่ยนรูปใช่หรือไม่'"
-        v-on:close="confirmRemoveImgDialog = false" v-on:confirm="
+      <DialogForm
+        :confirmDialog="confirmRejectDialog"
+        :textContent="conreject"
+        v-on:close="confirmRejectDialog = false"
+        v-on:confirm="rejectImg()"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmRemoveImgDialog"
+        :textContent="'ต้องการเปลี่ยนรูปใช่หรือไม่'"
+        v-on:close="confirmRemoveImgDialog = false"
+        v-on:confirm="
           reLoadImage();
           confirmRemoveImgDialog = false;
-        "></DialogForm>
-      <DialogForm :confirmDialog="confirmBackImageDialog" :textContent="'ต้องการยกเลิกข้อมูลใช่หรือไม่'"
-        v-on:close="confirmBackImageDialog = false" v-on:confirm="
+        "
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmBackImageDialog"
+        :textContent="'ต้องการยกเลิกข้อมูลใช่หรือไม่'"
+        v-on:close="confirmBackImageDialog = false"
+        v-on:confirm="
           clearData();
           goList();
           confirmBackImageDialog = false;
-        "></DialogForm>
-      <DialogForm :confirmDialog="confirmClearImageDialog" :textContent="'ต้องการล้างข้อมูลใช่หรือไม่'"
-        v-on:close="confirmClearImageDialog = false" v-on:confirm="
+        "
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmClearImageDialog"
+        :textContent="'ต้องการล้างข้อมูลใช่หรือไม่'"
+        v-on:close="confirmClearImageDialog = false"
+        v-on:confirm="
           clearData();
           confirmClearImageDialog = false;
-        "></DialogForm>
+        "
+      ></DialogForm>
 
-      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false"
-        v-on:confirm="confirmSave"></DialogForm>
-      <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="conchange" :textContent2="connamechange"
+      <DialogForm
+        :confirmDialog="confirmSaveDialog"
+        :textContent="conSave"
+        v-on:close="confirmSaveDialog = false"
+        v-on:confirm="confirmSave"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmChangeImageDialog"
+        :textContent="conchange"
+        :textContent2="connamechange"
         v-on:close="
           confirmChangeImageDialog = false;
           checkActiveIndex();
-        " v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
+        "
+        v-on:confirm="changeImage(newDocRefImage)"
+      ></DialogForm>
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -1783,7 +2041,7 @@ function resetZoomImage() {
 .img-magnifier-glass {
   position: absolute;
   border: 1px solid #000;
-  border-radius: 50%;
+  border-radius: 40%;
   cursor: none;
   /*Set the size of the magnifier glass:*/
   width: 200px;
@@ -1798,31 +2056,11 @@ function resetZoomImage() {
   width: 100% !important;
 }
 
-
-.zoom_outer {
-  padding: 0;
-  outline: 0;
-  overflow: hidden;
-  position: relative;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto
-}
-
-#zoom {
-  padding: 20px;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #ffffff;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
-
-
-}
-
-div#zoom>img {
-  width: 100%;
-  height: auto;
-
 }
 </style>

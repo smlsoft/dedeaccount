@@ -1,17 +1,20 @@
 <script setup>
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
+import ImageDataService from "@/services/ImageDataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
-import ImageBlock from "../images/components/ImagesBlock.vue";
+import ImageBlock from "../images_group/components/ImagesBlock.vue";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import dayjs from "dayjs";
 import $ from "jquery";
 
 const conreject = "ต้องการยกเลิกรูปภาพ";
@@ -29,7 +32,7 @@ const confirmRejectDialog = ref(false);
 const onLoad = ref(false);
 const selectedImg = ref(false);
 const selectedImgUse = ref([]);
-
+const loading = ref(true);
 const isShowAll = ref(true);
 const isShowWait = ref(false);
 const isShowUnApprove = ref(false);
@@ -43,7 +46,14 @@ const totalItemsCount = ref(10);
 const data_gallery = ref([]);
 const data_list = ref([]);
 const selectedImgUrl = ref("");
-const selectedImgData = ref({ documentref: "", documentimages: [] });
+const selectedImgData = ref({
+  guidfixed: "",
+  imagereferences: [],
+  references: [],
+});
+const totalPage = ref(0);
+const sortReject = ref("0");
+const sortRef = ref("0");
 const rotate = ref(0);
 const scale = ref(1);
 const panning = ref(false);
@@ -59,6 +69,7 @@ const activeIndex = ref(0);
 const updateMode = ref(false);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
+const document_formate = ref([]);
 const groupAccount_detail = ref([]);
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref();
@@ -69,33 +80,28 @@ const imagePreviewStyle = computed({
     };
   },
 });
-const selectSort = ref("documentref");
+const selectSort = ref("uploadedat");
 const sortField = ref([
-  {
-    code: "documentref",
-    name: "เอกสารอ้างอิง",
-  },
-  {
-    code: "name",
-    name: "ตามชื่อ",
-  },
-
   {
     code: "uploadedat",
     name: "วันที่ Upload",
+  },
+  {
+    code: "title",
+    name: "ชื่อรูป",
   },
 ]);
 const showImageBy = ref("0");
 const sortOrder = ref(0);
 const firstPage = ref(0);
-const isGallery = ref(false);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
+const showSkeleton = ref(false);
 
 const daily_form = ref({
   accountdescription: "",
   accountgroup: "",
-  accountperiod: "1",
+  accountperiod: null,
   accountyear: parseInt(Utils.getYear().toString()) + 543,
   amount: "",
   batchId: "",
@@ -103,6 +109,8 @@ const daily_form = ref({
   docno: "",
   bookcode: "",
   journaltype: "0",
+  exdocrefdate: "",
+  exdocrefno: "",
   journaldetail: [
     {
       accountcode: "",
@@ -112,6 +120,7 @@ const daily_form = ref({
     },
   ],
   parid: "0000000",
+  documentformate: "",
 });
 
 const daily_form_valid = ref({
@@ -153,8 +162,12 @@ const taxes_valid = ref([
     custtaxid: false,
   },
 ]);
+const readMode = ref(false);
 
-
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
+const showOveray = ref(false);
+const warringAccountperiod = ref(false);
 
 onUnmounted(() => {
   console.log(
@@ -170,7 +183,6 @@ onMounted(() => {
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
-  getAllSelectImage();
   if (
     route.params.id != "" &&
     route.params.id != "" &&
@@ -178,17 +190,24 @@ onMounted(() => {
   ) {
     storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
     onLoad.value = true;
-    updateMode.value = true;
+    readMode.value = false;
     setTimeout(() => {
       getGLDetail(route.params.id);
     }, 1000);
   } else {
     storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
     daily_form.value.docno = Utils.getDocNoDate("JO");
+    readMode.value = false;
   }
+
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getDocumentFormate();
+
+  // set height ifram
+  heightIamgeDivCheckGl.value =
+    "height:" + divCheckGl.value.offsetHeight + "px";
 });
 
 function getImagesByDocref(data) {
@@ -196,11 +215,13 @@ function getImagesByDocref(data) {
   MasterdataService.getImagesByDocref(data).then((res) => {
     if (res.success) {
       console.log(res.data);
-      if (res.data.documentimages.length > 0) {
-        doc_images.value = res.data.documentimages;
+      if (res.data.imagereferences.length > 0) {
+        doc_images.value = res.data.imagereferences;
 
-        console.log(doc_images.value);
         selectedImgData.value = res.data;
+
+        console.log(selectedImgData.value);
+
         selectedImgUrl.value = doc_images.value[0].imageuri;
 
         selectedImg.value = true;
@@ -255,10 +276,10 @@ function getGLDetail(id) {
   MasterdataService.getGLDetail(id)
     .then((res) => {
       if (res.success) {
+        console.log(res);
+
         const vat = res.data.vats;
         const tax = res.data.taxes;
-
-        console.log(res.data);
 
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
@@ -271,6 +292,25 @@ function getGLDetail(id) {
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
         daily_form.value.journaldetail = res.data.journaldetail;
+        if (daily_form.value.journaldetail.length == 0) {
+          daily_form.value.journaldetail.push({
+            accountcode: "",
+            accountname: "",
+            debitamount: 0,
+            creditamount: 0,
+          });
+        }
+        if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
+          daily_form.value.exdocrefdate = "";
+        } else {
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
+            res.data.exdocrefdate
+          );
+        }
+
+        daily_form.value.exdocrefno = res.data.exdocrefno;
+
+        console.log(daily_form.value);
 
         if (res.data.vats.length > 0) {
           vats.value = [];
@@ -352,13 +392,16 @@ function getGLDetail(id) {
             .then((res) => {
               if (res.success) {
                 console.log(res.data);
-                if (res.data.documentimages.length > 0) {
-                  doc_images.value = res.data.documentimages;
+                if (res.data.imagereferences.length > 0) {
+                  doc_images.value = res.data.imagereferences;
                   selectedImgData.value = res.data;
-                  selectedImgUrl.value = res.data.documentimages[0].imageuri;
+                  selectedImgUrl.value = res.data.imagereferences[0].imageuri;
                   console.log(selectedImgUrl.value);
                   selectedImg.value = true;
                   showpanel();
+                  // set height ifram
+                  heightIamgeDivCheckGl.value =
+                    "height:" + divCheckGl.value.offsetHeight + "px";
                 }
               }
             })
@@ -369,8 +412,8 @@ function getGLDetail(id) {
           removeSelectImg();
         }
 
-        console.log(vats.value);
-        console.log(taxes.value);
+        // console.log(vats.value);
+        // console.log(taxes.value);
         onLoad.value = false;
       }
     })
@@ -409,7 +452,12 @@ function goList() {
   //removeSelectImg();
   removeMagnify();
   setTimeout(() => {
-    router.push({ name: "dailyList" });
+    console.log(readMode.value);
+    if (readMode.value) {
+      router.push({ name: "dailyList" });
+    } else {
+      router.push({ name: "dailyList" });
+    }
   }, 100);
 }
 
@@ -433,13 +481,13 @@ async function confirmSave() {
   });
   daily_form.value.amount = sumDebit;
   //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-  console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  //console.log(Utils.getFormatDateTime(daily_form.value.docdate));
   var from_input = {
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
     accountyear: daily_form.value.accountyear,
-    documentref: selectedImgData.value.documentref,
+    documentref: selectedImgData.value.guidfixed,
     amount: daily_form.value.amount,
     batchId: daily_form.value.batchId,
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
@@ -450,6 +498,11 @@ async function confirmSave() {
     parid: daily_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
+    exdocrefdate:
+      daily_form.value.exdocrefdate != ""
+        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
+        : "0001-01-01T00:00:00Z",
+    exdocrefno: daily_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
     vat.vatamount = parseFloat(vat.vatamount);
@@ -526,6 +579,7 @@ async function onSave() {
   var isPass = await verifyData();
   var isVaxPass = await verifyVat();
   var isTatPass = await verifyTax();
+
   if (isPass && isVaxPass && isTatPass) {
     confirmSaveDialog.value = true;
   }
@@ -535,7 +589,7 @@ function onPage(event) {
   limitPage.value = event.rows;
   console.log(activePage.value);
 
-  getDocImageList();
+  getDocumentImageGroup();
 }
 function verifyData() {
   var errorCount = 0;
@@ -552,12 +606,6 @@ function verifyData() {
   } else {
     daily_form_valid.value.docno = false;
   }
-  if (daily_form.value.accountperiod == "") {
-    errorCount += 1;
-    daily_form_valid.value.accountperiod = true;
-  } else {
-    daily_form_valid.value.accountperiod = false;
-  }
   if (daily_form.value.accountyear == "") {
     errorCount += 1;
     daily_form_valid.value.accountyear = true;
@@ -572,34 +620,103 @@ function verifyData() {
     daily_form_valid.value.bookcode = false;
   }
 
-  var sumCredit = 0;
-  var sumDebit = 0;
+  if (daily_form.value.accountperiod == null) {
+    errorCount += 1;
+    daily_form_valid.value.docdate = true;
+  } else {
+    daily_form_valid.value.docdate = false;
+  }
 
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
-    if (ele.accountcode == "") {
+    if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount != ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount != "" &&
+      ele.debitamount == ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode == "" &&
+      ele.creditamount == "" &&
+      ele.debitamount != ""
+    ) {
+      deletIndex.push(index);
+    } else if (
+      ele.accountcode != "" &&
+      ele.creditamount == "" &&
+      ele.debitamount == ""
+    ) {
       deletIndex.push(index);
     }
+  });
 
-    // if (ele.accountcode == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
-    // if (ele.accountname == "") {
-    //   errorCount += 1;
-    //   toast.add({
-    //     severity: "error",
-    //     summary: "ไม่สามารถทำรายการได้",
-    //     detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
-    //     life: 4000,
-    //   });
-    // }
+  // ลบ row accountcode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    daily_form.value.journaldetail.splice(idx, 1);
+  });
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+
+  if (daily_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (daily_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  var sumCredit = 0;
+  var sumDebit = 0;
+  daily_form.value.journaldetail.forEach((ele, index) => {
+    if (ele.accountcode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
+        life: 4000,
+      });
+    }
+    if (ele.accountname == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสบัญชี รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
 
     var debit = 0;
     var credit = 0;
@@ -618,12 +735,6 @@ function verifyData() {
       sumDebit += debit;
       //console.log(sumDebit);
     }
-  });
-
-  // ลบ row accountcode ที่เป็นค่าว่าง
-  deletIndex.forEach((ele, index) => {
-    let idx = ele - index;
-    daily_form.value.journaldetail.splice(idx, 1);
   });
 
   //console.log(sumCredit);
@@ -660,9 +771,10 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod = parseInt(
-      daily_form.value.accountperiod.toString()
-    );
+    daily_form.value.accountperiod =
+      daily_form.value.accountperiod != null
+        ? parseInt(daily_form.value.accountperiod.toString())
+        : null;
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }
@@ -766,28 +878,59 @@ function verifyVat() {
   }
 }
 
-function getDocImageList() {
-  MasterdataService.getDocImage(
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (res.data[0].perioddata.guidfixed != "") {
+          daily_form.value.accountperiod =
+            res.data[0].perioddata.guidfixed.period;
+        } else {
+          daily_form.value.accountperiod = null;
+          warringAccountperiod.value = true;
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      // toast.add({
+      //   severity: "warn",
+      //   summary: "แจ้งเตือน",
+      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      //   life: 3000,
+      // });
+    });
+}
+
+function getDocumentImageGroup() {
+  loading.value = true;
+  ImageDataService.getDocumentImageGroup(
     limitPage.value,
     activePage.value,
     searchItem.value,
     selectSort.value,
     sortOrder.value,
-    showImageBy.value
+    sortRef.value,
+    sortReject.value
   )
     .then((res) => {
       console.log(res);
       if (res.success) {
         data_list.value = res.data;
-        data_list.value.forEach((ele) => {
-          ele.isUpdate = false;
-        });
+        loading.value = false;
+        totalPage.value = res.pagination.totalPage;
         totalItemsCount.value = res.pagination.total;
-        console.log(totalItemsCount.value);
+        getAllSelectImage();
       }
     })
     .catch((err) => {
-      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
     });
 }
 
@@ -795,31 +938,15 @@ function resizeend(event) {
   console.log(event);
 }
 function removeSelectImg() {
-  selectedImgData.value = { documentref: "", documentimages: [] };
+  selectedImgData.value = {
+    guidfixed: "",
+    imagereferences: [],
+    references: [],
+  };
   selectedImg.value = false;
   selectedImgUrl.value = "";
   doc_images.value = [];
   hidepanel();
-  // var sendData = { docref: selectedImgData.value.documentref };
-
-  // MasterdataService.postUnSelectImage(sendData)
-  //   .then((res) => {
-  //     console.log(res);
-  //     if (res.success) {
-  //       selectedImgData.value = { documentref: "", documentimages: [] };
-  //       selectedImg.value = false;
-  //       selectedImgUrl.value = "";
-  //       doc_images.value = [];
-  //       hidepanel();
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     selectedImgData.value = { documentref: "", documentimages: [] };
-  //     selectedImg.value = false;
-  //     selectedImgUrl.value = "";
-  //     doc_images.value = [];
-  //     hidepanel();
-  //   });
 }
 function removeMagnify() {
   const elements = document.getElementsByClassName("img-magnifier-glass");
@@ -1112,22 +1239,48 @@ async function uploadProgress(data_import) {
         console.log(newfile);
         ele = newfile;
 
-        MasterdataService.upLoadDocImages(newfile, "GL")
+        ImageDataService.upLoadImages(ele, "GL")
           .then((res) => {
-            console.log(res);
+            //console.log(res);
             if (res.success) {
-              selectImg(res.data.documentref);
-              toast.add({
-                severity: "success",
-                summary: "Success",
-                detail: ele.name + " Uploaded",
-                life: 10000,
-              });
+              let datex = ele.lastModified.toString().slice(0, -3);
+              let timex = new Date(datex * 1000);
+
+              let newData = {
+                name: ele.name,
+                metafileat: Utils.getFormatDateTime(timex),
+                imageuri: res.data.uri,
+                uploadedby: localStorage._usercode,
+                uploadedat: Utils.getFormatDateTime(new Date()),
+              };
+              setTimeout(() => {
+                ImageDataService.postDocumentImage(newData)
+                  .then((res) => {
+                    console.log(res);
+                    if (res.success) {
+                      selectImg(res.groupid);
+                      toast.add({
+                        severity: "success",
+                        summary: "Success",
+                        detail: ele.name + " Uploaded",
+                        life: 10000,
+                      });
+                    }
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    toast.add({
+                      severity: "error",
+                      summary: "Error",
+                      detail: err,
+                      life: 3000,
+                    });
+                  });
+              }, 100);
             }
           })
           .catch((err) => {
             console.log(err);
-
             toast.add({
               severity: "error",
               summary: "Error",
@@ -1135,6 +1288,30 @@ async function uploadProgress(data_import) {
               life: 3000,
             });
           });
+
+        // MasterdataService.upLoadDocImages(newfile, "GL")
+        //   .then((res) => {
+        //     console.log(res);
+        //     if (res.success) {
+        //       selectImg(res.data.documentref);
+        //       toast.add({
+        //         severity: "success",
+        //         summary: "Success",
+        //         detail: ele.name + " Uploaded",
+        //         life: 10000,
+        //       });
+        //     }
+        //   })
+        //   .catch((err) => {
+        //     console.log(err);
+
+        //     toast.add({
+        //       severity: "error",
+        //       summary: "Error",
+        //       detail: err,
+        //       life: 3000,
+        //     });
+        //   });
       };
       image.src = readerEvent.target.result;
     };
@@ -1236,6 +1413,9 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
+
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
     accountname: "",
@@ -1255,7 +1435,9 @@ function onRowReorder(data) {
 }
 
 function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
+  var ele = accountChart_detail.value.filter(
+    (val) => val.accountcode == data.accountcode
+  );
   daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
   daily_form.value.journaldetail[index].accountname = ele[0].accountname;
 }
@@ -1292,6 +1474,27 @@ function getJournalBook() {
       console.log(err);
     });
 }
+
+function getDocumentFormate() {
+  MasterdataService.getDocumentFormateList()
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        /// remove res.data where module != GL
+        res.data = res.data.filter((val) => val.module == "GL");
+        document_formate.value = res.data.sort(function (obj1, obj2) {
+          return obj1.doccode - obj2.doccode;
+        });
+        document_formate.value.forEach((ele) => {
+          ele.label = ele.doccode + "~" + ele.description;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
 function getAccountGroup() {
   MasterdataService.getAccountGroup()
     .then((res) => {
@@ -1382,7 +1585,7 @@ function setBranch(index) {
 function selectSortUse(event) {
   // console.log(event);
   selectSort.value = event.value;
-  getDocImageList();
+  getDocumentImageGroup();
 }
 function addBoxTax() {
   taxes.value.push({
@@ -1424,89 +1627,106 @@ function getSumTaxBase(data) {
   return sum.toFixed(2);
 }
 
-const setTransform = () => {
-  zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
-}
-
-function onmousedown(e) {
-  console.log(e);
-  e.preventDefault();
-  start.value = { x: e.clientX - pointX.value, y: e.clientY - pointY.value };
-  panning.value = true;
-}
-
-function onmouseup(e) {
-  console.log(e);
-  panning.value = false;
-}
-
-function onmousemove(e) {
-  console.log(e);
-  e.preventDefault();
-  if (!panning.value) {
-    return;
-  }
-  pointX.value = (e.clientX - start.value.x);
-  pointY.value = (e.clientY - start.value.y);
-  setTransform();
-}
-
-function onwheel(e) {
-  console.log(e);
-  e.preventDefault();
-  var xs = (e.clientX - pointX.value) / scale.value,
-    ys = (e.clientY - pointY.value) / scale.value,
-    delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-  (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
-  pointX.value = e.clientX - xs * scale.value;
-  pointY.value = e.clientY - ys * scale.value;
-
-  setTransform();
-}
-
 function selectSortOrder(data) {
   console.log(data);
   sortOrder.value = data;
-  getDocImageListDefualt();
+  getDocumentImageGroupDefualt();
 }
 
-function getDocImageListDefualt() {
+function getDocumentImageGroupDefualt() {
   loading.value = true;
   selectedImg.value = [];
-  limitPage.value = 50,
-    activePage.value = 1,
-    searchItem.value = "",
-    showImageBy.value;
-  getDocImageList();
+  limitPage.value = 50;
+  activePage.value = 1;
+  searchItem.value = "";
+  getDocumentImageGroup();
 }
 
+function resizeSplitter(isOveray) {
+  showOveray.value = isOveray;
+  console.log(isOveray);
+}
+function setAccountPeriod(data) {
+  daily_form.value.accountperiod = data;
+}
+
+function selectDucumentFormat(data) {
+  if (data != null) {
+    daily_form.value.journaldetail = [];
+    var ele = document_formate.value.filter((val) => val.doccode == data);
+
+    console.log(ele[0]);
+
+    ele[0].details.forEach((element) => {
+      daily_form.value.journaldetail.push({
+        accountcode: element.accountcode,
+        accountname: element.detail,
+        debitamount: parseInt(element.debit),
+        creditamount: parseInt(element.credit),
+      });
+    });
+  } else {
+    daily_form.value.journaldetail = [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ];
+  }
+}
 </script>
 
 <template>
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-0">
-        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info"
-          @click="goList()" v-if="!onLoad" />
-        <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
+        <Button
+          label="กลับหน้ารายการ"
+          icon="pi pi-arrow-left"
+          class="p-button-text p-button-sm p-button-info"
+          @click="goList()"
+          v-if="!onLoad"
+        />
+        <div
+          class="flex align-items-center justify-content-center"
+          style="min-height: 60vh"
+          v-if="onLoad"
+        >
           <ProgressSpinner />
         </div>
-        <Dialog v-model:visible="showSelectFrom" :hide="((showImageList = false), (showUploadImage = false))"
-          class="p-dialog-maximized selectimgDialog" style="z-index: 800" :modal="true" :closeOnEscape="true"
-          :dismissableMask="true" :showHeader="true" :draggable="false">
+        <Dialog
+          v-model:visible="showSelectFrom"
+          :hide="((showImageList = false), (showUploadImage = false))"
+          class="p-dialog-maximized selectimgDialog"
+          style="z-index: 800"
+          :modal="true"
+          :closeOnEscape="true"
+          :dismissableMask="true"
+          :showHeader="true"
+          :draggable="false"
+        >
           <template #header>
             <h3 class="p-1 mt-2 mb-2">รูปภาพเอกสาร</h3>
           </template>
-          <div class="flex align-items-center justify-content-center mt-5" v-if="!showImageList && !showUploadImage">
+          <div
+            class="flex align-items-center justify-content-center mt-5"
+            v-if="!showImageList && !showUploadImage"
+          >
             <div class="flex mr-2">
               <Card
                 class="shadow-2 border-round pl-3 pr-3 pb-0 align-items-center justify-content-center cursor-pointer hover:border-green-700 border-2 border-300"
                 @click="
                   showImageList = true;
                   showUploadImage = false;
-                ">
+                "
+              >
                 <template #header>
-                  <img src="@/assets/img/galleryimg.png" style="height: 200px" />
+                  <img
+                    src="@/assets/img/galleryimg.png"
+                    style="height: 200px"
+                  />
                 </template>
                 <template #title>เลือกจากคลังรูป</template>
               </Card>
@@ -1514,159 +1734,309 @@ function getDocImageListDefualt() {
             <div class="flex ml-2">
               <Card
                 class="shadow-2 border-round pl-3 pr-3 pb-0 align-items-center justify-content-center cursor-pointer hover:border-green-700 border-2 border-300"
-                @click="chooseFile()">
+                @click="chooseFile()"
+              >
                 <template #header>
                   <img src="@/assets/img/folderimg.png" style="height: 200px" />
                 </template>
                 <template #title>อัพโหลดรูปภาพ</template>
-                <template #content><input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect"
-                    :multiple="false" accept="image/*" style="display: none" /></template>
+                <template #content
+                  ><input
+                    id="chooseFile"
+                    ref="fileInput"
+                    type="file"
+                    @change="onFileSelect"
+                    :multiple="false"
+                    accept="image/*"
+                    style="display: none"
+                /></template>
               </Card>
             </div>
           </div>
 
-          <div class="flex align-items-center justify-content-center mt-0" v-if="showImageList && !showUploadImage">
+          <div
+            class="flex align-items-center justify-content-center mt-0"
+            v-if="showImageList && !showUploadImage"
+          >
             <Card class="p-3 w-screen">
               <template #header>
                 <div class="p-inputgroup mt-2">
                   <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
+                  <Button
+                    icon="pi pi-search"
+                    @click="getDocumentImageGroup()"
+                    class="p-button-primary"
+                  />
                 </div>
                 <div class="flex justify-content-between">
                   <div class="grid mt-3 ml-1">
-                    <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage"
-                      :totalRecords="totalItemsCount" @page="onPage($event)">
+                    <Paginator
+                      class="justify-content-start"
+                      :rows="limitPage"
+                      v-model:first="firstPage"
+                      :totalRecords="totalItemsCount"
+                      @page="onPage($event)"
+                    >
                     </Paginator>
                   </div>
                   <div class="grid mt-3 mr-1">
                     <div class="flex align-items-center ml-2">
                       <span class="mr-2 text-900">การเรียงข้อมูล</span>
-                      <Dropdown v-model="selectSort" :options="sortField" optionLabel="name" optionValue="code"
-                        @change="selectSortUse($event)">
+                      <Dropdown
+                        v-model="selectSort"
+                        :options="sortField"
+                        optionLabel="name"
+                        optionValue="code"
+                        @change="selectSortUse($event)"
+                      >
                       </Dropdown>
-                      <i v-if="sortOrder == -1" class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem" @click="selectSortOrder(1)"></i>
-                      <i v-if="sortOrder == 1" class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem" @click="selectSortOrder(-1)"></i>
+                      <i
+                        v-if="sortOrder == -1"
+                        class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(1)"
+                      ></i>
+                      <i
+                        v-if="sortOrder == 1"
+                        class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                        style="font-size: 1.5rem"
+                        @click="selectSortOrder(-1)"
+                      ></i>
                     </div>
                   </div>
                 </div>
               </template>
               <template #content class="p-0">
-                <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
-                  <div class="flex align-content-center justify-content-center flex-wrap card-container"
-                    style="min-height: 56vh">
+                <div
+                  class="p-3 card"
+                  v-if="data_gallery.length == 0 && data_list.length == 0"
+                >
+                  <div
+                    class="flex align-content-center justify-content-center flex-wrap card-container"
+                    style="min-height: 56vh"
+                  >
                     <div class="p-0">
-                      <div class="text-xl text-300">
-                        <h3>ไม่พบรายการรูปภาพ</h3>
-                      </div>
+                      <ProgressSpinner />
                     </div>
                   </div>
                 </div>
-                <div class="grid pt-0 mt-0">
-                  <div class="col-12 md:col-6 xl:col-3 pt-0" v-for="(data, index) in data_gallery" :key="index">
-                    <div class="shadow-1 p-3 surface-card" style="cursor: pointer" @click="selectGallery(data.code)">
-                      <div class="flex justify-content-center align-items-center">
-                        <div class="p-0">
-                          <img src="@/assets/img/foldericon.svg" class="" />
-
-                          <!-- <div class="text-sm text-text-600">วันที่ {{ data.create_date }}</div>
-                  <div class="text-sm text-text-600">โดย {{ data.creator }}</div> -->
+                <div class="grid">
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3"
+                    v-for="data in data_list"
+                    :key="data.guidfixed"
+                  >
+                    <ImageBlock
+                      :images_data="data"
+                      :images_selete="selectedImgUse"
+                      :allimage_used="AllImageUsed"
+                      :mode="3"
+                      v-on:selectImg="selectImg"
+                    ></ImageBlock>
+                    <!-- 
+                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
+                      :allimage_used="AllImageUsed"></ImageBlock> -->
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
                         </div>
                       </div>
-                      <div class="flex justify-content-start align-items-center">
-                        <div class="p-1">
-                          <div class="text-md text-900 font-medium mb-2">
-                            {{ data.name }}
-                          </div>
-                          <!-- <div class="text-sm text-text-600">วันที่ {{ data.create_date }}</div>
-                  <div class="text-sm text-text-600">โดย {{ data.creator }}</div> -->
-                        </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
                       </div>
                     </div>
                   </div>
-                  <div class="col-12 md:col-6 xl:col-3 pt-0" v-for="data in data_list" :key="data.guidfixed">
-                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
-                      :allimage_used="AllImageUsed"></ImageBlock>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+                    v-if="showSkeleton"
+                  >
+                    <div class="custom-skeleton p-4">
+                      <div class="flex mb-3">
+                        <div>
+                          <Skeleton width="10rem" class="mb-2"></Skeleton>
+                          <Skeleton width="5rem" class="mb-2"></Skeleton>
+                          <Skeleton height=".5rem"></Skeleton>
+                        </div>
+                      </div>
+                      <Skeleton width="100%" height="150px"></Skeleton>
+                      <div class="flex justify-content-center mt-3">
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                        <Skeleton width="4rem" height="2rem"></Skeleton>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </template>
             </Card>
           </div>
         </Dialog>
-        <div class="surface-card p-4 shadow-2 border-round p-fluid" v-if="!onLoad">
-          <Splitter layout="horizontal">
-            <SplitterPanel :size="1" class="relative" id="panelForm2" @mouseleave="removeMagnify()">
+        <div
+          class="surface-card p-4 shadow-2 border-round p-fluid"
+          v-if="!onLoad"
+        >
+          <Splitter
+            layout="horizontal"
+            @resizestart="resizeSplitter(true)"
+            @resizeend="resizeSplitter(false)"
+          >
+            <SplitterPanel
+              :size="1"
+              class="relative"
+              id="panelForm2"
+              @mouseleave="removeMagnify()"
+            >
               <div class="flex justify-content-between align-items-right">
                 <div>
-                  <Button v-if="selectedImg == false" icon="pi pi-angle-double-right" class="p-button-text" @click="
-                    selectedImg = true;
-                    showpanel();
-                  " />
-                  <Button v-if="selectedImg == true" icon="pi pi-angle-double-left" class="p-button-text" @click="
-                    selectedImg = false;
-                    hidepanel();
-                  " />
+                  <Button
+                    v-if="selectedImg == false"
+                    icon="pi pi-angle-double-right"
+                    class="p-button-text"
+                    @click="
+                      selectedImg = true;
+                      showpanel();
+                    "
+                  />
+                  <Button
+                    v-if="selectedImg == true"
+                    icon="pi pi-angle-double-left"
+                    class="p-button-text"
+                    @click="
+                      selectedImg = false;
+                      hidepanel();
+                    "
+                  />
                 </div>
-                <div>
-                  <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-trash"
-                    class="p-button-text text-red-500" @click="confirmRejectDialog = true" />
-                  <Button v-if="selectedImg && selectedImgUrl != ''" icon="pi pi-times" class="p-button-text" @click="
+                <!-- <Button
+                    v-if="selectedImg && selectedImgUrl != ''"
+                    icon="pi pi-trash"
+                    class="p-button-text text-red-500"
+                    @click="confirmRejectDialog = true"
+                  /> -->
+                <Button
+                  v-if="selectedImg && selectedImgUrl != '' && !readMode"
+                  icon="pi pi-trash"
+                  class="p-button-text"
+                  @click="
                     removeSelectImg();
                     removeMagnify();
-                  " />
-                </div>
-              </div>
-              <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
-                  showSelectFrom = true;
-                  getDocImageList();
-                  removeMagnify();
-                " />
-              <div class="p-3" style="z-index: 500; position: absolute; top: 5rem; left: 1rem">
-                <Message severity="error" :closable="false" v-if="
-                  selectedImgData.documentref != '' &&
-                  selectedImgData.documentimages[activeIndex].status == 1
-                ">
-                  <span class="flex align-items-center justify-content-center">
-                    *Warning Message รูปโดนยกเลิก
-                  </span>
-                </Message>
-                <Message severity="warn" :closable="false" v-if="
-                  selectedImgData.documentref != '' &&
-                  selectedImgData.documentimages[activeIndex].status == 2
-                ">
-                  *Warning Message รูปนี้บันทึก GL เรียบร้อยแล้ว</Message>
+                  "
+                />
               </div>
               <KeepAlive>
-                <Galleria v-if="doc_images.length > 0 && selectedImg" :value="doc_images" :thumbnailsPosition="'top'"
-                  :showThumbnails="doc_images.length > 1" v-model:activeIndex="activeIndex">
-                  <template #item="slotProps">
-                    <div class="p-3 img-magnifier-container mt-3">
-                      <div class="zoom_outer">
-                        <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
-                          @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                          <img v-if="slotProps.item != null" :src="slotProps.item.imageuri"
-                            class="p-image-preview zoom" />
+                <div
+                  id="galleriabox"
+                  v-if="doc_images.length > 0 && selectedImg"
+                >
+                  <Galleria
+                    :value="doc_images"
+                    :showThumbnails="false"
+                    :circular="true"
+                    :showIndicators="doc_images.length > 1"
+                  >
+                    <template #item="slotProps">
+                      <div class="grid w-full">
+                        <div class="col-12">
+                          <div
+                            class="flex justify-content-between flex-wrap card-container purple-container"
+                          >
+                            <Chip
+                              :label="slotProps.item.name"
+                              icon="pi pi-image"
+                              class="mt-2"
+                            />
+                            <Chip
+                              :label="
+                                'วันที่ : ' +
+                                Utils.getDateTimeFormat(
+                                  slotProps.item.uploadedat
+                                )
+                              "
+                              icon="pi pi-calendar"
+                              class="mr-2 mt-2"
+                            />
+                          </div>
+                        </div>
+                        <div class="col-12" :style="heightIamgeDivCheckGl">
+                          <div
+                            class="relative"
+                            style="margin: 0px; padding: 0px; height: 100%"
+                          >
+                            <iframe
+                              :name="slotProps.item.imageuri"
+                              :src="
+                                '/images/components/zoom?uri=' +
+                                slotProps.item.imageuri
+                              "
+                              class="static"
+                            >
+                            </iframe>
+                            <div
+                              v-if="showOveray"
+                              class="absolute top-0 left-0"
+                              style="
+                                width: 100%;
+                                height: 100%;
+                                background-color: white;
+                                opacity: 0;
+                              "
+                            ></div>
+                          </div>
                         </div>
                       </div>
-                      <!-- <img v-if="slotProps.item != null" :src="slotProps.item.imageuri" @click="magnify('myimage', 2)"
-                        class="w-full" :style="imagePreviewStyle" id="myimage" /> -->
-                    </div>
-                  </template>
-                  <template #thumbnail="slotProps">
-                    <img :src="slotProps.item.imageuri" style="width: 40px; height: 40px" />
-                  </template>
-                  <template #footer></template>
-                </Galleria>
+                    </template>
+                  </Galleria>
+                </div>
               </KeepAlive>
 
-              <Button v-if="selectedImgUrl == ''" icon="pi pi-image"
-                class="p-button-raised p-button-rounded absolute bottom-0 left-0" @click="
-                  showSelectFrom = true;
-                  getDocImageList();
+              <Button
+                v-if="selectedImgUrl == ''"
+                icon="pi pi-image"
+                class="p-button-raised p-button-rounded absolute bottom-0 left-0"
+                @click="
+                  chooseFile();
+                  // showSelectFrom = true;
+                  getDocumentImageGroup();
                   removeMagnify();
-                " />
+                "
+              />
+              <input
+                id="chooseFile"
+                ref="fileInput"
+                type="file"
+                @change="onFileSelect"
+                :multiple="false"
+                accept="image/*"
+                style="display: none"
+              />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
               <TabView class="tabview-custom" ref="tabview">
@@ -1676,12 +2046,26 @@ function getDocImageListDefualt() {
                     <span> ข้อมูลรายวัน</span>
                   </template>
                   <div v-if="!onLoad">
-                    <JournalForm :daily_form="daily_form" :daily_form_valid="daily_form_valid"
-                      :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
-                      :groupAccount_detail="groupAccount_detail" v-on:ImportDaliy="ImportDaliy"
-                      v-on:deleteDetail="deleteDetail" v-on:reload="reload" v-on:addColumn="addColumn"
-                      v-on:onRowReorder="onRowReorder" v-on:selectAccount="selectAccount">
-                    </JournalForm>
+                    <div ref="divCheckGl">
+                      <JournalForm
+                        :isUpdate="readMode"
+                        :daily_form="daily_form"
+                        :daily_form_valid="daily_form_valid"
+                        :accountChart_detail="accountChart_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :document_formate="document_formate"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:reload="reload"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectAccount="selectAccount"
+                        v-on:setAccountPeriod="setAccountPeriod"
+                        v-on:selectDucumentFormat="selectDucumentFormat"
+                      >
+                      </JournalForm>
+                    </div>
                   </div>
                 </TabPanel>
                 <TabPanel>
@@ -1690,9 +2074,16 @@ function getDocImageListDefualt() {
                     <span> ข้อมูลภาษี</span>
                   </template>
                   <div v-if="!onLoad">
-                    <VatForm :vats="vats" :vats_valid="vats_valid" v-on:addBoxVat="addBoxVat"
-                      v-on:deleteDetailVat="deleteDetailVat" v-on:calVatAmount="calVatAmount"
-                      v-on:checkDateFormat="checkDateFormat" v-on:setBranch="setBranch"></VatForm>
+                    <VatForm
+                      :isUpdate="readMode"
+                      :vats="vats"
+                      :vats_valid="vats_valid"
+                      v-on:addBoxVat="addBoxVat"
+                      v-on:deleteDetailVat="deleteDetailVat"
+                      v-on:calVatAmount="calVatAmount"
+                      v-on:checkDateFormat="checkDateFormat"
+                      v-on:setBranch="setBranch"
+                    ></VatForm>
                   </div>
                 </TabPanel>
                 <TabPanel>
@@ -1701,8 +2092,14 @@ function getDocImageListDefualt() {
                     <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
                   </template>
                   <div v-if="!onLoad">
-                    <TaxForm :taxes="taxes" :taxes_valid="taxes_valid" v-on:addBoxTax="addBoxTax"
-                      v-on:deleteDetailTax="deleteDetailTax" v-on:getSumTaxBase="getSumTaxBase"></TaxForm>
+                    <TaxForm
+                      :isUpdate="readMode"
+                      :taxes="taxes"
+                      :taxes_valid="taxes_valid"
+                      v-on:addBoxTax="addBoxTax"
+                      v-on:deleteDetailTax="deleteDetailTax"
+                      v-on:getSumTaxBase="getSumTaxBase"
+                    ></TaxForm>
                   </div>
                 </TabPanel>
               </TabView>
@@ -1710,16 +2107,34 @@ function getDocImageListDefualt() {
           </Splitter>
 
           <div class="mt-4 ml-0">
-            <Button @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
+            <Button
+              :disabled="readMode"
+              @click="onSave"
+              label="บันทึกรายวัน"
+              icon="pi pi-save"
+              class="w-auto p-button-success"
+            ></Button>
           </div>
         </div>
       </div>
-      <DialogForm :confirmDialog="confirmRejectDialog" :textContent="conreject" v-on:close="confirmRejectDialog = false"
-        v-on:confirm="rejectImg()"></DialogForm>
-      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false"
-        v-on:confirm="confirmSave"></DialogForm>
-      <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="conchange"
-        v-on:close="confirmChangeImageDialog = false" v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmRejectDialog"
+        :textContent="conreject"
+        v-on:close="confirmRejectDialog = false"
+        v-on:confirm="rejectImg()"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmSaveDialog"
+        :textContent="conSave"
+        v-on:close="confirmSaveDialog = false"
+        v-on:confirm="confirmSave"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmChangeImageDialog"
+        :textContent="conchange"
+        v-on:close="confirmChangeImageDialog = false"
+        v-on:confirm="changeImage(newDocRefImage)"
+      ></DialogForm>
     </MainContentWarp>
   </AppLayout>
 </template>
@@ -1743,30 +2158,11 @@ function getDocImageListDefualt() {
   padding: 10px 15px 10px 15px;
 }
 
-
-.zoom_outer {
-  padding: 0;
-  outline: 0;
-  overflow: hidden;
-  width: auto;
-  height: auto;
-  margin: 0 auto
-}
-
-#zoom {
-  padding: 20px;
+iframe {
+  display: block; /* iframes are inline by default */
+  background: #ffffff;
+  border: none; /* Reset default border */
+  height: 100%; /* Viewport-relative units */
   width: 100%;
-  height: 100%;
-  transform-origin: 0px 0px;
-  transform: scale(1) translate(0px, 0px);
-  cursor: grab;
-
-
-}
-
-div#zoom>img {
-  width: 100%;
-  height: auto;
-
 }
 </style>

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import AuthService from "@/services/AuthenService";
 import router from '@/router'
-import { register } from "numeral";
+
 
 export const useAuthen = defineStore("authen", {
   state: () => ({
@@ -16,7 +16,7 @@ export const useAuthen = defineStore("authen", {
 
   ,
   actions: {
-    
+
     async login(username, password) {
       //let loginSuccess = false,
       //  errorMsg = "";
@@ -34,6 +34,7 @@ export const useAuthen = defineStore("authen", {
             //commit("SET_TOKEN", { token: respData.token, userCode: username });
             this.token = respData.token;
             this.userCode = username;
+
           } else {
             this.loginSuccess = false;
             this.loginErrorMsg = "Username or password is wrong !";
@@ -54,9 +55,9 @@ export const useAuthen = defineStore("authen", {
       //await commit("SET_LOGIN", { success: loginSuccess, msgErr: errorMsg });
     },
 
-    async register(name,username, password) {
+    async register(name, username, password) {
 
-      await AuthService.register(name,username, password)
+      await AuthService.register(name, username, password)
         .then((response) => {
           let respData = response.data;
           if (respData.success) {
@@ -73,11 +74,35 @@ export const useAuthen = defineStore("authen", {
 
     },
 
+
+    async loginGoogle(token, displayname) {
+      try {
+        let respData = await AuthService.loginToken(token);
+        // console.log(respData);
+        if (respData.data.success && respData.data.token != "") {
+          this.loginSuccess = true;
+          localStorage._token = respData.data.token;
+          localStorage._usercode = displayname;
+          //commit("SET_TOKEN", { token: respData.token, userCode: username });
+          this.token = respData.data.token;
+          this.userCode = displayname;
+        } else {
+          this.loginSuccess = false;
+          this.loginErrorMsg = "Username or password is wrong !";
+        }
+
+      } catch (err) {
+        this.loginSuccess = false;
+        this.loginErrorMsg = err;
+      }
+
+    },
+
     directSetToken(token) {
       localStorage._token = token;
       this.token = token;
     },
-    logout() {
+    async logout() {
       localStorage._token = "";
       localStorage._usercode = "";
 

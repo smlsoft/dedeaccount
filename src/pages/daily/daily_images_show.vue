@@ -18,9 +18,11 @@ const WsConnectAllImage = ref();
 const connection = ref();
 const doc_images = ref([]);
 const selectedImgUrl = ref("");
-const showThumbnails = ref(false);
+
 const rotate = ref(0);
 const isChange = ref(false);
+const showNewImage = ref(false);
+const activeIndex = ref(0);
 // zoom image
 const scale = ref(1);
 const panning = ref(false);
@@ -32,21 +34,19 @@ const zoomStyle = ref("");
 const margintop = ref(0);
 const marginbtm = ref(0);
 const confirmChangeImageDialog = ref(false);
+const imagePreviewStyle = computed({
+  get() {
+    return {
+      transform: "rotate(" + rotate.value + "deg) ",
+    };
+  },
+});
+
 onUnmounted(() => {
   // WsConnectAllImage.value.close();
   WsConnectImage.value.close();
   connection.value.close();
 });
-const imagePreviewStyle = computed({
-  get() {
-    return {
-      transform: "rotate(" + rotate.value + "deg) scale(" + scale.value + ")",
-      "margin-top": margintop.value + "rem",
-    };
-  },
-});
-
-const croppa = ref();
 
 onMounted(() => {
   storeApp.setActivePage("daily");
@@ -59,47 +59,17 @@ onMounted(() => {
   websocketConnect();
 });
 
-function moveUp() {
-  margintop.value -= 10;
-}
-
-function moveDown() {
-  margintop.value += 10;
-}
-
 function rotateRight() {
   rotate.value += 90;
 }
 function rotateLeft() {
   rotate.value -= 90;
 }
-function zoomIn() {
-  scale.value = scale.value + 0.1;
-}
-function zoomOut() {
-  scale.value = scale.value - 0.1;
-}
-
-function printImg() {
-  console.log();
-  var url = selectedImgUrl.value;
-  var w = window.open("", "");
-  w.document.write("<html><head>");
-  w.document.write("</head><body >");
-  w.document.write('<img id="print-image-element" src="' + url + '"/>');
-  w.document.write("<script><\/script>");
-  w.document.write(
-    '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
-  );
-  w.document.write("</body></html>");
-  w.window.print();
-  w.window.close();
-}
 
 function websocketConnect() {
   connection.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   connection.value.onopen = function (event) {
     //console.log(event);
@@ -113,16 +83,17 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               doc_images.value = res.data;
               //console.log(doc_images.value.documentref);
-              if (res.data.documentimages.length > 1) {
-                showThumbnails.value = true;
+              if (res.data.imagereferences.length > 1) {
+                showNewImage.value = true;
               } else {
-                showThumbnails.value = false;
+                showNewImage.value = false;
               }
 
-              selectedImgUrl.value = res.data.documentimages[0].imageuri;
+              selectedImgUrl.value =
+                res.data.imagereferences[activeIndex.value].imageuri;
             }
           }
         })
@@ -137,7 +108,10 @@ function websocketConnect() {
   };
 
   connection.value.onclose = function (e) {
-    console.log("Socket is closed. Reconnect will be attempted in 1 second.", e.reason);
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      e.reason
+    );
     setTimeout(function () {
       if (
         localStorage._token != "" &&
@@ -158,7 +132,7 @@ function websocketConnect() {
 function WSImageConnect() {
   WsConnectImage.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   WsConnectImage.value.onopen = function (event) {
     // console.log(event);
@@ -261,6 +235,12 @@ function onNext() {
       .then((res) => {
         if (res.success) {
           console.log(res.data);
+          scale.value = 1;
+          panning.value = false;
+          pointX.value = 0;
+          pointY.value = 0;
+          start.value = { x: 0, y: 0 };
+          zoomStyle.value = "";
         }
       })
       .catch((err) => {
@@ -269,19 +249,16 @@ function onNext() {
   }
 }
 
-function zoomWheel(e) {
-  console.log(e);
-  if (e.deltaY > 0) {
-    scale.value = scale.value + 0.1;
-  } else {
-    scale.value = scale.value - 0.1;
-  }
-}
-
-
 const setTransform = () => {
-  zoomStyle.value = "transform:translate(" + pointX.value + "px, " + pointY.value + "px) scale(" + scale.value + ")";
-}
+  zoomStyle.value =
+    "transform:translate(" +
+    pointX.value +
+    "px, " +
+    pointY.value +
+    "px) scale(" +
+    scale.value +
+    ")";
+};
 
 function onmousedown(e) {
   console.log(e);
@@ -296,108 +273,189 @@ function onmouseup(e) {
 }
 
 function onmousemove(e) {
-  console.log(e);
   e.preventDefault();
   if (!panning.value) {
     return;
   }
-  pointX.value = (e.clientX - start.value.x);
-  pointY.value = (e.clientY - start.value.y);
+  pointX.value = e.clientX - start.value.x;
+  pointY.value = e.clientY - start.value.y;
+
   setTransform();
 }
 
 function onwheel(e) {
-  console.log(e);
   e.preventDefault();
   var xs = (e.clientX - pointX.value) / scale.value,
     ys = (e.clientY - pointY.value) / scale.value,
-    delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
-  (delta > 0) ? (scale.value *= 1.2) : (scale.value /= 1.2);
+    delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+  delta > 0 ? (scale.value *= 1.2) : (scale.value /= 1.2);
   pointX.value = e.clientX - xs * scale.value;
   pointY.value = e.clientY - ys * scale.value;
+
+  console.log(pointX.value);
+  console.log(pointY.value);
 
   setTransform();
 }
 
+function nextImage() {
+  // console.log("nextImage");
+  // console.log("activeIndex " + activeIndex.value);
+  // console.log("length " + (doc_images.value.imagereferences.length - 1));
+  // console.log("=========");
+  resetZoomImage();
+  if (activeIndex.value < doc_images.value.imagereferences.length - 1) {
+    activeIndex.value = activeIndex.value + 1;
+    console.log(activeIndex.value);
+  } else {
+    return;
+  }
+}
+function backImage() {
+  // console.log("backImage");
+  // console.log("activeIndex " + activeIndex.value);
+  // console.log("length " + (doc_images.value.imagereferences.length - 1));
+  // console.log("=========");
+  resetZoomImage();
+  if (activeIndex.value > 0) {
+    activeIndex.value = activeIndex.value - 1;
+    console.log(activeIndex.value);
+  } else {
+    return;
+  }
+}
+
+function resetZoomImage() {
+  scale.value = 1;
+  panning.value = false;
+  pointX.value = 0;
+  pointY.value = 0;
+  start.value = { x: 0, y: 0 };
+  zoomStyle.value = "";
+}
 </script>
 
 <template>
   <div class="min-h-screen flex relative lg:static surface-ground">
-    <div class="min-h-screen flex flex-column relative flex-auto bg-dark bg-center surface-900">
+    <div
+      class="min-h-screen flex flex-column relative flex-auto bg-dark bg-center surface-900"
+    >
       <div class="p-image-toolbar" style="z-index: 160">
-        <button class="p-image-action p-link text-blue-600" type="button" @click="goForm">
+        <button
+          class="p-image-action p-link text-blue-600"
+          type="button"
+          @click="goForm"
+          style="background-color: whitesmoke"
+        >
           <i class="pi pi-file"></i>
         </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="printImg">
-          <i class="pi pi-print"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="rotateRight">
+        <button
+          class="p-image-action p-link text-blue-600"
+          type="button"
+          @click="rotateRight"
+          style="background-color: whitesmoke"
+        >
           <i class="pi pi-refresh"></i>
         </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="rotateLeft">
+        <button
+          class="p-image-action p-link text-blue-600"
+          type="button"
+          @click="rotateLeft"
+          style="background-color: whitesmoke"
+        >
           <i class="pi pi-undo"></i>
         </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="zoomOut">
-          <i class="pi pi-search-minus"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="zoomIn">
-          <i class="pi pi-search-plus"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="moveUp">
-          <i class="pi pi-arrow-up"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="moveDown">
-          <i class="pi pi-arrow-down"></i>
-        </button>
-        <button class="p-image-action p-link text-blue-600" type="button" @click="goList">
+        <button
+          class="p-image-action p-link text-blue-600"
+          type="button"
+          @click="goList"
+          style="background-color: whitesmoke"
+        >
           <i class="pi pi-times"></i>
         </button>
       </div>
+
       <transition name="p-image-preview" style="z-index: 150">
         <div class="p-galleria-item-container">
-          <button class="p-image-action p-link text-blue-600" type="button" style="
-              position: absolute !important;
-              top: 45vh !important;
-              left: 0px !important;
-            ">
-            <i class="pi pi-chevron-left"></i>
-          </button>
           <div class="p-galleria-item">
-            <div>
-              <div id="zoom" :style="zoomStyle" @mousedown="onmousedown($event)" @mouseup="onmouseup($event)"
-                @mousemove="onmousemove($event)" @wheel="onwheel($event)">
-                <img v-if="selectedImgUrl != ''" :src="selectedImgUrl" class="p-image-preview zoom"
-                  :style="imagePreviewStyle" />
-              </div>
-              <!-- <img
-                @wheel="zoomWheel"
+            <div
+              style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                margin-top: -50px;
+                margin-left: -100px;
+              "
+              v-if="selectedImgUrl == ''"
+            >
+              <ProgressSpinner animationDuration="10s" />
+            </div>
+
+            <div
+              id="zoom"
+              :style="zoomStyle"
+              @mousedown="onmousedown($event)"
+              @mouseup="onmouseup($event)"
+              @mousemove="onmousemove($event)"
+              @wheel="onwheel($event)"
+            >
+              <img
                 v-if="selectedImgUrl != ''"
-                :src="selectedImgUrl"
-                class="p-image-preview zoom"
+                :src="doc_images.imagereferences[activeIndex].imageuri"
                 :style="imagePreviewStyle"
-              /> -->
-              <ProgressSpinner v-if="selectedImgUrl == ''" animationDuration="10s" />
+              />
             </div>
           </div>
 
-          <button class="p-image-action p-link text-blue-600" type="button" @click="onNext()" style="
+          <button
+            v-if="showNewImage"
+            class="p-image-action p-link text-blue-600"
+            type="button"
+            style="
+              background-color: whitesmoke;
+              position: absolute !important;
+              top: 45vh !important;
+              left: 0px !important;
+            "
+            @click="backImage()"
+          >
+            <i class="pi pi-chevron-left"></i>
+          </button>
+          <button
+            v-if="showNewImage"
+            class="p-image-action p-link text-blue-600"
+            type="button"
+            @click="nextImage()"
+            style="
+              background-color: whitesmoke;
               position: absolute !important;
               top: 45vh !important;
               right: 0px !important;
-            ">
+            "
+          >
             <i class="pi pi-chevron-right"></i>
           </button>
         </div>
       </transition>
     </div>
   </div>
-  <Dialog :visible="confirmChangeImageDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+  <Dialog
+    :visible="confirmChangeImageDialog"
+    :style="{ width: '450px' }"
+    header="Confirm"
+    :modal="true"
+  >
     <div class="confirmation-content">
       <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
       <span>ไม่สามารถทำรายการได้ มีการบันทึกรูปนี้อยู่ </span>
     </div>
     <template #footer>
-      <Button label="No" icon="pi pi-times" class="p-button-text" @click="confirmChangeImageDialog = false" />
+      <Button
+        label="No"
+        icon="pi pi-times"
+        class="p-button-text"
+        @click="confirmChangeImageDialog = false"
+      />
     </template>
   </Dialog>
 </template>
@@ -462,12 +520,16 @@ function onwheel(e) {
   transition: opacity 0.2s ease-in-out;
 }
 
-.p-galleria-item-nav-onhover .p-galleria-item-wrapper:hover .p-galleria-item-nav {
+.p-galleria-item-nav-onhover
+  .p-galleria-item-wrapper:hover
+  .p-galleria-item-nav {
   pointer-events: all;
   opacity: 1;
 }
 
-.p-galleria-item-nav-onhover .p-galleria-item-wrapper:hover .p-galleria-item-nav.p-disabled {
+.p-galleria-item-nav-onhover
+  .p-galleria-item-wrapper:hover
+  .p-galleria-item-nav.p-disabled {
   pointer-events: none;
 }
 
@@ -478,7 +540,7 @@ function onwheel(e) {
   justify-content: center;
 }
 
-.p-galleria-indicator>button {
+.p-galleria-indicator > button {
   display: inline-flex;
   align-items: center;
 }
@@ -516,14 +578,16 @@ function onwheel(e) {
   align-items: flex-start;
 }
 
-.p-galleria-indicator-onitem.p-galleria-indicators-right .p-galleria-indicators {
+.p-galleria-indicator-onitem.p-galleria-indicators-right
+  .p-galleria-indicators {
   right: 0;
   top: 0;
   height: 100%;
   align-items: flex-end;
 }
 
-.p-galleria-indicator-onitem.p-galleria-indicators-bottom .p-galleria-indicators {
+.p-galleria-indicator-onitem.p-galleria-indicators-bottom
+  .p-galleria-indicators {
   bottom: 0;
   left: 0;
   width: 100%;
@@ -593,23 +657,17 @@ function onwheel(e) {
   visibility: visible;
 }
 
-
-
 #zoom {
   padding: 20px;
   width: 100%;
-  height: 100%;
+  height: auto;
   transform-origin: 0px 0px;
   transform: scale(1) translate(0px, 0px);
   cursor: grab;
-
-
 }
 
-div#zoom>img {
+div#zoom > img {
   width: 100%;
   height: auto;
-
 }
-
 </style>

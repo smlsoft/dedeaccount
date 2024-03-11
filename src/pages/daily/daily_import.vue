@@ -11,7 +11,7 @@ import XLSX from "xlsx";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 const storeApp = useApp();
 
 const router = useRouter();
@@ -248,6 +248,8 @@ function ImportFile() {
         batchId: "",
         docdate: "",
         docno: "",
+        exdocrefdate: "",
+        exdocrefno: "",
         bookcode: "",
         journaldetail: [],
         parid: "0000000",
@@ -346,6 +348,13 @@ function ImportFile() {
         }
         if (key == "DATE") {
           import_daily_json.docdate = Utils.getDateTimeFromDate(value);
+        }
+        if (key == "NOREF") {
+          console.log(value);
+          import_daily_json.exdocrefno = value;
+        }
+        if (key == "DATEREF") {
+          import_daily_json.exdocrefdate = Utils.getDateTimeFromDate(value);
         }
         if (key == "EXCEPTVAT") {
           import_vats_json.exceptvat = parseFloat(value);
@@ -717,7 +726,7 @@ function ImportFile() {
 
         if (
           parseFloat(import_taxs_json.details[0].taxamount) +
-            parseFloat(import_taxs_json.details[1].taxamount) !=
+          parseFloat(import_taxs_json.details[1].taxamount) !=
           parseFloat(import_taxs_json.taxamount)
         ) {
           error_msg.push({
@@ -802,26 +811,13 @@ function onClose() {
       <div class="surface-ground px-2 py-2">
         <div class="py-1 flex">
           <div class="flex">
-            <FileUpload
-              mode="basic"
-              name="input file"
-              accept=".xls,.xlsx"
-              ref="myFiles"
-              :customUpload="true"
-              @change="ImportFile()"
-              class="p-button-plain p-button-primary p-button-sm"
-              chooseLabel="นำเข้าไฟล์"
-            >
+            <FileUpload mode="basic" name="input file" accept=".xls,.xlsx" ref="myFiles" :customUpload="true"
+              @change="ImportFile()" class="p-button-plain p-button-primary p-button-sm" chooseLabel="นำเข้าไฟล์">
             </FileUpload>
           </div>
           <div class="flex ml-2">
-            <Button
-              v-if="import_form.length > 0 && error_message.length == 0"
-              @click="onSave"
-              label="บันทึกรายวัน"
-              icon="pi pi-save"
-              class="w-auto p-button-success p-button-sm"
-            ></Button>
+            <Button v-if="import_form.length > 0 && error_message.length == 0" @click="onSave" label="บันทึกรายวัน"
+              icon="pi pi-save" class="w-auto p-button-success p-button-sm"></Button>
           </div>
         </div>
         <div class="py-0 flex" v-if="import_form.length > 0">
@@ -829,11 +825,8 @@ function onClose() {
             <p>จำนวน {{ import_form.length }} รายการ</p>
           </div>
         </div>
-        <div
-          class="surface-card p-4 shadow-2 border-round p-fluid my-2"
-          v-for="(data, index) in import_form"
-          :key="index"
-        >
+        <div class="surface-card p-4 shadow-2 border-round p-fluid my-2" v-for="(data, index) in import_form"
+          :key="index">
           <div v-if="import_form.length > 0">
             <!--            <FormMain :daily_form="data.import_daily" :daily_form_valid="daily_form_valid" :vats="data.import_vats"
               :vats_valid="vats_valid" :taxes="data.import_taxs" :taxes_valid="taxes_valid" :isUpdate="true"
@@ -847,15 +840,9 @@ function onClose() {
                   <span> ข้อมูลรายวัน</span>
                 </template>
                 <div>
-                  <JournalForm
-                    :daily_form="data.import_daily"
-                    :daily_form_valid="daily_form_valid"
-                    :accountChart_detail="accountChart_detail"
-                    :accountBook_detail="accountBook_detail"
-                    :groupAccount_detail="groupAccount_detail"
-                    :isUpdate="true"
-                    :id="'fastimport'"
-                  ></JournalForm>
+                  <JournalForm :daily_form="data.import_daily" :daily_form_valid="daily_form_valid"
+                    :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
+                    :groupAccount_detail="groupAccount_detail" :isUpdate="true" :id="'fastimport'"></JournalForm>
                 </div>
               </TabPanel>
               <TabPanel>
@@ -864,12 +851,7 @@ function onClose() {
                   <span> ข้อมูลภาษี</span>
                 </template>
                 <div>
-                  <VatForm
-                    :vats="data.import_vats"
-                    :vats_valid="vats_valid"
-                    :isUpdate="true"
-                    :id="'fastimport'"
-                  >
+                  <VatForm :vats="data.import_vats" :vats_valid="vats_valid" :isUpdate="true" :id="'fastimport'">
                   </VatForm>
                 </div>
               </TabPanel>
@@ -879,12 +861,7 @@ function onClose() {
                   <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
                 </template>
                 <div>
-                  <TaxForm
-                    :taxes="data.import_taxs"
-                    :taxes_valid="taxes_valid"
-                    :isUpdate="true"
-                    :id="'fastimport'"
-                  >
+                  <TaxForm :taxes="data.import_taxs" :taxes_valid="taxes_valid" :isUpdate="true" :id="'fastimport'">
                   </TaxForm>
                 </div>
               </TabPanel>
@@ -892,31 +869,24 @@ function onClose() {
           </div>
         </div>
 
-        <div
-          class="surface-card p-4 shadow-2 border-round p-fluid my-2"
-          v-if="error_message.length > 0"
-        >
+        <div class="surface-card p-4 shadow-2 border-round p-fluid my-2" v-if="error_message.length > 0">
           <h3>ไม่สามารถทำรายการได้ กรุณาตรวจสอบข้อมูล</h3>
           <div v-for="(data, index) in error_message" :key="index">
             <p>
               {{
-                data.tab == 1
-                  ? "ข้อมูลรายวัน "
-                  : data.tab == 2
-                  ? "ข้อมูลภาษี"
-                  : "ข้อมูลภาษีหัก ณ ที่จ่าย"
+              data.tab == 1
+              ? "ข้อมูลรายวัน "
+              : data.tab == 2
+              ? "ข้อมูลภาษี"
+              : "ข้อมูลภาษีหัก ณ ที่จ่าย"
               }}
               : {{ data.name }} เอกสารเลขที่ : {{ data.docno }}
             </p>
           </div>
         </div>
       </div>
-      <DialogForm
-        :confirmDialog="confirmSaveDialog"
-        :textContent="textContent"
-        v-on:close="onClose"
-        v-on:confirm="confirmSave"
-      ></DialogForm>
+      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="textContent" v-on:close="onClose"
+        v-on:confirm="confirmSave"></DialogForm>
       <!-- <Dialog v-model:visible="confirmSaveDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
         <div class="confirmation-content">
           <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
 const deleteDetailTaxDialog = ref(false);
 const del_data = ref({ data: null, index: 0 });
 
@@ -353,7 +353,7 @@ function deleteDetailTableTax(data, index) {
           >
             <template #footer>
               {{
-                props.isUpdate ? data.taxamount : getSumTaxAmount(data.details)
+                 getSumTaxAmount(data.details)
               }}
             </template>
             <template #body="{ data, field }">

@@ -45,23 +45,72 @@ import Message from 'primevue/message';
 import VirtualScroller from 'primevue/virtualscroller';
 import Skeleton from 'primevue/skeleton';
 import Editor from 'primevue/editor';
-import { Cropper,Preview } from 'vue-advanced-cropper'
+import { Cropper, Preview } from 'vue-advanced-cropper'
 import AutoComplete from 'primevue/autocomplete';
+import Tag from 'primevue/tag';
+import SpeedDial from 'primevue/speeddial';
+import Chip from 'primevue/chip';
+import Badge from 'primevue/badge';
+import BadgeDirective from 'primevue/badgedirective';
+import SplitButton from 'primevue/splitbutton';
+import ScrollPanel from 'primevue/scrollpanel';
+import OverlayPanel from 'primevue/overlaypanel';
+import ToggleButton from 'primevue/togglebutton';
+import SelectButton from 'primevue/selectbutton';
+import Toolbar from 'primevue/toolbar';
+import MultiSelect from 'primevue/multiselect';
+import Carousel from 'primevue/carousel';
+import DataView from 'primevue/dataview';
+import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
+import Password from 'primevue/password';
+import { createI18n } from 'vue-i18n';
+import messages from '@/assets/i18n';
+import Chips from 'primevue/chips';
+import OrderList from 'primevue/orderlist';
+
+import { setup as setupFirebase } from '@/services/firebase.service'
 
 
-
-import 'primevue/resources/themes/saga-blue/theme.css'
+//theme https://primefaces.org/primevue/setup
+import '@/assets/theme/theme.css'
+import '@/assets/theme/custom-theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import 'vue-advanced-cropper/dist/style.css';
 
+setupFirebase()
+const language = localStorage.getItem('activeLang') || 'th';
+
+
+const i18n = createI18n({
+    legacy: false,
+    messages,
+    locale: language,
+});
+
+
 const app = createApp(App)
 
-app.use(PrimeVue);
-app.use(router);
-app.use(ToastService);
 
+
+app.component('OrderList', OrderList);
+app.component('Chips', Chips);
+app.component('Password', Password);
+app.component('DataViewLayoutOptions', DataViewLayoutOptions);
+app.component('DataView', DataView);
+app.component('Carousel', Carousel);
+app.component('MultiSelect', MultiSelect);
+app.component('Toolbar', Toolbar);
+app.component('SelectButton', SelectButton);
+app.component('ToggleButton', ToggleButton);
+app.component('OverlayPanel', OverlayPanel);
+app.component('ScrollPanel', ScrollPanel);
+app.component('SplitButton', SplitButton);
+app.component('Badge', Badge);
+app.component('Chip', Chip);
+app.component('SpeedDial', SpeedDial);
+app.component('Tag', Tag);
 app.component('AutoComplete', AutoComplete);
 app.component('Preview', Preview);
 app.component('Cropper', Cropper);
@@ -83,7 +132,6 @@ app.component('Galleria', Galleria);
 app.component('Card', Card);
 app.component('Image', Image);
 app.component('Paginator', Paginator);
-//app.component('Calendar', Calendar);
 app.component('Avatar', Avatar);
 app.component('Button', Button);
 app.component('Dialog', Dialog);
@@ -105,9 +153,13 @@ app.component('Row', Row);
 app.directive('tooltip', Tooltip);
 app.directive('ripple', Ripple);
 app.directive('styleclass', StyleClass);
+app.directive('badge', BadgeDirective);
 
 const pinia = createPinia()
 pinia.use(piniaPersist)
-
 app.use(pinia)
+app.use(PrimeVue);
+app.use(router);
+app.use(ToastService);
+app.use(i18n);
 app.mount('#app')

@@ -6,7 +6,9 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
-import DialogForm from "@/components/form/DialogForm.vue";
+import DialogForm from "@/components/DialogForm.vue";
+import Form from "./components/form.vue";
+
 const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
@@ -25,12 +27,43 @@ const activePage = ref(1);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 const firstPage = ref(0);
+const displayModal = ref(false);
+const openModal = () => {
+  displayModal.value = true;
+};
 
 const roles = ref([
   { name: "USER", code: 0 },
   { name: "ADMIN", code: 1 },
   { name: "OWNER", code: 2 },
 ]);
+
+const editingRows = ref([]);
+
+const form_model = ref({
+  shopid: localStorage.shopid,
+  username: "",
+  role: 0,
+});
+const form_valid = ref({
+  username: true,
+});
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 0:
+      return "USER";
+
+    case 1:
+      return "ADMIN";
+
+    case 2:
+      return "OWNER";
+
+    default:
+      return "NA";
+  }
+};
 
 onMounted(() => {
   getUserShop();
@@ -54,7 +87,7 @@ function getUserShop() {
     sortOrder.value
   )
     .then((res) => {
-      //console.log(res);
+      console.log(res);
       if (res.success) {
         data_list.value = res.data;
         totalItemsCount.value = res.pagination.total;
@@ -65,6 +98,34 @@ function getUserShop() {
       loading.value = false;
       console.log(err);
     });
+}
+
+async function onRowEditSave(event) {
+  let { newData, index } = event;
+  data_list.value[index] = newData;
+
+  try {
+    const res = await UsersDataService.postUserShop(newData);
+    console.log(res);
+    if (res.success) {
+      getUserShop();
+
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+    }
+  } catch (err) {
+    console.log(err.response.data.message);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err.response.data.message,
+      life: 3000,
+    });
+  }
 }
 
 function sortBy(data) {
@@ -192,6 +253,32 @@ function onPage(event) {
       loading.value = false;
     });
 }
+
+async function onSave(data) {
+  console.log(data);
+  try {
+    const res = await UsersDataService.postUserShop(data);
+    console.log(res);
+    if (res.success) {
+      getUserShop();
+
+      toast.add({
+        severity: "success",
+        summary: "success",
+        detail: "บันทึกข้อมูลสำเร็จ",
+        life: 3000,
+      });
+    }
+  } catch (err) {
+    console.log(err.response.data.message);
+    toast.add({
+      severity: "error",
+      summary: "error",
+      detail: "บันทึกไม่สำเร็จ " + err.response.data.message,
+      life: 3000,
+    });
+  }
+}
 </script>
 
 <template>
@@ -199,29 +286,60 @@ function onPage(event) {
     <MainContentWarp>
       <div class="grid mt-2">
         <div class="col-12">
-          <DataTable :value="data_list" dataKey="id" class="p-datatable-sm" :loading="loading" stripedRows
-            responsiveLayout="scroll" @sort="sortBy">
+          <!-- <DataTable
+            :value="data_list"
+            class="p-datatable-sm"
+            :loading="loading"
+            stripedRows
+            responsiveLayout="scroll"
+            @sort="sortBy"
+          >
             <template #header>
               <div class="flex">
-                <div class="flex-none flex align-items-center justify-content-start">
-                  <Button label="เพิ่มผู้ใช้งาน" icon="pi pi-plus" class="w-auto" @click="goCreate()"></Button>
+                <div
+                  class="flex-none flex align-items-center justify-content-start"
+                >
+                  <Button
+                    label="เพิ่มผู้ใช้งาน"
+                    icon="pi pi-plus"
+                    class="w-auto"
+                    @click="goCreate()"
+                  ></Button>
                 </div>
-                <div class="flex-1 flex align-items-center justify-content-center">
-                  <Paginator :rows="20" v-model:first="firstPage" :totalRecords="totalItemsCount" @page="onPage($event)"
-                    :rowsPerPageOptions="[20, 50, 100]">
+                <div
+                  class="flex-1 flex align-items-center justify-content-center"
+                >
+                  <Paginator
+                    :rows="20"
+                    v-model:first="firstPage"
+                    :totalRecords="totalItemsCount"
+                    @page="onPage($event)"
+                    :rowsPerPageOptions="[20, 50, 100]"
+                  >
                   </Paginator>
                 </div>
-                <div class="flex-none flex align-items-center justify-content-end">
+                <div
+                  class="flex-none flex align-items-center justify-content-end"
+                >
                   <span class="p-input-icon-left">
                     <i class="pi pi-search" />
-                    <InputText v-model="filters" placeholder="ค้นหา...." @keyup="keyup()" @keydown="keydown()" />
+                    <InputText
+                      v-model="filters"
+                      placeholder="ค้นหา...."
+                      @keyup="keyup()"
+                      @keydown="keydown()"
+                    />
                   </span>
                 </div>
               </div>
             </template>
             <template #empty> ไม่พบข้อมูล </template>
             <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-            <Column field="username" header="Username" :sortable="true"></Column>
+            <Column
+              field="username"
+              header="Username"
+              :sortable="true"
+            ></Column>
             <Column field="role" header="สิทธิ์การใช้งาน" :sortable="true">
               <template #body="{ data, field }">
                 {{ newResultRole(data[field]) }}
@@ -229,21 +347,122 @@ function onPage(event) {
             </Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
-                <Button icon="pi pi-pencil" class="p-button-rounded p-button-warning p-button-text"
-                  @click="goEdit(slotProps.data)" />
+                <Button
+                  icon="pi pi-pencil"
+                  class="p-button-rounded p-button-warning p-button-text"
+                  @click="goEdit(slotProps.data)"
+                />
               </template>
             </Column>
             <Column bodyStyle="text-align:center" style="width: 5%">
               <template #body="slotProps">
-                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text"
-                  @click="confirmDeleteDetail(slotProps.data)" />
+                <Button
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-danger p-button-text"
+                  @click="confirmDeleteDetail(slotProps.data)"
+                />
               </template>
             </Column>
+          </DataTable> -->
+          <Button
+            label="เพิ่มผู้ใช้งาน "
+            icon="pi pi-user"
+            @click="openModal"
+            class="mb-2"
+          />
+          <DataTable
+            :value="data_list"
+            editMode="row"
+            dataKey="id"
+            v-model:editingRows="editingRows"
+            @row-edit-save="onRowEditSave($event)"
+            responsiveLayout="scroll"
+            showGridlines
+            stripedRows
+            selectionMode="single"
+          >
+            <!-- <Column field="id" header="Code" style="width: 20%"> </Column> -->
+            <Column field="username" header="Username" style="width: 20%">
+            </Column>
+            <Column field="role" header="Status" style="width: 50%">
+              <template #editor="{ data, field }">
+                <Dropdown
+                  v-model="data[field]"
+                  :options="roles"
+                  optionLabel="name"
+                  optionValue="code"
+                  placeholder="Select a Status"
+                >
+                  <template #option="slotProps">
+                    <span
+                      :class="'product-badge status-' + slotProps.option.code"
+                      >{{ slotProps.option.name }}</span
+                    >
+                  </template>
+                </Dropdown>
+              </template>
+              <template #body="slotProps">
+                {{ getStatusLabel(slotProps.data.role) }}
+              </template>
+            </Column>
+            <Column
+              :rowEditor="true"
+              style="width: 5%; min-width: 8rem"
+              bodyStyle="text-align:center"
+            ></Column>
+            <Column
+              bodyStyle="text-align:center"
+              style="width: 5%; min-width: 8rem"
+            >
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-danger p-button-text"
+                  @click="confirmDeleteDetail(slotProps.data)"
+                />
+              </template>
+            </Column>
+
+            <template #empty> ไม่พบข้อมูล </template>
+            <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
           </DataTable>
         </div>
       </div>
-      <DialogForm :confirmDialog="deleteDetailDialog" :textContent="textContent" :textContent2="textContent2"
-        v-on:close="deleteDetailDialog = false" v-on:confirm="deleteDetail"></DialogForm>
+      <DialogForm
+        :confirmDialog="deleteDetailDialog"
+        :textContent="textContent"
+        :textContent2="textContent2"
+        v-on:close="deleteDetailDialog = false"
+        v-on:confirm="deleteDetail"
+      ></DialogForm>
+
+      <Dialog
+        header="Header"
+        v-model:visible="displayModal"
+        :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+        :style="{ width: '50vw' }"
+        :modal="true"
+      >
+        <Form
+          :form_model="form_model"
+          :form_valid="form_valid"
+          v-on:save="onSave"
+        />
+        <!-- <template #footer>
+          <Button
+            label="No"
+            icon="pi pi-times"
+            @click="closeModal"
+            class="p-button-text"
+          />
+          <Button
+            label="Yes"
+            icon="pi pi-check"
+            @click="closeModal"
+            autofocus
+          />
+        </template> -->
+      </Dialog>
     </MainContentWarp>
   </AppLayout>
 </template>

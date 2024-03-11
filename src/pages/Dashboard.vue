@@ -3,16 +3,108 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import { onMounted, ref } from "vue";
 import { useApp } from "@/stores/app.js";
+import { useRouter } from "vue-router";
+
+import DashboardDataService from "@/services/DashboardDataService";
 
 const storeApp = useApp();
+const router = useRouter();
+const dataAccountChart = ref([]);
+const dataJournal = ref([]);
+const dataImages = ref([]);
+const dataUser = ref([]);
 
+const showSkeletonAccount = ref(false);
+const showSkeletonJourna = ref(false);
+const showSkeletonImage = ref(false);
+const showSkeletonUser = ref(false);
 
 onMounted(() => {
   storeApp.setActivePage("dashboard");
-  storeApp.setActiveChild('');
+  storeApp.setActiveChild("");
   storeApp.setPageTitle("แดรชบอร์ด");
+
+  getAccountChart();
+  getGLJournalList();
+  getDocImageList();
+  getUserShop();
 });
 
+function getAccountChart() {
+  showSkeletonAccount.value = true;
+  DashboardDataService.getAccountChart()
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        dataAccountChart.value = res.pagination.total;
+        setTimeout(() => {
+          showSkeletonAccount.value = false;
+        }, 500);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      showSkeletonAccount.value = false;
+    });
+}
+
+function getGLJournalList() {
+  showSkeletonJourna.value = true;
+  DashboardDataService.getGLJournalList()
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        dataJournal.value = res.pagination.total;
+        setTimeout(() => {
+          showSkeletonJourna.value = false;
+        }, 500);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      showSkeletonJourna.value = false;
+    });
+}
+
+function getDocImageList() {
+  showSkeletonImage.value = true;
+  DashboardDataService.getDocumentImageGroup()
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        dataImages.value = res.pagination.total;
+        setTimeout(() => {
+          showSkeletonImage.value = false;
+        }, 500);
+      }
+    })
+    .catch((err) => {
+      showSkeletonImage.value = false;
+      console.log(err);
+    });
+}
+
+function getUserShop() {
+  showSkeletonUser.value = true;
+  DashboardDataService.getUserShop()
+    .then((res) => {
+      //console.log(res);
+      if (res.success) {
+        dataUser.value = res.pagination.total;
+        setTimeout(() => {
+          showSkeletonUser.value = false;
+        }, 500);
+      }
+    })
+    .catch((err) => {
+      showSkeletonUser.value = false;
+      console.log(err);
+    });
+}
+
+function goTo(path) {
+  router.push({ name: path });
+}
 </script>
 
 <template>
@@ -20,51 +112,89 @@ onMounted(() => {
     <MainContentWarp>
       <div class="grid">
         <div class="col-12">
-          <div class="surface-card shadow-2 border-round flex p-3 flex-column md:flex-row">
-            <div class="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+          <div
+            class="surface-card shadow-2 border-round flex p-3 flex-column md:flex-row"
+          >
+            <div
+              @click="goTo('chartList')"
+              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
-                <i class="pi pi-shopping-cart text-blue-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">Orders</span>
+                <i class="pi pi-microsoft text-blue-500 text-xl mr-2"></i>
+                <span class="text-500 font-medium">{{
+                  $t("account_code")
+                }}</span>
               </div>
-              <span class="block text-900 font-medium mb-4 text-xl">152 New</span>
-              <div class="flex align-items-center">
-                <i class="pi pi-arrow-down text-pink-500 text-xl mr-2"></i>
-                <span class="text-pink-500 font-medium ">-25</span>
-              </div>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonAccount"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonAccount"
+                >{{ dataAccountChart }}
+              </span>
             </div>
-            <div class="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+            <div
+              @click="goTo('dailyList')"
+              class="cursor-pointer border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
-                <i class="pi pi-shopping-cart text-orange-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">Revenue</span>
+                <i class="pi pi-list text-orange-500 text-xl mr-2"></i>
+                <span class="text-500 font-medium">{{
+                  $t("account_entry")
+                }}</span>
               </div>
-              <span class="block text-900 font-medium mb-4 text-xl">$1500</span>
-              <div class="flex align-items-center">
-                <i class="pi pi-arrow-up text-green-500 text-xl mr-2"></i>
-                <span class="text-green-500 font-medium ">+15</span>
-              </div>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonJourna"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonJourna"
+                >{{ dataJournal }}
+              </span>
             </div>
-            <div class="border-bottom-1 md:border-right-1 md:border-bottom-none surface-border flex-auto p-3">
+            <div
+              @click="goTo('images_job_upload')"
+              class="cursor-pointer border-bottom-1  md:border-bottom-none surface-border flex-auto p-3"
+            >
               <div class="flex align-items-center mb-3">
-                <i class="pi pi-users text-cyan-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">Customers</span>
+                <i class="pi pi-image text-cyan-500 text-xl mr-2"></i>
+                <span class="text-500 font-medium">{{ $t("img") }}</span>
               </div>
-              <span class="block text-900 font-medium mb-4 text-xl">25100</span>
-              <div class="flex align-items-center">
-                <i class="pi pi-arrow-up text-green-500 text-xl mr-2"></i>
-                <span class="text-green-500 font-medium ">+%12</span>
-              </div>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonImage"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonImage"
+                >{{ dataImages }}</span
+              >
             </div>
-            <div class="flex-auto p-3">
+            <!-- <div
+              class="cursor-pointer flex-auto p-3"
+              @click="goTo('user_list')"
+            >
               <div class="flex align-items-center mb-3">
                 <i class="pi pi-users text-purple-500 text-xl mr-2"></i>
-                <span class="text-500 font-medium">Comments</span>
+                <span class="text-500 font-medium">{{ $t("user") }}</span>
               </div>
-              <span class="block text-900 font-medium mb-4 text-xl">72</span>
-              <div class="flex align-items-center">
-                <i class="pi pi-arrow-up text-green-500 text-xl mr-2"></i>
-                <span class="text-green-500 font-medium ">+20</span>
-              </div>
-            </div>
+              <Skeleton
+                width="4rem"
+                height="1.5rem"
+                v-if="showSkeletonUser"
+              ></Skeleton>
+              <span
+                class="block text-900 font-medium text-xl"
+                v-if="!showSkeletonUser"
+                >{{ dataUser }}</span
+              >
+            </div> -->
           </div>
         </div>
       </div>

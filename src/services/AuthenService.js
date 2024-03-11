@@ -1,9 +1,13 @@
 import { instanceApi } from '@/services/ProviderService'
-import { register } from 'numeral';
 
 export default {
     login(username, password) {
         return instanceApi(false).post(`/login`, { "name": username, "username": username, "password": password });
+    },
+
+    loginToken(token) {
+        return instanceApi(false).post(`/tokenlogin`, { "token": token });
+
     },
     getListShop() {
         return instanceApi(true).get(`/list-shop`).then(res => res.data);
@@ -13,6 +17,12 @@ export default {
     },
     register(name, username, password) {
         return instanceApi(false).post(`/register`, { "name": name, "username": username, "password": password });
+    },
+    putFavorite(data) {
+        return instanceApi(true).put(`/favorite-shop`, data).then(res => res.data);
+    },
+    createShop(data) {
+        return instanceApi(true).post(`/create-shop`, data).then(res => res.data);
     },
 }
 

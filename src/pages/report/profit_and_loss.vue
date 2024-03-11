@@ -28,8 +28,8 @@
           <div class="field mb-12 col-12 md:col-12">
             <div class="flex flex-wrap card-container blue-container">
               <h1 for="selectedgroup" class="font-medium text-900"></h1>
-              <h3 class="field mb-4 col-4 md:col-3">งบกำไรขาดทุน</h3>
-              <h4 class="field mb-4 col-4 md:col-1">สำหรับชุดบัญชี:</h4>
+              <h3 class="field mb-4 col-4 md:col-3">{{ $t("profit_loss") }}</h3>
+              <h4 class="field mb-4 col-4 md:col-1">{{ $t("accGroup") }}:</h4>
               <div class="field mb-4 col-4 md:col-3">
                 <Dropdown
                   class="field mb-12 col-12 md:col-12"
@@ -55,7 +55,7 @@
 
           <div class="field mb-4 col-6 md:col-3 ml-3">
             <label for="startDate" class="font-medium text-900"
-              >ช่วงระหว่างวันที่:</label
+              >{{ $t("from_acc_code") }}:</label
             >
             <DatePicker
               dateFormat="d/m/yy"
@@ -68,7 +68,9 @@
             />
           </div>
           <div class="field mb-4 col-6 md:col-3">
-            <label for="endDate" class="font-medium text-900">ถึงวันที่:</label>
+            <label for="endDate" class="font-medium text-900"
+              >{{ $t("to_acc_code") }}:</label
+            >
             <DatePicker
               dateFormat="d/m/yy"
               v-model="endDate"
@@ -81,7 +83,7 @@
           </div>
           <div class="field-checkbox mb-1 col-5 md:col-2">
             <Checkbox :binary="true" v-model="ica" />
-            <label>รวมรายการปิดบัญชีสิ้นปี</label>
+            <label>{{ $t("closing_entry") }}</label>
           </div>
           <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
             <Button
@@ -89,11 +91,7 @@
               icon="pi pi-book"
               iconPos="left"
               @click="exportPDF()"
-              :disabled="
-                startDate === null ||
-                endDate === null ||
-                accountGroup.length == 0
-              "
+              :disabled="startDate === null || endDate === null"
             />
             <!-- <Button
               label="จัดทำรายงาน"
@@ -170,11 +168,11 @@ async function getAccountGroup() {
           acc.label = `${acc.code} ~ ${acc.name1}`;
           return acc;
         });
-      setTimeout(() => {
-        if (accountGroup.value == "") {
-          accountGroup.value = groups.value[0].code;
-        }
-      }, 100);
+      // setTimeout(() => {
+      //   if (accountGroup.value == "") {
+      //     accountGroup.value = groups.value[0].code;
+      //   }
+      // }, 100);
     }
   } catch (err) {
     console.log(err);

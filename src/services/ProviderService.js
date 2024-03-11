@@ -4,18 +4,18 @@ import axios from 'axios'
 
 import { useAuthen } from "@/stores/authen.js"
 
-const instanceApi = (authentication = true) =>{
+const instanceApi = (authentication = true) => {
 
 
     const store = useAuthen();
 
     // console.log("API URL : ", process.env.VUE_APP_API);
-    
+
     const http = axios.create({ baseURL: process.env.VUE_APP_API });
     http.defaults.headers.common['Content-Type'] = 'application/json';
-    if(authentication){
+    if (authentication) {
         http.defaults.headers.common['Authorization'] = "Bearer " + localStorage._token;
-       
+
     }
 
     http.interceptors.response.use(
@@ -28,7 +28,7 @@ const instanceApi = (authentication = true) =>{
             // console.log("Error In Interceptor")
             // console.log(error);
             if (!error.response) {
-                console.log("network error")
+                return Promise.reject("Network Error");
             }
             else {
                 if (error.response.status) {
@@ -37,7 +37,7 @@ const instanceApi = (authentication = true) =>{
                             //alert("session expired");
                             console.log("session expire")
                             store.directLogout()
-                            
+
                             break;
                         default:
                             return Promise.reject(error);

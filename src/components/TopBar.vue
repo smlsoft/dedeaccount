@@ -1,11 +1,81 @@
 <script setup>
+import AuthenService from "@/services/AuthenService";
 import { useApp } from "@/stores/app.js";
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { RouterLink } from "vue-router";
 import { menus } from "@/api/menu";
+import { useRouter } from "vue-router";
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 const shopName = localStorage.shop_name;
 const userName = localStorage._usercode;
 const storeApp = useApp();
+const router = useRouter();
+const displaySelectShop = ref(false);
+const listShop = ref();
+
+const openSelectShop = () => {
+  AuthenService.getListShop()
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        listShop.value = res.data;
+        setTimeout(() => {
+          checkShop();
+          displaySelectShop.value = true;
+        }, 200);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+onMounted(() => {});
+
+async function selectShop(item) {
+  localStorage.shopid = item.shopid;
+  const thNameObj = data.names.find(nameObj => nameObj.code === 'th');
+  localStorage.shop_name = thNameObj.name;
+  localStorage.shop_role = item.role;
+
+  AuthenService.selectShop()
+    .then((res) => {
+      if (res.success) {
+        displaySelectShop.value = false;
+        toast.add({
+          severity: "success",
+          summary: "success",
+          detail: "เปลี่ยนร้านสำเร็จ",
+          life: 3000,
+        });
+        setTimeout(() => {
+          router.go();
+        }, 400);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: "ไม่สามารถเปลี่ยนร้านได้ " + err,
+        life: 3000,
+      });
+    });
+}
+
+function checkShop() {
+  listShop.value.forEach((ele) => {
+    if (ele.shopid == localStorage.shopid) {
+      return (ele.disable = true);
+    } else {
+      return (ele.disable = false);
+    }
+  });
+}
+
+
 </script>
 
 <template>
@@ -16,10 +86,17 @@ const storeApp = useApp();
     >
       <div
         class="flex align-items-center bg-indigo-500 text-white h-full"
-        style="height: 65px"
+        style="height: 65px; width: 270px"
       >
-        <img src="@/assets/logo.jpg" alt="Image" height="40" class="mr-0 lg:mr-3 pl-3" />
-        <div class="ml-2" style="width: 270px">{{ shopName }}</div>
+        <img
+          src="@/assets/dedepos.png"
+          alt="Image"
+          height="40"
+          class="mr-0 lg:mr-3 pl-3"
+        />
+        <div class="ml-2 cursor-pointer" @click="openSelectShop()">
+          {{ shopName }} <i class="pi pi-sort-alt ml-2"></i>
+        </div>
       </div>
       <div class="flex align-items-center px-4">
         <a
@@ -153,4 +230,31 @@ const storeApp = useApp();
     </a>
     <span class="mb-1 ml-2"> {{ storeApp.PageTitle }}</span>
   </div> -->
+
+  <Dialog
+    header="เลือกร้านค้า"
+    v-model:visible="displaySelectShop"
+    ::breakpoints="{'960px': '75vw', '640px': '90vw'}"
+    :style="{ width: '70vw' }"
+    position="top"
+    :modal="true"
+    :draggable="false"
+  >
+    <div class="grid">
+      <div class="col-12 md:col-4" v-for="shop in listShop" :key="shop">
+        <div class="text-center border-1 surface-border border-round p-4">
+          <img src="@/assets/dedepos.png" alt="Image" height="100" />
+          <div class="text-900 text-2xl font-700 my-3 font-bold">
+            {{ shop.name }}
+          </div>
+          <Button
+            label="เลือก"
+            :disabled="shop.disable"
+            class="p-button p-button-success w-full"
+            @click="selectShop(shop)"
+          />
+        </div>
+      </div>
+    </div>
+  </Dialog>
 </template>

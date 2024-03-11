@@ -2641,7 +2641,7 @@ export default {
           let splix = event.target.value.toString().split("/");
           datex = splix[0] + "/" + splix[1] + "/" + (parseInt(splix[2]) - 543);
         }
-    
+
         let value = this.parseValue(datex);
         if (this.isValidSelection(value)) {
           this.typeUpdate = true;
@@ -2670,7 +2670,8 @@ export default {
     onKeyDown(event) {
       if (event.keyCode === 40 && this.overlay) {
         this.trapFocus(event);
-      } else if (event.keyCode === 27) {
+        //เพิ่ม key enter ให้ซ่อน
+      } else if (event.keyCode === 27 || event.keyCode === 13) {
         if (this.overlayVisible) {
           this.overlayVisible = false;
           event.preventDefault();

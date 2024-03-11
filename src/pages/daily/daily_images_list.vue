@@ -2,15 +2,14 @@
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
+import ImageDataService from "@/services/ImageDataService";
 import { useRouter, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { useToast } from "primevue/usetoast";
-import { DomHandler } from "primevue/utils";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
-import ImageBlock from "../images/components/ImagesBlock.vue";
-import ImagesGallery from "../images/components/ImagesGallery.vue";
-import DialogForm from "@/components/form/DialogForm.vue";
+import ImageBlock from "../images_group/components/ImagesBlock.vue";
+import DialogForm from "@/components/DialogForm.vue";
 import $ from "jquery";
 
 const content = ref();
@@ -41,7 +40,7 @@ const isShowWait = ref(false);
 const isShowUnApprove = ref(false);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(20);
+const limitPage = ref(50);
 const showContent = ref("");
 const createDialog = ref(false);
 const data_gallery = ref([]);
@@ -61,12 +60,12 @@ const gallery_form = ref({
 const selectSort = ref("uploadedat");
 const sortField = ref([
   {
-    code: "guidfixed",
-    name: "รหัสรูปภาพ",
-  },
-  {
     code: "uploadedat",
     name: "วันที่ Upload",
+  },
+  {
+    code: "title",
+    name: "ชื่อรูป",
   },
 ]);
 const sortOrder = ref(-1);
@@ -75,18 +74,22 @@ const selectedImg = ref([]);
 const groupDocRef = ref("");
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref("");
-const showImageBy = ref("0");
 const showImageGallery = ref(false);
 const connection = ref();
+const sortRef = ref("0");
+const sortReject = ref("0");
+const showImageBy = ref("1");
 onUnmounted(() => {
-  console.log("unmounted--------------------------------------------------------");
+  console.log(
+    "unmounted--------------------------------------------------------"
+  );
   connection.value.close();
   WsConnectAllImage.value.close();
   WsConnectImage.value.close();
 });
 
 onMounted(() => {
-  getDocImageList();
+  getDocumentImageGroup();
 
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_images_list");
@@ -104,7 +107,11 @@ onMounted(() => {
     create_date: "26/06/2022",
   });
 */
-  if (route.params.id != "" && route.params.id != "" && route.params.id != undefined) {
+  if (
+    route.params.id != "" &&
+    route.params.id != "" &&
+    route.params.id != undefined
+  ) {
     isGallery.value = true;
     storeApp.setPageTitle("รูปภาพเอกสาร Gallery" + route.params.id);
     data_gallery.value = [];
@@ -123,7 +130,7 @@ function goForm() {
 function websocketConnect() {
   connection.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/form?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   connection.value.onopen = function (event) {
     //console.log(event);
@@ -137,7 +144,7 @@ function websocketConnect() {
         .then((res) => {
           if (res.success) {
             console.log(res.data);
-            if (res.data.documentimages.length > 0) {
+            if (res.data.imagereferences.length > 0) {
               router.push({ name: "daily_images_show" });
             }
           }
@@ -149,7 +156,10 @@ function websocketConnect() {
   };
 
   connection.value.onclose = function (e) {
-    console.log("Socket is closed. Reconnect will be attempted in 1 second.", e.reason);
+    console.log(
+      "Socket is closed. Reconnect will be attempted in 1 second.",
+      e.reason
+    );
     setTimeout(function () {
       if (
         localStorage._token != "" &&
@@ -170,7 +180,7 @@ function websocketConnect() {
 function WSImageConnect() {
   WsConnectImage.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/image?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   WsConnectImage.value.onopen = function (event) {
     // console.log(event);
@@ -204,7 +214,7 @@ function WSImageConnect() {
 function WsAllImageConnect() {
   WsConnectAllImage.value = new WebSocket(
     "wss://api.dev.dedepos.com/gl/journal/ws/docref?apikey=" +
-    localStorage.getItem("_token")
+      localStorage.getItem("_token")
   );
   WsConnectAllImage.value.onopen = function (event) {
     // console.log(event);
@@ -264,36 +274,6 @@ function WsAllImageConnect() {
   };
 }
 
-function getDocImageList() {
-  loading.value = true;
-  MasterdataService.getDocImage(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    selectSort.value,
-    sortOrder.value,
-    showImageBy.value
-  )
-    .then((res) => {
-      // console.log(res);
-      if (res.success) {
-        data_list.value = res.data;
-        data_list.value.forEach((ele) => {
-          ele.isUpdate = false;
-        });
-        totalPage.value = res.pagination.totalPage;
-        totalItemsCount.value = res.pagination.total;
-        //   console.log(totalItemsCount.value);
-        getAllSelectImage();
-      }
-      loading.value = false;
-    })
-    .catch((err) => {
-      loading.value = false;
-      console.log(err);
-    });
-}
-
 function selectGallery(data) {
   router.push({ name: "list_images_param", params: { id: data } });
 
@@ -313,20 +293,20 @@ function onPage(event) {
   limitPage.value = event.rows;
   console.log(activePage.value);
   loading.value = true;
-  getDocImageList();
+  getDocumentImageGroup();
 }
 
 function nextPage() {
   activePage.value += 1;
 
   if (activePage.value <= totalPage.value) {
-    getDocImageListScroll();
+    getDocumentImageGroupScroll();
   }
 }
 
-function getDocImageListScroll() {
+function getDocumentImageGroupScroll() {
   showSkeleton.value = true;
-  MasterdataService.getDocImage(
+  ImageDataService.getDocumentImageGroup(
     limitPage.value,
     activePage.value,
     searchItem.value,
@@ -340,17 +320,26 @@ function getDocImageListScroll() {
         setTimeout(() => {
           res.data.forEach((ele) => {
             ele.isUpdate = false;
+
+            let references = ele.references ?? [];
+            if (ele.references == undefined) {
+              ele.references = references;
+            }
+
+            ele.imagereferences.sort(function (a, b) {
+              return a.xorder - b.xorder;
+            });
+
             data_list.value.push(ele);
           });
-          console.log(data_list.value);
+
+          //console.log(data_list.value);
 
           //onsole.log(totalItemsCount.value);
           getAllSelectImage();
-          totalPage.value = res.pagination.totalPage;
-          totalItemsCount.value = res.pagination.total;
           firstPage.value = activePage.value;
 
-          console.log("firstPage" + firstPage.value);
+          // console.log("firstPage" + firstPage.value);
           showSkeleton.value = false;
         }, 500);
       }
@@ -361,13 +350,10 @@ function getDocImageListScroll() {
     });
 }
 
-function getDocImageListDefualt() {
+function getDocumentImageGroup() {
   loading.value = true;
-  limitPage.value = 50,
-    activePage.value = 1,
-    searchItem.value = "",
-    showImageBy.value;
-  MasterdataService.getDocImage(
+
+  ImageDataService.getDocumentImageGroup(
     limitPage.value,
     activePage.value,
     searchItem.value,
@@ -379,20 +365,42 @@ function getDocImageListDefualt() {
       console.log(res);
       if (res.success) {
         data_list.value = res.data;
-        data_list.value.forEach((ele) => {
-          ele.isUpdate = false;
+
+        data_list.value = data_list.value.map((element) => {
+          let references = element.references ?? [];
+          element.references = references;
+          return element;
         });
+
+        data_list.value.forEach((element, index) => {
+          element.imagereferences.sort(function (a, b) {
+            return a.xorder - b.xorder;
+          });
+        });
+
+        loading.value = false;
         totalPage.value = res.pagination.totalPage;
         totalItemsCount.value = res.pagination.total;
-        //onsole.log(totalItemsCount.value);
         getAllSelectImage();
       }
-      loading.value = false;
     })
     .catch((err) => {
-      loading.value = false;
-      console.log(err);
+      toast.add({
+        severity: "error",
+        summary: "Error",
+        detail: err,
+        life: 3000,
+      });
     });
+}
+
+function getDocImageListDefualt() {
+  loading.value = true;
+  selectedImg.value = [];
+  limitPage.value = 50;
+  activePage.value = 1;
+  searchItem.value = "";
+  getDocumentImageGroup();
 }
 
 function getAllSelectImage() {
@@ -415,6 +423,8 @@ function getAllSelectImage() {
 }
 
 function selectImg(data) {
+  console.log(data);
+
   var sendData = { docref: data };
   if (checkUseImgByUser(localStorage._usercode)) {
     confirmChangeImageDialog.value = true;
@@ -524,42 +534,6 @@ function checkUseImgByUser(user) {
   }
 }
 
-function openModal() {
-  uploadmodel.value = true;
-}
-
-function uploadSuccess() {
-  uploadmodel.value = false;
-  getDocImageList();
-}
-
-async function postGroupDocRef() {
-  var docref = {
-    documentref: groupDocRef.value,
-    documentimages: selectedImg.value,
-  };
-
-  try {
-    const res = await MasterdataService.postGroupDocRef(docref);
-    if (res.success) {
-      updateRefDialog.value = false;
-      toast.add({
-        severity: "success",
-        summary: "success",
-        detail: "บันทึกข้อมูลสำเร็จ",
-        life: 3000,
-      });
-    }
-  } catch (err) {
-    toast.add({
-      severity: "error",
-      summary: "error",
-      detail: "บันทึกไม่สำเร็จ " + err,
-      life: 3000,
-    });
-  }
-}
-
 function selectSortUse(event) {
   selectSort.value = event.value;
   getDocImageListDefualt();
@@ -569,7 +543,6 @@ function selectSortOrder(data) {
   sortOrder.value = data;
   getDocImageListDefualt();
 }
-
 
 function onScroll() {
   let div = $("#maincontainer")[0];
@@ -588,43 +561,82 @@ function onScroll() {
         <template #header>
           <div class="p-inputgroup mt-2">
             <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-            <Button icon="pi pi-search" @click="getDocImageList()" class="p-button-primary" />
+            <Button
+              icon="pi pi-search"
+              @click="getDocumentImageGroup()"
+              class="p-button-primary"
+            />
           </div>
           <div class="flex justify-content-between">
             <div class="grid mt-3 ml-1">
-              <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage"
-                :totalRecords="totalItemsCount" @page="onPage($event)">
+              <Paginator
+                class="justify-content-start"
+                :rows="limitPage"
+                v-model:first="firstPage"
+                :totalRecords="totalItemsCount"
+                @page="onPage($event)"
+              >
               </Paginator>
             </div>
             <div class="grid mt-3 mr-1">
               <div class="flex align-items-center ml-2">
                 <span class="mr-2 text-900">การเรียงข้อมูล</span>
-                <Dropdown v-model="selectSort" :options="sortField" optionLabel="name" optionValue="code"
-                  @change="selectSortUse($event)">
+                <Dropdown
+                  v-model="selectSort"
+                  :options="sortField"
+                  optionLabel="name"
+                  optionValue="code"
+                  @change="selectSortUse($event)"
+                >
                 </Dropdown>
-                <i v-if="sortOrder == -1" class="pi pi-sort-amount-up-alt cursor-pointer ml-2" style="font-size: 1.5rem"
-                  @click="selectSortOrder(1)"></i>
-                <i v-if="sortOrder == 1" class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
-                  style="font-size: 1.5rem" @click="selectSortOrder(-1)"></i>
+                <i
+                  v-if="sortOrder == -1"
+                  class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
+                  style="font-size: 1.5rem"
+                  @click="selectSortOrder(1)"
+                ></i>
+                <i
+                  v-if="sortOrder == 1"
+                  class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
+                  style="font-size: 1.5rem"
+                  @click="selectSortOrder(-1)"
+                ></i>
               </div>
             </div>
           </div>
         </template>
         <template #content class="p-0">
-          <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
-            <div class="flex align-content-center justify-content-center flex-wrap card-container"
-              style="min-height: 56vh">
+          <div
+            class="p-3 card"
+            v-if="data_gallery.length == 0 && data_list.length == 0"
+          >
+            <div
+              class="flex align-content-center justify-content-center flex-wrap card-container"
+              style="min-height: 56vh"
+            >
               <div class="p-0">
                 <ProgressSpinner />
               </div>
             </div>
           </div>
           <div class="grid">
-            <div class="col-12 md:col-6 lg:col-4 xl:col-3" v-for="data in data_list" :key="data.guidfixed">
-              <ImageBlock :images_data="data" :images_selete="selectedImg" :allimage_used="AllImageUsed" :mode="4"
-                v-on:selectImg="selectImg"></ImageBlock>
+            <div
+              class="col-12 md:col-6 lg:col-4 xl:col-3"
+              v-for="data in data_list"
+              :key="data.guidfixed"
+            >
+              <ImageBlock
+                :images_data="data"
+                :images_selete="selectedImg"
+                :allimage_used="AllImageUsed"
+                :mode="4"
+                v-on:selectImg="selectImg"
+              ></ImageBlock>
             </div>
-            <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+            <div
+              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+              v-if="showSkeleton"
+            >
               <div class="custom-skeleton p-4">
                 <div class="flex mb-3">
                   <div>
@@ -640,7 +652,10 @@ function onScroll() {
                 </div>
               </div>
             </div>
-            <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+            <div
+              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+              v-if="showSkeleton"
+            >
               <div class="custom-skeleton p-4">
                 <div class="flex mb-3">
                   <div>
@@ -656,7 +671,10 @@ function onScroll() {
                 </div>
               </div>
             </div>
-            <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
+            <div
+              class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
+              v-if="showSkeleton"
+            >
               <div class="custom-skeleton p-4">
                 <div class="flex mb-3">
                   <div>
@@ -675,8 +693,12 @@ function onScroll() {
           </div>
         </template>
       </Card>
-      <DialogForm :confirmDialog="confirmChangeImageDialog" :textContent="conchange"
-        v-on:close="confirmChangeImageDialog = false" v-on:confirm="changeImage(newDocRefImage)"></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmChangeImageDialog"
+        :textContent="conchange"
+        v-on:close="confirmChangeImageDialog = false"
+        v-on:confirm="changeImage(newDocRefImage)"
+      ></DialogForm>
     </MainContentWarp>
   </AppLayout>
 </template>

@@ -5,9 +5,10 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import { onMounted } from "vue";
 import { usePrimeVue } from "primevue/config";
 
+
 const primevue = usePrimeVue();
 onMounted(() => {
-  document.title = "Village Fund GL";
+  document.title = "DEDE ACCOUT";
 
   if (process.env.VUE_APP_DATE == "th") {
     primevue.config.locale.dayNames = [
