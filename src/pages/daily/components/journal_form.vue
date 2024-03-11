@@ -22,6 +22,7 @@ const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const filteredCountries = ref();
 const accountChart_detail = ref([]);
 const warringAccountperiod = ref(false);
+const useCust = ref(0);
 const sumTableDebit = computed({
   get() {
     let sum = 0;
@@ -55,6 +56,8 @@ const props = defineProps({
   accountBook_detail: Array,
   document_formate: Array,
   groupAccount_detail: Array,
+  customer_detail:Array,
+  creditor_detail:Array,
   id: String,
 });
 
@@ -344,6 +347,83 @@ function headerNextFocus(filedName) {
             </template>
           </Dropdown>
           <label for="bookcode">สมุดรายวัน</label>
+        </span>
+      </div>
+      <div class="field mt-3 col-12 md:col-3">
+    
+        <div class="grid mt-0 ml-2">
+          <div class="flex field-checkbox">
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="0"
+              v-model="props.daily_form.debtaccounttype"
+         
+            />
+            <label>ลูกหนี้</label>
+          </div>
+          <div class="flex field-checkbox ml-3">
+            <RadioButton
+              :disabled="props.isUpdate"
+              name="journaltype"
+              value="1"
+              v-model="props.daily_form.debtaccounttype"
+       
+            />
+            <label>เจ้าหนี้</label>
+          </div>
+        </div>
+      </div>
+      <div class="field mb-4 col-12 md:col-4" v-if="props.daily_form.debtaccounttype==0">
+        <span class="p-float-label">
+          <Dropdown
+            v-model="props.daily_form.debtor"
+            :options="props.customer_detail"
+            :disabled="props.isUpdate"
+            :filter="true"
+            :filterFields="['code', 'name']"
+            optionValue="code"
+            optionLabel="name"
+            filterPlaceholder="ค้นหา"
+            placeholder="เลือก"
+            :autoFilterFocus="true"
+            @keyup.enter="headerNextFocus('exdocrefdate')"
+            @keydown.tab="headerNextFocus('exdocrefdate')"
+            inputClass="debtor"
+          >
+            <template #option="slotProps">
+              <div>
+                {{ slotProps.option.code }} ~ {{ slotProps.option.name }}
+              </div>
+            </template>
+          </Dropdown>
+          <label for="bookcode">ลุกหนี้</label>
+        </span>
+      </div>
+      <div class="field mb-4 col-12 md:col-4" v-if="props.daily_form.debtaccounttype==1">
+        <span class="p-float-label">
+          <Dropdown
+            v-model="props.daily_form.creditor"
+            :options="props.creditor_detail"
+            :disabled="props.isUpdate"
+            :filter="true"
+            :filterFields="['code', 'name']"
+            optionValue="code"
+            optionLabel="name"
+            filterPlaceholder="ค้นหา"
+            placeholder="เลือก"
+            :autoFilterFocus="true"
+            @keyup.enter="headerNextFocus('exdocrefdate')"
+            @keydown.tab="headerNextFocus('exdocrefdate')"
+            inputClass="creditor"
+          >
+            <template #option="slotProps">
+              <div>
+                {{ slotProps.option.code }} ~ {{ slotProps.option.name }}
+              </div>
+            </template>
+          </Dropdown>
+          <label for="bookcode">เจ้าหนี้</label>
         </span>
       </div>
       <div class="field mb-4 col-12 md:col-3">
