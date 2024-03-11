@@ -305,5 +305,58 @@ export default {
     },
 
 
+    ///ลูกหนี้
+
+    getDebtorList(limitPage, page, search, sortField, sortOrder) {
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        //console.log(`/gl/journalbook?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/debtaccount/debtor?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+
+    },
+
+    postDebtor(data) {
+        return instanceApi(true).post(`/debtaccount/debtor`, data).then(res => res.data);
+    },
+    getDebtorById(id) {
+        return instanceApi(true).get(`/debtaccount/debtor/` + id).then(res => res.data);
+    },
+    putDebtor(id,data) {
+        return instanceApi(true).put(`/debtaccount/debtor/` + id, data).then(res => res.data);
+    },
+    deleteDebtor(data) {
+        return instanceApi(true).delete(`/debtaccount/debtor/` + data).then(res => res.data);
+    },
+
+    ///เจ้าหนี้
+
+    getCreditorList(limitPage, page, search, sortField, sortOrder) {
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        //console.log(`/gl/journalbook?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/debtaccount/creditor?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+
+    },
+
+    postCreditor(data) {
+        return instanceApi(true).post(`/debtaccount/creditor`, data).then(res => res.data);
+    },
+    getCreditorById(id) {
+        return instanceApi(true).get(`/debtaccount/creditor/` + id).then(res => res.data);
+    },
+    putCreditor(id,data) {
+        return instanceApi(true).put(`/debtaccount/creditor/` + id, data).then(res => res.data);
+    },
+    deleteCreditor(data) {
+        return instanceApi(true).delete(`/debtaccount/creditor/` + data).then(res => res.data);
+    },
+
+
 
 }
