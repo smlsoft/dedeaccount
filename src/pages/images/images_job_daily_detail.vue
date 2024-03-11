@@ -113,7 +113,8 @@ const vats_valid = ref([
     branchcode: false,
   },
 ]);
-
+const customer_detail = ref([]);
+const creditor_detail = ref([]);
 const myWindow = ref();
 const newWindow = ref(false);
 
@@ -124,7 +125,8 @@ const myInterval = ref(null);
 
 const dialogComment = ref();
 const screenHeight = window.screen.height;
-
+const filtersCust = ref(null);
+const sortFieldCust = ref("code");
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -140,11 +142,49 @@ onUnmounted(() => {
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
+  getCreditorList();
+  getDebtorList();
   getTaskById(jobId.value);
 
   storeApp.setActivePage("pic_group");
   storeApp.setActiveChild("images_job_daily_detail");
 });
+
+
+function getCreditorList() {
+  loading.value = true;
+  MasterdataService.getCreditorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        creditor_detail.value = res.data;
+        creditor_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+      }
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+    });
+}
+
+function getDebtorList() {
+  loading.value = true;
+  MasterdataService.getDebtorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        customer_detail.value = res.data;
+        customer_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+        console.log("customer_detail : ", customer_detail.value);
+      }
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+    });
+}
 
 function websocketConnect() {
   connection.value = new WebSocket(
@@ -785,7 +825,9 @@ function getGLDetail(docno) {
         openDetailDocNo.value = true;
         const vat = res.data.vats;
         const tax = res.data.taxes;
-
+        daily_form.value.debtaccounttype = res.data.debtaccounttype.toString();
+        daily_form.value.debtor = (res.data.debtaccounttype ==0) ? res.data.debtor.code : "";
+        daily_form.value.creditor = (res.data.debtaccounttype ==1) ? res.data.creditor.code : "";
         daily_form.value.docno = res.data.guidfixed;
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
@@ -1194,6 +1236,8 @@ async function saveComment(id, data, index) {
             </template>
             <JournalForm
               :isUpdate="true"
+              :customer_detail="customer_detail"
+                        :creditor_detail="creditor_detail"
               :accountBook_detail="accountBook_detail"
               :daily_form="daily_form"
               :daily_form_valid="daily_form_valid"

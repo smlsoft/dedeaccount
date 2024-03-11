@@ -69,6 +69,9 @@ const activeIndex = ref(0);
 const updateMode = ref(false);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
+const customer_detail = ref([]);
+const creditor_detail = ref([]);
+
 const document_formate = ref([]);
 const groupAccount_detail = ref([]);
 const confirmChangeImageDialog = ref(false);
@@ -99,6 +102,9 @@ const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
 
 const daily_form = ref({
+  debtaccounttype: "0",
+  debtor: "",
+  creditor: "",
   accountdescription: "",
   accountgroup: "",
   accountperiod: null,
@@ -164,15 +170,16 @@ const taxes_valid = ref([
 ]);
 const readMode = ref(false);
 
+const filtersCust = ref(null);
+const sortFieldCust = ref("code");
+
 const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const showOveray = ref(false);
 const warringAccountperiod = ref(false);
 
 onUnmounted(() => {
-  console.log(
-    "unmounted--------------------------------------------------------"
-  );
+  console.log("unmounted--------------------------------------------------------");
 
   // WsConnectAllImage.value.close();
   // WsConnectImage.value.close();
@@ -183,11 +190,7 @@ onMounted(() => {
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("daily_list");
 
-  if (
-    route.params.id != "" &&
-    route.params.id != "" &&
-    route.params.id != undefined
-  ) {
+  if (route.params.id != "" && route.params.id != "" && route.params.id != undefined) {
     storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
     onLoad.value = true;
     readMode.value = false;
@@ -204,11 +207,46 @@ onMounted(() => {
   getJournalBook();
   getAccountGroup();
   getDocumentFormate();
-
+  getCreditorList();
+  getDebtorList();
   // set height ifram
-  heightIamgeDivCheckGl.value =
-    "height:" + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value = "height:" + divCheckGl.value.offsetHeight + "px";
 });
+
+function getCreditorList() {
+  loading.value = true;
+  MasterdataService.getCreditorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        creditor_detail.value = res.data;
+        creditor_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+      }
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+    });
+}
+
+function getDebtorList() {
+  loading.value = true;
+  MasterdataService.getDebtorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        customer_detail.value = res.data;
+        customer_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+        console.log("customer_detail : ", customer_detail.value);
+      }
+    })
+    .catch((err) => {
+      loading.value = false;
+      console.log(err);
+    });
+}
 
 function getImagesByDocref(data) {
   console.log(data);
@@ -280,7 +318,9 @@ function getGLDetail(id) {
 
         const vat = res.data.vats;
         const tax = res.data.taxes;
-
+        daily_form.value.debtaccounttype = res.data.debtaccounttype.toString();
+        daily_form.value.debtor = (res.data.debtaccounttype ==0) ? res.data.debtor.code : "";
+        daily_form.value.creditor = (res.data.debtaccounttype ==1) ? res.data.creditor.code : "";
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
         daily_form.value.accountperiod = res.data.accountperiod;
@@ -303,9 +343,7 @@ function getGLDetail(id) {
         if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
           daily_form.value.exdocrefdate = "";
         } else {
-          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
-            res.data.exdocrefdate
-          );
+          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(res.data.exdocrefdate);
         }
 
         daily_form.value.exdocrefno = res.data.exdocrefno;
@@ -355,10 +393,7 @@ function getGLDetail(id) {
               details: [],
             };
 
-            if (
-              res.data.taxes[i].details != null &&
-              res.data.taxes[i].details.length > 0
-            ) {
+            if (res.data.taxes[i].details != null && res.data.taxes[i].details.length > 0) {
               var sumamount = 0;
               var sumbase = 0;
               res.data.taxes[i].details.forEach((data) => {
@@ -400,8 +435,7 @@ function getGLDetail(id) {
                   selectedImg.value = true;
                   showpanel();
                   // set height ifram
-                  heightIamgeDivCheckGl.value =
-                    "height:" + divCheckGl.value.offsetHeight + "px";
+                  heightIamgeDivCheckGl.value = "height:" + divCheckGl.value.offsetHeight + "px";
                 }
               }
             })
@@ -483,6 +517,9 @@ async function confirmSave() {
   //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
   //console.log(Utils.getFormatDateTime(daily_form.value.docdate));
   var from_input = {
+    debtor: (daily_form.value.debtaccounttype=="1") ? {} : (daily_form.value.debtor != "") ? customer_detail.value.filter((data) => data.code == daily_form.value.debtor)[0] : {},
+    creditor: (daily_form.value.debtaccounttype=="0") ? {} :  (daily_form.value.creditor != "") ? creditor_detail.value.filter((data) => data.code == daily_form.value.creditor)[0] : {},
+    debtaccounttype: parseInt(daily_form.value.debtaccounttype),
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
@@ -498,10 +535,7 @@ async function confirmSave() {
     parid: daily_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
-    exdocrefdate:
-      daily_form.value.exdocrefdate != ""
-        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
-        : "0001-01-01T00:00:00Z",
+    exdocrefdate: daily_form.value.exdocrefdate != "" ? Utils.getFormatDateTime(daily_form.value.exdocrefdate) : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
@@ -630,35 +664,15 @@ function verifyData() {
   let deletIndex = [];
   daily_form.value.journaldetail.forEach((ele, index) => {
     // เก็บค่า index row ที่เป็นค่าว่าง
-    if (
-      ele.accountcode == "" &&
-      ele.creditamount == "" &&
-      ele.debitamount == ""
-    ) {
+    if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount == "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount != "" &&
-      ele.debitamount != ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount != "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount != "" &&
-      ele.debitamount == ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount != "" && ele.debitamount == "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode == "" &&
-      ele.creditamount == "" &&
-      ele.debitamount != ""
-    ) {
+    } else if (ele.accountcode == "" && ele.creditamount == "" && ele.debitamount != "") {
       deletIndex.push(index);
-    } else if (
-      ele.accountcode != "" &&
-      ele.creditamount == "" &&
-      ele.debitamount == ""
-    ) {
+    } else if (ele.accountcode != "" && ele.creditamount == "" && ele.debitamount == "") {
       deletIndex.push(index);
     }
   });
@@ -771,10 +785,7 @@ function verifyData() {
 
     daily_form.value.amount = sumDebit;
     //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-    daily_form.value.accountperiod =
-      daily_form.value.accountperiod != null
-        ? parseInt(daily_form.value.accountperiod.toString())
-        : null;
+    daily_form.value.accountperiod = daily_form.value.accountperiod != null ? parseInt(daily_form.value.accountperiod.toString()) : null;
     daily_form.value.accountyear = parseInt(daily_form.value.accountyear);
     return true;
   }
@@ -884,8 +895,7 @@ function getAccountPeriodByDate(keyDate) {
       console.log(res);
       if (res.success) {
         if (res.data[0].perioddata.guidfixed != "") {
-          daily_form.value.accountperiod =
-            res.data[0].perioddata.guidfixed.period;
+          daily_form.value.accountperiod = res.data[0].perioddata.guidfixed.period;
         } else {
           daily_form.value.accountperiod = null;
           warringAccountperiod.value = true;
@@ -905,15 +915,7 @@ function getAccountPeriodByDate(keyDate) {
 
 function getDocumentImageGroup() {
   loading.value = true;
-  ImageDataService.getDocumentImageGroup(
-    limitPage.value,
-    activePage.value,
-    searchItem.value,
-    selectSort.value,
-    sortOrder.value,
-    sortRef.value,
-    sortReject.value
-  )
+  ImageDataService.getDocumentImageGroup(limitPage.value, activePage.value, searchItem.value, selectSort.value, sortOrder.value, sortRef.value, sortReject.value)
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -978,8 +980,7 @@ function magnify(imgID, zoom) {
   /*set background properties for the magnifier glass:*/
   glass.style.backgroundImage = "url('" + img.src + "')";
   glass.style.backgroundRepeat = "no-repeat";
-  glass.style.backgroundSize =
-    img.width * zoom + "px " + img.height * zoom + "px";
+  glass.style.backgroundSize = img.width * zoom + "px " + img.height * zoom + "px";
   glass.style.zIndex = 99999;
   bw = 3;
   w = glass.offsetWidth / 2;
@@ -1015,8 +1016,7 @@ function magnify(imgID, zoom) {
     glass.style.left = x - w + "px";
     glass.style.top = y - h + "px";
     /*display what the magnifier glass "sees":*/
-    glass.style.backgroundPosition =
-      "-" + (x * zoom - w + bw) + "px -" + (y * zoom - h + bw) + "px";
+    glass.style.backgroundPosition = "-" + (x * zoom - w + bw) + "px -" + (y * zoom - h + bw) + "px";
   }
   function getCursorPos(e) {
     var a,
@@ -1089,10 +1089,7 @@ function verifyTax() {
         toast.add({
           severity: "error",
           summary: "ไม่สามารถทำรายการได้",
-          detail:
-            "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " +
-            (index + 1) +
-            " ให้ครบ",
+          detail: "กรุณากรอกข้อมูลภาษีหัก​​ ณ ที่จ่าย รายการที่ " + (index + 1) + " ให้ครบ",
           life: 4000,
         });
         // ele.details.forEach((detail, indexx) => {
@@ -1142,9 +1139,7 @@ function onDrop(event) {
   event.stopPropagation();
   event.preventDefault();
 
-  const files = event.dataTransfer
-    ? event.dataTransfer.files
-    : event.target.files;
+  const files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
   const allowDrop = true || (files && files.length === 1);
 
   if (allowDrop) {
@@ -1154,9 +1149,7 @@ function onDrop(event) {
 function onFileSelect(event) {
   console.log(event);
   var data_import = [];
-  let files = event.dataTransfer
-    ? event.dataTransfer.files
-    : event.target.files;
+  let files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
 
   for (let file of files) {
     if (isImage(file)) {
@@ -1172,13 +1165,8 @@ function onFileSelect(event) {
 
 function rejectImg() {
   var post_data = { status: 1 };
-  console.log(
-    selectedImgData.value.documentimages[activeIndex.value].guidfixed
-  );
-  MasterdataService.putrejectimagestatusonlyGuiD(
-    post_data,
-    selectedImgData.value.documentimages[activeIndex.value].guidfixed
-  )
+  console.log(selectedImgData.value.documentimages[activeIndex.value].guidfixed);
+  MasterdataService.putrejectimagestatusonlyGuiD(post_data, selectedImgData.value.documentimages[activeIndex.value].guidfixed)
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -1390,9 +1378,7 @@ function ImportDaliy(data) {
 }
 
 function deleteDetail(data) {
-  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
-    (val) => val.index !== data
-  );
+  daily_form.value.journaldetail = daily_form.value.journaldetail.filter((val) => val.index !== data);
 
   if (daily_form.value.journaldetail.length == 0) {
     daily_form.value.journaldetail.push({
@@ -1413,8 +1399,7 @@ function reload() {
   getAccountChart();
 }
 function addColumn(index) {
-  heightIamgeDivCheckGl.value =
-    "height : " + divCheckGl.value.offsetHeight + "px";
+  heightIamgeDivCheckGl.value = "height : " + divCheckGl.value.offsetHeight + "px";
 
   daily_form.value.journaldetail.splice(index + 1, 0, {
     accountcode: "",
@@ -1435,9 +1420,7 @@ function onRowReorder(data) {
 }
 
 function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter(
-    (val) => val.accountcode == data.accountcode
-  );
+  var ele = accountChart_detail.value.filter((val) => val.accountcode == data.accountcode);
   daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
   daily_form.value.journaldetail[index].accountname = ele[0].accountname;
 }
@@ -1682,18 +1665,8 @@ function selectDucumentFormat(data) {
   <AppLayout>
     <MainContentWarp>
       <div class="surface-ground px-2 py-0">
-        <Button
-          label="กลับหน้ารายการ"
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-sm p-button-info"
-          @click="goList()"
-          v-if="!onLoad"
-        />
-        <div
-          class="flex align-items-center justify-content-center"
-          style="min-height: 60vh"
-          v-if="onLoad"
-        >
+        <Button label="กลับหน้ารายการ" icon="pi pi-arrow-left" class="p-button-text p-button-sm p-button-info" @click="goList()" v-if="!onLoad" />
+        <div class="flex align-items-center justify-content-center" style="min-height: 60vh" v-if="onLoad">
           <ProgressSpinner />
         </div>
         <Dialog
@@ -1710,10 +1683,7 @@ function selectDucumentFormat(data) {
           <template #header>
             <h3 class="p-1 mt-2 mb-2">รูปภาพเอกสาร</h3>
           </template>
-          <div
-            class="flex align-items-center justify-content-center mt-5"
-            v-if="!showImageList && !showUploadImage"
-          >
+          <div class="flex align-items-center justify-content-center mt-5" v-if="!showImageList && !showUploadImage">
             <div class="flex mr-2">
               <Card
                 class="shadow-2 border-round pl-3 pr-3 pb-0 align-items-center justify-content-center cursor-pointer hover:border-green-700 border-2 border-300"
@@ -1723,10 +1693,7 @@ function selectDucumentFormat(data) {
                 "
               >
                 <template #header>
-                  <img
-                    src="@/assets/img/galleryimg.png"
-                    style="height: 200px"
-                  />
+                  <img src="@/assets/img/galleryimg.png" style="height: 200px" />
                 </template>
                 <template #title>เลือกจากคลังรูป</template>
               </Card>
@@ -1740,107 +1707,48 @@ function selectDucumentFormat(data) {
                   <img src="@/assets/img/folderimg.png" style="height: 200px" />
                 </template>
                 <template #title>อัพโหลดรูปภาพ</template>
-                <template #content
-                  ><input
-                    id="chooseFile"
-                    ref="fileInput"
-                    type="file"
-                    @change="onFileSelect"
-                    :multiple="false"
-                    accept="image/*"
-                    style="display: none"
-                /></template>
+                <template #content><input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect" :multiple="false" accept="image/*" style="display: none" /></template>
               </Card>
             </div>
           </div>
 
-          <div
-            class="flex align-items-center justify-content-center mt-0"
-            v-if="showImageList && !showUploadImage"
-          >
+          <div class="flex align-items-center justify-content-center mt-0" v-if="showImageList && !showUploadImage">
             <Card class="p-3 w-screen">
               <template #header>
                 <div class="p-inputgroup mt-2">
                   <InputText placeholder="ค้นหาเอกสาร" v-model="searchItem" />
-                  <Button
-                    icon="pi pi-search"
-                    @click="getDocumentImageGroup()"
-                    class="p-button-primary"
-                  />
+                  <Button icon="pi pi-search" @click="getDocumentImageGroup()" class="p-button-primary" />
                 </div>
                 <div class="flex justify-content-between">
                   <div class="grid mt-3 ml-1">
-                    <Paginator
-                      class="justify-content-start"
-                      :rows="limitPage"
-                      v-model:first="firstPage"
-                      :totalRecords="totalItemsCount"
-                      @page="onPage($event)"
-                    >
-                    </Paginator>
+                    <Paginator class="justify-content-start" :rows="limitPage" v-model:first="firstPage" :totalRecords="totalItemsCount" @page="onPage($event)"> </Paginator>
                   </div>
                   <div class="grid mt-3 mr-1">
                     <div class="flex align-items-center ml-2">
                       <span class="mr-2 text-900">การเรียงข้อมูล</span>
-                      <Dropdown
-                        v-model="selectSort"
-                        :options="sortField"
-                        optionLabel="name"
-                        optionValue="code"
-                        @change="selectSortUse($event)"
-                      >
-                      </Dropdown>
-                      <i
-                        v-if="sortOrder == -1"
-                        class="pi pi-sort-amount-up-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem"
-                        @click="selectSortOrder(1)"
-                      ></i>
-                      <i
-                        v-if="sortOrder == 1"
-                        class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2"
-                        style="font-size: 1.5rem"
-                        @click="selectSortOrder(-1)"
-                      ></i>
+                      <Dropdown v-model="selectSort" :options="sortField" optionLabel="name" optionValue="code" @change="selectSortUse($event)"> </Dropdown>
+                      <i v-if="sortOrder == -1" class="pi pi-sort-amount-up-alt cursor-pointer ml-2" style="font-size: 1.5rem" @click="selectSortOrder(1)"></i>
+                      <i v-if="sortOrder == 1" class="pi pi pi-sort-amount-down-alt cursor-pointer ml-2" style="font-size: 1.5rem" @click="selectSortOrder(-1)"></i>
                     </div>
                   </div>
                 </div>
               </template>
               <template #content class="p-0">
-                <div
-                  class="p-3 card"
-                  v-if="data_gallery.length == 0 && data_list.length == 0"
-                >
-                  <div
-                    class="flex align-content-center justify-content-center flex-wrap card-container"
-                    style="min-height: 56vh"
-                  >
+                <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
+                  <div class="flex align-content-center justify-content-center flex-wrap card-container" style="min-height: 56vh">
                     <div class="p-0">
                       <ProgressSpinner />
                     </div>
                   </div>
                 </div>
                 <div class="grid">
-                  <div
-                    class="col-12 md:col-6 lg:col-4 xl:col-3"
-                    v-for="data in data_list"
-                    :key="data.guidfixed"
-                  >
-                    <ImageBlock
-                      :images_data="data"
-                      :images_selete="selectedImgUse"
-                      :allimage_used="AllImageUsed"
-                      :mode="3"
-                      v-on:selectImg="selectImg"
-                    ></ImageBlock>
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3" v-for="data in data_list" :key="data.guidfixed">
+                    <ImageBlock :images_data="data" :images_selete="selectedImgUse" :allimage_used="AllImageUsed" :mode="3" v-on:selectImg="selectImg"></ImageBlock>
                     <!-- 
                     <ImageBlock :images_data="data" :images_selete="selectedImgUse" :mode="3" v-on:selectImg="selectImg"
                       :allimage_used="AllImageUsed"></ImageBlock> -->
                   </div>
-                  <div
-                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                    v-if="showSkeleton"
-                  >
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1856,10 +1764,7 @@ function selectDucumentFormat(data) {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                    v-if="showSkeleton"
-                  >
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1875,10 +1780,7 @@ function selectDucumentFormat(data) {
                       </div>
                     </div>
                   </div>
-                  <div
-                    class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0"
-                    v-if="showSkeleton"
-                  >
+                  <div class="col-12 md:col-6 lg:col-4 xl:col-3 pt-0" v-if="showSkeleton">
                     <div class="custom-skeleton p-4">
                       <div class="flex mb-3">
                         <div>
@@ -1899,21 +1801,9 @@ function selectDucumentFormat(data) {
             </Card>
           </div>
         </Dialog>
-        <div
-          class="surface-card p-4 shadow-2 border-round p-fluid"
-          v-if="!onLoad"
-        >
-          <Splitter
-            layout="horizontal"
-            @resizestart="resizeSplitter(true)"
-            @resizeend="resizeSplitter(false)"
-          >
-            <SplitterPanel
-              :size="1"
-              class="relative"
-              id="panelForm2"
-              @mouseleave="removeMagnify()"
-            >
+        <div class="surface-card p-4 shadow-2 border-round p-fluid" v-if="!onLoad">
+          <Splitter layout="horizontal" @resizestart="resizeSplitter(true)" @resizeend="resizeSplitter(false)">
+            <SplitterPanel :size="1" class="relative" id="panelForm2" @mouseleave="removeMagnify()">
               <div class="flex justify-content-between align-items-right">
                 <div>
                   <Button
@@ -1952,63 +1842,20 @@ function selectDucumentFormat(data) {
                 />
               </div>
               <KeepAlive>
-                <div
-                  id="galleriabox"
-                  v-if="doc_images.length > 0 && selectedImg"
-                >
-                  <Galleria
-                    :value="doc_images"
-                    :showThumbnails="false"
-                    :circular="true"
-                    :showIndicators="doc_images.length > 1"
-                  >
+                <div id="galleriabox" v-if="doc_images.length > 0 && selectedImg">
+                  <Galleria :value="doc_images" :showThumbnails="false" :circular="true" :showIndicators="doc_images.length > 1">
                     <template #item="slotProps">
                       <div class="grid w-full">
                         <div class="col-12">
-                          <div
-                            class="flex justify-content-between flex-wrap card-container purple-container"
-                          >
-                            <Chip
-                              :label="slotProps.item.name"
-                              icon="pi pi-image"
-                              class="mt-2"
-                            />
-                            <Chip
-                              :label="
-                                'วันที่ : ' +
-                                Utils.getDateTimeFormat(
-                                  slotProps.item.uploadedat
-                                )
-                              "
-                              icon="pi pi-calendar"
-                              class="mr-2 mt-2"
-                            />
+                          <div class="flex justify-content-between flex-wrap card-container purple-container">
+                            <Chip :label="slotProps.item.name" icon="pi pi-image" class="mt-2" />
+                            <Chip :label="'วันที่ : ' + Utils.getDateTimeFormat(slotProps.item.uploadedat)" icon="pi pi-calendar" class="mr-2 mt-2" />
                           </div>
                         </div>
                         <div class="col-12" :style="heightIamgeDivCheckGl">
-                          <div
-                            class="relative"
-                            style="margin: 0px; padding: 0px; height: 100%"
-                          >
-                            <iframe
-                              :name="slotProps.item.imageuri"
-                              :src="
-                                '/images/components/zoom?uri=' +
-                                slotProps.item.imageuri
-                              "
-                              class="static"
-                            >
-                            </iframe>
-                            <div
-                              v-if="showOveray"
-                              class="absolute top-0 left-0"
-                              style="
-                                width: 100%;
-                                height: 100%;
-                                background-color: white;
-                                opacity: 0;
-                              "
-                            ></div>
+                          <div class="relative" style="margin: 0px; padding: 0px; height: 100%">
+                            <iframe :name="slotProps.item.imageuri" :src="'/images/components/zoom?uri=' + slotProps.item.imageuri" class="static"> </iframe>
+                            <div v-if="showOveray" class="absolute top-0 left-0" style="width: 100%; height: 100%; background-color: white; opacity: 0"></div>
                           </div>
                         </div>
                       </div>
@@ -2028,15 +1875,7 @@ function selectDucumentFormat(data) {
                   removeMagnify();
                 "
               />
-              <input
-                id="chooseFile"
-                ref="fileInput"
-                type="file"
-                @change="onFileSelect"
-                :multiple="false"
-                accept="image/*"
-                style="display: none"
-              />
+              <input id="chooseFile" ref="fileInput" type="file" @change="onFileSelect" :multiple="false" accept="image/*" style="display: none" />
             </SplitterPanel>
             <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
               <TabView class="tabview-custom" ref="tabview">
@@ -2051,6 +1890,8 @@ function selectDucumentFormat(data) {
                         :isUpdate="readMode"
                         :daily_form="daily_form"
                         :daily_form_valid="daily_form_valid"
+                        :customer_detail="customer_detail"
+                        :creditor_detail="creditor_detail"
                         :accountChart_detail="accountChart_detail"
                         :accountBook_detail="accountBook_detail"
                         :document_formate="document_formate"
@@ -2107,28 +1948,12 @@ function selectDucumentFormat(data) {
           </Splitter>
 
           <div class="mt-4 ml-0">
-            <Button
-              :disabled="readMode"
-              @click="onSave"
-              label="บันทึกรายวัน"
-              icon="pi pi-save"
-              class="w-auto p-button-success"
-            ></Button>
+            <Button :disabled="readMode" @click="onSave" label="บันทึกรายวัน" icon="pi pi-save" class="w-auto p-button-success"></Button>
           </div>
         </div>
       </div>
-      <DialogForm
-        :confirmDialog="confirmRejectDialog"
-        :textContent="conreject"
-        v-on:close="confirmRejectDialog = false"
-        v-on:confirm="rejectImg()"
-      ></DialogForm>
-      <DialogForm
-        :confirmDialog="confirmSaveDialog"
-        :textContent="conSave"
-        v-on:close="confirmSaveDialog = false"
-        v-on:confirm="confirmSave"
-      ></DialogForm>
+      <DialogForm :confirmDialog="confirmRejectDialog" :textContent="conreject" v-on:close="confirmRejectDialog = false" v-on:confirm="rejectImg()"></DialogForm>
+      <DialogForm :confirmDialog="confirmSaveDialog" :textContent="conSave" v-on:close="confirmSaveDialog = false" v-on:confirm="confirmSave"></DialogForm>
       <DialogForm
         :confirmDialog="confirmChangeImageDialog"
         :textContent="conchange"

@@ -51,12 +51,17 @@ const activeIndex = ref(0);
 const accountChart_detail = ref([]);
 const accountBook_detail = ref([]);
 const groupAccount_detail = ref([]);
+const customer_detail = ref([]);
+const creditor_detail = ref([]);
 const conSave = "ต้องการบันทึกเอกสารรายวัน";
 const conchange = "ต้องการเปลี่ยนรูปภาพ";
 const connamechange = "";
 const activeIndexList = ref(0);
 
 const daily_form = ref({
+  debtaccounttype: "0",
+  debtor: "",
+  creditor: "",
   accountdescription: "",
   accountgroup: "",
   accountperiod: null,
@@ -121,6 +126,10 @@ const taxes_valid = ref([
     custtaxid: false,
   },
 ]);
+
+const filtersCust = ref(null);
+const sortFieldCust = ref("code");
+
 const confirmChangeImageDialog = ref(false);
 const confirmClearImageDialog = ref(false);
 const confirmBackImageDialog = ref(false);
@@ -242,6 +251,8 @@ onMounted(async () => {
   getAccountChart();
   getJournalBook();
   getAccountGroup();
+  getCreditorList();
+  getDebtorList();
   getDocumentFormate();
 
   websocketConnect();
@@ -257,6 +268,42 @@ onMounted(async () => {
   //   }
   // }, 1500);
 });
+
+
+function getCreditorList() {
+
+  MasterdataService.getCreditorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        creditor_detail.value = res.data;
+        creditor_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+      }
+    })
+    .catch((err) => {
+
+      console.log(err);
+    });
+}
+
+function getDebtorList() {
+
+  MasterdataService.getDebtorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+    .then((res) => {
+      if (res.success) {
+        customer_detail.value = res.data;
+        customer_detail.value.forEach((element) => {
+          element.name = element.names.filter((data) => data.code == "th")[0].name;
+        });
+        console.log("customer_detail : ", customer_detail.value);
+      }
+    })
+    .catch((err) => {
+
+      console.log(err);
+    });
+}
 
 function WSImageConnect() {
   WsConnectImage.value = new WebSocket(
@@ -702,6 +749,9 @@ async function confirmSave() {
   // console.log(Utils.getFormatDateTime(daily_form.value.docdate));
   console.log(selectedImgData.value.guidfixed);
   var from_input = {
+    debtor: (daily_form.value.debtaccounttype=="1") ? {} : (daily_form.value.debtor != "") ? customer_detail.value.filter((data) => data.code == daily_form.value.debtor)[0] : {},
+    creditor: (daily_form.value.debtaccounttype=="0") ? {} :  (daily_form.value.creditor != "") ? creditor_detail.value.filter((data) => data.code == daily_form.value.creditor)[0] : {},
+    debtaccounttype: parseInt(daily_form.value.debtaccounttype),
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
     accountperiod: daily_form.value.accountperiod,
@@ -2268,6 +2318,8 @@ function selectDucumentFormat(data) {
                         :accountBook_detail="accountBook_detail"
                         :groupAccount_detail="groupAccount_detail"
                         :document_formate="document_formate"
+                        :customer_detail="customer_detail"
+                        :creditor_detail="creditor_detail"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
                         v-on:addColumn="addColumn"
