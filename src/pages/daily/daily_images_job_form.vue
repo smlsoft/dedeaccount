@@ -219,7 +219,7 @@ onMounted(async () => {
 
   jobId.value = route.params.id;
   storeApp.setActivePage("daily");
-  storeApp.setActiveChild("daily_images_list");
+  storeApp.setActiveChild("images_job_daily");
   storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
 
   disableAllinput(0);

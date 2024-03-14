@@ -146,7 +146,7 @@ onMounted(() => {
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setActivePage("pic_group");
+  storeApp.setActivePage("images_job_upload");
   storeApp.setActiveChild("images_job_upload_detail");
 });
 

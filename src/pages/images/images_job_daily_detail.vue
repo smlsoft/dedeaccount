@@ -146,8 +146,8 @@ onMounted(() => {
   getDebtorList();
   getTaskById(jobId.value);
 
-  storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job_daily_detail");
+  storeApp.setActivePage("daily");
+  storeApp.setActiveChild("images_job_daily");
 });
 
 

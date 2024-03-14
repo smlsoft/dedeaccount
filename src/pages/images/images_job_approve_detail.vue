@@ -110,7 +110,7 @@ onMounted(() => {
   getDocumentImageGroup();
   getTaskById(jobId.value);
 
-  storeApp.setActivePage("pic_group");
+  storeApp.setActivePage("images_job_approve");
   storeApp.setActiveChild("images_job_approve_detail");
 });
 
