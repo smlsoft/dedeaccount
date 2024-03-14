@@ -17,19 +17,39 @@
     <div
       class="static flex align-items-center justify-content-center hover:shadow-3"
     >
-      <img
-        :src="props.images_data.imagereferences[0].imageuri"
-        class="w-full"
-        style="object-fit: cover; margin: 3px"
-        :style="
-          'width:' +
-          (props.sizeWidthImageBloc - 10) +
-          'px;' +
-          'height:' +
-          (props.sizeHeightImageBloc - 6) +
-          'px'
-        "
-      />
+      <div
+        v-if="Utils.checkTypeImage(props.images_data.imagereferences[0].imageuri)"
+      >
+        <img
+          :src="props.images_data.imagereferences[0].imageuri"
+          class="w-full"
+          style="object-fit: cover; margin: 3px"
+          :style="
+            'width:' +
+            (props.sizeWidthImageBloc - 10) +
+            'px;' +
+            'height:' +
+            (props.sizeHeightImageBloc - 6) +
+            'px'
+          "
+        />
+      </div>
+      <div v-if="Utils.checkTypePDF(props.images_data.imagereferences[0].imageuri)">
+        <img
+          src="@/assets/pdf-icon.svg"
+          alt="PDF file"
+          class="w-full"
+          style="object-fit: cover; margin: 3px"
+          :style="
+            'width:' +
+            (props.sizeWidthImageBloc - 10) +
+            'px;' +
+            'height:' +
+            (props.sizeHeightImageBloc - 6) +
+            'px'
+          "
+        />
+      </div>
       <button
         v-if="props.images_data.imagereferences.length > 1"
         type="text"

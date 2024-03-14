@@ -1089,6 +1089,7 @@ function resizeSplitter(isOveray) {
 }
 
 function showImg(data) {
+
   showImgData.value = null;
   selectedImag.value = data;
   showImgData.value = data.imagereferences;
@@ -1669,7 +1670,6 @@ function sentCountDataImage(data) {
               >
                 <TransitionGroup name="fade">
                   <div
-                    v-if="isDataListNull == false"
                     class="flex"
                     v-for="(data, index) in data_list"
                     :key="data.guidfixed"
@@ -1682,6 +1682,7 @@ function sentCountDataImage(data) {
                     @dragover.prevent
                   >
                     <ImageBlock
+                      v-if="isDataListNull == false"
                       :modeMenu="1"
                       :images_data_index="index"
                       :images_data="data"
@@ -1698,20 +1699,22 @@ function sentCountDataImage(data) {
                     </ImageBlock>
                   </div>
                 </TransitionGroup>
-                <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
-                  <div
-                    class="text-center m-3"
-                    style="width: 90px; height: 90px"
-                  >
+                <div v-if="showSkeleton">
+                  <div class="flex" v-for="i in 50" :key="i">
                     <div
-                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      class="text-center m-3"
+                      style="width: 90px; height: 90px"
                     >
-                      <Skeleton
-                        style="width: 90px; height: 90px; object-fit: cover"
-                      ></Skeleton>
-                    </div>
+                      <div
+                        class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      >
+                        <Skeleton
+                          style="width: 90px; height: 90px; object-fit: cover"
+                        ></Skeleton>
+                      </div>
 
-                    <Skeleton class="mt-2"></Skeleton>
+                      <Skeleton class="mt-2"></Skeleton>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1726,7 +1729,7 @@ function sentCountDataImage(data) {
             </div>
             <DocumentPreview
               ref="dialogComment"
-              v-if="showImgData != null"
+              v-if="showImgData != null "
               :allimage_used="AllImageUsed"
               :showOveray="showOveray"
               :showImgData="showImgData"

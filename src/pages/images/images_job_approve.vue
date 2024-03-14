@@ -28,8 +28,8 @@ const sortOrder = ref(-1);
 onMounted(() => {
   getTaskList();
   storeApp.setPageTitle("ตรวจสอบรูปภาพเอกสาร");
-  storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job_approve");
+  storeApp.setActivePage("images_job_approve");
+  storeApp.setActiveChild("");
 });
 
 function getTaskList() {

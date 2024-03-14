@@ -16,6 +16,8 @@ import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import dayjs from "dayjs";
 import $ from "jquery";
+import PdfApp from "vue3-pdf-app";
+import "vue3-pdf-app/dist/icons/main.css";
 
 const conreject = "ต้องการยกเลิกรูปภาพ";
 const conSave = "ต้องการบันทึกเอกสารรายวัน";
@@ -1733,7 +1735,7 @@ function selectDucumentFormat(data) {
                   </div>
                 </div>
               </template>
-              <template #content class="p-0">
+              <template #content>
                 <div class="p-3 card" v-if="data_gallery.length == 0 && data_list.length == 0">
                   <div class="flex align-content-center justify-content-center flex-wrap card-container" style="min-height: 56vh">
                     <div class="p-0">
@@ -1854,7 +1856,8 @@ function selectDucumentFormat(data) {
                         </div>
                         <div class="col-12" :style="heightIamgeDivCheckGl">
                           <div class="relative" style="margin: 0px; padding: 0px; height: 100%">
-                            <iframe :name="slotProps.item.imageuri" :src="'/images/components/zoom?uri=' + slotProps.item.imageuri" class="static"> </iframe>
+                            <iframe v-if="Utils.checkTypeImage(slotProps.item.name)" :name="slotProps.item.imageuri" :src="'/images/components/zoom?uri=' + slotProps.item.imageuri" class="static"> </iframe>
+                            <PdfApp v-if="Utils.checkTypePDF(slotProps.item.name)" :pdf="slotProps.item.imageuri" :config="{ toolbar: false,}"></PdfApp>
                             <div v-if="showOveray" class="absolute top-0 left-0" style="width: 100%; height: 100%; background-color: white; opacity: 0"></div>
                           </div>
                         </div>

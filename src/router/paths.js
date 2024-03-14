@@ -382,8 +382,8 @@ export default [
     component: () => import("../pages/images/components/zoomFabric.vue"),
   },
   {
-    path: "/accountPeriod/list",
-    name: "accountPeriod",
+    path: "/account_period/list",
+    name: "account_period",
     meta: {
       auth: true,
     },
@@ -501,14 +501,7 @@ export default [
     component: () => import("../pages/setting/account_group/main.vue"),
   },
 
-  {
-    path: "/setting/account_period/main",
-    name: "account_period",
-    meta: {
-      auth: true,
-    },
-    component: () => import("../pages/setting/account_period/main.vue"),
-  },
+
   {
     path: "/setting/document_format/main",
     name: "documentFormat",
@@ -523,7 +516,7 @@ export default [
     meta: {
       auth: true,
     },
-    component: () => import("../pages/setting/account_debtor/main.vue"),
+    component: () => import("../pages/setting/account_debtor/main_screen.vue"),
   },
   {
     path: "/setting/account_creditor/main",
@@ -531,7 +524,7 @@ export default [
     meta: {
       auth: true,
     },
-    component: () => import("../pages/setting/account_creditor/main.vue"),
+    component: () => import("../pages/setting/account_creditor/main_screen.vue"),
   },
 
 

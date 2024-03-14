@@ -29,8 +29,8 @@ const sortOrder = ref(-1);
 onMounted(() => {
   getTaskList();
   storeApp.setPageTitle("คีย์รายวันจากรูป");
-  storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("daily_job_list");
+  storeApp.setActivePage("daily");
+  storeApp.setActiveChild("images_job_daily");
 });
 
 function getTaskList() {

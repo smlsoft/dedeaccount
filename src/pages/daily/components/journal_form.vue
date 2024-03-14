@@ -374,7 +374,7 @@ function headerNextFocus(filedName) {
           </div>
         </div>
       </div>
-      <div class="field mb-4 col-12 md:col-4" v-if="props.daily_form.debtaccounttype==0">
+      <div class="field mb-4 col-12 md:col-5" v-if="props.daily_form.debtaccounttype==0">
         <span class="p-float-label">
           <Dropdown
             v-model="props.daily_form.debtor"
@@ -397,7 +397,7 @@ function headerNextFocus(filedName) {
               </div>
             </template>
           </Dropdown>
-          <label for="bookcode">ลุกหนี้</label>
+          <label for="bookcode">ลูกหนี้</label>
         </span>
       </div>
       <div class="field mb-4 col-12 md:col-4" v-if="props.daily_form.debtaccounttype==1">
@@ -426,7 +426,7 @@ function headerNextFocus(filedName) {
           <label for="bookcode">เจ้าหนี้</label>
         </span>
       </div>
-      <div class="field mb-4 col-12 md:col-3">
+      <div class="field mb-4 col-12 md:col-4">
         <span class="p-float-label">
           <DatePicker
             dateFormat="d/m/yy"

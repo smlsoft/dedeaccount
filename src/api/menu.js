@@ -262,8 +262,8 @@ export const menus = [
       {
         title: "กำหนดงวดบัญชี",
         icon: "pi pi-link",
-        to: "/accountPeriod/list",
-        name: "accountPeriod",
+        to: "/account_period/list",
+        name: "account_period",
       },
       {
         title: "กำหนดรูปแบบการบันทึกบัญชี",

@@ -52,8 +52,8 @@ const dialogJobDelete = ref(false);
 onMounted(() => {
   getTaskList();
   storeApp.setPageTitle("อัพโหลดรูปภาพเอกสาร");
-  storeApp.setActivePage("pic_group");
-  storeApp.setActiveChild("images_job_upload");
+  storeApp.setActivePage("images_job_upload");
+  storeApp.setActiveChild("");
 });
 
 function getTaskList() {

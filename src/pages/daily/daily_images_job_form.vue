@@ -15,6 +15,8 @@ import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "@/services/ImageDataService";
 import dayjs from "dayjs";
+import PdfApp from "vue3-pdf-app";
+import "vue3-pdf-app/dist/icons/main.css";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -269,38 +271,49 @@ onMounted(async () => {
   // }, 1500);
 });
 
-
 function getCreditorList() {
-
-  MasterdataService.getCreditorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+  MasterdataService.getCreditorList(
+    200,
+    1,
+    filtersCust.value,
+    sortFieldCust.value,
+    1
+  )
     .then((res) => {
       if (res.success) {
         creditor_detail.value = res.data;
         creditor_detail.value.forEach((element) => {
-          element.name = element.names.filter((data) => data.code == "th")[0].name;
+          element.name = element.names.filter(
+            (data) => data.code == "th"
+          )[0].name;
         });
       }
     })
     .catch((err) => {
-
       console.log(err);
     });
 }
 
 function getDebtorList() {
-
-  MasterdataService.getDebtorList(200, 1, filtersCust.value, sortFieldCust.value, 1)
+  MasterdataService.getDebtorList(
+    200,
+    1,
+    filtersCust.value,
+    sortFieldCust.value,
+    1
+  )
     .then((res) => {
       if (res.success) {
         customer_detail.value = res.data;
         customer_detail.value.forEach((element) => {
-          element.name = element.names.filter((data) => data.code == "th")[0].name;
+          element.name = element.names.filter(
+            (data) => data.code == "th"
+          )[0].name;
         });
         console.log("customer_detail : ", customer_detail.value);
       }
     })
     .catch((err) => {
-
       console.log(err);
     });
 }
@@ -702,14 +715,17 @@ function sendChange(data) {
     );
   } else {
     // Listen for the 'open' event before sending data
-    connection.value.addEventListener('open', function() {
-      connection.value.send(
-        JSON.stringify({ event: "change", payload: { status: data } })
-      );
-    }, { once: true }); // Use the { once: true } option to only listen once
+    connection.value.addEventListener(
+      "open",
+      function () {
+        connection.value.send(
+          JSON.stringify({ event: "change", payload: { status: data } })
+        );
+      },
+      { once: true }
+    ); // Use the { once: true } option to only listen once
   }
 }
-
 
 function goList() {
   removeSelectImg();
@@ -749,8 +765,22 @@ async function confirmSave() {
   // console.log(Utils.getFormatDateTime(daily_form.value.docdate));
   console.log(selectedImgData.value.guidfixed);
   var from_input = {
-    debtor: (daily_form.value.debtaccounttype=="1") ? {} : (daily_form.value.debtor != "") ? customer_detail.value.filter((data) => data.code == daily_form.value.debtor)[0] : {},
-    creditor: (daily_form.value.debtaccounttype=="0") ? {} :  (daily_form.value.creditor != "") ? creditor_detail.value.filter((data) => data.code == daily_form.value.creditor)[0] : {},
+    debtor:
+      daily_form.value.debtaccounttype == "1"
+        ? {}
+        : daily_form.value.debtor != ""
+        ? customer_detail.value.filter(
+            (data) => data.code == daily_form.value.debtor
+          )[0]
+        : {},
+    creditor:
+      daily_form.value.debtaccounttype == "0"
+        ? {}
+        : daily_form.value.creditor != ""
+        ? creditor_detail.value.filter(
+            (data) => data.code == daily_form.value.creditor
+          )[0]
+        : {},
     debtaccounttype: parseInt(daily_form.value.debtaccounttype),
     accountdescription: daily_form.value.accountdescription,
     accountgroup: daily_form.value.accountgroup,
@@ -1674,6 +1704,7 @@ function getSumTaxBase(data) {
 }
 
 function nextImage(index) {
+  activeIndex.value = 0;
   resetZoomImage();
   //console.log(index);
   var docref = data_list.value[index].guidfixed;
@@ -2219,14 +2250,14 @@ function selectDucumentFormat(data) {
                       class="p-button-text"
                     />
                   </div>
-                  <div class="flex">
+                  <!-- <div class="flex">
                     <Button
                       label="OCR"
                       icon="pi pi-eye"
                       class="p-button-text"
                       @click="readOCR()"
                     />
-                  </div>
+                  </div> -->
                 </div>
 
                 <KeepAlive>
@@ -2267,15 +2298,36 @@ function selectDucumentFormat(data) {
                               class="relative"
                               style="margin: 0px; padding: 0px; height: 100%"
                             >
-                              <iframe
-                                :name="slotProps.item.imageuri"
-                                :src="
-                                  '/images/components/zoom?uri=' +
-                                  slotProps.item.imageuri
+                              <div
+                                v-if="
+                                  Utils.checkTypeImage(slotProps.item.imageuri)
                                 "
-                                class="static"
+                                class="h-full"
                               >
-                              </iframe>
+                                <iframe
+                                  :name="slotProps.item.imageuri"
+                                  :src="
+                                    '/images/components/zoom?uri=' +
+                                    slotProps.item.imageuri
+                                  "
+                                  class="static"
+                                >
+                                </iframe>
+                              </div>
+                              <div
+                                v-if="
+                                  Utils.checkTypePDF(slotProps.item.imageuri)
+                                "
+                                class="h-full"
+                              >
+                                <PdfApp
+                                  :pdf="slotProps.item.imageuri"
+                                  :config="{
+                                    toolbar: false,
+                                  }"
+                                  class="static"
+                                ></PdfApp>
+                              </div>
                               <div
                                 v-if="showOveray"
                                 class="absolute top-0 left-0"
@@ -2291,10 +2343,20 @@ function selectDucumentFormat(data) {
                         </div>
                       </template>
                       <template #thumbnail="slotProps">
-                        <img
-                          :src="slotProps.item.imageuri"
-                          style="width: 40px; height: 40px"
-                        />
+                        <div
+                          v-if="Utils.checkTypeImage(slotProps.item.imageuri)"
+                        >
+                          <img
+                            :src="slotProps.item.imageuri"
+                            style="width: 40px; height: 40px"
+                          />
+                        </div>
+                        <div v-if="Utils.checkTypePDF(slotProps.item.imageuri)">
+                          <img
+                            src="@/assets/pdf-icon.svg"
+                            style="width: 40px; height: 40px"
+                          />
+                        </div>
                       </template>
                       <template #footer> </template>
                     </Galleria>
@@ -2302,7 +2364,7 @@ function selectDucumentFormat(data) {
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">
+            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">  
               <div ref="divCheckGl">
                 <TabView class="tabview-custom" ref="tabview">
                   <TabPanel>
@@ -2418,17 +2480,27 @@ function selectDucumentFormat(data) {
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >
-              <template #item="slotProps"> </template>
+              <!-- <template #item="slotProps"> </template> -->
               <template #thumbnail="slotProps">
                 <div class="p-1 cursor-pointer">
                   <div class="p-1 surface-card border-round">
                     <div class="relative mb-1">
-                      <img
-                        v-if="slotProps.item.imagereferences.length > 0"
-                        :src="slotProps.item.imagereferences[0].imageuri"
-                        class="w-full"
-                        style="object-fit: cover; height: 100px"
-                      />
+                      <div v-if="Utils.checkTypeImage(slotProps.item.imagereferences[0].imageuri)">
+                        <img
+                          v-if="slotProps.item.imagereferences.length > 0"
+                          :src="slotProps.item.imagereferences[0].imageuri"
+                          class="w-full"
+                          style="object-fit: cover; height: 100px"
+                        />
+                      </div>
+                      <div v-if="Utils.checkTypePDF(slotProps.item.imagereferences[0].imageuri)">
+                        <img
+                          v-if="slotProps.item.imagereferences.length > 0"
+                          src="@/assets/pdf-icon.svg"
+                          class="w-full"
+                          style="object-fit: cover; height: 100px"
+                        />
+                      </div>
 
                       <button
                         v-if="slotProps.item.imagereferences.length > 1"

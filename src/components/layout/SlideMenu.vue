@@ -27,7 +27,7 @@ function lockSlideBar(data) {
       widthscreen < 992 ? 'w-14rem' : '',
     ]"
     class="main-menu h-screen hidden lg:block flex-shrink-0 absolute left-0 top-0"
-    style="overflow-x: hidden; overflow-y: auto;"
+    style="overflow-x: hidden; overflow-y: auto"
   >
     <header>
       <div class="image-text">
@@ -48,6 +48,7 @@ function lockSlideBar(data) {
     <ul>
       <li v-for="menu in props.menus" :key="menu.title">
         <RouterLink
+          :class="storeApp.pageActive == menu.name ? 'bg-blue-500' : ''"
           class="flex align-items-center cursor-pointer pt-3 pb-3"
           v-if="menu.children.length == 0"
           :to="menu.to"
@@ -64,6 +65,7 @@ function lockSlideBar(data) {
         <a
           v-if="menu.children.length > 0"
           v-ripple
+          :style="storeApp.pageActive == menu.name ? 'background: rgba(78, 139, 170, 0.5)' : ''"
           class="flex align-items-center cursor-pointer pt-3 pb-3"
           v-styleclass="{
             selector: '@next',
@@ -80,8 +82,9 @@ function lockSlideBar(data) {
           <i class="pi pi-chevron-down ml-auto pt-2"></i>
         </a>
         <ul
+          :class="storeApp.pageActive != menu.name ? 'hidden' : ''"
           style="background: rgba(78, 139, 170, 0.5)"
-          class="pl-0 hidden overflow-y-hidden transition-all transition-duration-400 transition-ease-in-out"
+          class="pl-0 overflow-y-hidden transition-all transition-duration-400 transition-ease-in-out"
         >
           <li v-for="child in menu.children" :key="child.title">
             <RouterLink
@@ -90,7 +93,7 @@ function lockSlideBar(data) {
                 storeApp.setActivePage(menu.name);
                 storeApp.setActiveChild(child.name);
               "
-              :class="storeApp.childActive == child.name ? '' : ''"
+              :class="storeApp.childActive == child.name ? 'bg-blue-500' : ''"
               v-ripple
               class="flex align-items-center cursor-pointer pt-3 pb-3"
             >

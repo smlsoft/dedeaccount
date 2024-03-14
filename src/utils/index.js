@@ -324,6 +324,34 @@ const generateRandomNumber = () => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+/// check type file image from String name
+const checkTypeImage = (filename) => {
+  var ext = filename.split(".").pop();
+  if (
+    ext == "jpg" ||
+    ext == "jpeg" ||
+    ext == "png" ||
+    ext == "gif" ||
+    ext == "bmp"
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+
+/// check type file pdf from String name
+const checkTypePDF = (filename) => {
+  var ext = filename.split(".").pop();
+  if (ext == "pdf") {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+
 export default {
   newGuid,
   isEmpty,
@@ -352,6 +380,8 @@ export default {
   getYearDC,
   formatNumberforamount,
   generateRandomNumber,
-  getBatchID
+  getBatchID,
+  checkTypeImage,
+  checkTypePDF
 
 };

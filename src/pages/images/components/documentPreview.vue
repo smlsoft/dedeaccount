@@ -4,6 +4,8 @@ import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
 import { ref, onMounted, onUnmounted, computed, defineExpose } from "vue";
 import Utils from "@/utils/";
+import PdfApp from "vue3-pdf-app";
+import "vue3-pdf-app/dist/icons/main.css";
 const userName = localStorage._usercode;
 const toast = useToast();
 
@@ -103,25 +105,32 @@ function getUseData(data) {
 
 function printImg(data) {
   console.log(data);
-  var url = data;
-  var w = window.open("", "");
-  w.document.write("<html><head>");
-  w.document.write("</head><body >");
 
-  data.forEach((element, index) => {
-    w.document.write(
-      '<img id="print-image-element" src="' +
-        element.imageuri +
-        '" width="100%"/>'
-    );
-  });
+  window.open(data[0].imageuri, "_blank");
 
-  w.document.write(
-    '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
-  );
-  w.document.write("</body></html>");
-  w.window.print();
-  w.window.close();
+  // if (Utils.checkTypePDF(data[0].imageuri)) {
+  //   window.open(data[0].imageuri, "_blank");
+  // } else {
+  //   var url = data;
+  //   var w = window.open("", "");
+  //   w.document.write("<html><head>");
+  //   w.document.write("</head><body >");
+
+  //   data.forEach((element, index) => {
+  //     w.document.write(
+  //       '<img id="print-image-element" src="' +
+  //         element.imageuri +
+  //         '" width="100%"/>'
+  //     );
+  //   });
+
+  //   w.document.write(
+  //     '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
+  //   );
+  //   w.document.write("</body></html>");
+  //   w.window.print();
+  //   w.window.close();
+  // }
 }
 
 const toggle = (event) => {
@@ -143,8 +152,8 @@ const items = computed({
           },
           {
             disabled: false,
-            label: "ปริ้นเอกสาร",
-            icon: "pi pi-print",
+            label: "ดาวน์โหลด",
+            icon: "pi pi-download",
             command: () => {
               printImg(props.showImgData);
             },
@@ -535,12 +544,30 @@ defineExpose({
           style="margin: 0px; padding: 0px; width: 100%"
           :style="heightDocumentPreview()"
         >
-          <iframe
-            :name="slotProps.item.imageuri"
-            :src="'/images/components/zoom?uri=' + slotProps.item.imageuri"
-            class="static"
+          <div
+            v-if="Utils.checkTypeImage(slotProps.item.imageuri)"
+            class="h-full"
           >
-          </iframe>
+            <iframe
+              :name="slotProps.item.imageuri"
+              :src="'/images/components/zoom?uri=' + slotProps.item.imageuri"
+              class="static"
+            >
+            </iframe>
+          </div>
+          <div
+            v-if="Utils.checkTypePDF(slotProps.item.imageuri)"
+            class="h-full"
+          >
+            <PdfApp
+              :pdf="slotProps.item.imageuri"
+              :config="{
+                toolbar: false,
+              }"
+              class="static"
+            ></PdfApp>
+          </div>
+
           <div
             v-if="showOveray"
             class="absolute top-0 left-0"
@@ -556,7 +583,7 @@ defineExpose({
     </Galleria>
 
     <div class="flex flex-wrap align-items-center m-2">
-      <div v-for="data in props.selectedImag.tags">
+      <div v-for="data in props.selectedImag.tags" :key="data.guidfixed">
         <Tag class="mr-1 my-1 bg-primary-500" :value="'#' + data" rounded></Tag>
       </div>
       <Button
@@ -666,16 +693,30 @@ defineExpose({
             <div
               class="static flex align-items-center justify-content-center hover:shadow-3"
             >
-              <img
-                :src="data.imageuri"
-                class="w-full"
-                style="
-                  object-fit: cover;
-                  margin: 3px;
-                  width: 80px;
-                  height: 86px;
-                "
-              />
+              <div v-if="Utils.checkTypeImage(data.imageuri)">
+                <img
+                  :src="data.imageuri"
+                  class="w-full"
+                  style="
+                    object-fit: cover;
+                    margin: 3px;
+                    width: 80px;
+                    height: 86px;
+                  "
+                />
+              </div>
+              <div v-if="Utils.checkTypePDF(data.imageuri)">
+                <img
+                  src="@/assets/pdf-icon.svg"
+                  class="w-full"
+                  style="
+                    object-fit: cover;
+                    margin: 3px;
+                    width: 80px;
+                    height: 86px;
+                  "
+                />
+              </div>
             </div>
             <div
               class="white-space-nowrap overflow-hidden text-overflow-ellipsis"
@@ -716,6 +757,7 @@ defineExpose({
     <div
       class="flex mt-3"
       v-for="commets in props.showImgData[activeIndex].comments"
+      :key="commets.commentid"
     >
       <div class="surface-card shadow-3 border-round p-3 flex-auto">
         <div class="mb-3">

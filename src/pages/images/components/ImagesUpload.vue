@@ -33,13 +33,23 @@
                 <div class="relative shadow-2 card-container">
                   <div class="relative p-3 border-round">
                     <img
-                      v-if="isImage(file)"
+                      v-if="
+                        (isImage(file) && file.type == 'image/jpeg') ||
+                        file.type == 'image/png'
+                      "
                       :class="file.cmd != 'success' ? 'opacity-30' : ''"
                       :alt="file.name"
                       :src="file.objectURL"
                       class="mb-0 w-full h-9rem"
                       style="object-fit: cover"
                     />
+                    <div v-if="file.type == 'application/pdf'">
+                      <img
+                        src="@/assets/pdf-icon.svg"
+                        alt="PDF file"
+                        class="mb-0 w-full h-9rem"
+                      />
+                    </div>
                     <div class="flex justify-content-center pt-1">
                       <span class="text-900 font-medium titletext">
                         {{ file.name }}
@@ -109,7 +119,7 @@
               mode="basic"
               @select="selectedFile"
               :multiple="true"
-              accept="image/*"
+              accept="image/* , application/pdf"
               chooseLabel="เลือกรูป"
               :maxFileSize="10000000"
             >
@@ -565,124 +575,210 @@ function myUploader() {
     console.log(ele);
     console.log(index);
 
+    // Added: Check if the file is a PDF or an image
+    const isPdf = ele.type === "application/pdf";
+
+    console.log("ispdf : " + isPdf);
+
     setTimeout(function () {
       var file = ele;
-      var reader = new FileReader();
-      var returnimgblob;
-      reader.onload = function (readerEvent) {
-        var image = new Image();
-        image.onload = function (imageEvent) {
-          // Resize the image
-          var canvas = document.createElement("canvas"),
-            max_size = 1280, // TODO : pull max size from a site config
-            width = image.width,
-            height = image.height;
-          if (width > height) {
-            if (width > max_size) {
-              height *= max_size / width;
-              width = max_size;
-            }
-          } else {
-            if (height > max_size) {
-              width *= max_size / height;
-              height = max_size;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext("2d").drawImage(image, 0, 0, width, height);
-          var dataUrl = canvas.toDataURL("image/jpeg");
-          var resizedImage = dataURLToBlob(dataUrl);
-          $.event.trigger({
-            type: "imageResized",
-            blob: resizedImage,
-            url: dataUrl,
-          });
-
-          var newfile = createFile(resizedImage, ele);
-          // console.log(ele);
-          // console.log(newfile);
-          ele = newfile;
-
-          ImageDataService.upLoadImages(newfile, "GL")
-            .then((res) => {
-              console.log(res);
-              if (res.success) {
-                file.cmd = "success";
-                console.log(file);
-                console.log(data_import.value);
-
-                upLoadQue.value++;
-
-                let datex = file.lastModified.toString().slice(0, -3);
-                let timex = new Date(datex * 1000);
-
-                data_import_success.value.push({
-                  name: ele.name,
-                  metafileat: Utils.getFormatDateTime(timex),
-                  imageuri: res.data.uri,
-                  uploadedby: localStorage._usercode,
-                  uploadedat: Utils.getFormatDateTime(new Date()),
-                });
-
-                loadImg.value = index + 1;
-                onUploadProgress.value =
-                  ((index + 1) / data_import.value.length) * 100;
-                onUploadProgress.value = parseFloat(
-                  onUploadProgress.value.toFixed(2)
-                );
-                // setTimeout(() => {
-                //   if (onUploadProgress.value == 100) {
-                //     onUploadProgress.value = 0;
-                //   }
-                // }, 2000);
-                if (upLoadQue.value < data_import.value.length) {
-                  setTimeout(() => {
-                    myUploader();
-                  }, 1000);
-                  countDataImage.value = {
-                    images: data_import.value.length,
-                    images_success: data_import_success.value.length,
-                    images_false: data_import_false.value.length,
-                  };
-                  emit("countDataImage", countDataImage.value);
-                } else {
-                  queSuccess.value = true;
-                  queProcess.value = false;
-
-                  countDataImage.value = {
-                    images: data_import.value.length,
-                    images_success: data_import_success.value.length,
-                    images_false: data_import_false.value.length,
-                  };
-                  emit("countDataImage", countDataImage.value);
-                }
+      if (!isPdf) {
+        // For image files
+        var reader = new FileReader();
+        var returnimgblob;
+        reader.onload = function (readerEvent) {
+          var image = new Image();
+          image.onload = function (imageEvent) {
+            // Resize the image
+            var canvas = document.createElement("canvas"),
+              max_size = 1280, // TODO : pull max size from a site config
+              width = image.width,
+              height = image.height;
+            if (width > height) {
+              if (width > max_size) {
+                height *= max_size / width;
+                width = max_size;
               }
-            })
-            .catch((err) => {
-              console.log(err);
-              loading.value = true;
-              if (err == "Network Error") {
-                setTimeout(() => {
-                  console.log(err);
-                  myUploader();
-                }, 5000);
-              } else {
-                data_import_false.value.push(data_import.value[index]);
+            } else {
+              if (height > max_size) {
+                width *= max_size / height;
+                height = max_size;
               }
-              toast.add({
-                severity: "warn",
-                summary: "แจ้งเตือน",
-                detail: err + " กรุณารอสักครู่",
-                life: 6000,
-              });
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext("2d").drawImage(image, 0, 0, width, height);
+            var dataUrl = canvas.toDataURL("image/jpeg");
+            var resizedImage = dataURLToBlob(dataUrl);
+            $.event.trigger({
+              type: "imageResized",
+              blob: resizedImage,
+              url: dataUrl,
             });
+
+            var newfile = createFile(resizedImage, ele);
+            // console.log(ele);
+            // console.log(newfile);
+            ele = newfile;
+
+            ImageDataService.upLoadImages(newfile, "GL")
+              .then((res) => {
+                console.log(res);
+                if (res.success) {
+                  file.cmd = "success";
+                  console.log(file);
+                  console.log(data_import.value);
+
+                  upLoadQue.value++;
+
+                  let datex = file.lastModified.toString().slice(0, -3);
+                  let timex = new Date(datex * 1000);
+
+                  data_import_success.value.push({
+                    name: ele.name,
+                    metafileat: Utils.getFormatDateTime(timex),
+                    imageuri: res.data.uri,
+                    uploadedby: localStorage._usercode,
+                    uploadedat: Utils.getFormatDateTime(new Date()),
+                  });
+
+                  loadImg.value = index + 1;
+                  onUploadProgress.value =
+                    ((index + 1) / data_import.value.length) * 100;
+                  onUploadProgress.value = parseFloat(
+                    onUploadProgress.value.toFixed(2)
+                  );
+                  // setTimeout(() => {
+                  //   if (onUploadProgress.value == 100) {
+                  //     onUploadProgress.value = 0;
+                  //   }
+                  // }, 2000);
+                  if (upLoadQue.value < data_import.value.length) {
+                    setTimeout(() => {
+                      myUploader();
+                    }, 1000);
+                    countDataImage.value = {
+                      images: data_import.value.length,
+                      images_success: data_import_success.value.length,
+                      images_false: data_import_false.value.length,
+                    };
+                    emit("countDataImage", countDataImage.value);
+                  } else {
+                    queSuccess.value = true;
+                    queProcess.value = false;
+
+                    countDataImage.value = {
+                      images: data_import.value.length,
+                      images_success: data_import_success.value.length,
+                      images_false: data_import_false.value.length,
+                    };
+                    emit("countDataImage", countDataImage.value);
+                  }
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+                loading.value = true;
+                if (err == "Network Error") {
+                  setTimeout(() => {
+                    console.log(err);
+                    myUploader();
+                  }, 5000);
+                } else {
+                  data_import_false.value.push(data_import.value[index]);
+                }
+                toast.add({
+                  severity: "warn",
+                  summary: "แจ้งเตือน",
+                  detail: err + " กรุณารอสักครู่",
+                  life: 6000,
+                });
+              });
+          };
+          image.src = readerEvent.target.result;
         };
-        image.src = readerEvent.target.result;
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      } else {
+        // For PDF files
+        // Directly upload the PDF file without resizing
+        uploadFilePDF(file, index);
+      }
     }, interval);
   }
+}
+
+// Existing upload logic, extracted into a separate function for reuse
+function uploadFilePDF(file, index) {
+  ImageDataService.upLoadImages(file, "GL")
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        file.cmd = "success";
+        console.log(file);
+        console.log(data_import.value);
+
+        upLoadQue.value++;
+
+        let datex = file.lastModified.toString().slice(0, -3);
+        let timex = new Date(datex * 1000);
+
+        data_import_success.value.push({
+          name: file.name,
+          metafileat: Utils.getFormatDateTime(timex),
+          imageuri: res.data.uri,
+          uploadedby: localStorage._usercode,
+          uploadedat: Utils.getFormatDateTime(new Date()),
+        });
+
+        loadImg.value = index + 1;
+        onUploadProgress.value = ((index + 1) / data_import.value.length) * 100;
+        onUploadProgress.value = parseFloat(onUploadProgress.value.toFixed(2));
+        // setTimeout(() => {
+        //   if (onUploadProgress.value == 100) {
+        //     onUploadProgress.value = 0;
+        //   }
+        // }, 2000);
+        if (upLoadQue.value < data_import.value.length) {
+          setTimeout(() => {
+            myUploader();
+          }, 1000);
+          countDataImage.value = {
+            images: data_import.value.length,
+            images_success: data_import_success.value.length,
+            images_false: data_import_false.value.length,
+          };
+          emit("countDataImage", countDataImage.value);
+        } else {
+          queSuccess.value = true;
+          queProcess.value = false;
+
+          countDataImage.value = {
+            images: data_import.value.length,
+            images_success: data_import_success.value.length,
+            images_false: data_import_false.value.length,
+          };
+          emit("countDataImage", countDataImage.value);
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      loading.value = true;
+      if (err == "Network Error") {
+        setTimeout(() => {
+          console.log(err);
+          myUploader();
+        }, 5000);
+      } else {
+        data_import_false.value.push(data_import.value[index]);
+      }
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: err + " กรุณารอสักครู่",
+        life: 6000,
+      });
+    });
 }
 
 function emitImagesList() {

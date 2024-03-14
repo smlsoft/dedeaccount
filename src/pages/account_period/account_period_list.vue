@@ -49,7 +49,9 @@ const filters = ref({
 onMounted(() => {
   getAccountPeriod();
   storeApp.setPageTitle("กำหนดงวดบัญชี");
-  storeApp.setActivePage("accountPeriod");
+  storeApp.setActivePage("master");
+  storeApp.setActiveChild("account_period");
+
 });
 
 function getAccountPeriod() {
