@@ -393,7 +393,7 @@ function getDocumentImageGroup() {
 function getDocImageListDefualt() {
   loading.value = true;
   selectedImg.value = [];
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   searchItem.value = "";
   getDocumentImageGroup();

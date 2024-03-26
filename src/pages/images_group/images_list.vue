@@ -1032,7 +1032,7 @@ function openModal() {
 
 function uploadSuccess() {
   uploadmodel.value = false;
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   firstPage.value = 0;
   getDocumentImageGroup();
@@ -1071,7 +1071,7 @@ async function documentImageUnGroup(data) {
 function getDocImageListDefualt() {
   loading.value = true;
   selectedImg.value = [];
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   searchItem.value = "";
   getDocumentImageGroup();
