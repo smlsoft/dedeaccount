@@ -179,7 +179,7 @@ function onClose() {
 }
 
 function getDocumentImageGroupScroll() {
-  limitPage.value = 50;
+  limitPage.value = 100;
   showSkeleton.value = true;
   ImageDataService.getDocumentImageGroup(
     limitPage.value,
@@ -552,7 +552,7 @@ function openModalUpload() {
 
 function uploadSuccess() {
   uploadmodel.value = false;
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   firstPage.value = 0;
   getDocumentImageGroup();
@@ -609,7 +609,7 @@ async function documentImageUnGroup(data) {
 function getDocImageListDefualt() {
   loading.value = true;
   selectedImg.value = [];
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   searchItem.value = "";
   getDocumentImageGroup();
@@ -1146,7 +1146,7 @@ function removeSelectedImg() {
 }
 
 function clearFilterDocumentImageGroup() {
-  limitPage.value = 50;
+  limitPage.value = 100;
   activePage.value = 1;
   searchItem.value = "";
   selectSort.value = "uploadedat";

@@ -404,7 +404,7 @@ function getTaskById(guidfixed) {
 }
 
 function getDocumentImageGroupScroll() {
-  limitPage.value = 50;
+  limitPage.value = 100;
   showSkeleton.value = true;
   ImageDataService.getDocumentImageGroup(
     limitPage.value,
