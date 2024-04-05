@@ -320,7 +320,10 @@ function getGLDetail(id) {
 
         const vat = res.data.vats;
         const tax = res.data.taxes;
-        daily_form.value.debtaccounttype = res.data.debtaccounttype.toString();
+        if (res && res.data && res.data.debtaccounttype !== undefined && res.data.debtaccounttype !== null) {
+          daily_form.value.debtaccounttype = res.data.debtaccounttype.toString();
+        }
+       
         daily_form.value.debtor = (res.data.debtaccounttype ==0) ? res.data.debtor.code : "";
         daily_form.value.creditor = (res.data.debtaccounttype ==1) ? res.data.creditor.code : "";
         daily_form.value.accountdescription = res.data.accountdescription;

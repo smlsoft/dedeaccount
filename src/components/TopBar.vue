@@ -43,7 +43,6 @@ async function selectShop(item) {
     localStorage.shop_name = data.name;
   }
 
-  localStorage.shop_name = thNameObj.name;
   localStorage.shop_role = item.role;
 
   AuthenService.selectShop()

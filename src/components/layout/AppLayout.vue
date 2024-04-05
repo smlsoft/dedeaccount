@@ -66,7 +66,7 @@ async function selectShop(data) {
   } else {
     localStorage.shop_name = data.name;
   }
-  localStorage.shop_name = thNameObj.name;
+  
   localStorage.shop_role = data.role;
 
   AuthenService.selectShop()
