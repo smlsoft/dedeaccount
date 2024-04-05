@@ -59,7 +59,13 @@ function checkShop() {
 }
 async function selectShop(data) {
   localStorage.shopid = data.shopid;
-  const thNameObj = data.names.find(nameObj => nameObj.code === 'th');
+  if (data.name == "") {
+    const thNameObj = data.names.find((nameObj) => nameObj.code === "th");
+
+    localStorage.shop_name = thNameObj.name;
+  } else {
+    localStorage.shop_name = data.name;
+  }
   localStorage.shop_name = thNameObj.name;
   localStorage.shop_role = data.role;
 
