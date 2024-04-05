@@ -1,5 +1,6 @@
 <script setup>
 import languageButton from "@/components/page/LanguageButton.vue";
+import { ref, onUnmounted } from "vue";
 
 const emit = defineEmits(["loginMode", "registerMode", "loginWithGoogle"]);
 
@@ -14,6 +15,25 @@ function registerMode() {
 function loginWithGoogle() {
   emit("loginWithGoogle", "loginWithGoogle");
 }
+
+let pressTimer = ref(null);
+const showLoginUser = ref(false);
+
+const startHold = () => {
+  pressTimer.value = setTimeout(() => {
+    showLoginUser.value = true;
+  }, 5000); // 5000ms = 5 seconds
+};
+
+const cancelHold = () => {
+  clearTimeout(pressTimer.value);
+  pressTimer.value = null;
+};
+
+// Clean up on component unmount
+onUnmounted(() => {
+  clearTimeout(pressTimer.value);
+});
 </script>
 
 <template>
@@ -37,6 +57,9 @@ function loginWithGoogle() {
           height="200"
           width="200"
           class="mb-3"
+          @mousedown.prevent="startHold"
+          @mouseup.prevent="cancelHold"
+          @mouseleave.prevent="cancelHold"
         />
       </div>
       <div class="flex justify-content-center">
@@ -48,15 +71,15 @@ function loginWithGoogle() {
           <span class="ml-2">{{ $t("singin_with") }} Google</span>
         </Button>
       </div>
-      <!-- <div class="flex align-items-center justify-content-end mt-2">
+      <div class="flex align-items-center justify-content-end mt-2" v-if="showLoginUser">
         <a
           @click="loginMode()"
           class="font-medium text-primary-500 cursor-pointer"
           >{{ $t("login_user") }}</a
         >
-      </div> -->
+      </div>
     </div>
-    <!-- <div class="mt-6 text-center text-600">
+    <div class="mt-6 text-center text-600" v-if="showLoginUser">
       {{ $t("user_have_account") }}
       <a
         @click="registerMode()"
@@ -65,7 +88,7 @@ function loginWithGoogle() {
       >
         {{ $t("signup") }}</a
       >
-    </div> -->
+    </div>
     <div class="mt-3 text-center text-600" style="font-size: 12px">
       {{ $t("accept_term") }}
       <span style="text-decoration: underline"> {{ $t("terms") }}</span>
