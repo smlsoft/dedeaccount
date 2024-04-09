@@ -178,8 +178,8 @@ function transformDebtorModels() {
       subdistrictcode: form_model.value.subdistrictcode,
       zipcode: form_model.value.zipcode,
     },
-    personaltype: form_model.value.personaltype,
-    customertype: form_model.value.customertype,
+    personaltype: parseInt(form_model.value.personaltype),
+    customertype: parseInt(form_model.value.customertype),
   };
 
   // console.log(data)

@@ -154,7 +154,7 @@ function transformCreditorModels() {
       address: [form_model.value.address],
       phoneprimary: form_model.value.phoneprimary,
     },
-    personaltype: form_model.value.personaltype,
+    personaltype: parseInt(form_model.value.personaltype),
     customertype: parseInt(form_model.value.customertype),
   };
 
