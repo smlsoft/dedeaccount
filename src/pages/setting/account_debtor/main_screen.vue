@@ -33,7 +33,7 @@ const form_model = ref({
   code: "",
   name: "",
   taxid: "",
-  branchnumber: "",
+  branchnumber: "00000",
   addressforbilling: "",
   address: "",
 
@@ -129,7 +129,7 @@ function clearForm() {
     code: "",
     name: "",
     taxid: "",
-    branchnumber: "",
+    branchnumber: "00000",
     address: "",
     addressforbilling: "",
     phoneprimary: "",
@@ -176,7 +176,7 @@ function transformDebtorModels() {
       phoneprimary: form_model.value.phoneprimary,
       provincecode: form_model.value.provincecode,
       subdistrictcode: form_model.value.subdistrictcode,
-      zipcode: form_model.value.zipcode,
+      zipcode: parseInt(form_model.value.zipcode),
     },
     personaltype: parseInt(form_model.value.personaltype),
     customertype: parseInt(form_model.value.customertype),
@@ -213,7 +213,7 @@ async function confirmSave() {
       toast.add({
         severity: "error",
         summary: "ทำรายการไม่สำเร็จ",
-        detail: "บันทึกไม่สำเร็จ ลูกหนี้ซ้ำ",
+        detail: err,
         life: 3000,
       });
     }
@@ -280,7 +280,7 @@ async function verifyData() {
     }
   }
 
-  if (form_model.value.customertype == "1") {
+  if (form_model.value.customertype == 1) {
     if (form_model.value.branchnumber == "") {
       form_valid.value.branchnumber = false;
       err_msg += "กรุณากรอกข้อมูล หมายเลขสาขา ";

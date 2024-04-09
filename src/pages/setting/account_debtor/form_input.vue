@@ -255,6 +255,7 @@ const searchZipcode = async (id) => {
 
       <div class="field col-12 md:col-6">
         <Dropdown
+          :filter="true"
           :disabled="readMode"
           v-model="props.form_model.province"
           :options="provincedata.provinces"
@@ -266,6 +267,7 @@ const searchZipcode = async (id) => {
 
       <div class="field col-12 md:col-6">
         <Dropdown
+          :filter="true"
           :disabled="readMode"
           v-model="props.form_model.district"
           :options="provincedata.filteredDistricts"
@@ -277,6 +279,7 @@ const searchZipcode = async (id) => {
 
       <div class="field col-12 md:col-6">
         <Dropdown
+          :filter="true"
           :disabled="readMode"
           v-model="props.form_model.subdistrict"
           :options="provincedata.filteredSubdistricts"
@@ -288,6 +291,7 @@ const searchZipcode = async (id) => {
 
       <div class="field col-12 md:col-6">
         <Dropdown
+          :filter="true"
           :disabled="readMode"
           v-model="props.form_model.zipcode"
           :options="provincedata.filteredZipcode"
