@@ -155,7 +155,7 @@ function transformCreditorModels() {
       phoneprimary: form_model.value.phoneprimary,
     },
     personaltype: form_model.value.personaltype,
-    customertype: form_model.value.customertype,
+    customertype: parseInt(form_model.value.customertype),
   };
 
   return data;
@@ -254,7 +254,7 @@ async function verifyData() {
     }
   }
 
-  if (form_model.value.customertype == "1") {
+  if (form_model.value.customertype == 1) {
     if (form_model.value.branchnumber == "") {
       form_valid.value.branchnumber = false;
       err_msg += "กรุณากรอกข้อมูล หมายเลขสาขา ";
