@@ -31,7 +31,7 @@ const form_model = ref({
   code: "",
   name: "",
   taxid: "",
-  branchnumber: "",
+  branchnumber: "00000",
   address: "",
   addressforbilling: "",
   phoneprimary: "",
@@ -109,7 +109,7 @@ function clearForm() {
     code: "",
     name: "",
     taxid: "",
-    branchnumber: "",
+    branchnumber: "00000",
     address: "",
     addressforbilling: "",
     phoneprimary: "",
@@ -169,6 +169,7 @@ async function confirmSave() {
     form_model.value.guidfixed == null
   ) {
     try {
+      console.log(data);
       const res = await MasterdataService.postCreditor(data);
       console.log(res);
 
@@ -189,7 +190,7 @@ async function confirmSave() {
       toast.add({
         severity: "error",
         summary: "ทำรายการไม่สำเร็จ",
-        detail: "บันทึกไม่สำเร็จ เจ้าหนี้ซ้ำ",
+        detail: err,
         life: 3000,
       });
     }
@@ -270,7 +271,6 @@ async function verifyData() {
   } else {
     form_valid.value.branchnumber = true;
   }
-
 
   if (checkValid == 0) {
     return true;

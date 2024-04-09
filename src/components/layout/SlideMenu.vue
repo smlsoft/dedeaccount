@@ -189,7 +189,7 @@ header .image-text .profession {
 
 .main-menu:hover,
 nav.main-menu.expanded {
-  width: 230px;
+  width: 235px;
   overflow: visible;
   transition: width 0.2s;
 }
