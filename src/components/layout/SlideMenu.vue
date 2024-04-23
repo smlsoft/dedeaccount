@@ -65,7 +65,11 @@ function lockSlideBar(data) {
         <a
           v-if="menu.children.length > 0"
           v-ripple
-          :style="storeApp.pageActive == menu.name ? 'background: rgba(78, 139, 170, 0.5)' : ''"
+          :style="
+            storeApp.pageActive == menu.name
+              ? 'background: rgba(78, 139, 170, 0.5)'
+              : ''
+          "
           class="flex align-items-center cursor-pointer pt-3 pb-3"
           v-styleclass="{
             selector: '@next',
@@ -189,8 +193,8 @@ header .image-text .profession {
 
 .main-menu:hover,
 nav.main-menu.expanded {
-  width: 235px;
-  overflow: visible;
+  width: 230px;
+  overflow: auto; /* Enables scrolling if needed */
   transition: width 0.2s;
 }
 
@@ -210,6 +214,8 @@ nav.main-menu.expanded {
   transition: width 0.05s linear;
   -webkit-transform: translateZ(0) scale(1, 1);
   z-index: 1000;
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .main-menu > ul {

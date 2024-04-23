@@ -13,13 +13,8 @@
             icon="pi pi-cog"
             @click="showSearch = true"
             class="p-button-rounded mr-2"
-          >
-            <i class="pi pi-cog"></i>
-
-            <label style="text-align: center; margin: auto"
-              >{{ $t("search") }}
-            </label></Button
-          >
+          />
+           
         </div>
         <div class="flex" v-if="isvisible">
           <div class="flex">

@@ -2,17 +2,19 @@
   <AppLayout>
     <MainContentWarp>
       <div class="surface-card p-3 shadow-2 border-round">
-        <!-- <div class="flex flex-column" v-if="isvisible">
-         
-          <div class="flex align-items-center">
-            <Button
-              label="ค้นหา"
-              icon="pi pi-cog"
-              @click="reloadRoute()"
-              class="p-button-rounded mr-2"
-            ></Button>
-          </div>
-        </div> -->
+        <div class="mb-2 flex align-items-center justify-content-between">
+          <span class="text-xl font-medium text-900">
+            <i class="pi pi-book" style="font-size: 1.5rem">
+              {{ $t("statement") }} / {{ $t("ledger") }}
+            </i>
+          </span>
+          <Button
+            label="ค้นหา"
+            icon="pi pi-cog"
+            @click="showSearch = true"
+            class="p-button-rounded mr-2"
+          />
+        </div>
 
         <div class="px-1 surface-section flex-auto">
           <div class="card p-2">
@@ -25,65 +27,45 @@
                   <br />
                   <br />
                   <span style="font-weight: bold" class="alignleft"
-                    >{{ $t("sincetime") }} : &nbsp; {{ startDateShow }}</span
-                  >&nbsp; &nbsp;
+                    >{{ $t("sincetime") }} : {{ startDateShow }}</span
+                  >
 
                   <span style="font-weight: bold">
-                    {{ $t("totime") }} : &nbsp; {{ endDateShow }}</span
+                    {{ $t("totime") }} : {{ endDateShow }}</span
                   >
-                  &nbsp;
 
                   <br />
                   <span style="font-weight: bold" class="alignleft">
                     <br />
-                    {{ nameCheck(accountcode1) }}&nbsp;
+                    {{ nameCheck(accountcode1) }}
                   </span>
 
                   <span style="font-weight: bold" class="alignleft">
-                    {{ nameCheck2(accountcode2) }}&nbsp;
+                    {{ nameCheck2(accountcode2) }}
                   </span>
                   <div class="alignright">
                     <Button
                       label="ส่งออก Excel"
-                      icon="pi pi-file-excel"
-                      class="p-button-primary"
+                      icon="pi pi-file-excel "
+                      class="p-button-primary mr-1"
                       @click="dswitch(1)"
                       :disabled="isvisible === false"
-                    >
-                      <i class="pi pi-file-excel"></i>
-
-                      <label style="text-align: center; margin: auto"
-                        >{{ $t("export") }} Excel</label
-                      ></Button
-                    >
-                    &nbsp;
+                    />
 
                     <Button
                       label="ส่งออก PDF"
                       icon="pi pi-file-pdf"
-                      class="p-button-primary"
+                      class="p-button-primary mr-1"
                       @click="dswitch(2)"
                       :disabled="isvisible === false"
-                    >
-                      <i class="pi pi-file-pdf"></i>
+                    />
 
-                      <label style="text-align: center; margin: auto"
-                        >{{ $t("export") }} PDF</label
-                      ></Button
-                    >
-                    &nbsp;
                     <Button
+                      type="button"
                       label="ค้นหา"
                       icon="pi pi-cog"
                       @click="reloadRoute()"
-                      class="p-button-rounded mr-2"
-                    >
-                      <i class="pi pi-cog"></i>
-
-                      <label style="text-align: center; margin: auto"
-                        >{{ $t("search") }}
-                      </label></Button
-                    >
+                    />
                   </div>
                 </div>
               </div>
@@ -490,7 +472,7 @@
         </template>
 
         <div class="grid p-fluid formgrid">
-          <div class="field mb-4 col-6 md:col-3 ml-0">
+          <div class="field mb-4 col-6 md:col-6 ml-0">
             <label for="startDate" class="font-medium text-900"
               >{{ $t("from_acc_code") }}
             </label>
@@ -510,7 +492,7 @@
             >
             </Dropdown>
           </div>
-          <div class="field mb-4 col-6 md:col-3 ml-0">
+          <div class="field mb-4 col-6 md:col-6 ml-0">
             <label for="endDate" class="font-medium text-900"
               >{{ $t("to_acc_code") }}
             </label>
@@ -529,7 +511,65 @@
               optionValue="accountcode"
             />
           </div>
-          <div class="field mb-4 col-6 md:col-3">
+          <div class="field mb-4 col-6 md:col-6 ml-0">
+            <label for="custtype" class="font-medium text-900">
+              ประเภทลูกหนี้/เจ้าหนี้
+            </label>
+            <div
+              class="flex align-items-center justify-content-center custtype mt-2"
+            >
+              <div class="flex field-checkbox">
+                <RadioButton
+                  id="custtype"
+                  name="custtype"
+                  :value="0"
+                  v-model="custtype"
+                  @change="clearCustcode()"
+                />
+                <label>ลูกหนี้</label>
+              </div>
+              <div class="flex field-checkbox ml-3">
+                <RadioButton
+                  id="custtype"
+                  name="custtype"
+                  :value="1"
+                  v-model="custtype"
+                />
+                <label>เจ้าหนี้</label>
+              </div>
+            </div>
+          </div>
+          <div class="field mb-4 col-6 md:col-6 ml-0" v-if="custtype == 0">
+            <label for="endDate" class="font-medium text-900">ลูกหนี้ </label>
+            <Dropdown
+              v-model="custcode"
+              :showClear="custcode != '' ? true : false"
+              :filter="true"
+              :filterFields="['code', 'names']"
+              field="code"
+              :options="debtorlist"
+              filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
+              optionLabel="label"
+              optionValue="code"
+            />
+          </div>
+          <div class="field mb-4 col-6 md:col-6 ml-0" v-if="custtype == 1">
+            <label for="endDate" class="font-medium text-900">เจ้าหนี้ </label>
+            <Dropdown
+              v-model="custcode"
+              :showClear="custcode != '' ? true : false"
+              :filter="true"
+              :filterFields="['code', 'names']"
+              field="code"
+              :options="creditorlist"
+              filterPlaceholder="ค้นหา"
+              placeholder="เลือก"
+              optionLabel="label"
+              optionValue="code"
+            />
+          </div>
+          <div class="field col-12">
             <div class="field-checkbox">
               <Checkbox v-model="result" :binary="true" @change="addall()" />
               <label>{{ $t("acctive_ac") }}</label>
@@ -817,7 +857,6 @@ const detail_examplenumbertwo = ref([]);
 const daily_form = ref([]);
 const textChart = ref("");
 const showTabImage = ref(false);
-const showSearch = ref(true);
 const toast = useToast();
 const deleteDetailDialog = ref(false);
 const totalItemsCount = ref(0);
@@ -864,64 +903,7 @@ const balance = ref();
 const balancenext = ref();
 const result = ref(false);
 const accountmaintypeList = ref([{ name: "0", code: 1 }]);
-3;
-const customersGrouped = ref([
-  {
-    id: 1000,
-    name: "James Butt",
-    country: {
-      name: "Algeria",
-      code: "dz",
-    },
-    company: "Benton, John B Jr",
-    date: "2015-09-13",
-    status: "unqualified",
-    verified: true,
-    activity: 17,
-    representative: {
-      name: "Ioni Bowcher",
-      image: "ionibowcher.png",
-    },
-    balance: 70663,
-  },
-  {
-    id: 1001,
-    name: "Josephine Darakjy",
-    country: {
-      name: "Egypt",
-      code: "eg",
-    },
-    company: "Chanay, Jeffrey A Esq",
 
-    date: "2019-02-09",
-    status: "proposal",
-    verified: true,
-    activity: 0,
-    representative: {
-      name: "Amy Elsner",
-      image: "amyelsner.png",
-    },
-    balance: 82429,
-  },
-  {
-    id: 1002,
-    name: "Art Venere",
-    country: {
-      name: "Panama",
-      code: "pa",
-    },
-    company: "Chemel, James L Cpa",
-    date: "2017-05-13",
-    status: "qualified",
-    verified: false,
-    activity: 63,
-    representative: {
-      name: "Asiya Javayant",
-      image: "asiyajavayant.png",
-    },
-    balance: 28334,
-  },
-]);
 const daily_form_valid = ref({
   accountdescription: false,
   accountgroup: false,
@@ -950,6 +932,13 @@ const groups = ref([
 ]);
 const ica = ref(false);
 
+/// 0 = ลูกหนี้ 1 = เจ้าหนี้
+const custtype = ref(0);
+const custcode = ref("");
+const debtorlist = ref([]);
+const creditorlist = ref([]);
+const showSearch = ref(false);
+
 pdfMake.fonts = {
   Sarabun: {
     normal:
@@ -964,6 +953,8 @@ pdfMake.fonts = {
 
 onMounted(async () => {
   await getAccountChart();
+  await getDebtorList();
+  await getCreditorsList();
 
   getDate();
   switchOn();
@@ -973,10 +964,11 @@ onMounted(async () => {
   // getAccountChartList();
   //   getAccountledger();
   // getGLJournalList();
-  checkzero();
   storeApp.setPageTitle("บัญชีแยกประเภท");
   storeApp.setActivePage("report_list");
   storeApp.setActiveChild("ledger");
+
+  showSearch.value = true;
 });
 
 // async function getAccountChart() {
@@ -1014,7 +1006,7 @@ function nameCheck2(data) {
 async function getAccountChart() {
   try {
     const res = await MasterdataService.getAccountChartList(
-      limitPage.value,
+      10000,
       activePage.value,
       filters.value,
       sortField.value,
@@ -1042,6 +1034,49 @@ async function getAccountChart() {
           worm.value = "~";
           return (ele.label = ele.accountcode + worm.value + ele.accountname);
         }
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+async function getDebtorList() {
+  try {
+    const res = await MasterdataService.getDebtorList(
+      10000,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
+    if (res.success) {
+      debtorlist.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      debtorlist.value.forEach((ele) => {
+        ele.label = ele.code + "~" + ele.names[0].name;
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+async function getCreditorsList() {
+  try {
+    const res = await MasterdataService.getCreditorList(
+      10000,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
+    console.log(res);
+    if (res.success) {
+      creditorlist.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      creditorlist.value.forEach((ele) => {
+        ele.label = ele.code + "~" + ele.names[0].name;
       });
     }
   } catch (err) {
@@ -1310,7 +1345,7 @@ function exportreport() {
   isvisible.value = true;
 }
 function reloadRoute() {
-  location.reload();
+  showSearch.value = true;
 }
 function read55(data) {
   if (result.value == false) {
@@ -1332,12 +1367,13 @@ function exreport2() {
     startdate,
     enddate,
     dataaccountcode.value,
-    (accountgroup.value = ""),
-    (consolidateaccountcode.value = "")
+    custtype.value,
+    custcode.value
   )
 
     .then((res) => {
       // console.log(res.data);
+      newData.value = [];
       startDateShow.value = Utils.getYearBuddhist(startDate.value);
       endDateShow.value = Utils.getYearBuddhist(endDate.value);
       res.data.forEach((element, index) => {
@@ -2283,6 +2319,10 @@ function goDetail(data) {
     name: "dailyUpdate",
     params: { id: data, mode: "edit" },
   });
+}
+
+function clearCustcode() {
+  custcode.value = "";
 }
 </script>
 <style lang="scss" scoped>

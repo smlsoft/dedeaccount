@@ -158,10 +158,22 @@ export default {
         //  console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
-    getAccountledger(startdate, enddate, accountcode) {
+    getAccountledger(startdate, enddate, accountcode, custtype, custcode) {
+        var searchcustcode = "";
 
-        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`);
-        return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}`).then(res => res.data);
+        if (custcode != '' && custcode != undefined && custcode != null ) {
+            /// 0 = ลูกหนี้ 1 = เจ้าหนี้
+            if (custtype == 0) {
+                searchcustcode = `&debtorcode=${custcode}`;
+
+            } else if (custtype == 1) {
+                searchcustcode = `&creditorcode=${custcode}`;
+            }
+        }
+
+
+        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}`);
+        return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}`).then(res => res.data);
     },
 
     postAccountChart(data) {
@@ -324,7 +336,7 @@ export default {
     getDebtorById(id) {
         return instanceApi(true).get(`/debtaccount/debtor/` + id).then(res => res.data);
     },
-    putDebtor(id,data) {
+    putDebtor(id, data) {
         return instanceApi(true).put(`/debtaccount/debtor/` + id, data).then(res => res.data);
     },
     deleteDebtor(data) {
@@ -350,7 +362,7 @@ export default {
     getCreditorById(id) {
         return instanceApi(true).get(`/debtaccount/creditor/` + id).then(res => res.data);
     },
-    putCreditor(id,data) {
+    putCreditor(id, data) {
         return instanceApi(true).put(`/debtaccount/creditor/` + id, data).then(res => res.data);
     },
     deleteCreditor(data) {

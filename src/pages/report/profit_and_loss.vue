@@ -23,24 +23,23 @@
           </div>
           -->
           <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem"> รายงานทางการเงิน</i>
+            <i class="pi pi-book" style="font-size: 2rem">
+              รายงานทางการเงิน / {{ $t("profit_loss") }}</i
+            >
           </div>
-          <div class="field mb-12 col-12 md:col-12">
-            <div class="flex flex-wrap card-container blue-container">
-              <h1 for="selectedgroup" class="font-medium text-900"></h1>
-              <h3 class="field mb-4 col-4 md:col-3">{{ $t("profit_loss") }}</h3>
-              <h4 class="field mb-4 col-4 md:col-1">{{ $t("accGroup") }}:</h4>
-              <div class="field mb-4 col-4 md:col-3">
-                <Dropdown
-                  class="field mb-12 col-12 md:col-12"
-                  v-model="accountGroup"
-                  :options="groups"
-                  optionValue="code"
-                  optionLabel="name1"
-                  @change="selectAccount($event)"
-                  placeholder="Select a City"
-                />
-                <!-- <RadioButton
+          <div class="field col-12 md:col-3">
+            <label for="accountgroup" class="font-medium text-900">{{
+              $t("accGroup")
+            }}</label>
+            <Dropdown
+              v-model="accountGroup"
+              :options="groups"
+              optionValue="code"
+              optionLabel="name1"
+              @change="selectAccount($event)"
+              placeholder="กรุณาเลือกชุดบัญชี"
+            />
+            <!-- <RadioButton
                   :id="group.code"
                   name="group"
                   :value="group.code"
@@ -49,11 +48,9 @@
                 <label :for="group.code"
                   >{{ group.code }} ~{{ group.name1 }}</label
                 > -->
-              </div>
-            </div>
           </div>
 
-          <div class="field mb-4 col-6 md:col-3 ml-3">
+          <div class="field col-12 md:col-3">
             <label for="startDate" class="font-medium text-900"
               >{{ $t("from_acc_code") }}:</label
             >
@@ -67,7 +64,7 @@
               :hiddenTime="true"
             />
           </div>
-          <div class="field mb-4 col-6 md:col-3">
+          <div class="field col-12 md:col-3">
             <label for="endDate" class="font-medium text-900"
               >{{ $t("to_acc_code") }}:</label
             >
@@ -81,11 +78,11 @@
               :hiddenTime="true"
             />
           </div>
-          <div class="field-checkbox mb-1 col-5 md:col-2">
+          <div class="field-checkbox col-12 md:col-3">
             <Checkbox :binary="true" v-model="ica" />
             <label>{{ $t("closing_entry") }}</label>
           </div>
-          <div class="field-checkbox mb-1 col-1 md:col-2 p-button-outlined">
+          <div class="field-checkbox  col-12  p-button-outlined">
             <Button
               label="จัดทำรายงาน"
               icon="pi pi-book"
