@@ -21,7 +21,6 @@ import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
 
 import VuePdfApp from "vue3-pdf-app";
 
-
 const toast = useToast();
 const router = useRouter();
 const storeApp = useApp();
@@ -55,6 +54,16 @@ const bank_list = ref([
     code: "bbl",
     name: "ธนาคารกรุงเทพ",
     logo: "bbl.png",
+  },
+  {
+    code: "scb",
+    name: "ธนาคารไทยพาณิชย์",
+    logo: "scb.png",
+  },
+  {
+    code: "gsb",
+    name: "ธนาคารออมสิน",
+    logo: "gsb.png",
   },
 ]);
 
