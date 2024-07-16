@@ -269,7 +269,7 @@
                 <div class="card" style="width: 100%">
                   <div>
                     <span class="flex-item">
-                      <span style="margim-bottom: 10px"
+                      <span style="padding-bottom: 10px"
                         >{{ slotProps.data.docno }}
                       </span>
                       <i
@@ -652,6 +652,7 @@
                 :isUpdate="readMode"
                 :daily_form="daily_form"
                 :daily_form_valid="daily_form_valid"
+                :income_expenses_mode="true"
               >
               </JournalForm>
             </TabPanel>
@@ -914,6 +915,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const newData = ref([]);
 const props = defineProps({
@@ -1870,6 +1872,7 @@ function buildFromJson() {
   return body;
 }
 function DownloadExampleExcel() {
+  detail_example.value = [];
   result.value == false;
   console.log("DownloadExampleExcel");
 
@@ -2169,6 +2172,7 @@ function DownloadExampleExcel() {
   XLSX.writeFile(wb, "รายงานบัญชีแยกประเภท.xlsx");
 }
 function DownloadExampleExcelAll() {
+  detail_example.value = [];
   console.log("DownloadExampleExcelAll");
   detail_example.value.push(
     {

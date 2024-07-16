@@ -37,7 +37,7 @@ function onRowSelect(event) {
 
 function editAccountGroup(data) {
   selectedRow.value = data;
-  emit("editAccountGroup", data);
+  emit("editAccountGroup", Object.assign({}, data)); // Create a copy of the data object
 }
 
 function deleteAccountGroup(data) {

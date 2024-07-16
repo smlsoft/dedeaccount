@@ -56,9 +56,10 @@ const props = defineProps({
   accountBook_detail: Array,
   document_formate: Array,
   groupAccount_detail: Array,
-  customer_detail:Array,
-  creditor_detail:Array,
+  customer_detail: Array,
+  creditor_detail: Array,
   id: String,
+  income_expenses_mode: Boolean,
 });
 
 const emit = defineEmits([
@@ -214,7 +215,7 @@ function focusNext(field, index) {
 }
 
 function checkAccountPeriod(event) {
-  console.log(event);
+  // console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
@@ -226,10 +227,10 @@ function checkAccountPeriod(event) {
 }
 
 function getAccountPeriodByDate(keyDate) {
-  console.log(keyDate);
+  // console.log(keyDate);
   AccountPeriodDataService.getAccountPeriodByDate(keyDate)
     .then((res) => {
-      console.log(res);
+      // console.log(res);
       if (res.success) {
         if (res.data[0].perioddata.guidfixed != "") {
           emit("setAccountPeriod", res.data[0].perioddata.period);
@@ -287,7 +288,10 @@ function headerNextFocus(filedName) {
 
 <template>
   <form>
-    <div class="grid formgrid p-fluid">
+    <div
+      class="grid formgrid p-fluid"
+      v-if="props.income_expenses_mode == false"
+    >
       <div class="field mb-4 col-12 md:col-3">
         <span class="p-float-label">
           <DatePicker
@@ -339,6 +343,7 @@ function headerNextFocus(filedName) {
             @keyup.enter="headerNextFocus('exdocrefdate')"
             @keydown.tab="headerNextFocus('exdocrefdate')"
             inputClass="bookcode"
+            inputStyle="height: 51px;"
           >
             <template #option="slotProps">
               <div>
@@ -350,7 +355,6 @@ function headerNextFocus(filedName) {
         </span>
       </div>
       <div class="field mt-3 col-12 md:col-3">
-    
         <div class="grid mt-0 ml-2">
           <div class="flex field-checkbox">
             <RadioButton
@@ -358,7 +362,6 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="0"
               v-model="props.daily_form.debtaccounttype"
-         
             />
             <label>ลูกหนี้</label>
           </div>
@@ -368,13 +371,15 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="1"
               v-model="props.daily_form.debtaccounttype"
-       
             />
             <label>เจ้าหนี้</label>
           </div>
         </div>
       </div>
-      <div class="field mb-4 col-12 md:col-9" v-if="props.daily_form.debtaccounttype==0">
+      <div
+        class="field mb-4 col-12 md:col-9"
+        v-if="props.daily_form.debtaccounttype == 0"
+      >
         <span class="p-float-label">
           <Dropdown
             v-model="props.daily_form.debtor"
@@ -390,6 +395,7 @@ function headerNextFocus(filedName) {
             @keyup.enter="headerNextFocus('exdocrefdate')"
             @keydown.tab="headerNextFocus('exdocrefdate')"
             inputClass="debtor"
+            inputStyle="height: 51px;"
           >
             <template #option="slotProps">
               <div>
@@ -400,7 +406,10 @@ function headerNextFocus(filedName) {
           <label for="bookcode">ลูกหนี้</label>
         </span>
       </div>
-      <div class="field mb-4 col-12 md:col-9" v-if="props.daily_form.debtaccounttype==1">
+      <div
+        class="field mb-4 col-12 md:col-9"
+        v-if="props.daily_form.debtaccounttype == 1"
+      >
         <span class="p-float-label">
           <Dropdown
             v-model="props.daily_form.creditor"
@@ -416,6 +425,7 @@ function headerNextFocus(filedName) {
             @keyup.enter="headerNextFocus('exdocrefdate')"
             @keydown.tab="headerNextFocus('exdocrefdate')"
             inputClass="creditor"
+            inputStyle="height: 51px;"
           >
             <template #option="slotProps">
               <div>
@@ -537,7 +547,7 @@ function headerNextFocus(filedName) {
           class="batchid"
         />
       </div>
-      <div class="field mb-4 col-12 md:col-3">
+      <div class="field mb-4 col-12 md:col-3" hidden>
         <label class="font-medium text-900">งวดบัญชี</label>
         <InputText
           type="number"
@@ -565,8 +575,15 @@ function headerNextFocus(filedName) {
     </div>
 
     <div
-      class="flex flex-column lg:flex-row gap-3 justify-content-between lg:align-items-center border-primary py-5"
-      style="border-top: 6px solid"
+      class="flex flex-column lg:flex-row gap-3 justify-content-between lg:align-items-center"
+      :class="
+        props.income_expenses_mode == false ? 'border-primary py-5' : 'py-0'
+      "
+      :style="
+        props.income_expenses_mode == false
+          ? 'border-top: 6px solid'
+          : 'border-top: 0px solid'
+      "
     >
       <div class="flex flex-column gap-2">
         <div class="flex align-items-center gap-2">
@@ -622,7 +639,7 @@ function headerNextFocus(filedName) {
     <div>
       <DataTable
         :value="props.daily_form.journaldetail"
-        :reorderableColumns="true"
+        :reorderableColumns="false"
         @rowReorder="onRowReorder"
         class="editable-cells-table"
         responsiveLayout="scroll"
@@ -644,6 +661,9 @@ function headerNextFocus(filedName) {
               :dropdown="false"
               optionLabel="accountcode"
               @item-select="selectAccount(data[field], field, index)"
+              :inputClass="
+                props.daily_form_valid.accountcode1 ? 'p-invalid' : ''
+              "
             >
               <template #item="slotProps">
                 <div class="ml-2">
@@ -683,12 +703,12 @@ function headerNextFocus(filedName) {
           headerStyle="text-align:center;width: 10%"
           style="min-width: 180px"
         >
-          <template #body="{ data, field }" v-if="props.isUpdate">
-            {{ Utils.formatCurrency(data[field]) }}
-          </template>
-
-          <template #body="{ data, field, index }" v-if="!props.isUpdate">
+          <template #body="{ data, field, index }">
+            <div v-if="props.isUpdate">
+              {{ Utils.formatCurrency(data[field]) }}
+            </div>
             <TextInputNumber
+              v-else
               :class="'debit_' + index"
               v-model="data[field]"
               mode="decimal"
@@ -707,11 +727,12 @@ function headerNextFocus(filedName) {
           headerStyle="text-align:center;width: 10%"
           style="min-width: 180px"
         >
-          <template #body="{ data, field }" v-if="props.isUpdate">
-            {{ Utils.formatCurrency(data[field]) }}
-          </template>
-          <template #body="{ data, field, index }" v-if="!props.isUpdate">
+          <template #body="{ data, field, index }">
+            <div v-if="props.isUpdate">
+              {{ Utils.formatCurrency(data[field]) }}
+            </div>
             <TextInputNumber
+              v-else
               :class="'credit_' + index"
               v-model="data[field]"
               mode="decimal"

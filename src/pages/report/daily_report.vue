@@ -498,6 +498,7 @@ function buildFromJson() {
   return body;
 }
 function DownloadExampleExcel() {
+  detail_example.value = [];
   console.log("DownloadExampleExcel");
 
   data_list.value.forEach((data) => {

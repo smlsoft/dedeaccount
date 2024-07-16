@@ -87,6 +87,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const taxes = ref([]);
 const taxes_valid = ref([
@@ -374,7 +375,7 @@ function getAllSelectImage() {
               /// goto form job daily
               router.push({
                 name: "daily_images_job_form",
-                params: { id: jobId.value },
+                params: { id: jobId.value , type: localStorage.getItem("imageDailyType") },
               });
             }
           });
@@ -579,7 +580,11 @@ async function getDocumentImageById(id, index) {
   }
 }
 
-function createGL(data) {
+function createGL(data, type) {
+  /// type 1 = รายวัน , 2 = รายได้ , 3 = ค่าใช้จ่าย
+  /// set localstorage
+  localStorage.setItem("imageDailyType", type);
+
   var sendData = { docref: data.guidfixed };
   if (checkUseImgByUser(localStorage._usercode)) {
     swapImage(data.guidfixed);
@@ -592,7 +597,7 @@ function createGL(data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             router.push({
               name: "daily_images_job_form",
-              params: { id: jobId.value },
+              params: { id: jobId.value, type: type },
             });
           }
         }
@@ -620,7 +625,7 @@ function swapImage(data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             router.push({
               name: "daily_images_job_form",
-              params: { id: jobId.value },
+              params: { id: jobId.value  , type: localStorage.getItem("imageDailyType") },
             });
           }
         }
@@ -1139,40 +1144,39 @@ async function saveComment(id, data, index) {
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
-                <div
-                  v-if="isDataListNull == false"
-                  class="flex"
-                  v-for="data in data_list"
-                  :key="data.guidfixed"
-                >
-                  <ImageBlock
-                    :modeMenu="3"
-                    :images_data="data"
-                    :images_selete="selectedImg"
-                    :allimage_used="AllImageUsed"
-                    :ischeckApprove="ischeckApprove"
-                    :sizeWidthImageBloc="sizeWidthImageBloc"
-                    :sizeHeightImageBloc="sizeHeightImageBloc"
-                    v-on:showImg="showImg"
-                  >
-                  </ImageBlock>
-                </div>
-                <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
-                  <div
-                    class="text-center m-3"
-                    style="width: 90px; height: 90px"
-                  >
-                    <div
-                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                <template v-for="data in data_list" :key="data.guidfixed">
+                  <div class="flex" v-if="isDataListNull == false">
+                    <ImageBlock
+                      :modeMenu="3"
+                      :images_data="data"
+                      :images_selete="selectedImg"
+                      :allimage_used="AllImageUsed"
+                      :ischeckApprove="ischeckApprove"
+                      :sizeWidthImageBloc="sizeWidthImageBloc"
+                      :sizeHeightImageBloc="sizeHeightImageBloc"
+                      v-on:showImg="showImg"
                     >
-                      <Skeleton
-                        style="width: 90px; height: 90px; object-fit: cover"
-                      ></Skeleton>
-                    </div>
-
-                    <Skeleton class="mt-2"></Skeleton>
+                    </ImageBlock>
                   </div>
-                </div>
+                </template>
+                <template v-for="i in 50">
+                  <div class="flex" :key="i" v-if="showSkeleton">
+                    <div
+                      class="text-center m-3"
+                      style="width: 90px; height: 90px"
+                    >
+                      <div
+                        class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      >
+                        <Skeleton
+                          style="width: 90px; height: 90px; object-fit: cover"
+                        ></Skeleton>
+                      </div>
+
+                      <Skeleton class="mt-2"></Skeleton>
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
           </SplitterPanel>
@@ -1266,6 +1270,7 @@ async function saveComment(id, data, index) {
               :accountBook_detail="accountBook_detail"
               :daily_form="daily_form"
               :daily_form_valid="daily_form_valid"
+              :income_expenses_mode="false"
             >
             </JournalForm>
           </TabPanel>

@@ -241,7 +241,7 @@ async function verifyData() {
   let err_msg = "";
   if (form_model.value.doccode == "") {
     form_valid.value.doccode = false;
-    err_msg += "กรุณากรอบข้อมูล รหัสกลุ่มบัญชี\n";
+    err_msg += "กรุณากรอกข้อมูล รหัสกลุ่มบัญชี\n";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.doccode)) {
@@ -254,7 +254,7 @@ async function verifyData() {
   }
   if (form_model.value.description == "") {
     form_valid.value.description = false;
-    err_msg += "กรุณากรอบข้อมูล ชื่อกลุ่มบัญชี ";
+    err_msg += "กรุณากรอกข้อมูล ชื่อกลุ่มบัญชี ";
     checkValid += 1;
   } else {
     form_valid.value.description = true;
@@ -281,14 +281,11 @@ function onRowSelect(data) {
   form_model.value.details = data.details;
 }
 
-function editAccountGroup(data) {
+function editDocumentFormate(data) {
   readMode.value = true;
   confirmEditDialog.value = true;
 
-  form_model.value.doccode = data.doccode;
-  form_model.value.description = data.description;
-  form_model.value.guidfixed = data.guidfixed;
-  form_model.value.details = data.details;
+  form_model.value = Object.assign({}, data); // Create a copy of the data object
   form_model.value.details.forEach((element) => {
     /// credit covert to int
     element.credit = parseInt(element.credit);
@@ -302,7 +299,7 @@ function confirmEdit() {
   confirmEditDialog.value = false;
 }
 
-function deleteAccountGroup(data) {
+function deleteDocumentFormate(data) {
   readMode.value = true;
   confirmDeleteDialog.value = true;
   form_model.value.doccode = data.doccode;
@@ -405,8 +402,8 @@ function deleteDetail(data) {
             :totalItemsCount="totalItemsCount"
             v-on:docCodeFocus="createDocumentFormate"
             v-on:onRowSelect="onRowSelect"
-            v-on:editAccountGroup="editAccountGroup"
-            v-on:deleteAccountGroup="deleteAccountGroup"
+            v-on:editDocumentFormate="editDocumentFormate"
+            v-on:deleteDocumentFormate="deleteDocumentFormate"
             v-on:onPage="onPage"
             v-on:doneTyping="doneTyping"
           ></dataList>

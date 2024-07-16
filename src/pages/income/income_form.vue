@@ -2,7 +2,8 @@
 import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
-import MasterdataService from "@/services/MasterdataService";
+import IncomeDataService from "@/services/IncomeDataService";
+import MasterDataService from "@/services/MasterDataService";
 import ImageDataService from "@/services/ImageDataService";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
@@ -11,9 +12,10 @@ import { ref, onMounted, computed, onUnmounted } from "vue";
 import Utils from "@/utils/";
 import { useApp } from "@/stores/app.js";
 import ImageBlock from "../images_group/components/ImagesBlock.vue";
-import JournalForm from "./components/journal_form.vue";
+import DetailForm from "./components/detail_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import JournalForm from "../daily/components/journal_form.vue";
 import dayjs from "dayjs";
 import $ from "jquery";
 import PdfApp from "vue3-pdf-app";
@@ -35,13 +37,9 @@ const onLoad = ref(false);
 const selectedImg = ref(false);
 const selectedImgUse = ref([]);
 const loading = ref(true);
-const isShowAll = ref(true);
-const isShowWait = ref(false);
-const isShowUnApprove = ref(false);
 const searchItem = ref("");
 const limitPage = ref(20);
 const activePage = ref(1);
-const showContent = ref("");
 const showSelectFrom = ref(false);
 const showImageList = ref(false);
 const totalItemsCount = ref(10);
@@ -56,35 +54,15 @@ const selectedImgData = ref({
 const totalPage = ref(0);
 const sortReject = ref("0");
 const sortRef = ref("0");
-const rotate = ref(0);
-const scale = ref(1);
-const panning = ref(false);
-const pointX = ref(0);
-const pointY = ref(0);
-const start = ref({ x: 0, y: 0 });
-const zoomStyle = ref("");
 const doc_images = ref([]);
-const WsConnectImage = ref();
 const AllImageUsed = ref([]);
-const WsConnectAllImage = ref();
 const activeIndex = ref(0);
-const updateMode = ref(false);
-const accountChart_detail = ref([]);
+const income_detail = ref([]);
 const accountBook_detail = ref([]);
 const customer_detail = ref([]);
-const creditor_detail = ref([]);
-
-const document_formate = ref([]);
-const groupAccount_detail = ref([]);
 const confirmChangeImageDialog = ref(false);
 const newDocRefImage = ref();
-const imagePreviewStyle = computed({
-  get() {
-    return {
-      transform: "rotate(" + rotate.value + "deg) scale(" + scale.value + ")",
-    };
-  },
-});
+
 const selectSort = ref("uploadedat");
 const sortField = ref([
   {
@@ -103,6 +81,88 @@ const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
 
+const income_form = ref({
+  docdate: new Date(), /// วันที่เอกสาร
+  // docno: Utils.getDocNoDate("JO"), /// เลขที่เอกสาร
+  docno: "",
+  debtorcode: "", /// รหัสลูกหนี้
+  vattype: 1, /// ประเภทภาษี 1 = ภาษีแยกนอก , 2 = ภาษีรวมใน , 3 = ภาษีอัตราศูนย์ , 4 = ไม่กระทบภาษี
+  docrefdate: new Date(), /// วันที่อ้างอิง
+  docrefno: "", /// เลขที่อ้างอิง
+  inquirytype: 1, /// ประเภทรายได้ 1 = เงินเชื่อ , 2 = เงินสด
+  accountdescription: "", /// รายละเอียด
+  accountperiod: null, /// งวดบัญชี
+  accountyear: parseInt(Utils.getYear().toString()) + 543, /// ปีบัญชี
+  incomedetail: [
+    {
+      incomecode: "", /// รหัสรายได้
+      incomename: "", /// ชื่อรายได้
+      description: "", /// คำอธิบายรายการ
+      amount: 0, /// จำนวนเงิน
+    },
+  ],
+  vatrate: 7, /// อัตราภาษี
+  totalvalue: 0.0, /// มูลค่ารวม
+  discount: "", /// ส่วนลด
+  totaldiscount: 0, /// รวมส่วนลด
+  totalvatvalue: 0, /// มูลค่าภาษี
+  totalbeforevat: 0, /// มูลค่าก่อนภาษี
+  totalaftervat: 0, /// มูลค่าหลังภาษี
+  totalexceptvat: 0, /// มูลค่ายกเว้นภาษี
+  totalamount: 0, /// มูลค่ารวมทั้งสิ้น
+  payment: {
+    paymenttype: 1, /// ประเภทการชำระเงิน 1 = เงินสด , 2 = โอน
+    paymentamount: 0, /// จำนวนเงิน
+  },
+});
+
+/// required field
+const income_form_valid = ref({
+  docdate: false, /// วันที่เอกสาร
+  docno: false, /// เลขที่เอกสาร
+  debtorcode: false, /// รหัสลูกหนี้
+  paymentamount: false, /// จำนวนเงิน
+  incomecode1: false, /// รหัสรายได้
+});
+
+const vats = ref([]);
+
+const vats_valid = ref([
+  {
+    vatdate: false,
+    vatdocno: false,
+    vatperiod: false,
+    vatyear: false,
+    vatbase: false,
+    vatrate: false,
+    vatamount: false,
+    exceptvat: false,
+    custname: false,
+    custtaxid: false,
+    branchcode: false,
+  },
+]);
+const taxes = ref([]);
+const taxes_valid = ref([
+  {
+    taxdate: false,
+    taxdocno: false,
+    custname: false,
+    custtaxid: false,
+  },
+]);
+const readMode = ref(false);
+
+const filtersCust = ref(null);
+const sortFieldCust = ref("code");
+
+const divCheckGl = ref(null);
+const heightIamgeDivCheckGl = ref(null);
+const showOveray = ref(false);
+const warringAccountperiod = ref(false);
+const useImage = ref(false);
+
+/// รายวัน
 const daily_form = ref({
   debtaccounttype: "0",
   debtor: "",
@@ -141,46 +201,13 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
-  accountcode1:false,
+  accountcode1: false,
 });
 
-const vats = ref([]);
-
-const vats_valid = ref([
-  {
-    vatdate: false,
-    vatdocno: false,
-    vatperiod: false,
-    vatyear: false,
-    vatbase: false,
-    vatrate: false,
-    vatamount: false,
-    exceptvat: false,
-    custname: false,
-    custtaxid: false,
-    branchcode: false,
-  },
-]);
-const taxes = ref([]);
-const connection = ref();
-const taxes_valid = ref([
-  {
-    taxdate: false,
-    taxdocno: false,
-    custname: false,
-    custtaxid: false,
-  },
-]);
-const readMode = ref(false);
-
-const filtersCust = ref(null);
-const sortFieldCust = ref("code");
-
-const divCheckGl = ref(null);
-const heightIamgeDivCheckGl = ref(null);
-const showOveray = ref(false);
-const warringAccountperiod = ref(false);
-const useImage = ref(false);
+const creditor_detail = ref([]);
+const accountChart_detail = ref([]);
+const document_formate = ref([]);
+const groupAccount_detail = ref([]);
 
 onUnmounted(() => {
   console.log(
@@ -194,39 +221,52 @@ onUnmounted(() => {
 
 onMounted(() => {
   storeApp.setActivePage("daily");
-  storeApp.setActiveChild("daily_list");
+  storeApp.setActiveChild("income_list");
 
   if (
     route.params.id != "" &&
     route.params.id != "" &&
     route.params.id != undefined
   ) {
-    storeApp.setPageTitle("แก้ไขข้อมูลรายวัน");
+    storeApp.setPageTitle("แก้ไขข้อมูลรายได้อื่น ๆ");
     onLoad.value = true;
     readMode.value = false;
     setTimeout(() => {
       getGLDetail(route.params.id);
     }, 1000);
   } else {
-    storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
-    daily_form.value.docno = Utils.getDocNoDate("JO");
+    storeApp.setPageTitle("เพิ่มข้อมูลรายได้อื่น ๆ");
     readMode.value = false;
   }
-
-  getAccountChart();
+  getDocNo();
+  getIncome();
   getJournalBook();
-  getAccountGroup();
-  getDocumentFormate();
-  getCreditorList();
   getDebtorList();
+  getCreditorList();
+  getAccountChart();
+  getDocumentFormate();
   // set height ifram
   heightIamgeDivCheckGl.value =
     "height:" + divCheckGl.value.offsetHeight + "px";
 });
 
+//// ดึง docno from service
+function getDocNo() {
+  IncomeDataService.getDocNo()
+    .then((res) => {
+      if (res.success) {
+        // income_form.value.docno= res.data;
+      }
+    })
+    .catch((err) => {
+      income_form.value.docno = Utils.getDocNoDate("JO");
+      console.log(err);
+    });
+}
+
 function getCreditorList() {
   loading.value = true;
-  MasterdataService.getCreditorList(
+  MasterDataService.getCreditorList(
     200,
     1,
     filtersCust.value,
@@ -251,7 +291,7 @@ function getCreditorList() {
 
 function getDebtorList() {
   loading.value = true;
-  MasterdataService.getDebtorList(
+  MasterDataService.getDebtorList(
     200,
     1,
     filtersCust.value,
@@ -266,7 +306,7 @@ function getDebtorList() {
             (data) => data.code == "th"
           )[0].name;
         });
-        console.log("customer_detail : ", customer_detail.value);
+        // console.log("customer_detail : ", customer_detail.value);
       }
     })
     .catch((err) => {
@@ -275,9 +315,52 @@ function getDebtorList() {
     });
 }
 
+function getAccountChart() {
+  MasterDataService.getAccountChart()
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        accountChart_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.accountcode - obj2.accountcode;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function selectAccount(data, index) {
+  var ele = accountChart_detail.value.filter(
+    (val) => val.accountcode == data.accountcode
+  );
+  daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
+  daily_form.value.journaldetail[index].accountname = ele[0].accountname;
+}
+
+function getDocumentFormate() {
+  MasterDataService.getDocumentFormateList()
+    .then((res) => {
+      // console.log(res);
+      if (res.success) {
+        /// remove res.data where module != GL
+        res.data = res.data.filter((val) => val.module == "GL");
+        document_formate.value = res.data.sort(function (obj1, obj2) {
+          return obj1.doccode - obj2.doccode;
+        });
+        document_formate.value.forEach((ele) => {
+          ele.label = ele.doccode + "~" + ele.description;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
 function getImagesByDocref(data) {
   console.log(data);
-  MasterdataService.getImagesByDocref(data).then((res) => {
+  MasterDataService.getImagesByDocref(data).then((res) => {
     if (res.success) {
       console.log(res.data);
       if (res.data.imagereferences.length > 0) {
@@ -300,7 +383,7 @@ function getImagesByDocref(data) {
 }
 
 function getAllSelectImage() {
-  MasterdataService.getAllSelectImage()
+  MasterDataService.getAllSelectImage()
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -338,7 +421,7 @@ function selectImg(data) {
 }
 
 function getGLDetail(id) {
-  MasterdataService.getGLDetail(id)
+  IncomeDataService.getGLDetail(id)
     .then((res) => {
       if (res.success) {
         console.log(res);
@@ -351,48 +434,46 @@ function getGLDetail(id) {
           res.data.debtaccounttype !== undefined &&
           res.data.debtaccounttype !== null
         ) {
-          daily_form.value.debtaccounttype =
+          income_form.value.debtaccounttype =
             res.data.debtaccounttype.toString();
         }
 
-        daily_form.value.debtor =
+        income_form.value.debtor =
           res.data.debtaccounttype == 0 ? res.data.debtor.code : "";
-        daily_form.value.creditor =
+        income_form.value.creditor =
           res.data.debtaccounttype == 1 ? res.data.creditor.code : "";
-        daily_form.value.accountdescription = res.data.accountdescription;
-        daily_form.value.accountgroup = res.data.accountgroup;
-        daily_form.value.accountperiod = res.data.accountperiod;
-        daily_form.value.accountyear = res.data.accountyear;
-        daily_form.value.amount = res.data.amount;
-        daily_form.value.batchId = res.data.batchId;
-        daily_form.value.journaltype = res.data.journaltype.toString();
-        daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
-        daily_form.value.docno = res.data.docno;
-        daily_form.value.bookcode = res.data.bookcode;
-        daily_form.value.journaldetail = res.data.journaldetail;
-        if (daily_form.value.journaldetail.length == 0) {
-          daily_form.value.journaldetail.push({
-            accountcode: "",
-            accountname: "",
-            debitamount: 0,
-            creditamount: 0,
+        income_form.value.accountdescription = res.data.accountdescription;
+        income_form.value.accountgroup = res.data.accountgroup;
+        income_form.value.accountperiod = res.data.accountperiod;
+        income_form.value.accountyear = res.data.accountyear;
+        income_form.value.amount = res.data.amount;
+        income_form.value.batchId = res.data.batchId;
+        income_form.value.inquirytype = res.data.inquirytype.toString();
+        income_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
+        income_form.value.docno = res.data.docno;
+        income_form.value.incomedetail = res.data.incomedetail;
+        if (income_form.value.incomedetail.length == 0) {
+          income_form.value.incomedetail.push({
+            incomecode: "",
+            incomename: "",
+            descriotion: "",
+            amount: 0,
           });
         }
         if (res.data.exdocrefdate == "0001-01-01T00:00:00Z") {
-          daily_form.value.exdocrefdate = "";
+          income_form.value.exdocrefdate = "";
         } else {
-          daily_form.value.exdocrefdate = Utils.getDateTimeFromDate(
+          income_form.value.exdocrefdate = Utils.getDateTimeFromDate(
             res.data.exdocrefdate
           );
         }
 
-        daily_form.value.exdocrefno = res.data.exdocrefno;
+        income_form.value.exdocrefno = res.data.exdocrefno;
 
-        console.log(daily_form.value);
-
+        console.log(income_form.value);
         if (res.data.documentref != "") {
           useImage.value = true;
-        }else{
+        } else {
           useImage.value = false;
         }
 
@@ -472,7 +553,7 @@ function getGLDetail(id) {
           console.log();
         }
         if (res.data.documentref != "") {
-          MasterdataService.getImagesByDocref(res.data.documentref)
+          IncomeDataService.getImagesByDocref(res.data.documentref)
             .then((res) => {
               if (res.success) {
                 console.log(res.data);
@@ -538,20 +619,20 @@ function goList() {
   setTimeout(() => {
     console.log(readMode.value);
     if (readMode.value) {
-      router.push({ name: "dailyList" });
+      router.push({ name: "income_list" });
     } else {
-      router.push({ name: "dailyList" });
+      router.push({ name: "income_list" });
     }
   }, 100);
 }
 
 async function confirmSave() {
-  //console.log(daily_form.value);
+  //console.log(income_form.value);
   //console.log(vats.value);
   //console.log(taxes.value);
 
   var sumDebit = 0;
-  await daily_form.value.journaldetail.forEach((ele) => {
+  await income_form.value.incomedetail.forEach((ele) => {
     var debit = 0;
     if (ele.debitamount != "") {
       debit = parseFloat(ele.debitamount);
@@ -563,47 +644,46 @@ async function confirmSave() {
     ele.vatperiod = parseInt(ele.vatperiod);
     ele.vatyear = parseInt(ele.vatyear);
   });
-  daily_form.value.amount = sumDebit;
-  //daily_form.value.docdate = Utils.getFormatDateTime(daily_form.value.docdate);
-  //console.log(Utils.getFormatDateTime(daily_form.value.docdate));
+  income_form.value.amount = sumDebit;
+  //income_form.value.docdate = Utils.getFormatDateTime(income_form.value.docdate);
+  //console.log(Utils.getFormatDateTime(income_form.value.docdate));
   var from_input = {
     debtor:
-      daily_form.value.debtaccounttype == "1"
+      income_form.value.debtaccounttype == "1"
         ? {}
-        : daily_form.value.debtor != ""
+        : income_form.value.debtor != ""
         ? customer_detail.value.filter(
-            (data) => data.code == daily_form.value.debtor
+            (data) => data.code == income_form.value.debtor
           )[0]
         : {},
     creditor:
-      daily_form.value.debtaccounttype == "0"
+      income_form.value.debtaccounttype == "0"
         ? {}
-        : daily_form.value.creditor != ""
+        : income_form.value.creditor != ""
         ? creditor_detail.value.filter(
-            (data) => data.code == daily_form.value.creditor
+            (data) => data.code == income_form.value.creditor
           )[0]
         : {},
-    debtaccounttype: parseInt(daily_form.value.debtaccounttype),
-    accountdescription: daily_form.value.accountdescription,
-    accountgroup: daily_form.value.accountgroup,
-    accountperiod: daily_form.value.accountperiod,
-    accountyear: daily_form.value.accountyear,
+    debtaccounttype: parseInt(income_form.value.debtaccounttype),
+    accountdescription: income_form.value.accountdescription,
+    accountgroup: income_form.value.accountgroup,
+    accountperiod: income_form.value.accountperiod,
+    accountyear: income_form.value.accountyear,
     documentref: selectedImgData.value.guidfixed,
-    amount: daily_form.value.amount,
-    batchId: daily_form.value.batchId,
-    docdate: Utils.getFormatDateTime(daily_form.value.docdate),
-    docno: daily_form.value.docno.trim(),
-    bookcode: daily_form.value.bookcode,
-    journaldetail: daily_form.value.journaldetail,
-    journaltype: parseInt(daily_form.value.journaltype),
-    parid: daily_form.value.parid,
+    amount: income_form.value.amount,
+    batchId: income_form.value.batchId,
+    docdate: Utils.getFormatDateTime(income_form.value.docdate),
+    docno: income_form.value.docno.trim(),
+    incomedetail: income_form.value.incomedetail,
+    inquirytype: parseInt(income_form.value.inquirytype),
+    parid: income_form.value.parid,
     vats: vats.value,
     taxes: taxes.value,
     exdocrefdate:
-      daily_form.value.exdocrefdate != ""
-        ? Utils.getFormatDateTime(daily_form.value.exdocrefdate)
+      income_form.value.exdocrefdate != ""
+        ? Utils.getFormatDateTime(income_form.value.exdocrefdate)
         : "0001-01-01T00:00:00Z",
-    exdocrefno: daily_form.value.exdocrefno.trim(),
+    exdocrefno: income_form.value.exdocrefno.trim(),
   };
   from_input.vats.forEach((vat) => {
     vat.vatamount = parseFloat(vat.vatamount);
@@ -616,7 +696,7 @@ async function confirmSave() {
   console.log(from_input);
 
   if (route.params.id != undefined && route.params.id != "") {
-    MasterdataService.putGLJournal(from_input, route.params.id)
+    IncomeDataService.putGLJournal(from_input, route.params.id)
       .then((res) => {
         console.log(res);
         if (res.success) {
@@ -642,7 +722,7 @@ async function confirmSave() {
         });
       });
   } else {
-    MasterdataService.postGLJournal(from_input)
+    IncomeDataService.postGLJournal(from_input)
       .then((res) => {
         console.log(res);
         if (res.success) {
@@ -672,19 +752,22 @@ async function confirmSave() {
   }
 }
 
-async function onSave() {
-  console.log(daily_form.value.docdate);
-  console.log(daily_form.value);
-  console.log(taxes.value);
-  console.log(vats.value);
-  var isPass = await verifyData();
-  var isVaxPass = await verifyVat();
-  var isTatPass = await verifyTax();
+function reload() {
+  getAccountChart();
+}
 
-  if (isPass && isVaxPass && isTatPass) {
-    confirmSaveDialog.value = true;
+async function onSave() {
+  console.log(income_form.value);
+  console.log(daily_form.value);
+  var isPass = await verifyData();
+  var isPassDaily = await verifyDataDaily();
+  var isPaymentPass = await verifyPayment();
+
+  if (isPass && isPassDaily && isPaymentPass) {
+    // confirmSaveDialog.value = true;
   }
 }
+
 function onPage(event) {
   activePage.value = event.page + 1;
   limitPage.value = event.rows;
@@ -692,7 +775,156 @@ function onPage(event) {
 
   getDocumentImageGroup();
 }
+
+function verifyPayment() {
+  if (income_form.value.payment.paymentamount == 0) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณากรอกจำนวนเงิน",
+      life: 4000,
+    });
+    income_form_valid.value.paymentamount = true;
+    return false;
+  } else {
+    /// check payment amount is not over total amount
+    if (
+      income_form.value.payment.paymentamount > income_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระมากกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      income_form_valid.value.paymentamount = true;
+      return false;
+    } else if (
+      income_form.value.payment.paymentamount < income_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระน้อยกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      income_form_valid.value.paymentamount = true;
+      return false;
+    } else {
+      income_form_valid.value.paymentamount = false;
+      return true;
+    }
+  }
+
+  return true;
+}
+
 function verifyData() {
+  var errorCount = 0;
+
+  if (income_form.value.docdate == "") {
+    errorCount += 1;
+    income_form_valid.value.docdate = true;
+  } else {
+    income_form_valid.value.docdate = false;
+  }
+
+  if (income_form.value.docno == "") {
+    errorCount += 1;
+    income_form_valid.value.docno = true;
+  } else {
+    income_form_valid.value.docno = false;
+  }
+
+  if (income_form.value.debtorcode == "") {
+    errorCount += 1;
+    income_form_valid.value.debtorcode = true;
+  } else {
+    income_form_valid.value.debtorcode = false;
+  }
+
+  let deletIndex = [];
+  income_form.value.incomedetail.forEach((ele, index) => {
+    // เก็บค่า index row ที่เป็นค่าว่าง
+    if (ele.incomecode == "" && ele.amount == "") {
+      deletIndex.push(index);
+    } else if (ele.incomecode == "" && ele.amount != "") {
+      deletIndex.push(index);
+    } else if (ele.incomecode != "" && ele.amount == "") {
+      deletIndex.push(index);
+    }
+  });
+
+  // ลบ row incomecode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    income_form.value.incomedetail.splice(idx, 1);
+  });
+
+  if (income_form.value.incomedetail.length == 0) {
+    income_form.value.incomedetail.push({
+      incomecode: "",
+      incomename: "",
+      descriotion: "",
+      amount: 0,
+    });
+  }
+
+  if (income_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (income_form.value.debtorcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกลูกหนี้",
+      life: 4000,
+    });
+  }
+
+  income_form.value.incomedetail.forEach((ele, index) => {
+    if (ele.incomecode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่ " + (index + 1),
+        life: 4000,
+      });
+      income_form_valid.value.incomecode1 = true;
+    } else {
+      income_form_valid.value.incomecode1 = false;
+    }
+    if (ele.incomename == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
+  });
+
+  if (errorCount != 0) {
+    return false;
+  } else {
+    income_form.value.accountperiod =
+      income_form.value.accountperiod != null
+        ? parseInt(income_form.value.accountperiod.toString())
+        : null;
+    income_form.value.accountyear = parseInt(income_form.value.accountyear);
+    return true;
+  }
+}
+
+function verifyDataDaily() {
   var errorCount = 0;
 
   if (daily_form.value.docdate == "") {
@@ -779,15 +1011,6 @@ function verifyData() {
     });
   }
 
-  if (daily_form.value.accountperiod == null) {
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      life: 4000,
-    });
-  }
-
   if (daily_form.value.bookcode == "") {
     toast.add({
       severity: "error",
@@ -808,6 +1031,9 @@ function verifyData() {
         detail: "กรุณาเลือกรหัสบัญชี รายการที่ " + (index + 1),
         life: 4000,
       });
+      daily_form_valid.value.accountcode1 = true;
+    } else {
+      daily_form_valid.value.accountcode1 = false;
     }
     if (ele.accountname == "") {
       errorCount += 1;
@@ -979,31 +1205,6 @@ function verifyVat() {
   }
 }
 
-function getAccountPeriodByDate(keyDate) {
-  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        if (res.data[0].perioddata.guidfixed != "") {
-          daily_form.value.accountperiod =
-            res.data[0].perioddata.guidfixed.period;
-        } else {
-          daily_form.value.accountperiod = null;
-          warringAccountperiod.value = true;
-        }
-      }
-    })
-    .catch((err) => {
-      console.log(err.response.data.message);
-      // toast.add({
-      //   severity: "warn",
-      //   summary: "แจ้งเตือน",
-      //   detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      //   life: 3000,
-      // });
-    });
-}
-
 function getDocumentImageGroup() {
   loading.value = true;
   ImageDataService.getDocumentImageGroup(
@@ -1035,9 +1236,6 @@ function getDocumentImageGroup() {
     });
 }
 
-function resizeend(event) {
-  console.log(event);
-}
 function removeSelectImg() {
   selectedImgData.value = {
     guidfixed: "",
@@ -1054,85 +1252,6 @@ function removeMagnify() {
   // console.log(elements);
   while (elements.length > 0) {
     elements[0].parentNode.removeChild(elements[0]);
-  }
-}
-function magnify(imgID, zoom) {
-  var img, glass, w, h, bw;
-
-  // if (elements.length > 0) {
-  //   elements[0].parentNode.removeChild(elements[0]);
-  // } else {
-  const elements = document.getElementsByClassName("img-magnifier-glass");
-  console.log(elements);
-  while (elements.length > 0) {
-    elements[0].parentNode.removeChild(elements[0]);
-  }
-
-  img = document.getElementById(imgID);
-
-  /*create magnifier glass:*/
-  glass = document.createElement("DIV");
-
-  glass.setAttribute("class", "img-magnifier-glass");
-  /*insert magnifier glass:*/
-  img.parentElement.insertBefore(glass, img);
-  /*set background properties for the magnifier glass:*/
-  glass.style.backgroundImage = "url('" + img.src + "')";
-  glass.style.backgroundRepeat = "no-repeat";
-  glass.style.backgroundSize =
-    img.width * zoom + "px " + img.height * zoom + "px";
-  glass.style.zIndex = 99999;
-  bw = 3;
-  w = glass.offsetWidth / 2;
-  h = glass.offsetHeight / 2;
-  /*execute a function when someone moves the magnifier glass over the image:*/
-  glass.addEventListener("mousemove", moveMagnifier);
-  img.addEventListener("mousemove", moveMagnifier);
-  /*and also for touch screens:*/
-  glass.addEventListener("touchmove", moveMagnifier);
-  img.addEventListener("touchmove", moveMagnifier);
-  function moveMagnifier(e) {
-    var pos, x, y;
-    /*prevent any other actions that may occur when moving over the image*/
-    e.preventDefault();
-    /*get the cursor's x and y positions:*/
-    pos = getCursorPos(e);
-    x = pos.x;
-    y = pos.y;
-    /*prevent the magnifier glass from being positioned outside the image:*/
-    if (x > img.width - w / zoom) {
-      x = img.width - w / zoom;
-    }
-    if (x < w / zoom) {
-      x = w / zoom;
-    }
-    if (y > img.height - h / zoom) {
-      y = img.height - h / zoom;
-    }
-    if (y < h / zoom) {
-      y = h / zoom;
-    }
-    /*set the position of the magnifier glass:*/
-    glass.style.left = x - w + "px";
-    glass.style.top = y - h + "px";
-    /*display what the magnifier glass "sees":*/
-    glass.style.backgroundPosition =
-      "-" + (x * zoom - w + bw) + "px -" + (y * zoom - h + bw) + "px";
-  }
-  function getCursorPos(e) {
-    var a,
-      x = 0,
-      y = 0;
-    e = e || window.event;
-    /*get the x and y positions of the image:*/
-    a = img.getBoundingClientRect();
-    /*calculate the cursor's x and y coordinates, relative to the image:*/
-    x = e.pageX - a.left;
-    y = e.pageY - a.top;
-    /*consider any page scrolling:*/
-    x = x - window.pageXOffset;
-    y = y - window.pageYOffset;
-    return { x: x, y: y };
   }
 }
 
@@ -1238,6 +1357,10 @@ function changeImage(data) {
   getImagesByDocref(data.documentref);
 }
 
+function ImportDaliy(data) {
+  daily_form.value.journaldetail = data;
+}
+
 function onDrop(event) {
   DomHandler.removeClass(content.value, "p-fileupload-highlight");
   event.stopPropagation();
@@ -1276,7 +1399,7 @@ function rejectImg() {
   console.log(
     selectedImgData.value.documentimages[activeIndex.value].guidfixed
   );
-  MasterdataService.putrejectimagestatusonlyGuiD(
+  IncomeDataService.putrejectimagestatusonlyGuiD(
     post_data,
     selectedImgData.value.documentimages[activeIndex.value].guidfixed
   )
@@ -1390,7 +1513,7 @@ async function uploadProgress(data_import) {
             });
           });
 
-        // MasterdataService.upLoadDocImages(newfile, "GL")
+        // IncomeDataService.upLoadDocImages(newfile, "GL")
         //   .then((res) => {
         //     console.log(res);
         //     if (res.success) {
@@ -1469,45 +1592,35 @@ function chooseFile() {
 function hidepanel() {
   setTimeout(() => {
     var panel = document.getElementById("panelForm3");
-    if (panel) {
-      panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
-    }
+    panel.setAttribute("style", "flex-basis: calc(98% - 4px) !important");
     var panel2 = document.getElementById("panelForm2");
-    if (panel2) {
-      panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
-    }
+    panel2.setAttribute("style", "flex-basis: calc(2% - 4px) !important");
   }, 50);
 }
 function showpanel() {
   setTimeout(() => {
     var panel3 = document.getElementById("panelForm3");
-    if (panel3) {
-      panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
-    }
+    panel3.setAttribute("style", "flex-basis: calc(60% - 4px) !important");
+
     var panel2 = document.getElementById("panelForm2");
-    if (panel2) {
-      panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
-    }
+    panel2.setAttribute("style", "flex-basis: calc(40% - 4px) !important");
   }, 50);
 }
 function isImage(file) {
   return /^image\//.test(file.type);
 }
-function ImportDaliy(data) {
-  daily_form.value.journaldetail = data;
-}
 
-function deleteDetail(data) {
-  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
+function deleteDetailIncome(data) {
+  income_form.value.incomedetail = income_form.value.incomedetail.filter(
     (val) => val.index !== data
   );
 
-  if (daily_form.value.journaldetail.length == 0) {
-    daily_form.value.journaldetail.push({
-      accountcode: "",
-      accountname: "",
-      debitamount: 0,
-      creditamount: 0,
+  if (income_form.value.incomedetail.length == 0) {
+    income_form.value.incomedetail.push({
+      incomecode: "",
+      incomename: "",
+      descriotion: "",
+      amount: 0,
     });
   }
   toast.add({
@@ -1517,23 +1630,21 @@ function deleteDetail(data) {
     life: 3000,
   });
 }
-function reload() {
-  getAccountChart();
-}
-function addColumn(index) {
+
+function addColumnIncome(index) {
   heightIamgeDivCheckGl.value =
     "height : " + divCheckGl.value.offsetHeight + "px";
 
-  daily_form.value.journaldetail.splice(index + 1, 0, {
-    accountcode: "",
-    accountname: "",
-    debitamount: 0,
-    creditamount: 0,
+  income_form.value.incomedetail.splice(index + 1, 0, {
+    incomecode: "",
+    incomename: "",
+    descriotion: "",
+    amount: 0,
   });
 }
 
-function onRowReorder(data) {
-  daily_form.value.journaldetail = data;
+function onRowReorderIncome(data) {
+  income_form.value.incomedetail = data;
   toast.add({
     severity: "success",
     summary: "ทำรายการสำเร็จ",
@@ -1542,21 +1653,21 @@ function onRowReorder(data) {
   });
 }
 
-function selectAccount(data, index) {
-  var ele = accountChart_detail.value.filter(
-    (val) => val.accountcode == data.accountcode
-  );
-  daily_form.value.journaldetail[index].accountcode = ele[0].accountcode;
-  daily_form.value.journaldetail[index].accountname = ele[0].accountname;
+function selectIncome(data, index) {
+  var ele = income_detail.value.filter((val) => val.code == data.code);
+  income_form.value.incomedetail[index].incomecode = ele[0].code;
+  income_form.value.incomedetail[index].incomename = ele[0].names[0].name;
+
+  console.log(income_form.value);
 }
 
-function getAccountChart() {
-  MasterdataService.getAccountChart()
+function getIncome() {
+  IncomeDataService.getIncome()
     .then((res) => {
-      console.log(res);
+      //   console.log(res);
       if (res.success) {
-        accountChart_detail.value = res.data.sort(function (obj1, obj2) {
-          return obj1.accountcode - obj2.accountcode;
+        income_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.incomecode - obj2.incomecode;
         });
       }
     })
@@ -1566,7 +1677,7 @@ function getAccountChart() {
 }
 
 function getJournalBook() {
-  MasterdataService.getJournalBook()
+  MasterDataService.getJournalBook()
     .then((res) => {
       //console.log(res);
       if (res.success) {
@@ -1574,44 +1685,6 @@ function getJournalBook() {
           return obj1.code - obj2.code;
         });
         accountBook_detail.value.forEach((ele) => {
-          ele.label = ele.code + "~" + ele.name1;
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-}
-
-function getDocumentFormate() {
-  MasterdataService.getDocumentFormateList()
-    .then((res) => {
-      console.log(res);
-      if (res.success) {
-        /// remove res.data where module != GL
-        res.data = res.data.filter((val) => val.module == "GL");
-        document_formate.value = res.data.sort(function (obj1, obj2) {
-          return obj1.doccode - obj2.doccode;
-        });
-        document_formate.value.forEach((ele) => {
-          ele.label = ele.doccode + "~" + ele.description;
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-}
-
-function getAccountGroup() {
-  MasterdataService.getAccountGroup()
-    .then((res) => {
-      //console.log(res);
-      if (res.success) {
-        groupAccount_detail.value = res.data.sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        });
-        groupAccount_detail.value.forEach((ele) => {
           ele.label = ele.code + "~" + ele.name1;
         });
       }
@@ -1754,8 +1827,8 @@ function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
   console.log(isOveray);
 }
-function setAccountPeriod(data) {
-  daily_form.value.accountperiod = data;
+function setAccountPeriodIncome(data) {
+  income_form.value.accountperiod = data;
 }
 
 function selectDucumentFormat(data) {
@@ -1783,6 +1856,53 @@ function selectDucumentFormat(data) {
       },
     ];
   }
+}
+
+function deleteDetail(data) {
+  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
+    (val) => val.index !== data
+  );
+
+  if (daily_form.value.journaldetail.length == 0) {
+    daily_form.value.journaldetail.push({
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  }
+  toast.add({
+    severity: "success",
+    summary: "Successful",
+    detail: "Detail Deleted",
+    life: 3000,
+  });
+}
+
+function addColumn(index) {
+  heightIamgeDivCheckGl.value =
+    "height : " + divCheckGl.value.offsetHeight + "px";
+
+  daily_form.value.journaldetail.splice(index + 1, 0, {
+    accountcode: "",
+    accountname: "",
+    debitamount: 0,
+    creditamount: 0,
+  });
+}
+
+function onRowReorder(data) {
+  daily_form.value.journaldetail = data;
+  toast.add({
+    severity: "success",
+    summary: "ทำรายการสำเร็จ",
+    detail: "ย้ายตำแหน่งสำเร็จ",
+    life: 3000,
+  });
+}
+
+function setAccountPeriod(data) {
+  daily_form.value.accountperiod = data;
 }
 </script>
 
@@ -2166,6 +2286,30 @@ function selectDucumentFormat(data) {
                 <TabPanel>
                   <template #header>
                     <i class="pi pi-book mr-1"></i>
+                    <span> ข้อมูลรายได้อื่น ๆ</span>
+                  </template>
+                  <div v-if="!onLoad">
+                    <div ref="divCheckGl">
+                      <DetailForm
+                        :isUpdate="readMode"
+                        :income_form="income_form"
+                        :income_form_valid="income_form_valid"
+                        :customer_detail="customer_detail"
+                        :income_detail="income_detail"
+                        v-on:deleteDetail="deleteDetailIncome"
+                        v-on:addColumn="addColumnIncome"
+                        v-on:onRowReorder="onRowReorderIncome"
+                        v-on:selectIncome="selectIncome"
+                        v-on:setAccountPeriod="setAccountPeriodIncome"
+                        v-on:getDocNo="getDocNo"
+                      >
+                      </DetailForm>
+                    </div>
+                  </div>
+                </TabPanel>
+                <TabPanel>
+                  <template #header>
+                    <i class="pi pi-book mr-1"></i>
                     <span> ข้อมูลรายวัน</span>
                   </template>
                   <div v-if="!onLoad">
@@ -2194,7 +2338,7 @@ function selectDucumentFormat(data) {
                     </div>
                   </div>
                 </TabPanel>
-                <TabPanel>
+                <!-- <TabPanel>
                   <template #header>
                     <i class="pi pi-wallet mr-1"></i>
                     <span> ข้อมูลภาษี</span>
@@ -2211,8 +2355,8 @@ function selectDucumentFormat(data) {
                       v-on:setBranch="setBranch"
                     ></VatForm>
                   </div>
-                </TabPanel>
-                <TabPanel>
+                </TabPanel> -->
+                <!-- <TabPanel>
                   <template #header>
                     <i class="pi pi-wallet mr-1"></i>
                     <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
@@ -2227,7 +2371,7 @@ function selectDucumentFormat(data) {
                       v-on:getSumTaxBase="getSumTaxBase"
                     ></TaxForm>
                   </div>
-                </TabPanel>
+                </TabPanel> -->
               </TabView>
             </SplitterPanel>
           </Splitter>
@@ -2236,7 +2380,7 @@ function selectDucumentFormat(data) {
             <Button
               :disabled="readMode"
               @click="onSave"
-              label="บันทึกรายวัน"
+              label="บันทึกรายได้อื่น ๆ"
               icon="pi pi-save"
               class="w-auto p-button-success"
             ></Button>

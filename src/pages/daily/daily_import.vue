@@ -42,6 +42,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const vats_valid = ref([
   {
@@ -840,9 +841,15 @@ function onClose() {
                   <span> ข้อมูลรายวัน</span>
                 </template>
                 <div>
-                  <JournalForm :daily_form="data.import_daily" :daily_form_valid="daily_form_valid"
-                    :accountChart_detail="accountChart_detail" :accountBook_detail="accountBook_detail"
-                    :groupAccount_detail="groupAccount_detail" :isUpdate="true" :id="'fastimport'"></JournalForm>
+                  <JournalForm 
+                  :daily_form="data.import_daily" 
+                  :daily_form_valid="daily_form_valid"
+                    :accountChart_detail="accountChart_detail" 
+                    :accountBook_detail="accountBook_detail"
+                    :groupAccount_detail="groupAccount_detail" 
+                    :isUpdate="true" 
+                    :income_expenses_mode="false"
+                    :id="'fastimport'"></JournalForm>
                 </div>
               </TabPanel>
               <TabPanel>

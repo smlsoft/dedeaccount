@@ -2,8 +2,13 @@ import { instanceApi } from '@/services/ProviderService'
 import { data } from 'jquery';
 
 export default {
-    getAccountChart() {
-        return instanceApi(true).get(`/gl/chartofaccount?limit=50000`).then(res => res.data);
+    getAccountChart(accountcode) {
+        var filtteraccount = "";
+        if (accountcode != "") {
+            filtteraccount = `&accountcode=${accountcode}`;
+        }
+        // console.log(`/gl/chartofaccount?limit=50000${filtteraccount}`);
+        return instanceApi(true).get(`/gl/chartofaccount?limit=50000${filtteraccount}`).then(res => res.data);
     }
     , getdailyreport(accountgroup, startdate, enddate, limitPage, page, search, sortField, sortOrder) {
         var q = "";
@@ -155,13 +160,13 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        //  console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getAccountledger(startdate, enddate, accountcode, custtype, custcode) {
         var searchcustcode = "";
 
-        if (custcode != '' && custcode != undefined && custcode != null ) {
+        if (custcode != '' && custcode != undefined && custcode != null) {
             /// 0 = ลูกหนี้ 1 = เจ้าหนี้
             if (custtype == 0) {
                 searchcustcode = `&debtorcode=${custcode}`;
@@ -368,6 +373,57 @@ export default {
     deleteCreditor(data) {
         return instanceApi(true).delete(`/debtaccount/creditor/` + data).then(res => res.data);
     },
+
+
+    // รายได้
+    getIncomeList(limitPage, page, search, sortField, sortOrder) {
+
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        return instanceApi(true).get(`/master-income?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+    },
+    postIncome(data) {
+        return instanceApi(true).post(`/master-income`, data).then(res => res.data);
+    },
+    getIncomeById(id) {
+        return instanceApi(true).get(`/master-income/` + id).then(res => res.data);
+    },
+    putIncome(data, id) {
+        return instanceApi(true).put(`/master-income/` + id, data).then(res => res.data);
+    },
+    deleteIncome(data) {
+        return instanceApi(true).delete(`/master-income/` + data).then(res => res.data);
+    },
+    getIncome() {
+        return instanceApi(true).get(`/master-income?limit=50000`).then(res => res.data);
+    },
+
+    // ค่าใช้จ่าย
+    getExpensesList(limitPage, page, search, sortField, sortOrder) {
+
+        //console.log('Page' + page);
+        var q = "";
+        if (search != "" && search != undefined && search != null) {
+            q = "&q=" + search
+        }
+        return instanceApi(true).get(`/master-expense?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+    },
+    postExpenses(data) {
+        return instanceApi(true).post(`/master-expense`, data).then(res => res.data);
+    },
+    getExpensesById(id) {
+        return instanceApi(true).get(`/master-expense/` + id).then(res => res.data);
+    },
+    putExpenses(data, id) {
+        return instanceApi(true).put(`/master-expense/` + id, data).then(res => res.data);
+    },
+    deleteExpenses(data) {
+        return instanceApi(true).delete(`/master-expense/` + data).then(res => res.data);
+    },
+
 
 
 

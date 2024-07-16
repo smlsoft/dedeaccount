@@ -60,7 +60,7 @@ function verifyData() {
   let err_msg = "";
   if (form_model.value.code == "") {
     form_valid.value.code = false;
-    err_msg += "กรุณากรอบข้อมูล รหัสกลุ่มบัญชี ";
+    err_msg += "กรุณากรอกข้อมูล รหัสกลุ่มบัญชี ";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.code)) {

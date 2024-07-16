@@ -237,10 +237,11 @@ function updateTagImage() {
   emit("updateTagImage", props.selectedImag.guidfixed, tag.value);
 }
 
-function createGL(data) {
+function createGL(data , type) {
+  /// type 1 = รายวัน , 2 = รายได้ , 3 = ค่าใช้จ่าย
   loaddingButton.value = true;
   setTimeout(() => {
-    emit("createGL", data);
+    emit("createGL", data , type);
     loaddingButton.value = false;
   }, 500);
 }
@@ -423,7 +424,37 @@ defineExpose({
             props.selectedImag.references.length > 0 ||
             props.selectedImag.status == 3
           "
-          @click="createGL(props.selectedImag)"
+          @click="createGL(props.selectedImag, 1)"
+          :loading="loaddingButton"
+        />
+        <Button
+          v-if="
+            props.selectedImag.references.length == 0 && props.modeMenu == 3
+          "
+          icon="pi pi-plus-circle"
+          label="บันทึกรายได้"
+          class="p-button-sm mr-1 p-button-success"
+          :disabled="
+            checkUseImg(props.selectedImag.guidfixed) ||
+            props.selectedImag.references.length > 0 ||
+            props.selectedImag.status == 3
+          "
+          @click="createGL(props.selectedImag, 2)"
+          :loading="loaddingButton"
+        />
+        <Button
+          v-if="
+            props.selectedImag.references.length == 0 && props.modeMenu == 3
+          "
+          icon="pi pi-minus-circle"
+          label="บันทึกค่าใช้จ่าย"
+          class="p-button-sm mr-1 p-button-warning"
+          :disabled="
+            checkUseImg(props.selectedImag.guidfixed) ||
+            props.selectedImag.references.length > 0 ||
+            props.selectedImag.status == 3
+          "
+          @click="createGL(props.selectedImag, 3)"
           :loading="loaddingButton"
         />
         <div v-if="props.modeMenu == 2">

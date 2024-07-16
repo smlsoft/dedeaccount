@@ -37,7 +37,7 @@ function onRowSelect(event) {
 
 function editcreditor(data) {
     selectedRow.value = data;
-    emit("editCreditor", data);
+    emit("editCreditor", Object.assign({}, data)); // Create a copy of the data object
 }
 
 function deletecreditor(data) {

@@ -128,6 +128,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const waitForImages = ref(true);
 const vats = ref([]);
@@ -1871,6 +1872,7 @@ function resizeGalleria(e) {
                         :accountChart_detail="accountChart_detail"
                         :accountBook_detail="accountBook_detail"
                         :groupAccount_detail="groupAccount_detail"
+                        :income_expenses_mode="false"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
                         v-on:addColumn="addColumn"

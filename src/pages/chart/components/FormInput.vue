@@ -115,7 +115,7 @@ function verifyData() {
   let err_msg = "";
   if (form_model.value.accountcode == "") {
     form_valid.value.accountcode = false;
-    err_msg += "กรุณากรอบข้อมูล รหัสผังบัญชี ";
+    err_msg += "กรุณากรอกข้อมูล รหัสผังบัญชี ";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.accountcode)) {
@@ -128,7 +128,7 @@ function verifyData() {
   }
   if (form_model.value.accountname == "") {
     form_valid.value.accountname = false;
-    err_msg += "กรุณากรอบข้อมูล ชื่อบัญชี ";
+    err_msg += "กรุณากรอกข้อมูล ชื่อบัญชี ";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.accountname)) {

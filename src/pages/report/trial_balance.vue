@@ -96,6 +96,7 @@
                 :isUpdate="readMode"
                 :daily_form="daily_form"
                 :daily_form_valid="daily_form_valid"
+                :income_expenses_mode="true"
               >
               </JournalForm>
             </TabPanel>
@@ -347,6 +348,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const taxes = ref([]);
 const taxes_valid = ref([
@@ -625,6 +627,7 @@ async function buildFromJson() {
 }
 
 function DownloadExampleExcel() {
+  detail_example.value = [];
   console.log("DownloadExampleExcel");
   let listTrialBalanceSheet = [];
   listTrialBalanceSheet.value = dataReport.value;

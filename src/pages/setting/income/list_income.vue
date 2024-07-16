@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
+
 const screenHeight = window.screen.height;
 
 const metaKey = ref(true);
@@ -8,41 +9,39 @@ const filters = ref(null);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
 
-onMounted(() => {});
-
 const props = defineProps({
-  data_list: Object,
+  data_list: Array,
   loading: Boolean,
   totalItemsCount: Number,
   filters: String,
 });
 
 const emit = defineEmits([
-  "docCodeFocus",
+  "incomeCodeFocus",
   "onRowSelect",
-  "deleteDocumentFormate",
-  "editDocumentFormate",
+  "deleteIncome",
+  "editIncome",
   "onPage",
   "doneTyping",
 ]);
 
-function docCodeFocus() {
+function incomeCodeFocus() {
   selectedRow.value = null;
-  emit("docCodeFocus");
+  emit("incomeCodeFocus");
 }
 
 function onRowSelect(event) {
   emit("onRowSelect", event.data);
 }
 
-function editDocumentFormate(data) {
+function editIncome(data) {
   selectedRow.value = data;
-  emit("editDocumentFormate", Object.assign({}, data)); // Create a copy of the data object
+  emit("editIncome", JSON.parse(JSON.stringify(data)));
 }
 
-function deleteDocumentFormate(data) {
+function deleteIncome(data) {
   selectedRow.value = data;
-  emit("deleteDocumentFormate", data);
+  emit("deleteIncome", data);
 }
 
 function onPage(event) {
@@ -53,40 +52,31 @@ function keyup() {
   clearTimeout(typingTimer.value);
   typingTimer.value = setTimeout(doneTyping, doneTypingInterval.value);
 }
+
 function keydown() {
   clearTimeout(typingTimer.value);
 }
 
 function doneTyping() {
   selectedRow.value = null;
-
   emit("doneTyping", filters.value);
 }
 </script>
 
 <template>
-  <div
-    class="px-2 lg:px-2 py-4 flex flex-column flex-wrap md:flex-row gap-3 w-full md:justify-content-between md:align-items-center"
-  >
-    <Button
-      label="เพิ่มรูปแบบบันทึกบัญชี"
-      icon="pi pi-plus"
-      @click="docCodeFocus"
-    />
-
-    <span class="p-input-icon-right w-full mt-2 md:mt-0 md:w-15rem">
-      <i class="pi pi-search"></i>
+  <div class="flex justify-content-between p-2">
+    <Button label="เพิ่มรายได้" icon="pi pi-plus" @click="incomeCodeFocus" />
+    <span class="p-input-icon-left">
+      <i class="pi pi-search" />
       <InputText
-        type="text"
-        class="w-full md:w-15rem border-round p-inputtext-sm"
         v-model="filters"
         placeholder="ค้นหา...."
-        @keyup="keyup()"
-        @keydown="keydown()"
+        @keyup="keyup"
+        @keydown="keydown"
+        class="p-inputtext-sm"
       />
     </span>
   </div>
-
   <DataTable
     :value="props.data_list"
     dataKey="guidfixed"
@@ -104,23 +94,30 @@ function doneTyping() {
         <Paginator
           :rows="20"
           :totalRecords="props.totalItemsCount"
-          @page="onPage($event)"
+          @page="onPage"
           :rowsPerPageOptions="[20, 50, 100]"
-        >
-        </Paginator>
+        />
       </div>
     </template>
     <template #empty> ไม่พบข้อมูล </template>
     <template #loading> กำลังประมวลผล กรุณารอซักครู่..</template>
-    <Column field="doccode" header="รหัสรูปแบบบันทึกบัญชี"></Column>
-    <Column field="description" header="ชื่อรูปแบบบันทึกบัญชี"></Column>
-
+    <Column field="code" header="รหัสรายได้" />
+    <Column header="ชื่อรายได้">
+      <template #body="slotProps">
+        {{ slotProps.data.names[0].name }}
+      </template>
+    </Column>
+    <Column header="ผังบัญชี">
+      <template #body="slotProps">
+        {{ slotProps.data.accountcode }} ~ {{ slotProps.data.accountname }}
+      </template>
+    </Column>
     <Column bodyStyle="text-align:center" style="width: 5%">
       <template #body="slotProps">
         <Button
           icon="pi pi-pencil"
           class="p-button-rounded p-button-warning p-button-text"
-          @click="editDocumentFormate(slotProps.data)"
+          @click="editIncome(slotProps.data)"
           selectionMode="single"
         />
       </template>
@@ -130,7 +127,7 @@ function doneTyping() {
         <Button
           icon="pi pi-trash"
           class="p-button-rounded p-button-danger p-button-text"
-          @click="deleteDocumentFormate(slotProps.data)"
+          @click="deleteIncome(slotProps.data)"
         />
       </template>
     </Column>

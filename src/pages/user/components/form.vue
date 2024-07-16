@@ -67,7 +67,7 @@ function verifyData() {
     toast.add({
       severity: "error",
       summary: "error",
-      detail: "กรุณากรอบข้อมูล\n" + err_msg,
+      detail: "กรุณากรอกข้อมูล\n" + err_msg,
       life: 3000,
     });
     return false;

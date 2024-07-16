@@ -629,37 +629,40 @@ async function updateStatus(guidfixed, data_status) {
             <div
               class="flex flex-wrap align-items-center justify-content-center"
             >
-              <div
-                v-if="isDataListNull == false"
-                class="flex"
-                v-for="data in data_list"
-                :key="data.guidfixed"
-              >
-                <ImageBlock
-                  :modeMenu="3"
-                  :images_data="data"
-                  :images_selete="selectedImg"
-                  :allimage_used="AllImageUsed"
-                  :ischeckApprove="ischeckApprove"
-                  :sizeWidthImageBloc="sizeWidthImageBloc"
-                  :sizeHeightImageBloc="sizeHeightImageBloc"
-                  v-on:showImg="chooseImage"
-                >
-                </ImageBlock>
-              </div>
-              <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
-                <div class="text-center m-3" style="width: 90px; height: 90px">
-                  <div
-                    class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+              <template v-for="data in data_list" :key="data.guidfixed">
+                <div v-if="isDataListNull == false" class="flex">
+                  <ImageBlock
+                    :modeMenu="3"
+                    :images_data="data"
+                    :images_selete="selectedImg"
+                    :allimage_used="AllImageUsed"
+                    :ischeckApprove="ischeckApprove"
+                    :sizeWidthImageBloc="sizeWidthImageBloc"
+                    :sizeHeightImageBloc="sizeHeightImageBloc"
+                    v-on:showImg="chooseImage"
                   >
-                    <Skeleton
-                      style="width: 90px; height: 90px; object-fit: cover"
-                    ></Skeleton>
-                  </div>
-
-                  <Skeleton class="mt-2"></Skeleton>
+                  </ImageBlock>
                 </div>
-              </div>
+              </template>
+
+              <template v-for="i in 50" :key="i">
+                <div class="flex" v-if="showSkeleton">
+                  <div
+                    class="text-center m-3"
+                    style="width: 90px; height: 90px"
+                  >
+                    <div
+                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                    >
+                      <Skeleton
+                        style="width: 90px; height: 90px; object-fit: cover"
+                      ></Skeleton>
+                    </div>
+
+                    <Skeleton class="mt-2"></Skeleton>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </SplitterPanel>

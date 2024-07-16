@@ -467,7 +467,7 @@ export default [
     component: () => import("../pages/images/images_job_daily_detail_view.vue"),
   },
   {
-    path: "/daily/daily_images_job_form/:id",
+    path: "/daily/daily_images_job_form/:id/:type",
     name: "daily_images_job_form",
     meta: {
       auth: true,
@@ -526,6 +526,84 @@ export default [
     },
     component: () => import("../pages/setting/account_creditor/main_screen.vue"),
   },
+  {
+    path: "/setting/income/main",
+    name: "income",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/income/main_income.vue"),
+  },
+  {
+    path: "/setting/expenses/main",
+    name: "expenses",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/expenses/main_expenses.vue"),
+  },
+
+  /// income_list
+  {
+    path: "/income/income_list",
+    name: "income_list",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/income/income_list.vue"),
+  },
+
+  /// incomeForm
+  {
+    path: "/income/income_form",
+    name: "income_form",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/income/income_form.vue"),
+  },
+
+  /// incomeForm Edit
+  {
+    path: "/income/income_form/:id",
+    name: "income_form_edit",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/income/income_form.vue"),
+  },
+
+
+  /// expenses_list
+  {
+    path: "/expenses/expenses_list",
+    name: "expenses_list",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/expenses/expenses_list.vue"),
+  },
+
+  /// expenses_form
+  {
+    path: "/expenses/expenses_form",
+    name: "expenses_form",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/expenses/expenses_form.vue"),
+  },
+
+  /// expenses_form Edit
+  {
+    path: "/expenses/expenses_form/:id",
+    name: "expenses_form_edit",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/expenses/expenses_form.vue"),
+  },
+
 
 
 

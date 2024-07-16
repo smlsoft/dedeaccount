@@ -83,7 +83,7 @@ function lockSlideBar(data) {
           <span class="font-medium flex align-items-center">{{
             menu.title
           }}</span>
-          <i class="pi pi-chevron-down ml-auto pt-2"></i>
+          <i class="pi pi-angle-down ml-auto pt-2"></i>
         </a>
         <ul
           :class="storeApp.pageActive != menu.name ? 'hidden' : ''"
@@ -101,7 +101,7 @@ function lockSlideBar(data) {
               v-ripple
               class="flex align-items-center cursor-pointer pt-3 pb-3"
             >
-              <i :class="child.icon" class="fa-2x pt-2"></i>
+              <i :class="child.icon" class="fa-2x pt-2 ml-2"></i>
               <span class="font-medium">{{ child.title }}</span>
             </RouterLink>
           </li>
@@ -109,7 +109,7 @@ function lockSlideBar(data) {
       </li>
     </ul>
 
-    <li v-if="!props.lockSlideBar">
+    <li v-if="!props.lockSlideBar && widthscreen > 992">
       <a
         href="#"
         @click="lockSlideBar(true)"
@@ -119,7 +119,7 @@ function lockSlideBar(data) {
         <span class="nav-text"> LOCK MENU</span>
       </a>
     </li>
-    <li v-if="props.lockSlideBar">
+    <li v-if="props.lockSlideBar && widthscreen > 992">
       <a
         href="#"
         @click="lockSlideBar(false)"
@@ -213,6 +213,7 @@ nav.main-menu.expanded {
   -webkit-transition: width 0.05s linear;
   transition: width 0.05s linear;
   -webkit-transform: translateZ(0) scale(1, 1);
+  transform: translateZ(0) scale(1, 1);
   z-index: 1000;
   -ms-overflow-style: none; /* Internet Explorer and Edge */
   scrollbar-width: none; /* Firefox */
@@ -238,6 +239,7 @@ nav.main-menu.expanded {
   font-size: 14px;
   text-decoration: none;
   -webkit-transform: translateZ(0) scale(1, 1);
+  transform: translateZ(0) scale(1, 1);
   -webkit-transition: all 0.1s linear;
   transition: all 0.1s linear;
 }

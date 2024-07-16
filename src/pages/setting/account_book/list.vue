@@ -37,9 +37,8 @@ function onRowSelect(event) {
 
 function editAccountBook(data) {
   selectedRow.value = data;
-  emit("editAccountBook", data);
+  emit("editAccountBook", Object.assign({}, data)); // Create a copy of the data object
 }
-
 function deleteAccountBook(data) {
   selectedRow.value = data;
   emit("deleteAccountBook", data);

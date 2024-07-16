@@ -71,7 +71,10 @@ onUnmounted(() => {
           <span class="ml-2">{{ $t("singin_with") }} Google</span>
         </Button>
       </div>
-      <div class="flex align-items-center justify-content-end mt-2" v-if="showLoginUser">
+      <div
+        class="flex align-items-center justify-content-end mt-2"
+        v-if="showLoginUser"
+      >
         <a
           @click="loginMode()"
           class="font-medium text-primary-500 cursor-pointer"
@@ -91,9 +94,13 @@ onUnmounted(() => {
     </div>
     <div class="mt-3 text-center text-600" style="font-size: 12px">
       {{ $t("accept_term") }}
-      <span style="text-decoration: underline"> {{ $t("terms") }}</span>
+      <a href="https://www.dedepos.com/terms" target="_blank">
+        <span style="text-decoration: underline"> {{ $t("terms") }}</span></a
+      >
       {{ $t("Read") }}
-      <span style="text-decoration: underline"> {{ $t("privacy") }}</span>
+      <a href="https://www.dedepos.com/privacy" target="_blank">
+        <span style="text-decoration: underline"> {{ $t("privacy") }}</span></a
+      >
     </div>
   </div>
 </template>

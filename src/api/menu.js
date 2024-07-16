@@ -98,11 +98,31 @@ export const menus = [
         name: "daily_list",
       },
       {
+        title: "บันทึกรายวันจากรูป",
+        icon: "pi pi-images",
+        to: "/images/job_daily",
+        name: "images_job_daily",
+      },
+      {
+        title: "บันทึกรายได้อื่น ๆ",
+        icon: "pi pi-plus-circle",
+        to: "/income/income_list",
+        name: "income_list",
+      },
+      {
+        title: "บันทึกค่าใช้จ่ายอื่น ๆ",
+        icon: "pi pi-minus-circle",
+        to: "/expenses/expenses_list",
+        name: "expenses_list",
+      },
+
+      {
         title: "นำเข้าข้อมูลรายวัน",
-        icon: "pi pi-file",
+        icon: "pi pi-file-import",
         to: "/daily/import",
         name: "daily_import",
       },
+
       // {
       //   title: "บันทึกรายวันจากรูป",
       //   icon: "pi pi-images",
@@ -115,12 +135,6 @@ export const menus = [
       //   to: "/daily/images_landing",
       //   name: "daily_images_group_list",
       // },
-      {
-        title: "บันทึกรายวันจากรูป (New)",
-        icon: "pi pi-link",
-        to: "/images/job_daily",
-        name: "images_job_daily",
-      },
     ],
   },
 
@@ -270,6 +284,18 @@ export const menus = [
         icon: "pi pi-link",
         to: "/setting/document_format/main",
         name: "document_format",
+      },
+      {
+        title: "กำหนดรายได้อื่น ๆ ",
+        icon: "pi pi-plus-circle",
+        to: "/setting/income/main",
+        name: "income",
+      },
+      {
+        title: "กำหนดค่าใช้จ่ายอื่น ๆ",
+        icon: "pi pi-minus-circle",
+        to: "/setting/expenses/main",
+        name: "expenses",
       },
     ],
   },

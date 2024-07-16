@@ -13,6 +13,13 @@ import $ from "jquery";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+
+import IncomeDataService from "@/services/IncomeDataService";
+import IncomeForm from "../income/components/detail_form.vue";
+
+import ExpensesDataService from "@/services/ExpensesDataService";
+import ExpensesForm from "../expenses/components/detail_form.vue";
+
 import ImageDataService from "@/services/ImageDataService";
 import dayjs from "dayjs";
 import PdfApp from "vue3-pdf-app";
@@ -99,6 +106,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
+  accountcode1:fasle,
 });
 const waitForImages = ref(true);
 const vats = ref([]);
@@ -165,6 +173,103 @@ const documentFormateSelected = ref();
 const isSentOCR = ref(false);
 const isTackingStatus = ref(false);
 
+/// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
+const imageDailyType = ref(null);
+
+const income_detail = ref([]);
+const income_form = ref({
+  docdate: new Date(), /// วันที่เอกสาร
+  docno: Utils.getDocNoDate("JO"), /// เลขที่เอกสาร
+  bookcode: "", /// รหัสสมุดรายวัน
+  debtorcode: "", /// รหัสลูกหนี้
+  vattype: 1, /// ประเภทภาษี 1 = ภาษีแยกนอก , 2 = ภาษีรวมใน , 3 = ภาษีอัตราศูนย์ , 4 = ไม่กระทบภาษี
+  docrefdate: new Date(), /// วันที่อ้างอิง
+  docrefno: "", /// เลขที่อ้างอิง
+  inquirytype: 1, /// ประเภทรายได้ 1 = เงินเชื่อ , 2 = เงินสด
+  accountdescription: "", /// รายละเอียด
+  accountperiod: null, /// งวดบัญชี
+  accountyear: parseInt(Utils.getYear().toString()) + 543, /// ปีบัญชี
+  incomedetail: [
+    {
+      incomecode: "", /// รหัสรายได้
+      incomename: "", /// ชื่อรายได้
+      description: "", /// คำอธิบายรายการ
+      amount: 0, /// จำนวนเงิน
+    },
+  ],
+  vatrate: 7, /// อัตราภาษี
+  totalvalue: 0.0, /// มูลค่ารวม
+  discount: "", /// ส่วนลด
+  totaldiscount: 0, /// รวมส่วนลด
+  totalvatvalue: 0, /// มูลค่าภาษี
+  totalbeforevat: 0, /// มูลค่าก่อนภาษี
+  totalaftervat: 0, /// มูลค่าหลังภาษี
+  totalexceptvat: 0, /// มูลค่ายกเว้นภาษี
+  totalamount: 0, /// มูลค่ารวมทั้งสิ้น
+  payment: {
+    paymenttype: 1, /// ประเภทการชำระเงิน 1 = เงินสด , 2 = โอน
+    paymentamount: 0, /// จำนวนเงิน
+  },
+});
+
+/// required field
+const income_form_valid = ref({
+  docdate: false, /// วันที่เอกสาร
+  docno: false, /// เลขที่เอกสาร
+  bookcode: false, /// รหัสสมุดรายวัน
+  debtorcode: false, /// รหัสลูกหนี้
+  paymentamount: false, /// จำนวนเงิน
+  incomecode1: false, /// รหัสรายได้
+});
+
+const expenses_detail = ref([]);
+const expenses_form = ref({
+  docdate: new Date(), /// วันที่เอกสาร
+  docno: Utils.getDocNoDate("JO"), /// เลขที่เอกสาร
+  bookcode: "", /// รหัสสมุดรายวัน
+  creditorcode: "", /// รหัสเจ้าหนี้
+  vattype: 1, /// ประเภทภาษี 1 = ภาษีแยกนอก , 2 = ภาษีรวมใน , 3 = ภาษีอัตราศูนย์ , 4 = ไม่กระทบภาษี
+  docrefdate: new Date(), /// วันที่อ้างอิง
+  docrefno: "", /// เลขที่อ้างอิง
+  inquirytype: 1, /// ประเภทรายได้ 1 = เงินเชื่อ , 2 = เงินสด
+  accountdescription: "", /// รายละเอียด
+  accountperiod: null, /// งวดบัญชี
+  accountyear: parseInt(Utils.getYear().toString()) + 543, /// ปีบัญชี
+  expensesdetail: [
+    {
+      expensescode: "", /// รหัสรายได้
+      expensesname: "", /// ชื่อรายได้
+      description: "", /// คำอธิบายรายการ
+      amount: 0, /// จำนวนเงิน
+    },
+  ],
+  vatrate: 7, /// อัตราภาษี
+  totalvalue: 0.0, /// มูลค่ารวม
+  discount: "", /// ส่วนลด
+  totaldiscount: 0, /// รวมส่วนลด
+  totalvatvalue: 0, /// มูลค่าภาษี
+  totalbeforevat: 0, /// มูลค่าก่อนภาษี
+  totalaftervat: 0, /// มูลค่าหลังภาษี
+  totalexceptvat: 0, /// มูลค่ายกเว้นภาษี
+  totalamount: 0, /// มูลค่ารวมทั้งสิ้น
+  payment: {
+    paymenttype: 1, /// ประเภทการชำระเงิน 1 = เงินสด , 2 = โอน
+    paymentamount: 0, /// จำนวนเงิน
+  },
+});
+
+/// required field
+const expenses_form_valid = ref({
+  docdate: false, /// วันที่เอกสาร
+  docno: false, /// เลขที่เอกสาร
+  bookcode: false, /// รหัสสมุดรายวัน
+  creditorcode: false, /// รหัสเจ้าหนี้
+  paymentamount: false, /// จำนวนเงิน
+  expensescode1: false, /// รหัสรายได้
+});
+
+const activeTabIndex = ref(0);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -213,11 +318,14 @@ watch(taxes.value, (newValue, oldValue) => {
 });
 
 onMounted(async () => {
-  // set height ifram
-  heightIamgeDivCheckGl.value =
-    "height:" + divCheckGl.value.offsetHeight + "px";
-
   jobId.value = route.params.id;
+
+  /// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
+  imageDailyType.value = route.params.type;
+
+  console.log("jobId : ", jobId.value);
+  console.log("imageDailyType : ", imageDailyType.value);
+
   storeApp.setActivePage("daily");
   storeApp.setActiveChild("images_job_daily");
   storeApp.setPageTitle("เพิ่มข้อมูลรายวัน");
@@ -269,6 +377,18 @@ onMounted(async () => {
   //     reLoadImage();
   //   }
   // }, 1500);
+
+  /// income
+  getIncome();
+
+  /// expenses
+  getExpenses();
+
+  setTimeout(() => {
+    // set height ifram
+    heightIamgeDivCheckGl.value =
+      "height:" + divCheckGl.value.offsetHeight + "px";
+  }, 100);
 });
 
 function getCreditorList() {
@@ -1188,6 +1308,351 @@ function verifyData() {
   }
 }
 
+async function onSaveIncome() {
+  console.log(income_form.value);
+  var isPass = await verifyDataIncome();
+  var isPaymentPass = await verifyPaymentIncome();
+
+  if (isPass && isPaymentPass) {
+    // confirmSaveDialog.value = true;
+  }
+}
+
+async function onSaveExpenses() {
+  console.log(expenses_form.value);
+  var isPass = await verifyDataExpenses();
+  var isPaymentPass = await verifyPaymentExpenses();
+
+  if (isPass && isPaymentPass) {
+    // confirmSaveDialog.value = true;
+  }
+}
+
+function verifyDataIncome() {
+  var errorCount = 0;
+
+  if (income_form.value.docdate == "") {
+    errorCount += 1;
+    income_form_valid.value.docdate = true;
+  } else {
+    income_form_valid.value.docdate = false;
+  }
+
+  if (income_form.value.docno == "") {
+    errorCount += 1;
+    income_form_valid.value.docno = true;
+  } else {
+    income_form_valid.value.docno = false;
+  }
+
+  if (income_form.value.bookcode == "") {
+    errorCount += 1;
+    income_form_valid.value.bookcode = true;
+  } else {
+    income_form_valid.value.bookcode = false;
+  }
+
+  if (income_form.value.debtorcode == "") {
+    errorCount += 1;
+    income_form_valid.value.debtorcode = true;
+  } else {
+    income_form_valid.value.debtorcode = false;
+  }
+
+  let deletIndex = [];
+  income_form.value.incomedetail.forEach((ele, index) => {
+    // เก็บค่า index row ที่เป็นค่าว่าง
+    if (ele.incomecode == "" && ele.amount == "") {
+      deletIndex.push(index);
+    } else if (ele.incomecode == "" && ele.amount != "") {
+      deletIndex.push(index);
+    } else if (ele.incomecode != "" && ele.amount == "") {
+      deletIndex.push(index);
+    }
+  });
+
+  // ลบ row incomecode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    income_form.value.incomedetail.splice(idx, 1);
+  });
+
+  if (income_form.value.incomedetail.length == 0) {
+    income_form.value.incomedetail.push({
+      incomecode: "",
+      incomename: "",
+      descriotion: "",
+      amount: 0,
+    });
+  }
+
+  if (income_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (income_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  if (income_form.value.debtorcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกลูกหนี้",
+      life: 4000,
+    });
+  }
+
+  income_form.value.incomedetail.forEach((ele, index) => {
+    if (ele.incomecode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่ " + (index + 1),
+        life: 4000,
+      });
+      income_form_valid.value.incomecode1 = true;
+    }
+    if (ele.incomename == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
+  });
+
+  if (errorCount != 0) {
+    return false;
+  } else {
+    income_form.value.accountperiod =
+      income_form.value.accountperiod != null
+        ? parseInt(income_form.value.accountperiod.toString())
+        : null;
+    income_form.value.accountyear = parseInt(income_form.value.accountyear);
+    return true;
+  }
+}
+
+function verifyPaymentIncome() {
+  if (income_form.value.payment.paymentamount == 0) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณากรอกจำนวนเงิน",
+      life: 4000,
+    });
+    income_form_valid.value.paymentamount = true;
+    return false;
+  } else {
+    /// check payment amount is not over total amount
+    if (
+      income_form.value.payment.paymentamount > income_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระมากกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      income_form_valid.value.paymentamount = true;
+      return false;
+    } else if (
+      income_form.value.payment.paymentamount < income_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระน้อยกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      income_form_valid.value.paymentamount = true;
+      return false;
+    } else {
+      income_form_valid.value.paymentamount = false;
+      return true;
+    }
+  }
+  return true;
+}
+
+function verifyPaymentExpenses() {
+  if (expenses_form.value.payment.paymentamount == 0) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณากรอกจำนวนเงิน",
+      life: 4000,
+    });
+    expenses_form_valid.value.paymentamount = true;
+    return false;
+  } else {
+    /// check payment amount is not over total amount
+    if (
+      expenses_form.value.payment.paymentamount >
+      expenses_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระมากกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      expenses_form_valid.value.paymentamount = true;
+      return false;
+    } else if (
+      expenses_form.value.payment.paymentamount <
+      expenses_form.value.totalamount
+    ) {
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "จำนวนเงินที่ชำระน้อยกว่าจำนวนเงินที่ต้องชำระ",
+        life: 4000,
+      });
+      expenses_form_valid.value.paymentamount = true;
+      return false;
+    } else {
+      expenses_form_valid.value.paymentamount = false;
+      return true;
+    }
+  }
+
+  return true;
+}
+
+function verifyDataExpenses() {
+  var errorCount = 0;
+
+  if (expenses_form.value.docdate == "") {
+    errorCount += 1;
+    expenses_form_valid.value.docdate = true;
+  } else {
+    expenses_form_valid.value.docdate = false;
+  }
+
+  if (expenses_form.value.docno == "") {
+    errorCount += 1;
+    expenses_form_valid.value.docno = true;
+  } else {
+    expenses_form_valid.value.docno = false;
+  }
+
+  if (expenses_form.value.bookcode == "") {
+    errorCount += 1;
+    expenses_form_valid.value.bookcode = true;
+  } else {
+    expenses_form_valid.value.bookcode = false;
+  }
+
+  if (expenses_form.value.creditorcode == "") {
+    errorCount += 1;
+    expenses_form_valid.value.creditorcode = true;
+  } else {
+    expenses_form_valid.value.creditorcode = false;
+  }
+
+  let deletIndex = [];
+  expenses_form.value.expensesdetail.forEach((ele, index) => {
+    // เก็บค่า index row ที่เป็นค่าว่าง
+    if (ele.expensescode == "" && ele.amount == "") {
+      deletIndex.push(index);
+    } else if (ele.expensescode == "" && ele.amount != "") {
+      deletIndex.push(index);
+    } else if (ele.expensescode != "" && ele.amount == "") {
+      deletIndex.push(index);
+    }
+  });
+
+  // ลบ row expensescode ที่เป็นค่าว่าง
+  deletIndex.forEach((ele, index) => {
+    let idx = ele - index;
+    expenses_form.value.expensesdetail.splice(idx, 1);
+  });
+
+  if (expenses_form.value.expensesdetail.length == 0) {
+    expenses_form.value.expensesdetail.push({
+      expensescode: "",
+      expensesname: "",
+      descriotion: "",
+      amount: 0,
+    });
+  }
+
+  if (expenses_form.value.accountperiod == null) {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
+      life: 4000,
+    });
+  }
+
+  if (expenses_form.value.bookcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกสมุดรายวัน",
+      life: 4000,
+    });
+  }
+
+  if (expenses_form.value.creditorcode == "") {
+    toast.add({
+      severity: "error",
+      summary: "ไม่สามารถทำรายการได้",
+      detail: "กรุณาเลือกเจ้าหนี้",
+      life: 4000,
+    });
+  }
+
+  expenses_form.value.expensesdetail.forEach((ele, index) => {
+    if (ele.expensescode == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่ " + (index + 1),
+        life: 4000,
+      });
+      expenses_form_valid.value.expensescode1 = true;
+    }
+    if (ele.expensesname == "") {
+      errorCount += 1;
+      toast.add({
+        severity: "error",
+        summary: "ไม่สามารถทำรายการได้",
+        detail: "กรุณาเลือกรหัสรายได้ รายการที่" + (index + 1),
+        life: 4000,
+      });
+    }
+  });
+
+  if (errorCount != 0) {
+    return false;
+  } else {
+    expenses_form.value.accountperiod =
+      expenses_form.value.accountperiod != null
+        ? parseInt(expenses_form.value.accountperiod.toString())
+        : null;
+    expenses_form.value.accountyear = parseInt(expenses_form.value.accountyear);
+    return true;
+  }
+}
+
 function verifyVat() {
   var errorCount = 0;
 
@@ -1492,41 +1957,104 @@ function ImportDaliy(data) {
 }
 
 function deleteDetail(data) {
-  daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
-    (val) => val.index !== data
-  );
+  /// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
+  if (imageDailyType.value == 1) {
+    daily_form.value.journaldetail = daily_form.value.journaldetail.filter(
+      (val) => val.index !== data
+    );
 
-  if (daily_form.value.journaldetail.length == 0) {
-    daily_form.value.journaldetail.push({
-      index: 0,
-      accountcode: "",
-      accountname: "",
-      debitamount: 0,
-      creditamount: 0,
+    if (daily_form.value.journaldetail.length == 0) {
+      daily_form.value.journaldetail.push({
+        index: 0,
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      });
+    }
+    toast.add({
+      severity: "success",
+      summary: "Successful",
+      detail: "Detail Deleted",
+      life: 3000,
+    });
+  } else if (imageDailyType.value == 2) {
+    income_form.value.incomedetail = income_form.value.incomedetail.filter(
+      (val) => val.index !== data
+    );
+
+    if (income_form.value.incomedetail.length == 0) {
+      income_form.value.incomedetail.push({
+        index: 0,
+        accountcode: "",
+        accountname: "",
+        amount: 0,
+      });
+    }
+    toast.add({
+      severity: "success",
+      summary: "Successful",
+      detail: "Detail Deleted",
+      life: 3000,
+    });
+  } else if (imageDailyType.value == 3) {
+    expenses_form.value.expensesdetail =
+      expenses_form.value.expensesdetail.filter((val) => val.index !== data);
+
+    if (expenses_form.value.expensesdetail.length == 0) {
+      expenses_form.value.expensesdetail.push({
+        expensescode: "",
+        expensesname: "",
+        descriotion: "",
+        amount: 0,
+      });
+    }
+    toast.add({
+      severity: "success",
+      summary: "Successful",
+      detail: "Detail Deleted",
+      life: 3000,
     });
   }
-  toast.add({
-    severity: "success",
-    summary: "Successful",
-    detail: "Detail Deleted",
-    life: 3000,
-  });
 }
 function addColumn(index) {
   heightIamgeDivCheckGl.value =
     "height : " + divCheckGl.value.offsetHeight + "px";
 
-  daily_form.value.journaldetail.splice(index + 1, 0, {
-    index: index + 1,
-    accountcode: "",
-    accountname: "",
-    debitamount: 0,
-    creditamount: 0,
-  });
+  /// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
+  if (imageDailyType.value == 1) {
+    daily_form.value.journaldetail.splice(index + 1, 0, {
+      index: index + 1,
+      accountcode: "",
+      accountname: "",
+      debitamount: 0,
+      creditamount: 0,
+    });
+  } else if (imageDailyType.value == 2) {
+    income_form.value.incomedetail.splice(index + 1, 0, {
+      index: index + 1,
+      accountcode: "",
+      accountname: "",
+      amount: 0,
+    });
+  } else if (imageDailyType.value == 3) {
+    expenses_form.value.expensesdetail.splice(index + 1, 0, {
+      expensescode: "",
+      expensesname: "",
+      descriotion: "",
+      amount: 0,
+    });
+  }
 }
 
 function onRowReorder(data) {
-  daily_form.value.journaldetail = data;
+  if (imageDailyType.value == 1) {
+    daily_form.value.journaldetail = data;
+  } else if (imageDailyType.value == 2) {
+    income_form.value.incomedetail = data;
+  } else if (imageDailyType.value == 3) {
+    expenses_form.value.expensesdetail = data;
+  }
   toast.add({
     severity: "success",
     summary: "ทำรายการสำเร็จ",
@@ -1829,6 +2357,91 @@ function clearData() {
   taxes_valid.value = [];
 }
 
+function clearDataIncome() {
+  resetZoomImage();
+  /// inconme
+  income_form.value.docdate = new Date();
+  income_form.value.docno = Utils.getDocNoDate("JO");
+  income_form.value.bookcode = "";
+  income_form.value.debtorcode = "";
+  income_form.value.vattype = 1;
+  income_form.value.docrefdate = new Date();
+  income_form.value.docrefno = "";
+  income_form.value.inquirytype = 1;
+  income_form.value.accountdescription = "";
+  income_form.value.accountperiod = null;
+  income_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
+  income_form.value.incomedetail = [
+    {
+      incomecode: "",
+      incomename: "",
+      description: "",
+      amount: 0,
+    },
+  ];
+  income_form.value.vatrate = 7;
+  income_form.value.totalvalue = 0.0;
+  income_form.value.discount = "";
+  income_form.value.totaldiscount = 0;
+  income_form.value.totalvatvalue = 0;
+  income_form.value.totalbeforevat = 0;
+  income_form.value.totalaftervat = 0;
+  income_form.value.totalexceptvat = 0;
+  income_form.value.totalamount = 0;
+  income_form.value.payment = {
+    paymenttype: 1,
+    paymentamount: 0,
+  };
+
+  income_form_valid.value.docdate = false;
+  income_form_valid.value.docno = false;
+  income_form_valid.value.bookcode = false;
+  income_form_valid.value.debtorcode = false;
+  income_form_valid.value.paymentamount = false;
+  income_form_valid.value.incomecode1 = false;
+}
+
+function clearDataExpenses() {
+  resetZoomImage();
+  /// expenses
+  expenses_form.value.docdate = new Date();
+  expenses_form.value.docno = Utils.getDocNoDate("JO");
+  expenses_form.value.bookcode = "";
+  expenses_form.value.creditorcode = "";
+  expenses_form.value.accountdescription = "";
+  expenses_form.value.accountperiod = null;
+  expenses_form.value.accountyear = parseInt(Utils.getYear().toString()) + 543;
+  expenses_form.value.expensesdetail = [
+    {
+      expensescode: "",
+      expensesname: "",
+      descriotion: "",
+      amount: 0,
+    },
+  ];
+  expenses_form.value.totalamount = 0;
+  expenses_form.value.payment = {
+    paymenttype: 1,
+    paymentamount: 0,
+  };
+
+  expenses_form_valid.value = {
+    docdate: false,
+    docno: false,
+    bookcode: false,
+    creditorcode: false,
+    paymentamount: false,
+    expensescode1: false,
+  };
+
+  expenses_form_valid.value.docdate = false;
+  expenses_form_valid.value.docno = false;
+  expenses_form_valid.value.bookcode = false;
+  expenses_form_valid.value.creditorcode = false;
+  expenses_form_valid.value.paymentamount = false;
+  expenses_form_valid.value.expensescode1 = false;
+}
+
 function nextImageOnSave(old_img) {
   console.log(data_list.value);
   console.log(data_list.value.length);
@@ -2111,8 +2724,13 @@ async function updateStatus() {
 }
 
 function setAccountPeriod(data) {
-  // console.log(data);
-  daily_form.value.accountperiod = data;
+  if (imageDailyType.value == 1) {
+    daily_form_has.value.accountperiod = data;
+  } else if (imageDailyType.value == 2) {
+    income_form.value.accountperiod = data;
+  } else if (imageDailyType.value == 3) {
+    expenses_form.value.accountperiod = data;
+  }
 }
 
 function getDocumentFormate() {
@@ -2163,6 +2781,92 @@ function selectDucumentFormat(data) {
     ];
   }
 }
+
+function selectIncome(data, index) {
+  var ele = income_detail.value.filter((val) => val.code == data.code);
+  income_form.value.incomedetail[index].incomecode = ele[0].code;
+  income_form.value.incomedetail[index].incomename = ele[0].names[0].name;
+
+  console.log(income_form.value);
+}
+
+function getIncome() {
+  IncomeDataService.getIncome()
+    .then((res) => {
+      //   console.log(res);
+      if (res.success) {
+        income_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.incomecode - obj2.incomecode;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+function selectexpenses(data, index) {
+  var ele = expenses_detail.value.filter((val) => val.code == data.code);
+  expenses_form.value.expensesdetail[index].expensescode = ele[0].code;
+  expenses_form.value.expensesdetail[index].expensesname = ele[0].names[0].name;
+
+  console.log(expenses_form.value);
+}
+
+function getExpenses() {
+  ExpensesDataService.getExpensesList()
+    .then((res) => {
+      //   console.log(res);
+      if (res.success) {
+        expenses_detail.value = res.data.sort(function (obj1, obj2) {
+          return obj1.expensescode - obj2.expensescode;
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+/// swapType
+function swapType(type) {
+  
+  imageDailyType.value = type;
+  activeTabIndex.value = 0;
+
+  clearData();
+  clearDataIncome();
+  clearDataExpenses();
+
+  setTimeout(() => {
+    // set height ifram
+    heightIamgeDivCheckGl.value =
+      "height:" + divCheckGl.value.offsetHeight + "px";
+  }, 100);
+
+  if (type == 1) {
+    toast.add({
+      severity: "success",
+      summary: "เปลี่ยนรูปแบบ",
+      detail: "เปลี่ยนรูปแบบเป็น บันทึกรายวัน",
+      life: 4000,
+    });
+  } else if (type == 2) {
+    toast.add({
+      severity: "success",
+      summary: "เปลี่ยนรูปแบบ",
+      detail: "เปลี่ยนรูปแบบเป็น บันทึกรายได้",
+      life: 4000,
+    });
+  } else if (type == 3) {
+    toast.add({
+      severity: "success",
+      summary: "เปลี่ยนรูปแบบ",
+      detail: "เปลี่ยนรูปแบบเป็น บันทึกค่าใช้จ่าย",
+      life: 4000,
+    });
+  }
+}
 </script>
 
 <template>
@@ -2177,6 +2881,29 @@ function selectDucumentFormat(data) {
         />
 
         <div class="surface-card p-4 shadow-2 border-round p-fluid">
+          <div class="flex mb-2">
+            <Button
+              icon="pi pi-file"
+              label="บันทึกรายวัน"
+              class="p-button-sm mr-1"
+              :disabled="imageDailyType == 1"
+              @click="swapType(1)"
+            />
+            <Button
+              icon="pi pi-plus-circle"
+              label="บันทึกรายได้"
+              class="p-button-sm mr-1 p-button-success"
+              :disabled="imageDailyType == 2"
+              @click="swapType(2)"
+            />
+            <Button
+              icon="pi pi-minus-circle"
+              label="บันทึกค่าใช้จ่าย"
+              class="p-button-sm mr-1 p-button-warning"
+              :disabled="imageDailyType == 3"
+              @click="swapType(3)"
+            />
+          </div>
           <Splitter
             layout="horizontal"
             @resizestart="resizeSplitter(true)"
@@ -2364,15 +3091,25 @@ function selectDucumentFormat(data) {
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">  
+            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">
               <div ref="divCheckGl">
-                <TabView class="tabview-custom" ref="tabview">
+                <TabView
+                  class="tabview-custom"
+                  ref="tabview"
+                  v-model:activeIndex="activeTabIndex"
+                >
                   <TabPanel>
                     <template #header>
                       <i class="pi pi-book mr-1"></i>
-                      <span> ข้อมูลรายวัน</span>
+                      <span v-if="imageDailyType == 1"> ข้อมูลรายวัน</span>
+                      <span v-if="imageDailyType == 2">
+                        ข้อมูลรายได้อื่น ๆ</span
+                      >
+                      <span v-if="imageDailyType == 3">
+                        ข้อมูลค่าใช้จ่ายอื่น ๆ</span
+                      >
                     </template>
-                    <div>
+                    <div v-if="imageDailyType == 1">
                       <JournalForm
                         :daily_form="daily_form"
                         :daily_form_valid="daily_form_valid"
@@ -2382,6 +3119,7 @@ function selectDucumentFormat(data) {
                         :document_formate="document_formate"
                         :customer_detail="customer_detail"
                         :creditor_detail="creditor_detail"
+                        :income_expenses_mode="false"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
                         v-on:addColumn="addColumn"
@@ -2389,11 +3127,45 @@ function selectDucumentFormat(data) {
                         v-on:selectAccount="selectAccount"
                         v-on:setAccountPeriod="setAccountPeriod"
                         v-on:selectDucumentFormat="selectDucumentFormat"
+                      />
+                    </div>
+                    <div v-if="imageDailyType == 2">
+                      <IncomeForm
+                        :isUpdate="false"
+                        :income_form="income_form"
+                        :income_form_valid="income_form_valid"
+                        :customer_detail="customer_detail"
+                        :income_detail="income_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectIncome="selectIncome"
+                        v-on:setAccountPeriod="setAccountPeriod"
                       >
-                      </JournalForm>
+                      </IncomeForm>
+                    </div>
+                    <div v-if="imageDailyType == 3">
+                      <ExpensesForm
+                        :isUpdate="false"
+                        :expenses_form="expenses_form"
+                        :expenses_form_valid="expenses_form_valid"
+                        :customer_detail="customer_detail"
+                        :expenses_detail="expenses_detail"
+                        :accountBook_detail="accountBook_detail"
+                        :groupAccount_detail="groupAccount_detail"
+                        v-on:ImportDaliy="ImportDaliy"
+                        v-on:deleteDetail="deleteDetail"
+                        v-on:addColumn="addColumn"
+                        v-on:onRowReorder="onRowReorder"
+                        v-on:selectexpenses="selectexpenses"
+                        v-on:setAccountPeriod="setAccountPeriod"
+                      >
+                      </ExpensesForm>
                     </div>
                   </TabPanel>
-                  <TabPanel>
+                  <TabPanel v-if="imageDailyType == 1">
                     <template #header>
                       <i class="pi pi-wallet mr-1"></i>
                       <span> ข้อมูลภาษี</span>
@@ -2410,7 +3182,7 @@ function selectDucumentFormat(data) {
                       ></VatForm>
                     </div>
                   </TabPanel>
-                  <TabPanel>
+                  <TabPanel v-if="imageDailyType == 1">
                     <template #header>
                       <i class="pi pi-wallet mr-1"></i>
                       <span> ภาษีถูกหัก/หัก​ ณ ที่จ่าย</span>
@@ -2460,8 +3232,23 @@ function selectDucumentFormat(data) {
               class="mt-4 ml-0 flex align-items-center justify-content-center"
             >
               <Button
+                v-if="imageDailyType == 1"
                 @click="onSave"
                 label="บันทึกรายวัน"
+                icon="pi pi-save"
+                class="w-auto p-button-success"
+              ></Button>
+              <Button
+                v-if="imageDailyType == 2"
+                @click="onSaveIncome"
+                label="บันทึกรายได้"
+                icon="pi pi-save"
+                class="w-auto p-button-success"
+              ></Button>
+              <Button
+                v-if="imageDailyType == 3"
+                @click="onSaveExpenses"
+                label="บันทึกค่าใช้จ่าย"
                 icon="pi pi-save"
                 class="w-auto p-button-success"
               ></Button>
@@ -2485,7 +3272,13 @@ function selectDucumentFormat(data) {
                 <div class="p-1 cursor-pointer">
                   <div class="p-1 surface-card border-round">
                     <div class="relative mb-1">
-                      <div v-if="Utils.checkTypeImage(slotProps.item.imagereferences[0].imageuri)">
+                      <div
+                        v-if="
+                          Utils.checkTypeImage(
+                            slotProps.item.imagereferences[0].imageuri
+                          )
+                        "
+                      >
                         <img
                           v-if="slotProps.item.imagereferences.length > 0"
                           :src="slotProps.item.imagereferences[0].imageuri"
@@ -2493,7 +3286,13 @@ function selectDucumentFormat(data) {
                           style="object-fit: cover; height: 100px"
                         />
                       </div>
-                      <div v-if="Utils.checkTypePDF(slotProps.item.imagereferences[0].imageuri)">
+                      <div
+                        v-if="
+                          Utils.checkTypePDF(
+                            slotProps.item.imagereferences[0].imageuri
+                          )
+                        "
+                      >
                         <img
                           v-if="slotProps.item.imagereferences.length > 0"
                           src="@/assets/pdf-icon.svg"

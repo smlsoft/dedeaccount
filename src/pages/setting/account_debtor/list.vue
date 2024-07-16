@@ -37,7 +37,7 @@ function onRowSelect(event) {
 
 function editdebtor(data) {
   selectedRow.value = data;
-  emit("editDebtor", data);
+  emit("editDebtor", Object.assign({}, data)); // Create a copy of the data object
 }
 
 function deletedebtor(data) {

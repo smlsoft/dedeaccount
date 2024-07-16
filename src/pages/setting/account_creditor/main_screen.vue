@@ -293,7 +293,7 @@ function onRowSelect(data) {
 function editCreditor(data) {
   readMode.value = true;
   confirmEditDialog.value = true;
-  form_model.value = data;
+  form_model.value = Object.assign({}, data); // Create a copy of the data object
 }
 
 function confirmEdit() {

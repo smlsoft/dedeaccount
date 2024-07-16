@@ -182,7 +182,7 @@ async function verifyData() {
   let err_msg = "";
   if (form_model.value.code == "") {
     form_valid.value.code = false;
-    err_msg += "กรุณากรอบข้อมูล รหัสกลุ่มบัญชี\n";
+    err_msg += "กรุณากรอกข้อมูล รหัสกลุ่มบัญชี\n";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.code)) {
@@ -195,7 +195,7 @@ async function verifyData() {
   }
   if (form_model.value.name1 == "") {
     form_valid.value.name1 = false;
-    err_msg += "กรุณากรอบข้อมูล ชื่อกลุ่มบัญชี ";
+    err_msg += "กรุณากรอกข้อมูล ชื่อกลุ่มบัญชี ";
     checkValid += 1;
   } else {
     if (Utils.checkSpecialString(form_model.value.name1)) {
@@ -271,7 +271,7 @@ function onRowSelect(data) {
 function editAccountGroup(data) {
   readMode.value = true;
   confirmEditDialog.value = true;
-  form_model.value = data;
+  form_model.value = Object.assign({}, data); // Create a copy of the data object
 }
 
 function confirmEdit() {
