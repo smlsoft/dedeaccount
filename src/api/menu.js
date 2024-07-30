@@ -103,18 +103,18 @@ export const menus = [
         to: "/images/job_daily",
         name: "images_job_daily",
       },
-      {
-        title: "บันทึกรายได้อื่น ๆ",
-        icon: "pi pi-plus-circle",
-        to: "/income/income_list",
-        name: "income_list",
-      },
-      {
-        title: "บันทึกค่าใช้จ่ายอื่น ๆ",
-        icon: "pi pi-minus-circle",
-        to: "/expenses/expenses_list",
-        name: "expenses_list",
-      },
+      // {
+      //   title: "บันทึกรายได้อื่น ๆ",
+      //   icon: "pi pi-plus-circle",
+      //   to: "/income/income_list",
+      //   name: "income_list",
+      // },
+      // {
+      //   title: "บันทึกค่าใช้จ่ายอื่น ๆ",
+      //   icon: "pi pi-minus-circle",
+      //   to: "/expenses/expenses_list",
+      //   name: "expenses_list",
+      // },
 
       {
         title: "นำเข้าข้อมูลรายวัน",

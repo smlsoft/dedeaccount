@@ -427,7 +427,7 @@ defineExpose({
           @click="createGL(props.selectedImag, 1)"
           :loading="loaddingButton"
         />
-        <Button
+        <!-- <Button
           v-if="
             props.selectedImag.references.length == 0 && props.modeMenu == 3
           "
@@ -456,7 +456,7 @@ defineExpose({
           "
           @click="createGL(props.selectedImag, 3)"
           :loading="loaddingButton"
-        />
+        /> -->
         <div v-if="props.modeMenu == 2">
           <Button
             :disabled="

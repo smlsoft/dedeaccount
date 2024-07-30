@@ -87,7 +87,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
-  accountcode1:fasle,
+  accountcode1: false,
 });
 const taxes = ref([]);
 const taxes_valid = ref([
@@ -375,7 +375,10 @@ function getAllSelectImage() {
               /// goto form job daily
               router.push({
                 name: "daily_images_job_form",
-                params: { id: jobId.value , type: localStorage.getItem("imageDailyType") },
+                params: {
+                  id: jobId.value,
+                  type: localStorage.getItem("imageDailyType"),
+                },
               });
             }
           });
@@ -625,7 +628,10 @@ function swapImage(data) {
             WsConnectImage.value.send(JSON.stringify(sendData));
             router.push({
               name: "daily_images_job_form",
-              params: { id: jobId.value  , type: localStorage.getItem("imageDailyType") },
+              params: {
+                id: jobId.value,
+                type: localStorage.getItem("imageDailyType"),
+              },
             });
           }
         }

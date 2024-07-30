@@ -9,8 +9,8 @@ export default {
         return instanceApi(false).post(`/tokenlogin`, { "token": token });
 
     },
-    getListShop() {
-        return instanceApi(true).get(`/list-shop`).then(res => res.data);
+    getListShop(page = 1, perPage = 20) {
+        return instanceApi(true).get(`/list-shop?page=${page}&perPage=${perPage}`).then(res => res.data);
     },
     selectShop() {
         return instanceApi(true).post(`/select-shop`, { "shopid": localStorage.shopid }).then(res => res.data);

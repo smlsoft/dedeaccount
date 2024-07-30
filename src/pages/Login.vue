@@ -33,10 +33,10 @@ function selectShop(data) {
     const thNameObj = data.names.find((nameObj) => nameObj.code === "th");
 
     localStorage.shop_name = thNameObj.name;
-  }else{
+  } else {
     localStorage.shop_name = data.name;
   }
-  
+
   localStorage.shop_role = data.role;
   localStorage.setLockSlideBar = false;
 
@@ -94,31 +94,41 @@ function loginMode(mode) {
 
 async function handleLogin(username, password) {
   loading.value = true;
-  //console.log(username, password);
-
   localStorage.removeItem("_token");
   await store.login(username, password);
 
-  //console.log("Can Login ", store.loginSuccess);
-
   if (store.loginSuccess) {
-    // select shop
-
-    AuthenService.getListShop()
-      .then((res) => {
-        console.log(res);
-        if (res.success) {
-          showShopList.value = true;
-          listShop.value = res.data;
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    try {
+      const allShops = await fetchAllShops();
+      showShopList.value = true;
+      listShop.value = allShops;
+    } catch (err) {
+      console.log(err);
+    }
   } else {
     loginFailed.value = true;
   }
   loading.value = false;
+}
+
+async function fetchAllShops() {
+  let allShops = [];
+  let page = 1;
+  const perPage = 20;
+  let totalPage = 1;
+
+  do {
+    const res = await AuthenService.getListShop(page, perPage);
+    if (res.success) {
+      allShops = allShops.concat(res.data);
+      totalPage = res.pagination.totalPage;
+      page += 1;
+    } else {
+      throw new Error("Failed to fetch shop list");
+    }
+  } while (page <= totalPage);
+
+  return allShops;
 }
 
 async function signUp(name, username, password) {
@@ -144,18 +154,14 @@ async function signUp(name, username, password) {
     });
 }
 
-function createShopScuuess(status) {
+async function createShopSuccess(status) {
   if (status) {
-    AuthenService.getListShop()
-      .then((res) => {
-        console.log(res);
-        if (res.success) {
-          listShop.value = res.data;
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    try {
+      const allShops = await fetchAllShops();
+      listShop.value = allShops;
+    } catch (err) {
+      console.log(err);
+    }
   }
 }
 
@@ -172,27 +178,22 @@ async function loginWithGoogle() {
       localStorage.removeItem("_token");
       await store.loginGoogle(user.accessToken, user.email);
       if (store.loginSuccess) {
-        // select shop
-        AuthenService.getListShop()
-          .then((res) => {
-            console.log(res);
-            if (res.success) {
-              showShopList.value = true;
-              listShop.value = res.data;
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        try {
+          const allShops = await fetchAllShops();
+          showShopList.value = true;
+          listShop.value = allShops;
+        } catch (err) {
+          console.log(err);
+        }
       } else {
         console.log(store.loginErrorMsg);
         loginFailed.value = true;
       }
     }
   } catch (error) {
-    loading.value = false;
-
     console.log(error);
+  } finally {
+    loading.value = false;
   }
 }
 </script>
@@ -256,7 +257,7 @@ async function loginWithGoogle() {
         v-on:isFavorite="isFavorite"
         v-on:selectShop="selectShop"
         v-on:goLogout="goLogout"
-        v-on:createShopScuuess="createShopScuuess"
+        v-on:createShopScuuess="createShopSuccess"
       />
     </div>
   </div>
