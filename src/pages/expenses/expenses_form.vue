@@ -3,7 +3,7 @@ import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import ExpensesDataService from "@/services/ExpensesDataService";
-import MasterDataService from "@/services/MasterDataService";
+import MasterDataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
