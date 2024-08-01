@@ -215,7 +215,7 @@ function focusNext(field, index) {
 }
 
 function checkAccountPeriod(event) {
-  // console.log(event);
+  console.log(event);
   let keyDate = "";
   if (tempCheckDate.value != null) {
     clearTimeout(tempCheckDate.value);
@@ -230,7 +230,7 @@ function getAccountPeriodByDate(keyDate) {
   // console.log(keyDate);
   AccountPeriodDataService.getAccountPeriodByDate(keyDate)
     .then((res) => {
-      // console.log(res);
+      console.log(res);
       if (res.success) {
         if (res.data[0].perioddata.guidfixed != "") {
           emit("setAccountPeriod", res.data[0].perioddata.period);

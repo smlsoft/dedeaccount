@@ -1108,9 +1108,10 @@ function saveDataOCR(data) {
 }
 
 async function onSave() {
-  // console.log(daily_form.value);
-  // console.log(taxes.value);
-  // console.log(vats.value);
+  console.log(daily_form.value);
+  console.log(taxes.value);
+  console.log(vats.value);
+
   var isPass = await verifyData();
   var isVaxPass = await verifyVat();
   var isTatPass = await verifyTax();
@@ -2724,8 +2725,9 @@ async function updateStatus() {
 }
 
 function setAccountPeriod(data) {
+  console.log(imageDailyType.value);
   if (imageDailyType.value == 1) {
-    daily_form_has.value.accountperiod = data;
+    daily_form.value.accountperiod = data;
   } else if (imageDailyType.value == 2) {
     income_form.value.accountperiod = data;
   } else if (imageDailyType.value == 3) {
