@@ -42,7 +42,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
-  accountcode1:fasle,
+  accountcode1:false,
 });
 const vats_valid = ref([
   {

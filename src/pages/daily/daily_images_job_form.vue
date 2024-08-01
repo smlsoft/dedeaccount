@@ -106,7 +106,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
-  accountcode1:fasle,
+  accountcode1:false,
 });
 const waitForImages = ref(true);
 const vats = ref([]);
@@ -2881,7 +2881,7 @@ function swapType(type) {
         />
 
         <div class="surface-card p-4 shadow-2 border-round p-fluid">
-          <div class="flex mb-2">
+          <!-- <div class="flex mb-2">
             <Button
               icon="pi pi-file"
               label="บันทึกรายวัน"
@@ -2903,7 +2903,7 @@ function swapType(type) {
               :disabled="imageDailyType == 3"
               @click="swapType(3)"
             />
-          </div>
+          </div> -->
           <Splitter
             layout="horizontal"
             @resizestart="resizeSplitter(true)"
