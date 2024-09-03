@@ -6,6 +6,9 @@ import { ref, onMounted, onUnmounted, computed, defineExpose } from "vue";
 import Utils from "@/utils/";
 import PdfApp from "vue3-pdf-app";
 import "vue3-pdf-app/dist/icons/main.css";
+import Galleria from "primevue/galleria";
+import Button from "primevue/button";
+
 const userName = localStorage._usercode;
 const toast = useToast();
 
@@ -39,6 +42,8 @@ const tempImageReferences = ref([]);
 const dialogComment = ref(false);
 const comment = ref("");
 
+const displayBasic = ref(false);
+
 const props = defineProps({
   showImgData: Object,
   selectedImag: Object,
@@ -62,6 +67,29 @@ const emit = defineEmits([
   "updateXorderImageReferences",
   "saveComment",
   "getDocumentImage",
+]);
+
+const images = computed(() => {
+  return props.showImgData.map((img) => ({
+    itemImageSrc: img.imageuri,
+    alt: img.name,
+    title: img.name,
+  }));
+});
+
+const responsiveOptions = ref([
+  {
+    breakpoint: "1024px",
+    numVisible: 5,
+  },
+  {
+    breakpoint: "768px",
+    numVisible: 3,
+  },
+  {
+    breakpoint: "560px",
+    numVisible: 1,
+  },
 ]);
 
 onUnmounted(() => {});
@@ -105,32 +133,7 @@ function getUseData(data) {
 
 function printImg(data) {
   console.log(data);
-
   window.open(data[0].imageuri, "_blank");
-
-  // if (Utils.checkTypePDF(data[0].imageuri)) {
-  //   window.open(data[0].imageuri, "_blank");
-  // } else {
-  //   var url = data;
-  //   var w = window.open("", "");
-  //   w.document.write("<html><head>");
-  //   w.document.write("</head><body >");
-
-  //   data.forEach((element, index) => {
-  //     w.document.write(
-  //       '<img id="print-image-element" src="' +
-  //         element.imageuri +
-  //         '" width="100%"/>'
-  //     );
-  //   });
-
-  //   w.document.write(
-  //     '<script>var img = document.getElementById("print-image-element"); img.addEventListener("load",function(){ window.focus(); window.print(); window.document.close(); window.close(); }); <//script>'
-  //   );
-  //   w.document.write("</body></html>");
-  //   w.window.print();
-  //   w.window.close();
-  // }
 }
 
 const toggle = (event) => {
@@ -158,15 +161,6 @@ const items = computed({
               printImg(props.showImgData);
             },
           },
-          // รอ service
-          // {
-          //   disabled: props.jobStatus != 0,
-          //   label: "อัพโหลดรูปใหม่",
-          //   icon: "pi pi-upload",
-          //   command: () => {
-          //     chooseFile();
-          //   },
-          // },
           {
             disabled:
               props.selectedImag.imagereferences.length == 1 ||
@@ -237,11 +231,10 @@ function updateTagImage() {
   emit("updateTagImage", props.selectedImag.guidfixed, tag.value);
 }
 
-function createGL(data , type) {
-  /// type 1 = รายวัน , 2 = รายได้ , 3 = ค่าใช้จ่าย
+function createGL(data, type) {
   loaddingButton.value = true;
   setTimeout(() => {
-    emit("createGL", data , type);
+    emit("createGL", data, type);
     loaddingButton.value = false;
   }, 500);
 }
@@ -258,7 +251,6 @@ const activeIndex = computed({
 
 function viewGL(data) {
   const result = data.references.filter((gl) => gl.module == "GL");
-  // console.log(result[0].docno);
   emit("viewGL", result[0].docno);
 }
 
@@ -288,8 +280,6 @@ function handleDrop(index) {
     });
 
     draggedItemIndex.value = index;
-
-    // console.log(tempImageReferences.value);
   }
 }
 
@@ -384,6 +374,10 @@ function scrollToBottom() {
   dialogContent.scrollTop = dialogContent.scrollHeight;
 }
 
+function showFullScreenImage() {
+  displayBasic.value = true;
+}
+
 defineExpose({
   scrollToBottom,
 });
@@ -427,36 +421,6 @@ defineExpose({
           @click="createGL(props.selectedImag, 1)"
           :loading="loaddingButton"
         />
-        <!-- <Button
-          v-if="
-            props.selectedImag.references.length == 0 && props.modeMenu == 3
-          "
-          icon="pi pi-plus-circle"
-          label="บันทึกรายได้"
-          class="p-button-sm mr-1 p-button-success"
-          :disabled="
-            checkUseImg(props.selectedImag.guidfixed) ||
-            props.selectedImag.references.length > 0 ||
-            props.selectedImag.status == 3
-          "
-          @click="createGL(props.selectedImag, 2)"
-          :loading="loaddingButton"
-        />
-        <Button
-          v-if="
-            props.selectedImag.references.length == 0 && props.modeMenu == 3
-          "
-          icon="pi pi-minus-circle"
-          label="บันทึกค่าใช้จ่าย"
-          class="p-button-sm mr-1 p-button-warning"
-          :disabled="
-            checkUseImg(props.selectedImag.guidfixed) ||
-            props.selectedImag.references.length > 0 ||
-            props.selectedImag.status == 3
-          "
-          @click="createGL(props.selectedImag, 3)"
-          :loading="loaddingButton"
-        /> -->
         <div v-if="props.modeMenu == 2">
           <Button
             :disabled="
@@ -499,21 +463,6 @@ defineExpose({
             class="p-button-secondary p-button-sm"
           />
         </div>
-
-        <!-- <div v-if="props.modeMenu == 3">
-          <Button
-            :disabled="props.selectedImag.references.length > 0"
-            label="ไม่ผ่าน"
-            @click="upDateStatusImage(4)"
-            class="p-button-danger p-button-sm mr-1"
-          />
-          <Button
-            :disabled="props.selectedImag.references.length > 0"
-            label="ห้ามบันทึกรายวัน"
-            @click="upDateStatusImage(3)"
-            class="p-button-warning p-button-sm"
-          />
-        </div> -->
       </div>
 
       <!--right-->
@@ -537,11 +486,7 @@ defineExpose({
           class="p-button-text p-button-rounded mr-2 p-button-sm"
           icon="pi pi-user"
         />
-        <!-- <Button
-          icon="pi pi-print"
-          class="p-button-rounded p-button-danger p-button-text"
-          @click="printImg(props.showImgData)"
-        /> -->
+
         <Button
           v-if="props.modeMenu != 4"
           icon="pi pi-list"
@@ -558,7 +503,13 @@ defineExpose({
           @click="closeDocumentPreview"
         />
       </div>
-      <div class="flex" v-if="props.modeMenu == 4"></div>
+      <div class="flex" v-if="props.modeMenu == 4">
+        <Button
+          icon="pi pi-window-maximize"
+          class="p-button-rounded p-button-danger p-button-text"
+          @click="showFullScreenImage"
+        />
+      </div>
     </div>
 
     <Galleria
@@ -636,6 +587,7 @@ defineExpose({
       </div>
     </div>
   </div>
+
   <DialogForm
     :confirmDialog="confirmRejectDialog"
     :textContent="'ต้องการยกเลิกรูปภาพ'"
@@ -643,12 +595,14 @@ defineExpose({
     v-on:close="confirmRejectDialog = false"
     v-on:confirm="upDateStatusImageByButton()"
   ></DialogForm>
+
   <DialogForm
     :confirmDialog="confirmUnGroup"
     :textContent="'ต้องการยกเลิกชุดรูปภาพ'"
     v-on:close="confirmUnGroup = false"
     v-on:confirm="documentImageUnGroup()"
   ></DialogForm>
+
   <Dialog
     v-model:visible="dialogEditTag"
     :style="{ width: '550px' }"
@@ -827,19 +781,37 @@ defineExpose({
       />
     </template>
   </Dialog>
+
+  <!-- Galleria for full-screen view -->
+  <Galleria
+    v-model:visible="displayBasic"
+    :value="images"
+    :responsiveOptions="responsiveOptions"
+    :numVisible="9"
+    containerStyle="max-width: 100%"
+    :circular="true"
+    :fullScreen="true"
+    :showItemNavigators="true"
+    :showThumbnails="false"
+  >
+    <template #item="slotProps">
+      <img
+        :src="slotProps.item.itemImageSrc"
+        :alt="slotProps.item.alt"
+        style="width: 100%; display: block"
+      />
+    </template>
+  </Galleria>
 </template>
+
 <style>
 iframe {
-  display: block; /* iframes are inline by default */
+  display: block;
   background: #000;
-  border: none; /* Reset default border */
-  height: 100%; /* Viewport-relative units */
+  border: none;
+  height: 100%;
   width: 100%;
 }
-
-/* .p-galleria {
-  width: 100% !important;
-} */
 
 .p-galleria .p-galleria-thumbnail-container {
   background: rgba(0, 0, 0, 0.9);
@@ -871,5 +843,27 @@ iframe {
 
 .fade-leave-active {
   position: absolute;
+}
+
+/* Styles for Galleria full-screen view */
+.p-galleria-item-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.p-galleria-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.p-galleria-item img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
 }
 </style>

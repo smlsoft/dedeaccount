@@ -216,24 +216,30 @@ async function uploadFile() {
       })
       .catch((error) => {
         loading.value = false;
-        if (error.response.data.message == "No password given") {
-          filepasswordValid.value = true;
-          isShowInputPassword.value = true;
-          toast.add({
-            severity: "warn",
-            summary: "แจ้งเตือน",
-            detail: "กรุณากรอกรหัสผ่าน",
-            life: 3000,
-          });
-        } else if (error.response.data.message == "Incorrect Password") {
-          filepasswordValid.value = true;
-          toast.add({
-            severity: "error",
-            summary: "แจ้งเตือน",
-            detail: "รหัสผ่านไม่ถูกต้อง",
-            life: 3000,
-          });
-        }
+          if (
+            error.response.data.message ==
+            "Error reading PDF: No password given"
+          ) {
+            filepasswordValid.value = true;
+            isShowInputPassword.value = true;
+            toast.add({
+              severity: "warn",
+              summary: "แจ้งเตือน",
+              detail: "กรุณากรอกรหัสผ่าน",
+              life: 3000,
+            });
+          } else if (
+            error.response.data.message ==
+            "Error reading PDF: Incorrect Password"
+          ) {
+            filepasswordValid.value = true;
+            toast.add({
+              severity: "error",
+              summary: "แจ้งเตือน",
+              detail: "รหัสผ่านไม่ถูกต้อง",
+              life: 3000,
+            });
+          }
       });
   } else {
     loading.value = false;
