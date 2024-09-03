@@ -107,7 +107,11 @@ function onwheel(e) {
   cursor: grab;
 }
 div#zoom > img {
-  width: 100%;
-  height: auto;
+  height: 100%;
+  width: auto;
+  align-content: center;
+  margin: auto;
+  display: block;
+  
 }
 </style>
