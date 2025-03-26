@@ -244,14 +244,6 @@ async function verifyData() {
     form_valid.value.name = false;
     err_msg += "กรุณากรอกข้อมูล ชื่อเจ้าหนี้";
     checkValid += 1;
-  } else {
-    if (Utils.checkSpecialString(form_model.value.name)) {
-      form_valid.value.name = false;
-      err_msg += "ชื่อเจ้าหนี้ไม่สามารถใช้อักษรพิเศษได้ ";
-      checkValid += 1;
-    } else {
-      form_valid.value.name = true;
-    }
   }
 
   if (form_model.value.customertype == 1) {

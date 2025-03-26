@@ -604,6 +604,54 @@ export default [
     component: () => import("../pages/expenses/expenses_form.vue"),
   },
 
+  /// รายงาน ภาษีซื้อ
+  {
+    path: "/report/tax_purchase",
+    name: "tax_purchase",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/tax_purchase.vue"),
+  },
+  /// รายงาน ภาษีขาย
+  {
+    path: "/report/tax_sale",
+    name: "tax_sale",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/tax_sale.vue"),
+  },
+  /// รายงาน ภาษีหัก ณ ที่จ่าย ภ.ง.ด.3
+  {
+    path: "/report/tax_journal3",
+    name: "tax_journal3",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/tax_journal3.vue"),
+  },
+
+  /// รายงาน ภาษีหัก ณ ที่จ่าย ภ.ง.ด.53
+  {
+    path: "/report/tax_journal53",
+    name: "tax_journal53",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/tax_journal53.vue"),
+  },
+  /// ภาษีถูกหัก ณ ที่จ่าย
+  {
+    path: "/report/tax_journal_deduct",
+    name: "tax_journal_deduct",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/tax_journal_deduct.vue"),
+  }
+
+
 
 
 

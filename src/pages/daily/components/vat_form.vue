@@ -3,10 +3,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
 import DialogForm from "@/components/DialogForm.vue";
 const deleteDetailVatDialog = ref(false);
-const isUpdate = ref(false);
 const vatvalue = ref("");
-
-const textContent = ref("ต้องการลบข้อมูลภาษี ");
 
 const del_data = ref({ data: null, index: 0 });
 const sum_vatbase = computed({
@@ -51,8 +48,12 @@ const props = defineProps({
   id: String,
 });
 
-onMounted(async () => {});
-vatvalue.value = del_data.index + 1;
+onMounted(async () => {
+  vatvalue.value = del_data.value.index + 1;
+});
+
+// Fix: Moved this line inside onMounted to prevent execution during component initialization
+// vatvalue.value = del_data.index + 1;
 
 function deleteDetailVat() {
   emit("deleteDetailVat", del_data.value.index);
@@ -69,7 +70,7 @@ function removeBoxVat(data, index) {
 }
 
 function setBranch(index) {
-  emit("setBranch");
+  emit("setBranch", index); // Fix: Pass the index parameter to the parent component
 }
 
 function calVatAmount(index) {
@@ -78,6 +79,14 @@ function calVatAmount(index) {
 
 function checkDateFormat(index) {
   emit("checkDateFormat", index);
+}
+
+// Function to handle vatperiod input changes without defaulting to 1
+function handleVatPeriodInput(event, index) {
+  // Only emit the checkDateFormat if there is a value
+  if (event.target.value !== "") {
+    checkDateFormat(index);
+  }
 }
 </script>
 
@@ -160,7 +169,7 @@ function checkDateFormat(index) {
           <div class="flex">
             <div class="field-radiobutton">
               <RadioButton
-                name="organization"
+                :name="`organization_${index}`"
                 :value="0"
                 :disabled="props.isUpdate"
                 v-model="data.organization"
@@ -172,7 +181,7 @@ function checkDateFormat(index) {
           <div class="flex ml-4">
             <div class="field-radiobutton">
               <RadioButton
-                name="organization"
+                :name="`organization_${index}`"
                 :value="1"
                 :disabled="props.isUpdate"
                 v-model="data.organization"
@@ -211,7 +220,7 @@ function checkDateFormat(index) {
           :max="12"
           :disabled="props.isUpdate"
           v-model="data.vatperiod"
-          @input="checkDateFormat(index)"
+          @input="handleVatPeriodInput($event, index)"
           :class="props.vats_valid[index].vatperiod ? 'p-invalid' : ''"
         />
       </div>
@@ -249,7 +258,7 @@ function checkDateFormat(index) {
           <div class="flex">
             <div class="field-radiobutton">
               <RadioButton
-                name="vatmode"
+                :name="`vatmode_${index}`"
                 :value="0"
                 v-model="data.vatmode"
                 :disabled="props.isUpdate"
@@ -260,7 +269,7 @@ function checkDateFormat(index) {
           <div class="flex ml-4">
             <div class="field-radiobutton">
               <RadioButton
-                name="vatmode"
+                :name="`vatmode_${index}`"
                 :value="1"
                 v-model="data.vatmode"
                 :disabled="props.isUpdate"
@@ -276,7 +285,7 @@ function checkDateFormat(index) {
           <div class="flex">
             <div class="field-radiobutton">
               <RadioButton
-                name="vattype"
+                :name="`vattype_${index}`"
                 :value="0"
                 v-model="data.vattype"
                 :disabled="props.isUpdate"
@@ -287,7 +296,7 @@ function checkDateFormat(index) {
           <div class="flex ml-4" v-if="data.vatmode != '1'">
             <div class="field-radiobutton">
               <RadioButton
-                name="vattype"
+                :name="`vattype_${index}`"
                 :value="1"
                 v-model="data.vattype"
                 :disabled="props.isUpdate"
@@ -297,7 +306,12 @@ function checkDateFormat(index) {
           </div>
           <div class="flex ml-4">
             <div class="field-radiobutton">
-              <RadioButton name="vattype" :value="2" v-model="data.vattype" />
+              <RadioButton
+                :name="`vattype_${index}`"
+                :value="2"
+                v-model="data.vattype"
+                :disabled="props.isUpdate"
+              />
               <label>ไม่ถึงกำหนดชำระ</label>
             </div>
           </div>
@@ -366,32 +380,4 @@ function checkDateFormat(index) {
     v-on:close="deleteDetailVatDialog = false"
     v-on:confirm="deleteDetailVat"
   ></DialogForm>
-  <!-- <Dialog
-    v-model:visible="deleteDetailVatDialog"
-    :style="{ width: '450px' }"
-    header="Confirm"
-    :modal="true"
-  >
-    <div class="confirmation-content">
-      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-      <span
-        >ต้องการลบข้อมูลภาษี รายการที่
-        <b> {{ del_data.index + 1 }}</b> ใช่หรือไม่?</span
-      >
-    </div>
-    <template #footer>
-      <Button
-        label="No"
-        icon="pi pi-times"
-        class="p-button-text"
-        @click="deleteDetailVatDialog = false"
-      />
-      <Button
-        label="Yes"
-        icon="pi pi-check"
-        class="p-button-text p-button-danger"
-        @click="deleteDetailVat"
-      />
-    </template>
-  </Dialog> -->
 </template>

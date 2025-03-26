@@ -106,7 +106,7 @@ const daily_form_valid = ref({
   docdate: false,
   docno: false,
   bookcode: false,
-  accountcode1:false,
+  accountcode1: false,
 });
 const waitForImages = ref(true);
 const vats = ref([]);
@@ -1675,6 +1675,20 @@ function verifyVat() {
 
     // console.log(ele);
 
+    if (ele.vatdocno === "") {
+      toast.add({
+        severity: "warn",
+        summary: "ข้อมูลภาษี",
+        detail: "ระบุเลขที่ใบกำกับ ใน ข้อ รายการที่ " + (index + 1),
+        life: 4000,
+      });
+      vat_error_detail.vatdocno = true;
+      errorCount++;
+      errorDetail++;
+    } else {
+      vat_error_detail.vatdocno = false;
+    }
+
     if (ele.vatdocno != "") {
       if (ele.vatdate == "") {
         errorDetail += 1;
@@ -1869,6 +1883,20 @@ function verifyTax() {
     };
 
     //console.log(ele);
+
+    if (ele.taxdocno === "") {
+      toast.add({
+        severity: "warn",
+        summary: "ภาษีหัก​​ ณ ที่จ่าย",
+        detail: "ระบุเลขที่เอกสาร ใน ข้อ รายการที่ " + (index + 1),
+        life: 4000,
+      });
+      tax_error_detail.taxdocno = true;
+      errorCount++;
+      errorDetail++;
+    } else {
+      tax_error_detail.taxdocno = false;
+    }
 
     if (ele.taxdocno != "") {
       if (ele.taxdate == "") {
@@ -2832,7 +2860,6 @@ function getExpenses() {
 
 /// swapType
 function swapType(type) {
-  
   imageDailyType.value = type;
   activeTabIndex.value = 0;
 

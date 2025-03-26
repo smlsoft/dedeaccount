@@ -7,6 +7,13 @@
 <style>
 .main-div {
   height: 95vh;
-  overflow-y: scroll;
+  overflow-y: auto;
+  position: relative;
+  contain: paint;
+}
+
+/* ป้องกันการเลื่อนของหน้าจออัตโนมัติเมื่อมีการเปลี่ยนแปลงใน DOM */
+#maincontainer {
+  scroll-behavior: auto;
 }
 </style>

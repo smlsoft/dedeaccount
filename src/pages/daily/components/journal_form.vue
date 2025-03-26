@@ -199,17 +199,35 @@ function searchAccount(event) {
 function focusNext(field, index) {
   console.log(field);
   setTimeout(() => {
+    let targetElement = null;
+
     if (field == "accountcode") {
-      $(".debit_" + index + " > input").focus();
+      targetElement = $(".debit_" + index + " > input");
     } else if (field == "debitamount") {
-      $(".credit_" + index + " > input ").focus();
+      targetElement = $(".credit_" + index + " > input");
     } else if (field == "creditamount") {
-      addColumn(index);
-      setTimeout(() => {
-        if (props.daily_form.journaldetail.length > index + 1) {
-          $(".accountcode_" + (index + 1) + " > input").focus();
-        }
-      }, 100);
+      // Check if this is the last row in the table
+      if (index === props.daily_form.journaldetail.length - 1) {
+        // Add a new row and focus on its account code field
+        addColumn(index);
+        setTimeout(() => {
+          const newRowElement = $(".accountcode_" + (index + 1) + " > input");
+          newRowElement.focus();
+          // Don't select all text for account code since it's likely empty
+        }, 100);
+        return;
+      } else {
+        // If not the last row, move to the next row's account code
+        targetElement = $(".accountcode_" + (index + 1) + " > input");
+      }
+    }
+
+    if (targetElement && targetElement.length > 0) {
+      targetElement.focus();
+      // Select all text for numeric fields to make it easy to replace
+      if (field == "accountcode" || field == "debitamount") {
+        targetElement[0]?.select();
+      }
     }
   }, 100);
 }
@@ -256,33 +274,113 @@ function getAccountPeriodByDate(keyDate) {
 function headerNextFocus(filedName) {
   console.log(filedName);
   setTimeout(() => {
+    // Header section - follow the visual order of the form
     if (filedName == "docdate") {
-      $(".docdate").focus();
-    } else if (filedName == "batchid") {
-      $(".batchid").focus();
-    } else if (filedName == "accountperiod") {
-      $(".accountperiod").focus();
-    } else if (filedName == "accountyear") {
-      $(".accountyear").focus();
-    } else if (filedName == "accountgroup") {
-      $(".accountgroup").click();
-    } else if (filedName == "bookcode") {
-      $(".bookcode").click();
-    } else if (filedName == "accountdescription") {
-      $(".accountdescription").focus();
-    } else if (filedName == "exdocrefno") {
-      $(".exdocrefno").focus();
-    } else if (filedName == "exdocrefdate") {
-      $(".exdocrefdate").focus();
-    } else if (filedName == "isUpdate") {
-      $(".isUpdate").focus();
-    } else if (filedName == "accountRow1") {
-      $(".accountcode_" + 0 + " > input").focus();
+      $(".docno").focus();
     } else if (filedName == "docno") {
       checkAccountPeriod(props.daily_form.docdate);
-      $(".docno").focus();
+      $(".bookcode").click();
+    } else if (filedName == "bookcode") {
+      // Focus on the first radio button in the debtaccounttype group
+      $(
+        "input[name='debtaccounttype'][value='" +
+          props.daily_form.debtaccounttype +
+          "']"
+      ).focus();
+    } else if (filedName == "debtaccounttype") {
+      // Select appropriate dropdown based on debtaccounttype value
+      if (props.daily_form.debtaccounttype == "0") {
+        $(".debtor").click();
+      } else {
+        $(".creditor").click();
+      }
+    } else if (filedName == "debtor" || filedName == "creditor") {
+      $(".exdocrefdate").focus();
+    } else if (filedName == "exdocrefdate") {
+      $(".exdocrefno").focus();
+    } else if (filedName == "exdocrefno") {
+      // Focus on journaltype radio buttons
+      $(
+        "input[name='journaltype'][value='" +
+          props.daily_form.journaltype +
+          "']"
+      ).focus();
+    } else if (filedName == "journaltype") {
+      $(".accountdescription").focus();
+    } else if (filedName == "accountdescription") {
+      // Move to the first row in the table
+      $(".accountcode_0 > input").focus();
+    }
+    // Hidden or less common fields
+    else if (filedName == "batchid") {
+      $(".accountperiod").focus();
+    } else if (filedName == "accountperiod") {
+      $(".accountyear").focus();
+    } else if (filedName == "accountyear") {
+      $(".exdocrefdate").focus();
+    } else if (filedName == "accountgroup") {
+      $(".accountdescription").focus();
+    }
+    // Document format dropdown in the detail section
+    else if (filedName == "documentformate") {
+      $(".accountcode_0 > input").focus();
+    }
+    // First row in detail grid
+    else if (filedName == "accountRow1") {
+      $(".accountcode_0 > input").focus();
     }
   }, 100);
+}
+
+function navigateVertical(currentIndex, currentField, direction) {
+  const targetIndex = currentIndex + direction;
+
+  // Check if target index is within bounds
+  if (targetIndex >= 0 && targetIndex < props.daily_form.journaldetail.length) {
+    // Focus on the same field (debit or credit) but in different row
+    setTimeout(() => {
+      let targetElement;
+      if (currentField === "debitamount") {
+        targetElement = $(`.debit_${targetIndex} > input`);
+      } else if (currentField === "creditamount") {
+        targetElement = $(`.credit_${targetIndex} > input`);
+      }
+
+      if (targetElement && targetElement.length > 0) {
+        targetElement.focus();
+        // Select all text to make it easy to replace
+        targetElement[0].select();
+      }
+    }, 10); // Small delay to ensure DOM is ready
+  }
+}
+
+function navigateHorizontal(currentIndex, currentField, direction) {
+  let targetElement;
+
+  // Moving left from debit to account code or right from credit to account code
+  if (
+    (currentField === "debitamount" && direction < 0) ||
+    (currentField === "creditamount" && direction > 0)
+  ) {
+    targetElement = $(`.accountcode_${currentIndex} > input`);
+  }
+  // Moving right from debit to credit
+  else if (currentField === "debitamount" && direction > 0) {
+    targetElement = $(`.credit_${currentIndex} > input`);
+  }
+  // Moving left from credit to debit
+  else if (currentField === "creditamount" && direction < 0) {
+    targetElement = $(`.debit_${currentIndex} > input`);
+  }
+
+  if (targetElement && targetElement.length > 0) {
+    setTimeout(() => {
+      targetElement.focus();
+      // Select all text to make it easy to replace
+      targetElement[0].select();
+    }, 10); // Small delay to ensure DOM is ready
+  }
 }
 </script>
 
@@ -305,8 +403,8 @@ function headerNextFocus(filedName) {
             :hideOnDateTimeSelect="true"
             :hiddenTime="true"
             @date-select="checkAccountPeriod($event)"
-            @keyup.enter="headerNextFocus('docno')"
-            @keydown.tab="headerNextFocus('docno')"
+            @keyup.enter="headerNextFocus('docdate')"
+            @keydown.tab="headerNextFocus('docdate')"
             inputClass="docdate"
           />
           <label for="docdate">เอกสารวันที่</label>
@@ -319,8 +417,8 @@ function headerNextFocus(filedName) {
             v-model="props.daily_form.docno"
             :class="props.daily_form_valid.docno ? 'p-invalid ' : ''"
             :disabled="props.isUpdate || update_mode"
-            @keyup.enter="headerNextFocus('bookcode')"
-            @keydown.tab="headerNextFocus('bookcode')"
+            @keyup.enter="headerNextFocus('docno')"
+            @keydown.tab="headerNextFocus('docno')"
             class="docno"
           />
           <label for="docNo">เลขที่เอกสาร</label>
@@ -340,8 +438,8 @@ function headerNextFocus(filedName) {
             filterPlaceholder="ค้นหา"
             placeholder="เลือก"
             :autoFilterFocus="true"
-            @keyup.enter="headerNextFocus('exdocrefdate')"
-            @keydown.tab="headerNextFocus('exdocrefdate')"
+            @keyup.enter="headerNextFocus('bookcode')"
+            @keydown.tab="headerNextFocus('bookcode')"
             inputClass="bookcode"
             inputStyle="height: 51px;"
           >
@@ -359,18 +457,22 @@ function headerNextFocus(filedName) {
           <div class="flex field-checkbox">
             <RadioButton
               :disabled="props.isUpdate"
-              name="journaltype"
+              name="debtaccounttype"
               value="0"
               v-model="props.daily_form.debtaccounttype"
+              @keyup.enter="headerNextFocus('debtaccounttype')"
+              @keydown.tab="headerNextFocus('debtaccounttype')"
             />
             <label>ลูกหนี้</label>
           </div>
           <div class="flex field-checkbox ml-3">
             <RadioButton
               :disabled="props.isUpdate"
-              name="journaltype"
+              name="debtaccounttype"
               value="1"
               v-model="props.daily_form.debtaccounttype"
+              @keyup.enter="headerNextFocus('debtaccounttype')"
+              @keydown.tab="headerNextFocus('debtaccounttype')"
             />
             <label>เจ้าหนี้</label>
           </div>
@@ -392,8 +494,8 @@ function headerNextFocus(filedName) {
             filterPlaceholder="ค้นหา"
             placeholder="เลือก"
             :autoFilterFocus="true"
-            @keyup.enter="headerNextFocus('exdocrefdate')"
-            @keydown.tab="headerNextFocus('exdocrefdate')"
+            @keyup.enter="headerNextFocus('debtor')"
+            @keydown.tab="headerNextFocus('debtor')"
             inputClass="debtor"
             inputStyle="height: 51px;"
           >
@@ -422,8 +524,8 @@ function headerNextFocus(filedName) {
             filterPlaceholder="ค้นหา"
             placeholder="เลือก"
             :autoFilterFocus="true"
-            @keyup.enter="headerNextFocus('exdocrefdate')"
-            @keydown.tab="headerNextFocus('exdocrefdate')"
+            @keyup.enter="headerNextFocus('creditor')"
+            @keydown.tab="headerNextFocus('creditor')"
             inputClass="creditor"
             inputStyle="height: 51px;"
           >
@@ -448,8 +550,8 @@ function headerNextFocus(filedName) {
             :hideOnDateTimeSelect="true"
             :hiddenTime="true"
             inputClass="exdocrefdate"
-            @keyup.enter="headerNextFocus('exdocrefno')"
-            @keydown.tab="headerNextFocus('exdocrefno')"
+            @keyup.enter="headerNextFocus('exdocrefdate')"
+            @keydown.tab="headerNextFocus('exdocrefdate')"
           />
           <label for="exdocrefdate">เอกสารวันที่อ้างอิง</label>
         </span>
@@ -461,8 +563,8 @@ function headerNextFocus(filedName) {
             type="text"
             v-model="props.daily_form.exdocrefno"
             :disabled="props.isUpdate || update_mode"
-            @keyup.enter="headerNextFocus('isUpdate')"
-            @keydown.tab="headerNextFocus('isUpdate')"
+            @keyup.enter="headerNextFocus('exdocrefno')"
+            @keydown.tab="headerNextFocus('exdocrefno')"
             class="exdocrefno"
           />
           <label for="exdocrefno">เลขที่เอกสารอ้างอิง</label>
@@ -480,7 +582,8 @@ function headerNextFocus(filedName) {
               value="0"
               v-model="props.daily_form.journaltype"
               inputClass="isUpdate"
-              @keyup.enter="headerNextFocus('accountdescription')"
+              @keyup.enter="headerNextFocus('journaltype')"
+              @keydown.tab="headerNextFocus('journaltype')"
             />
             <label>ทั่วไป</label>
           </div>
@@ -490,7 +593,8 @@ function headerNextFocus(filedName) {
               name="journaltype"
               value="1"
               v-model="props.daily_form.journaltype"
-              @keyup.enter="headerNextFocus('accountdescription')"
+              @keyup.enter="headerNextFocus('journaltype')"
+              @keydown.tab="headerNextFocus('journaltype')"
             />
             <label>ปิดบัญชี</label>
           </div>
@@ -502,7 +606,8 @@ function headerNextFocus(filedName) {
             type="text"
             :disabled="props.isUpdate"
             v-model="props.daily_form.accountdescription"
-            @keydown.tab="headerNextFocus('accountRow1')"
+            @keyup.enter="headerNextFocus('accountdescription')"
+            @keydown.tab="headerNextFocus('accountdescription')"
             class="accountdescription"
             :autoResize="true"
             rows="2"
@@ -515,19 +620,22 @@ function headerNextFocus(filedName) {
           >กลุ่มบัญชี</label
         >
         <Dropdown
-          v-model="props.daily_form.accountgroup"
-          :class="props.daily_form_valid.accountgroup ? 'p-invalid' : ''"
-          :options="props.groupAccount_detail"
+          showClear
+          class="w-full md:w-14rem"
+          v-model="props.daily_form.documentformate"
+          :options="props.document_formate"
+          :disabled="props.isUpdate"
           :filter="true"
-          :filterFields="['code', 'name1']"
-          optionValue="code"
+          :filterFields="['doccode', 'description']"
+          optionValue="doccode"
           optionLabel="label"
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
-          :disabled="props.isUpdate"
           :autoFilterFocus="true"
-          @keyup.enter="headerNextFocus('accountdescription')"
-          inputClass="accountgroup"
+          @change="selectDucumentFormat($event)"
+          @keyup.enter="headerNextFocus('documentformate')"
+          @keydown.tab="headerNextFocus('documentformate')"
+          inputClass="documentformate"
         >
           <template #option="slotProps">
             <div>
@@ -714,6 +822,12 @@ function headerNextFocus(filedName) {
               mode="decimal"
               :maxFractionDigits="2"
               @enter="focusNext(field, index)"
+              @arrow-up="navigateVertical(index, 'debitamount', -1)"
+              @arrow-down="navigateVertical(index, 'debitamount', 1)"
+              @arrow-left="navigateHorizontal(index, 'debitamount', -1)"
+              @arrow-right="navigateHorizontal(index, 'debitamount', 1)"
+              :rowIndex="index"
+              fieldType="debitamount"
             />
           </template>
         </Column>
@@ -738,6 +852,12 @@ function headerNextFocus(filedName) {
               mode="decimal"
               :maxFractionDigits="2"
               @enter="focusNext(field, index)"
+              @arrow-up="navigateVertical(index, 'creditamount', -1)"
+              @arrow-down="navigateVertical(index, 'creditamount', 1)"
+              @arrow-left="navigateHorizontal(index, 'creditamount', -1)"
+              @arrow-right="navigateHorizontal(index, 'creditamount', 1)"
+              :rowIndex="index"
+              fieldType="creditamount"
             />
           </template>
         </Column>

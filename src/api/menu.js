@@ -140,7 +140,7 @@ export const menus = [
 
 
   {
-    title: "รายงานทางการเงิน",
+    title: "รายงาน การเงิน",
     icon: "pi pi-chart-bar",
     to: "",
     name: "report_list",
@@ -184,6 +184,49 @@ export const menus = [
 
     ],
   },
+
+  {
+    title: "รายงาน ภาษี",
+    icon: "pi pi-file-o",
+    to: "",
+    name: "report_tax_list",
+    children: [
+      {
+        title: "รายงานภาษีซื้อ",
+        icon: "pi pi-file-o",
+        name: "report_tax_purchase",
+        to: "/report/tax_purchase",
+      },
+      {
+        title: "รายงานภาษีขาย",
+        icon: "pi pi-file-o",
+        name: "report_tax_sale",
+        to: "/report/tax_sale",
+
+      },
+      {
+        title: "ภาษีหัก ณ ที่จ่าย(ภ.ง.ด.3)",
+        icon: "pi pi-file-o",
+        name: "report_tax_journal3",
+        to: "/report/tax_journal3",
+      },
+      {
+        title: "ภาษีหัก ณ ที่จ่าย(ภ.ง.ด.53)",
+        icon: "pi pi-file-o",
+        name: "report_tax_journal53",
+        to: "/report/tax_journal53",
+      },
+      {
+        title:"ภาษีถูกหัก ณ ที่จ่าย",
+        icon:"pi pi-file-o",
+        name:"report_tax_journal_deduct",
+        to:"/report/tax_journal_deduct"
+      }
+
+
+    ],
+  },
+
 
 
   // //แบบใหม่
