@@ -2,7 +2,55 @@ import axios from 'axios';
 
 class ReportTaxVatService {
     constructor() {
-        this.baseUrl = import.meta.env.VUE_APP_REPORT_API || 'http://localhost:3345/';
+        // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
+        const apiUrl = import.meta.env.VUE_APP_API;
+        console.log("API URL from env:", apiUrl);
+        
+        // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
+        if (!apiUrl) {
+            // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
+            console.warn("API URL is not defined in environment. Using fallback URL.");
+            this.baseUrl = process.env.NODE_ENV === 'development' 
+                ? 'https://api.dev.dedepos.com/' 
+                : 'https://api.dedepos.com/';
+        } else {
+            this.baseUrl = apiUrl;
+            // เพิ่ม / ท้าย URL ถ้าไม่มี
+            if (!this.baseUrl.endsWith('/')) {
+                this.baseUrl += '/';
+            }
+        }
+        
+        console.log("Base URL initialized:", this.baseUrl);
+    }
+
+    /**
+     * สร้าง URL ที่ถูกต้องสำหรับการเรียก API
+     * @param {string} path - เส้นทาง API
+     * @returns {URL} - URL object ที่สร้างขึ้น
+     */
+    createApiUrl(path) {
+        // ตรวจสอบว่ามีการกำหนด baseUrl หรือไม่
+        if (!this.baseUrl) {
+            console.error("Base URL is not initialized");
+            throw new Error("API URL is not properly configured");
+        }
+
+        try {
+            // ลบ / ด้านหน้าของ path ถ้ามี
+            if (path.startsWith('/')) {
+                path = path.substring(1);
+            }
+            
+            // สร้าง URL เต็มรูปแบบ
+            const fullUrl = `${this.baseUrl}${path}`;
+            console.log("Creating API URL:", fullUrl);
+            
+            return new URL(fullUrl);
+        } catch (error) {
+            console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
+            throw new Error(`Invalid URL construction: ${error.message}`);
+        }
     }
 
     /**
@@ -12,13 +60,19 @@ class ReportTaxVatService {
      */
     async getVatReport(params) {
         try {
-            const url = new URL(`${this.baseUrl}apireport/journalvat/`);
+            // สร้าง URL ด้วย method ที่สร้างขึ้น
+            const url = this.createApiUrl('apireport/journalvat/');
 
             // เพิ่ม params ทั้งหมด
-            Object.keys(params).forEach(key => {
-                url.searchParams.append(key, params[key]);
-            });
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
 
+            console.log("Fetching VAT report from:", url.toString());
             const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
@@ -34,13 +88,18 @@ class ReportTaxVatService {
      */
     async generateVatReportPDF(params) {
         try {
-            const url = new URL(`${this.baseUrl}apireport/journalvat/genPDF`);
+            const url = this.createApiUrl('apireport/journalvat/genPDF');
 
             // เพิ่ม params ทั้งหมด
-            Object.keys(params).forEach(key => {
-                url.searchParams.append(key, params[key]);
-            });
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
 
+            console.log("Generating PDF from:", url.toString());
             const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
@@ -57,7 +116,13 @@ class ReportTaxVatService {
      */
     async checkJobStatus(jobId, fileName) {
         try {
-            const url = new URL(`${this.baseUrl}apireport/journalvat/check/${jobId}/${fileName}`);
+            if (!jobId || !fileName) {
+                throw new Error('Job ID and file name are required');
+            }
+
+            const url = this.createApiUrl(`apireport/journalvat/check/${jobId}/${fileName}`);
+            
+            console.log("Checking job status:", url.toString());
             const response = await axios.get(url.toString());
             return {
                 completed: response.data.success,
@@ -75,10 +140,22 @@ class ReportTaxVatService {
      * @param {string} fileName - ชื่อไฟล์
      */
     downloadVatReportPDF(jobId, fileName) {
-        const downloadUrl = `${this.baseUrl}apireport/journalvat/download/${jobId}/${fileName}`;
+        if (!jobId || !fileName) {
+            throw new Error('Job ID and file name are required');
+        }
 
-        // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
-        window.open(downloadUrl, '_blank');
+        try {
+            const url = this.createApiUrl(`apireport/journalvat/download/${jobId}/${fileName}`);
+            const downloadUrl = url.toString();
+            
+            console.log("Downloading PDF from:", downloadUrl);
+            
+            // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
+            window.open(downloadUrl, '_blank');
+        } catch (error) {
+            console.error('Error creating download URL:', error);
+            throw error;
+        }
     }
 
     /**
@@ -90,6 +167,10 @@ class ReportTaxVatService {
      * @returns {Promise} - Promise ที่ resolve เมื่อดาวน์โหลดเสร็จสิ้น
      */
     async waitForPDFAndDownload(jobId, fileName, maxAttempts = 15, interval = 2000) {
+        if (!jobId || !fileName) {
+            return Promise.reject(new Error('Job ID and file name are required'));
+        }
+
         let attempts = 0;
 
         return new Promise((resolve, reject) => {
@@ -101,20 +182,25 @@ class ReportTaxVatService {
                     }
 
                     attempts++;
+                    console.log(`Checking PDF status: Attempt ${attempts} of ${maxAttempts}`);
                     const status = await this.checkJobStatus(jobId, fileName);
 
                     if (status.completed) {
                         // เมื่อสร้าง PDF เสร็จ
+                        console.log("PDF generation completed. Downloading...");
                         this.downloadVatReportPDF(jobId, fileName);
                         resolve({ success: true, message: 'ดาวน์โหลด PDF สำเร็จ' });
                     } else if (status.message === "regenerated") {
                         // กรณีที่ไฟล์ถูกสร้างเสร็จแต่ไม่พบไฟล์ ต้องสั่งสร้างใหม่
+                        console.warn("PDF file not found. Need to regenerate.");
                         reject(new Error('ไม่พบไฟล์ PDF กรุณาลองใหม่อีกครั้ง'));
                     } else {
                         // ถ้ายังไม่เสร็จ รอแล้วลองใหม่
+                        console.log("PDF generation in progress. Waiting...");
                         setTimeout(checkJob, interval);
                     }
                 } catch (error) {
+                    console.error("Error while checking job status:", error);
                     reject(error);
                 }
             };
@@ -131,13 +217,19 @@ class ReportTaxVatService {
      */
     async generateAndDownloadPDF(params) {
         try {
+            console.log("Starting PDF generation with params:", params);
             const result = await this.generateVatReportPDF(params);
 
             if (result.success) {
                 const { jobId, fileName } = result.data;
+                console.log(`PDF generation initiated. Job ID: ${jobId}, File: ${fileName}`);
                 return await this.waitForPDFAndDownload(jobId, fileName);
             } else {
-                return { success: false, message: result.message || 'ไม่สามารถสร้างไฟล์ PDF ได้' };
+                console.error("Failed to generate PDF:", result.message);
+                return { 
+                    success: false, 
+                    message: result.message || 'ไม่สามารถสร้างไฟล์ PDF ได้' 
+                };
             }
         } catch (error) {
             console.error('Error in generate and download PDF:', error);
