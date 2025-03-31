@@ -386,14 +386,30 @@ const itemsPerPageOptions = [
   { label: "ทั้งหมด", value: 9999 },
 ];
 
+// กำหนดวันเริ่มต้นเป็นวันแรกของเดือนปัจจุบัน และตั้งเวลาเป็น 00:00:00
+const firstDayOfMonth = new Date(
+  new Date().getFullYear(),
+  new Date().getMonth(),
+  1
+);
+firstDayOfMonth.setHours(0, 0, 0, 0);
+
+// กำหนดวันสิ้นสุดเป็นวันสุดท้ายของเดือนปัจจุบัน และตั้งเวลาเป็น 23:59:59
+const lastDayOfMonth = new Date(
+  new Date().getFullYear(),
+  new Date().getMonth() + 1,
+  0
+);
+lastDayOfMonth.setHours(23, 59, 59, 999);
+
 // พารามิเตอร์สำหรับการค้นหา
 const searchParams = reactive({
   limit: 20,
   offset: 0,
   taxtype: 1,
   custtype: 1,
-  fromdate: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // วันแรกของเดือนปัจจุบัน
-  todate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0), // วันสุดท้ายของเดือนปัจจุบัน
+  fromdate: firstDayOfMonth, // วันแรกของเดือนปัจจุบัน เวลา 00:00:00
+  todate: lastDayOfMonth, // วันสุดท้ายของเดือนปัจจุบัน เวลา 23:59:59
   shopid: localStorage.shopid,
 });
 
@@ -420,7 +436,7 @@ const totalTaxAmount = computed(() => {
 
 // ชื่อรายงาน
 const reportTitle = computed(() => {
-  return "รายงานภาษีหัก ณ ที่จ่าย ภ.ง.ด.3";
+  return "รายงานภาษีหัก ณ ที่จ่าย ภ.ง.ด.53";
 });
 
 // การแบ่งหน้า
@@ -450,6 +466,24 @@ watch(itemsPerPage, () => {
   currentPage.value = 1;
 });
 
+// ตั้งค่าเวลาของวันที่เริ่มต้นเป็น 00:00:00
+const setFromDateTime = () => {
+  if (searchParams.fromdate) {
+    const fromDate = new Date(searchParams.fromdate);
+    fromDate.setHours(0, 0, 0, 0);
+    searchParams.fromdate = fromDate;
+  }
+};
+
+// ตั้งค่าเวลาของวันที่สิ้นสุดเป็น 23:59:59
+const setToDateTime = () => {
+  if (searchParams.todate) {
+    const toDate = new Date(searchParams.todate);
+    toDate.setHours(23, 59, 59, 999);
+    searchParams.todate = toDate;
+  }
+};
+
 // ฟังก์ชันเปิด dialog ค้นหา
 const openSearchDialog = () => {
   searchDialogVisible.value = true;
@@ -457,6 +491,9 @@ const openSearchDialog = () => {
 
 // ฟังก์ชันค้นหาและปิด dialog
 const searchAndCloseDialog = () => {
+  // ตั้งค่าเวลาก่อนที่จะส่งคำขอ
+  setFromDateTime();
+  setToDateTime();
   fetchData();
   searchDialogVisible.value = false;
 };
@@ -467,13 +504,19 @@ const generatePDF = async () => {
   pdfStatusVisible.value = true;
 
   try {
+    // ตั้งค่าเวลาก่อนที่จะส่งคำขอ
+    setFromDateTime();
+    setToDateTime();
+
     const params = {
       taxtype: searchParams.taxtype,
       custtype: searchParams.custtype,
-      fromdate: formatDateForAPI(searchParams.fromdate),
-      todate: formatDateForAPI(searchParams.todate),
+      fromdate: formatDateTimeForAPI(searchParams.fromdate),
+      todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
     };
+
+    console.log("Generating PDF with params:", params);
 
     const result = await ReportTaxJournalService.generateTaxReportPDF(params);
 
@@ -539,14 +582,24 @@ const generatePDF = async () => {
   }
 };
 
-// ฟอร์แมตวันที่สำหรับส่ง API (YYYY-MM-DD)
-const formatDateForAPI = (date) => {
+// ฟอร์แมตวันที่และเวลาสำหรับส่ง API (YYYY-MM-DD HH:MM:SS)
+const formatDateTimeForAPI = (date) => {
   if (!date) return "";
   const d = new Date(date);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+// ฟอร์แมตวันที่สำหรับส่ง API (YYYY-MM-DD) - ใช้ในกรณีที่ต้องการเฉพาะวันที่
+const formatDateForAPI = (date) => {
+  if (!date) return "";
+  const dateTime = formatDateTimeForAPI(date);
+  return dateTime.split(" ")[0]; // ตัดเอาเฉพาะส่วนวันที่
 };
 
 // ฟังก์ชันสำหรับดึงข้อมูล
@@ -558,10 +611,12 @@ const fetchData = async () => {
       offset: searchParams.offset,
       taxtype: searchParams.taxtype,
       custtype: searchParams.custtype,
-      fromdate: formatDateForAPI(searchParams.fromdate),
-      todate: formatDateForAPI(searchParams.todate),
+      fromdate: formatDateTimeForAPI(searchParams.fromdate),
+      todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
     };
+
+    console.log("Fetching data with params:", params);
 
     const result = await ReportTaxJournalService.getTaxReport(params);
 

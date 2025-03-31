@@ -456,6 +456,22 @@ const periods = [
   { label: "ธันวาคม", value: 12 },
 ];
 
+// ฟังก์ชันสำหรับคำนวณวันที่เริ่มต้นและสิ้นสุดของรอบภาษี
+const calculateTaxPeriodDates = () => {
+  const year = searchParams.year - 543; // แปลงจากปี พ.ศ. เป็น ค.ศ.
+  const month = searchParams.period - 1; // เดือนใน JavaScript เริ่มจาก 0
+  
+  // วันแรกของเดือน
+  const startDate = new Date(year, month, 1);
+  startDate.setHours(0, 0, 0, 0);
+  
+  // วันสุดท้ายของเดือน
+  const endDate = new Date(year, month + 1, 0);
+  endDate.setHours(23, 59, 59, 999);
+  
+  return { startDate, endDate };
+};
+
 // ฟังก์ชันเปิด dialog ค้นหา
 const openSearchDialog = () => {
   searchDialogVisible.value = true;
@@ -463,8 +479,34 @@ const openSearchDialog = () => {
 
 // ฟังก์ชันค้นหาและปิด dialog
 const searchAndCloseDialog = () => {
+  const { startDate, endDate } = calculateTaxPeriodDates();
+  
+  // เพิ่มข้อมูลวันที่เริ่มต้นและสิ้นสุดในพารามิเตอร์
+  searchParams.fromdate = startDate;
+  searchParams.todate = endDate;
+  
+  console.log("Search with period dates:", {
+    year: searchParams.year,
+    period: searchParams.period,
+    fromdate: formatDateTimeForAPI(startDate),
+    todate: formatDateTimeForAPI(endDate)
+  });
+  
   fetchData();
   searchDialogVisible.value = false;
+};
+
+// ฟอร์แมตวันที่และเวลาสำหรับส่ง API (YYYY-MM-DD HH:MM:SS)
+const formatDateTimeForAPI = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
 // ฟังก์ชันสร้าง PDF
@@ -473,12 +515,18 @@ const generatePDF = async () => {
   pdfStatusVisible.value = true;
 
   try {
+    const { startDate, endDate } = calculateTaxPeriodDates();
+    
     const params = {
       mode: TAX_MODE, // ใช้ค่าคงที่
       year: searchParams.year,
       period: searchParams.period,
+      fromdate: formatDateTimeForAPI(startDate),
+      todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
     };
+
+    console.log("Generating PDF with params:", params);
 
     const result = await reportTaxVatService.generateVatReportPDF(params);
 
@@ -548,14 +596,20 @@ const generatePDF = async () => {
 const fetchData = async () => {
   loading.value = true;
   try {
+    const { startDate, endDate } = calculateTaxPeriodDates();
+    
     const params = {
       limit: searchParams.limit,
       offset: searchParams.offset,
       mode: TAX_MODE, // ใช้ค่าคงที่
       year: searchParams.year,
       period: searchParams.period,
+      fromdate: formatDateTimeForAPI(startDate),
+      todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
     };
+
+    console.log("Fetching data with params:", params);
 
     const result = await reportTaxVatService.getVatReport(params);
 
