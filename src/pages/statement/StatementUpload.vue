@@ -216,30 +216,28 @@ async function uploadFile() {
       })
       .catch((error) => {
         loading.value = false;
-          if (
-            error.response.data.message ==
-            "Error reading PDF: No password given"
-          ) {
-            filepasswordValid.value = true;
-            isShowInputPassword.value = true;
-            toast.add({
-              severity: "warn",
-              summary: "แจ้งเตือน",
-              detail: "กรุณากรอกรหัสผ่าน",
-              life: 3000,
-            });
-          } else if (
-            error.response.data.message ==
-            "Error reading PDF: Incorrect Password"
-          ) {
-            filepasswordValid.value = true;
-            toast.add({
-              severity: "error",
-              summary: "แจ้งเตือน",
-              detail: "รหัสผ่านไม่ถูกต้อง",
-              life: 3000,
-            });
-          }
+        if (
+          error.response.data.message == "Error reading PDF: No password given"
+        ) {
+          filepasswordValid.value = true;
+          isShowInputPassword.value = true;
+          toast.add({
+            severity: "warn",
+            summary: "แจ้งเตือน",
+            detail: "กรุณากรอกรหัสผ่าน",
+            life: 3000,
+          });
+        } else if (
+          error.response.data.message == "Error reading PDF: Incorrect Password"
+        ) {
+          filepasswordValid.value = true;
+          toast.add({
+            severity: "error",
+            summary: "แจ้งเตือน",
+            detail: "รหัสผ่านไม่ถูกต้อง",
+            life: 3000,
+          });
+        }
       });
   } else {
     loading.value = false;
@@ -489,12 +487,58 @@ async function generateDoc() {
 function covertDateToService(data) {
   let dateString = data;
 
-  // Convert date format yyyy/mm/dd to ISO
-  let isoDate = new Date(
-    dateString.split("/").reverse().join("-") + "T00:00:00.000Z"
-  ).toISOString();
+  // ส่วนการจัดการพิเศษสำหรับธนาคารออมสิน (แปลงปีพุทธศักราชเป็นคริสตศักราช)
+  if (selectedBank.value.code === "gsb") {
+    // ตรวจสอบรูปแบบวันที่ว่าเป็น YYYY-MM-DD หรือ DD/MM/YYYY
+    if (dateString.includes("-")) {
+      // กรณีรูปแบบ YYYY-MM-DD (เช่น 2567-05-20)
+      const dateParts = dateString.split("-");
 
-  return isoDate;
+      // ตรวจสอบว่าปีเป็นปีพุทธศักราช (มากกว่า 2500)
+      if (dateParts[0].length === 4 && parseInt(dateParts[0]) > 2500) {
+        // แปลงปีพุทธศักราชเป็นคริสตศักราช (ลบด้วย 543)
+        const gregorianYear = parseInt(dateParts[0]) - 543;
+        // สร้างวันที่ใหม่ในรูปแบบ YYYY-MM-DD
+        dateString = `${gregorianYear}-${dateParts[1]}-${dateParts[2]}`;
+      }
+    } else if (dateString.includes("/")) {
+      // กรณีรูปแบบ DD/MM/YYYY
+      const dateParts = dateString.split("/");
+
+      // ตรวจสอบว่ามี 3 ส่วน (วัน/เดือน/ปี) และปีเป็นปีพุทธศักราช
+      if (
+        dateParts.length === 3 &&
+        dateParts[2].length === 4 &&
+        parseInt(dateParts[2]) > 2500
+      ) {
+        // แปลงปีพุทธศักราชเป็นคริสตศักราช
+        const gregorianYear = parseInt(dateParts[2]) - 543;
+        // สร้างวันที่ใหม่ในรูปแบบเดิม DD/MM/YYYY
+        dateString = `${dateParts[0]}/${dateParts[1]}/${gregorianYear}`;
+      }
+    }
+  }
+
+  // แปลงวันที่เป็นรูปแบบ ISO
+  try {
+    let isoDate;
+
+    if (dateString.includes("/")) {
+      // กรณีวันที่ในรูปแบบ DD/MM/YYYY แปลงเป็น YYYY-MM-DD
+      isoDate = new Date(
+        dateString.split("/").reverse().join("-") + "T00:00:00.000Z"
+      ).toISOString();
+    } else {
+      // กรณีวันที่ในรูปแบบ YYYY-MM-DD
+      isoDate = new Date(dateString + "T00:00:00.000Z").toISOString();
+    }
+
+    return isoDate;
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการแปลงวันที่:", error);
+    // ส่งคืนค่าวันที่ปัจจุบันในกรณีที่มีข้อผิดพลาด
+    return new Date().toISOString();
+  }
 }
 
 async function checkPeriod() {
