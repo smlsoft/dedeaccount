@@ -246,7 +246,7 @@
           <div class="p-float-label w-full">
             <Dropdown
               v-model="searchParams.accountcode"
-              :showClear="false"
+              :showClear="(searchParams.accountcode !== '') ? true : false"
               :filter="true"
               :filterFields="['accountcode', 'accountname']"
               field="accountcode"
@@ -272,7 +272,7 @@
           <div class="p-float-label w-full">
             <Dropdown
               v-model="searchParams.custcode"
-              :showClear="false"
+              :showClear="(searchParams.custcode !== '') ? true : false"
               :filter="true"
               :filterFields="['code', 'names']"
               field="code"
@@ -283,16 +283,9 @@
               optionValue="code"
               class="w-full"
               :inputStyle="{ height: '54px' }"
-              :class="{ 'p-invalid': submitted && !searchParams.custcode }"
-              aria-required="true"
             />
-            <label for="toDate"
-              >เจ้าหนี้ <span class="text-red-500">*</span></label
-            >
+            <label for="toDate">เจ้าหนี้ </label>
           </div>
-          <small v-if="submitted && !searchParams.custcode" class="p-error"
-            >กรุณาเลือกเจ้าหนี้</small
-          >
         </div>
       </div>
     </section>
@@ -525,16 +518,6 @@ const searchAndCloseDialog = () => {
       severity: "error",
       summary: "ข้อมูลไม่ครบถ้วน",
       detail: "กรุณาเลือกผังบัญชี",
-      life: 3000,
-    });
-    return;
-  }
-
-  if (!searchParams.custcode) {
-    toast.add({
-      severity: "error",
-      summary: "ข้อมูลไม่ครบถ้วน",
-      detail: "กรุณาเลือกเจ้าหนี้",
       life: 3000,
     });
     return;
