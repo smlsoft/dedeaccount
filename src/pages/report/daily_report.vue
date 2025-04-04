@@ -316,7 +316,6 @@ onMounted(async () => {
   getAccountChartList();
   getAccountGroupList();
   getDate();
-  getGLJournalList();
   storeApp.setPageTitle("รายงานข้อมูลรายวัน");
   storeApp.setActivePage("report_list");
   storeApp.setActiveChild("daily_report");

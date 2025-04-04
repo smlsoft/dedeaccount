@@ -649,7 +649,25 @@ export default [
       auth: true,
     },
     component: () => import("../pages/report/tax_journal_deduct.vue"),
-  }
+  },
+  /// รายงานสถานะ เจ้าหนี้
+  {
+    path: "/report/payable_report",
+    name: "payable_report",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/payable_report.vue"),
+  },
+  /// รายงานสถานะ ลูกหนี้
+  {
+    path: "/report/receivable_report",
+    name: "receivable_report",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/receivable_report.vue"),
+  },
 
 
 

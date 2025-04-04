@@ -181,6 +181,19 @@ export const menus = [
         name: "chart_report",
         to: "/report/chartreport",
       },
+      {
+        title: "รายงานสถานะเจ้าหนี้",
+        icon: "pi pi-chart-line",
+        name: "payable_report",
+        to: "/report/payable_report",
+      },
+      {
+        title: "รายงานสถานะลูกหนี้",
+        icon: "pi pi-chart-line",
+        name: "receivable_report",
+        to: "/report/receivable_report",
+      },
+
 
     ],
   },
@@ -217,10 +230,10 @@ export const menus = [
         to: "/report/tax_journal53",
       },
       {
-        title:"ภาษีถูกหัก ณ ที่จ่าย",
-        icon:"pi pi-file-o",
-        name:"report_tax_journal_deduct",
-        to:"/report/tax_journal_deduct"
+        title: "ภาษีถูกหัก ณ ที่จ่าย",
+        icon: "pi pi-file-o",
+        name: "report_tax_journal_deduct",
+        to: "/report/tax_journal_deduct"
       }
 
 

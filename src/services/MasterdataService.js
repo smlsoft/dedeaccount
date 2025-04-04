@@ -160,7 +160,7 @@ export default {
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
+        // console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
     getAccountledger(startdate, enddate, accountcode, custtype, custcode) {
