@@ -184,10 +184,10 @@ async function uploadFile() {
           let sumWithdraw = 0;
           pdfData.value.forEach((element) => {
             if (element.deposit != "") {
-              sumDeposit += parseFloat(element.deposit.replace(",", ""));
+              sumDeposit += parseFloat(element.deposit.replace(/,/g, ""));
             }
             if (element.withdraw != "") {
-              sumWithdraw += parseFloat(element.withdraw.replace(",", ""));
+              sumWithdraw += parseFloat(element.withdraw.replace(/,/g, ""));
             }
           });
 
