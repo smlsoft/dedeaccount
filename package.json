@@ -23,6 +23,7 @@
     "moment": "^2.29.3",
     "nodejs-websocket": "^1.7.2",
     "numeral": "^2.0.6",
+    "pdfjs-dist": "^5.1.91",
     "pdfmake": "^0.2.5",
     "pinia": "^2.0.13",
     "pinia-plugin-persist": "^1.0.0",

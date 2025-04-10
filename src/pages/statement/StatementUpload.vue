@@ -67,6 +67,8 @@ const bank_list = ref([
   },
 ]);
 
+const pdfViewerKey = ref(0);
+
 const uploadStatement = ref(true);
 const selectedBank = ref({
   code: "ktb",
@@ -89,6 +91,8 @@ const ramdomNumber = ref();
 const dialogSaveDaily = ref(false);
 const warringAccountperiod = ref(false);
 const isShowInputPassword = ref(false);
+let originalConsoleError;
+let pdfErrorDetected = false;
 // disable "Previous page" button
 const config = ref({
   sidebar: false,
@@ -127,12 +131,19 @@ const daily_config_valid = ref({
 const daily_form_bulk = ref([]);
 const isDailyPeriod = ref(true);
 
+const pdfDisplayError = ref(false);
+
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 onMounted(() => {
   storeApp.setPageTitle("อัพโหลด Statement");
   storeApp.setActivePage("statement_upload");
+  setupPdfErrorDetection();
+});
+
+onUnmounted(() => {
+  teardownPdfErrorDetection();
 });
 
 function modalSelectBank(data) {
@@ -215,9 +226,10 @@ async function uploadFile() {
         }, 500);
       })
       .catch((error) => {
+        console.log(error.response.data.message);
         loading.value = false;
         if (
-          error.response.data.message == "Error reading PDF: No password given"
+          error.response.data.message == "Error reading PDF: No password given or invalid password" || error.response.data.message == "Error reading PDF: PasswordException: No password given"
         ) {
           filepasswordValid.value = true;
           isShowInputPassword.value = true;
@@ -264,21 +276,120 @@ async function verifyData() {
   }
 }
 
-async function showViewerPDF(myFiles) {
-  const fileReader = new FileReader();
-  fileReader.readAsArrayBuffer(myFiles);
+function setupPdfErrorDetection() {
+  // บันทึก console.error ต้นฉบับ
+  originalConsoleError = console.error;
 
-  fileReader.onload = () => {
-    dataArrayBuffer.value = fileReader.result;
+  // แทนที่ console.error ด้วยฟังก์ชันของเรา
+  console.error = function () {
+    // เรียกใช้ console.error ดั้งเดิม
+    originalConsoleError.apply(console, arguments);
 
-    setTimeout(() => {
-      const inpPdfPwd = document.getElementById("password");
-      const btnPdfPwd = document.getElementById("passwordSubmit");
-
-      inpPdfPwd.value = filepassword.value;
-      btnPdfPwd.click();
-    }, 500);
+    // ตรวจสอบว่ามีข้อความเกี่ยวกับ PDF error หรือไม่
+    const errorString = Array.from(arguments).join(" ");
+    if (
+      errorString.includes("PDF") ||
+      errorString.includes("pdf") ||
+      errorString.includes("Invalid stream") ||
+      errorString.includes("FormatError") ||
+      errorString.includes("Unknown compression")
+    ) {
+      pdfErrorDetected = true;
+      // หากกำลังโหลด PDF อยู่ ให้แสดง overlay
+      if (dataArrayBuffer.value !== null) {
+        pdfDisplayError.value = true;
+      }
+    }
   };
+
+  // เพิ่ม event listener สำหรับข้อผิดพลาดที่ไม่ได้จับ
+  window.addEventListener("error", function (event) {
+    if (
+      event.message &&
+      (event.message.includes("PDF") ||
+        event.message.includes("pdf") ||
+        event.message.includes("updateCallback") ||
+        event.message.includes("overlay"))
+    ) {
+      pdfErrorDetected = true;
+      // หากกำลังโหลด PDF อยู่ ให้แสดง overlay
+      if (dataArrayBuffer.value !== null) {
+        pdfDisplayError.value = true;
+      }
+    }
+  });
+}
+
+function teardownPdfErrorDetection() {
+  if (originalConsoleError) {
+    console.error = originalConsoleError;
+  }
+}
+
+async function showViewerPDF(myFiles) {
+  // รีเซ็ตตัวแปรตรวจจับข้อผิดพลาด
+  pdfErrorDetected = false;
+  pdfDisplayError.value = false;
+
+  try {
+    const fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(myFiles);
+
+    fileReader.onload = () => {
+      try {
+        dataArrayBuffer.value = fileReader.result;
+
+        setTimeout(() => {
+          try {
+            const inpPdfPwd = document.getElementById("password");
+            const btnPdfPwd = document.getElementById("passwordSubmit");
+
+            if (inpPdfPwd && btnPdfPwd) {
+              inpPdfPwd.value = filepassword.value;
+              btnPdfPwd.click();
+
+              // ตรวจสอบข้อผิดพลาดหลังจากพยายามโหลด PDF
+              setTimeout(() => {
+                if (pdfErrorDetected) {
+                  pdfDisplayError.value = true;
+                  return;
+                }
+
+                // ตรวจสอบว่า PDF ถูกแสดงอย่างถูกต้องหรือไม่
+                const pdfPages = document.querySelectorAll(".page");
+                const pdfErrorElements =
+                  document.querySelectorAll(".pdf__error");
+
+                if (pdfErrorElements.length > 0 || pdfPages.length === 0) {
+                  pdfDisplayError.value = true;
+                }
+              }, 2000);
+            } else {
+              console.error("ไม่พบองค์ประกอบสำหรับใส่รหัสผ่าน PDF");
+              pdfDisplayError.value = true;
+            }
+          } catch (innerErr) {
+            console.error(
+              "เกิดข้อผิดพลาดเมื่อกำลังตั้งค่ารหัสผ่านหรือคลิกปุ่ม:",
+              innerErr
+            );
+            pdfDisplayError.value = true;
+          }
+        }, 500);
+      } catch (loadErr) {
+        console.error("เกิดข้อผิดพลาดระหว่างการโหลดไฟล์:", loadErr);
+        pdfDisplayError.value = true;
+      }
+    };
+
+    fileReader.onerror = (err) => {
+      console.error("เกิดข้อผิดพลาดในการอ่านไฟล์:", err);
+      pdfDisplayError.value = true;
+    };
+  } catch (err) {
+    console.error("เกิดข้อผิดพลาดที่ไม่คาดคิดใน showViewerPDF:", err);
+    pdfDisplayError.value = true;
+  }
 }
 
 function cancelStatement() {
@@ -287,10 +398,12 @@ function cancelStatement() {
   dataArrayBuffer.value = null;
   showDataListDaily.value = false;
   daily_form_bulk.value = [];
+  pdfDisplayError.value = false;
+  pdfErrorDetected = false;
+  pdfViewerKey.value++; // รีเซ็ต component VuePdfApp
 
   closeUploadStatement();
 }
-
 function configDaily() {
   modalConfigDaily.value = true;
 }
@@ -657,12 +770,35 @@ function createDaily() {
         <div class="surface-section flex-auto">
           <Splitter :style="screenHeight">
             <SplitterPanel :size="50" :minSize="40">
-              <VuePdfApp
-                v-if="dataArrayBuffer != null"
-                style="height: 78vh"
-                :pdf="dataArrayBuffer"
-                :config="config"
-              />
+              <!-- เพิ่ม container แบบ relative เพื่อรองรับ overlay -->
+              <div class="position-relative" style="height: 78vh">
+                <VuePdfApp
+                  v-if="dataArrayBuffer != null"
+                  :key="pdfViewerKey"
+                  style="height: 100%"
+                  :pdf="dataArrayBuffer"
+                  :config="config"
+                />
+
+                <!-- เพิ่ม overlay สำหรับแสดงข้อความเมื่อไม่สามารถแสดง PDF ได้ -->
+                <div
+                  v-if="pdfDisplayError && dataArrayBuffer != null"
+                  class="pdf-error-overlay"
+                >
+                  <div class="pdf-error-content">
+                    <i
+                      class="pi pi-file-pdf"
+                      style="font-size: 3rem; color: #f44336"
+                    ></i>
+                    <h3>ไม่สามารถแสดงไฟล์ PDF ได้</h3>
+                    <p>
+                      ไฟล์ PDF
+                      นี้มีการป้องกันด้วยรหัสผ่านหรือข้อจำกัดในการเข้าถึง<br />
+                      (ข้อมูลยังสามารถแสดงในตารางด้านขวาได้ตามปกติ)
+                    </p>
+                  </div>
+                </div>
+              </div>
             </SplitterPanel>
             <SplitterPanel :size="50">
               <div
@@ -840,5 +976,56 @@ function createDaily() {
 
 .tablepdf.p-datatable-table .p-datatable-tbody tr td {
   padding: 0rem 0rem;
+}
+
+#overlayContainer #passwordOverlay {
+  display: none;
+}
+
+#outerContainer {
+  z-index: 0000;
+}
+
+.tablepdf.p-datatable-table .p-datatable-tbody tr td {
+  padding: 0rem 0rem;
+}
+
+/* สไตล์สำหรับ overlay */
+.position-relative {
+  position: relative;
+}
+
+.pdf-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(245, 245, 245, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+
+.pdf-error-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 80%;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-error-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.pdf-error-content p {
+  color: #666;
+  margin-bottom: 1rem;
 }
 </style>
