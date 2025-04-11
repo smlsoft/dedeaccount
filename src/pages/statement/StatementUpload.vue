@@ -27,42 +27,42 @@ const storeApp = useApp();
 const bank_list = ref([
   {
     code: "ktb",
-    name: "ธนาคารกรุงไทย",
+    name: "กรุงไทย",
     logo: "ktb.png",
   },
   {
     code: "kma",
-    name: "ธนาคารกรุงศรีอยุธยา",
+    name: "กรุงศรีอยุธยา",
     logo: "kma.png",
   },
   {
     code: "ttb",
-    name: "ธนาคารทหารไทยธนชาต",
+    name: "ทหารไทยธนชาต",
     logo: "ttb.png",
   },
   {
     code: "uob",
-    name: "ธนาคารยูโอบี",
+    name: "ยูโอบี",
     logo: "uob.png",
   },
   {
     code: "kbank",
-    name: "ธนาคารกสิกรไทย",
+    name: "กสิกรไทย",
     logo: "kbank.png",
   },
   {
     code: "bbl",
-    name: "ธนาคารกรุงเทพ",
+    name: "กรุงเทพ",
     logo: "bbl.png",
   },
   {
     code: "scb",
-    name: "ธนาคารไทยพาณิชย์",
+    name: "ไทยพาณิชย์",
     logo: "scb.png",
   },
   {
     code: "gsb",
-    name: "ธนาคารออมสิน",
+    name: "ออมสิน",
     logo: "gsb.png",
   },
 ]);

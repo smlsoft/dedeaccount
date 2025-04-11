@@ -894,7 +894,7 @@ function onClose() {
       </div>
       <DialogForm :confirmDialog="confirmSaveDialog" :textContent="textContent" v-on:close="onClose"
         v-on:confirm="confirmSave"></DialogForm>
-      <!-- <Dialog v-model:visible="confirmSaveDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+      <!-- <Dialog v-model:visible="confirmSaveDialog" :style="{ width: '450px' }" header="แจ้งเตือน" :modal="true">
         <div class="confirmation-content">
           <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
           <span>ต้องการบันทึกเอกสารรายวันใช่หรือไม่ ?</span>

@@ -282,7 +282,7 @@ function sortBy(data) {
         v-on:close="onClosedelete"
         v-on:confirm="deleteDetail"
       ></DialogForm>
-      <!-- <Dialog v-model:visible="deleteDetailDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+      <!-- <Dialog v-model:visible="deleteDetailDialog" :style="{ width: '450px' }" header="แจ้งเตือน" :modal="true">
                 <div class="confirmation-content">
                     <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
                     <span>ต้องการลบสมุดรายวัน <b>{{ detail.accountcode }} ~ {{ detail.accountname }} </b>

@@ -186,7 +186,7 @@ function onPage(event) {
       <Dialog
         v-model:visible="deleteDetailDialog"
         :style="{ width: '450px' }"
-        header="Confirm"
+        header="แจ้งเตือน"
         :modal="true"
       >
         <div class="confirmation-content">

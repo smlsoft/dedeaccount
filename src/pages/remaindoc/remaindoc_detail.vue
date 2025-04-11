@@ -531,13 +531,13 @@ function isPositiveInteger(val) {
       <Dialog
         v-model:visible="deleteDetailDialog"
         :style="{ width: '450px' }"
-        header="Confirm"
+        header="แจ้งเตือน"
         :modal="true"
       >
         <div class="confirmation-content">
           <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
           <span
-            >Are you sure you want to delete
+            >คุณแน่ใจหรือไม่ที่จะลบ
             <b>{{ detail.accountname }}</b> ?</span
           >
         </div>

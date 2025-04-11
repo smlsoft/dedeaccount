@@ -48,6 +48,15 @@ const sumTableCredit = computed({
   },
 });
 
+// Add computed property for the difference between debit and credit
+const difference = computed({
+  get() {
+    const debit = parseFloat(sumTableDebit.value);
+    const credit = parseFloat(sumTableCredit.value);
+    return Math.abs(debit - credit).toFixed(2);
+  },
+});
+
 const props = defineProps({
   daily_form: Object,
   daily_form_valid: Object,
@@ -862,11 +871,15 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           </template>
         </Column>
 
+        <!-- Use footer of action columns to display the difference -->
         <Column
           header="ลบ"
           bodyStyle="text-align:center"
           style="width: 5%"
+          footerStyle="text-align: center !important; font-weight: bold; color: red;"
           v-if="!props.isUpdate"
+          :footerColSpan="2"
+          :footer="Utils.formatCurrency(difference)"
         >
           <template #body="slotProps">
             <Button
@@ -896,13 +909,13 @@ function navigateHorizontal(currentIndex, currentField, direction) {
   <Dialog
     v-model:visible="deleteDetailDialog"
     :style="{ width: '450px' }"
-    header="Confirm"
+    header="แจ้งเตือน"
     :modal="true"
   >
     <div class="confirmation-content">
       <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
       <span
-        >Are you sure you want to delete <b>{{ detail.accountname }}</b> ?</span
+        >คุณแน่ใจหรือไม่ที่จะลบ <b>{{ detail.accountname }}</b> ?</span
       >
     </div>
     <template #footer>

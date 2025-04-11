@@ -442,7 +442,7 @@ function resetZoomImage() {
   <Dialog
     :visible="confirmChangeImageDialog"
     :style="{ width: '450px' }"
-    header="Confirm"
+    header="แจ้งเตือน"
     :modal="true"
   >
     <div class="confirmation-content">

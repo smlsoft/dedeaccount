@@ -369,7 +369,7 @@ function checkDateFormat(index) {
   <!-- <Dialog
     v-model:visible="deleteDetailVatDialog"
     :style="{ width: '450px' }"
-    header="Confirm"
+    header="แจ้งเตือน"
     :modal="true"
   >
     <div class="confirmation-content">

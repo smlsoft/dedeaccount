@@ -13,7 +13,7 @@ const localInstance = axios.create({
 });
 
 // ตั้งค่าสำหรับเลือกว่าจะใช้ local หรือ production
-const USE_LOCAL_API = false; // ตั้งค่าเป็น true เพื่อทดสอบกับ localhost
+const USE_LOCAL_API = true; // ตั้งค่าเป็น true เพื่อทดสอบกับ localhost
 
 
 // export default {
