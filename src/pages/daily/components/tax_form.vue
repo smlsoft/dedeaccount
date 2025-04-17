@@ -2,8 +2,11 @@
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
 import DialogForm from "@/components/DialogForm.vue";
+import DatePicker from "@/components/widget/DatePicker.vue";
+
 const deleteDetailTaxDialog = ref(false);
 const del_data = ref({ data: null, index: 0 });
+const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 
 const conreject = ref("ต้องการลบข้อมูลภาษี");
 const sum_taxamount = computed({
@@ -199,11 +202,16 @@ function deleteDetailTableTax(data, index) {
       </div>
       <div class="field col-12 md:col-6">
         <label class="font-medium text-900">วันที่หัก ณ ที่จ่าย</label>
-        <Calendar
-          :disabled="props.isUpdate"
-          dateFormat="dd/mm/yy"
+        <DatePicker
+          dateFormat="d/m/yy"
           v-model="data.taxdate"
+          :modelValue="data.taxdate"
+          :showIcon="true"
+          :disabled="props.isUpdate"
           :class="props.taxes_valid[indexx].taxdate ? 'p-invalid' : ''"
+          :buddhist="buddhistYear"
+          :hideOnDateTimeSelect="true"
+          :hiddenTime="true"
         />
       </div>
       <div class="field col-12 md:col-6">

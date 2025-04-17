@@ -2,8 +2,11 @@
 import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
 import DialogForm from "@/components/DialogForm.vue";
+import DatePicker from "@/components/widget/DatePicker.vue";
+
 const deleteDetailVatDialog = ref(false);
 const vatvalue = ref("");
+const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 
 const del_data = ref({ data: null, index: 0 });
 const sum_vatbase = computed({
@@ -126,11 +129,16 @@ function handleVatPeriodInput(event, index) {
     <div class="grid formgrid p-fluid">
       <div class="field col-12 md:col-6">
         <label class="font-medium text-900">วันที่ใบกำกับ</label>
-        <Calendar
-          dateFormat="dd/mm/yy"
+        <DatePicker
+          dateFormat="d/m/yy"
           v-model="data.vatdate"
+          :modelValue="data.vatdate"
+          :showIcon="true"
           :disabled="props.isUpdate"
           :class="props.vats_valid[index].vatdate ? 'p-invalid' : ''"
+          :buddhist="buddhistYear"
+          :hideOnDateTimeSelect="true"
+          :hiddenTime="true"
         />
       </div>
       <div class="field col-12 md:col-6">

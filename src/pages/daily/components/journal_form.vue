@@ -48,12 +48,12 @@ const sumTableCredit = computed({
   },
 });
 
-// Add computed property for the difference between debit and credit
+// Update the difference computation to be debit - credit
 const difference = computed({
   get() {
     const debit = parseFloat(sumTableDebit.value);
     const credit = parseFloat(sumTableCredit.value);
-    return Math.abs(debit - credit).toFixed(2);
+    return (debit - credit).toFixed(2); // Changed from Math.abs to show the actual difference
   },
 });
 
@@ -876,10 +876,11 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           header="ลบ"
           bodyStyle="text-align:center"
           style="width: 5%"
-          footerStyle="text-align: center !important; font-weight: bold; color: red;"
+          footerStyle="text-align: center !important; font-weight: bold;"
           v-if="!props.isUpdate"
           :footerColSpan="2"
           :footer="Utils.formatCurrency(difference)"
+          :class="{ 'text-red-500': difference != '0.00' }"
         >
           <template #body="slotProps">
             <Button
