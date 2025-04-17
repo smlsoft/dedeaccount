@@ -54,6 +54,7 @@
                   <th class="text-center">เลขประจำตัวผู้เสียภาษี</th>
                   <th class="text-center">เลขที่หนังสือรับรอง</th>
                   <th class="text-center">ประเภทเงินได้ที่จ่าย</th>
+                  <th class="text-center">วันที่</th>
                   <th class="text-center">อัตราภาษี</th>
                   <th class="text-center">จำนวนเงินที่จ่ายในครั้งนี้</th>
                   <th class="text-center">ภาษีที่หักในครั้งนี้</th>
@@ -74,6 +75,9 @@
                         ? item.details[0].description
                         : ""
                     }}
+                  </td>
+                  <td class="text-center">
+                    {{ formatDateThai(item.taxdate) }}
                   </td>
                   <td class="text-center">
                     {{
@@ -100,7 +104,7 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="7" class="text-center">รวม</td>
+                  <td colspan="8" class="text-center">รวม</td>
                   <td class="text-right">{{ formatCurrency(totalTaxBase) }}</td>
                   <td class="text-right">
                     {{ formatCurrency(totalTaxAmount) }}

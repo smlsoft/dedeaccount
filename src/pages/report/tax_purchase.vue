@@ -352,13 +352,23 @@ const itemsPerPageOptions = [
   { label: "ทั้งหมด", value: 9999 },
 ];
 
+// Calculate current year in Buddhist Era and current month
+const getCurrentDate = () => {
+  const now = new Date();
+  const currentYear = now.getFullYear() + 543; // แปลงเป็นปี พ.ศ.
+  const currentMonth = now.getMonth() + 1; // เดือนใน JavaScript เริ่มจาก 0
+  return { currentYear, currentMonth };
+};
+
+const { currentYear, currentMonth } = getCurrentDate();
+
 // พารามิเตอร์สำหรับการค้นหา
 const searchParams = reactive({
   limit: 20,
   offset: 0,
   mode: TAX_MODE, // กำหนดค่าคงที่
-  year: 2568,
-  period: 3,
+  year: currentYear, // ใช้ปีปัจจุบัน
+  period: currentMonth, // ใช้เดือนปัจจุบัน
   shopid: localStorage.shopid,
 });
 
