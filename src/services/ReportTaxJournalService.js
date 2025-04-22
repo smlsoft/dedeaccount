@@ -11,7 +11,7 @@ class ReportTaxJournalService {
             // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
             console.warn("API URL is not defined in environment. Using fallback URL.");
             this.baseUrl = process.env.NODE_ENV === 'development' 
-                ? 'https://api.dev.dedepos.com/' 
+                ? 'http://localhost:3345/'
                 : 'https://api.dedepos.com/';
         } else {
             this.baseUrl = apiUrl;

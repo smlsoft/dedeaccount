@@ -5,13 +5,13 @@ class ReportTaxVatService {
         // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
         const apiUrl = import.meta.env.VUE_APP_API;
         console.log("API URL from env:", apiUrl);
-        
+
         // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
         if (!apiUrl) {
             // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
             console.warn("API URL is not defined in environment. Using fallback URL.");
-            this.baseUrl = process.env.NODE_ENV === 'development' 
-                ? 'https://api.dev.dedepos.com/' 
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:3345/'
                 : 'https://api.dedepos.com/';
         } else {
             this.baseUrl = apiUrl;
@@ -20,7 +20,7 @@ class ReportTaxVatService {
                 this.baseUrl += '/';
             }
         }
-        
+
         console.log("Base URL initialized:", this.baseUrl);
     }
 
@@ -41,11 +41,11 @@ class ReportTaxVatService {
             if (path.startsWith('/')) {
                 path = path.substring(1);
             }
-            
+
             // สร้าง URL เต็มรูปแบบ
             const fullUrl = `${this.baseUrl}${path}`;
             console.log("Creating API URL:", fullUrl);
-            
+
             return new URL(fullUrl);
         } catch (error) {
             console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
@@ -121,7 +121,7 @@ class ReportTaxVatService {
             }
 
             const url = this.createApiUrl(`apireport/journalvat/check/${jobId}/${fileName}`);
-            
+
             console.log("Checking job status:", url.toString());
             const response = await axios.get(url.toString());
             return {
@@ -147,9 +147,9 @@ class ReportTaxVatService {
         try {
             const url = this.createApiUrl(`apireport/journalvat/download/${jobId}/${fileName}`);
             const downloadUrl = url.toString();
-            
+
             console.log("Downloading PDF from:", downloadUrl);
-            
+
             // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
             window.open(downloadUrl, '_blank');
         } catch (error) {
@@ -170,6 +170,7 @@ class ReportTaxVatService {
         if (!jobId || !fileName) {
             return Promise.reject(new Error('Job ID and file name are required'));
         }
+        console.log(`เริ่มตรวจสอบ PDF: jobId=${jobId}, fileName=${fileName}`); // เพิ่มบรรทัดนี้
 
         let attempts = 0;
 
@@ -222,13 +223,15 @@ class ReportTaxVatService {
 
             if (result.success) {
                 const { jobId, fileName } = result.data;
+                console.log("ข้อมูลที่ได้รับจาก API:", result.data);
+                console.log(`ชื่อไฟล์ที่ได้รับจาก API: ${fileName}`);
                 console.log(`PDF generation initiated. Job ID: ${jobId}, File: ${fileName}`);
                 return await this.waitForPDFAndDownload(jobId, fileName);
             } else {
                 console.error("Failed to generate PDF:", result.message);
-                return { 
-                    success: false, 
-                    message: result.message || 'ไม่สามารถสร้างไฟล์ PDF ได้' 
+                return {
+                    success: false,
+                    message: result.message || 'ไม่สามารถสร้างไฟล์ PDF ได้'
                 };
             }
         } catch (error) {
