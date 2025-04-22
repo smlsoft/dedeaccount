@@ -370,6 +370,7 @@ const searchParams = reactive({
   year: currentYear, // ใช้ปีปัจจุบัน
   period: currentMonth, // ใช้เดือนปัจจุบัน
   shopid: localStorage.shopid,
+  shopname: shopName,
 });
 
 // คำนวณผลรวม
@@ -534,6 +535,7 @@ const generatePDF = async () => {
       fromdate: formatDateTimeForAPI(startDate),
       todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
+      shopname: searchParams.shopname,
     };
 
     console.log("Generating PDF with params:", params);
@@ -617,6 +619,7 @@ const fetchData = async () => {
       fromdate: formatDateTimeForAPI(startDate),
       todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
+      shopname: searchParams.shopname,
     };
 
     console.log("Fetching data with params:", params);

@@ -415,6 +415,7 @@ const searchParams = reactive({
   fromdate: firstDayOfMonth, // วันแรกของเดือนปัจจุบัน เวลา 00:00:00
   todate: lastDayOfMonth, // วันสุดท้ายของเดือนปัจจุบัน เวลา 23:59:59
   shopid: localStorage.shopid,
+  shopname: localStorage.shop_name,
 });
 
 // คำนวณผลรวม
@@ -518,6 +519,7 @@ const generatePDF = async () => {
       fromdate: formatDateTimeForAPI(searchParams.fromdate),
       todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
+      shopname: searchParams.shopname,
     };
 
     console.log("Generating PDF with params:", params);
@@ -618,6 +620,7 @@ const fetchData = async () => {
       fromdate: formatDateTimeForAPI(searchParams.fromdate),
       todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
+      shopname: searchParams.shopname,
     };
 
     console.log("Fetching data with params:", params);
