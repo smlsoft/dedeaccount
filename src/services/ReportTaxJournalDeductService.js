@@ -5,13 +5,13 @@ class ReportTaxJournalDeductService {
         // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
         const apiUrl = import.meta.env.VUE_APP_API;
         console.log("API URL from env:", apiUrl);
-        
+
         // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
         if (!apiUrl) {
             // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
             console.warn("API URL is not defined in environment. Using fallback URL.");
-            this.baseUrl = process.env.NODE_ENV === 'development' 
-                ? 'https://api.dev.dedepos.com/'
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:3345/'
                 : 'https://api.dedepos.com/';
         } else {
             this.baseUrl = apiUrl;
@@ -20,7 +20,7 @@ class ReportTaxJournalDeductService {
                 this.baseUrl += '/';
             }
         }
-        
+
         console.log("Base URL initialized:", this.baseUrl);
     }
 
@@ -41,11 +41,11 @@ class ReportTaxJournalDeductService {
             if (path.startsWith('/')) {
                 path = path.substring(1);
             }
-            
+
             // สร้าง URL เต็มรูปแบบ
             const fullUrl = `${this.baseUrl}${path}`;
             console.log("Creating API URL:", fullUrl);
-            
+
             return new URL(fullUrl);
         } catch (error) {
             console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
@@ -73,7 +73,9 @@ class ReportTaxJournalDeductService {
             }
 
             console.log("Fetching tax report from:", url.toString());
-            const response = await axios.get(url.toString());
+            const response = await axios.get(url.toString(), {
+                timeout: 30000 // 30 วินาที
+            });
             return response.data;
         } catch (error) {
             console.error('Error fetching Tax report:', error);
@@ -100,7 +102,9 @@ class ReportTaxJournalDeductService {
             }
 
             console.log("Generating PDF from:", url.toString());
-            const response = await axios.get(url.toString());
+            const response = await axios.get(url.toString(), {
+                timeout: 30000 // 30 วินาที
+            });
             return response.data;
         } catch (error) {
             console.error('Error generating Tax report PDF:', error);
@@ -121,14 +125,31 @@ class ReportTaxJournalDeductService {
             }
 
             const url = this.createApiUrl(`apireport/journaltaxdeduct/check/${jobId}/${fileName}`);
-            
+
             console.log("Checking job status:", url.toString());
-            const response = await axios.get(url.toString());
+
+            // เพิ่ม timeout สำหรับการตรวจสอบสถานะงาน
+            const response = await axios.get(url.toString(), {
+                timeout: 15000 // 15 วินาที
+            });
+
             return {
                 completed: response.data.success,
                 ...response.data
             };
         } catch (error) {
+            // จัดการกรณี timeout หรือ server error
+            if (error.code === 'ECONNABORTED') {
+                console.warn('Request timeout, server might be processing. Will retry.');
+                return { completed: false, message: "PDF generation in progress (timeout)" };
+            }
+
+            // กรณี server error (500)
+            if (error.response && error.response.status === 500) {
+                console.warn('Server error (500), assuming PDF is still processing');
+                return { completed: false, message: "PDF generation in progress (server busy)" };
+            }
+
             console.error('Error checking job status:', error);
             throw error;
         }
@@ -147,9 +168,9 @@ class ReportTaxJournalDeductService {
         try {
             const url = this.createApiUrl(`apireport/journaltaxdeduct/download/${jobId}/${fileName}`);
             const downloadUrl = url.toString();
-            
+
             console.log("Downloading PDF from:", downloadUrl);
-            
+
             // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
             window.open(downloadUrl, '_blank');
         } catch (error) {
@@ -162,16 +183,20 @@ class ReportTaxJournalDeductService {
      * รอให้ PDF ถูกสร้างเสร็จก่อนดาวน์โหลด
      * @param {string} jobId - รหัสงาน
      * @param {string} fileName - ชื่อไฟล์ PDF
-     * @param {number} maxAttempts - จำนวนครั้งสูงสุดที่จะลองตรวจสอบ (default: 15)
-     * @param {number} interval - ช่วงเวลาระหว่างการตรวจสอบในมิลลิวินาที (default: 2000)
+     * @param {number} maxAttempts - จำนวนครั้งสูงสุดที่จะลองตรวจสอบ
+     * @param {number} interval - ช่วงเวลาระหว่างการตรวจสอบ (ms)
      * @returns {Promise} - Promise ที่ resolve เมื่อดาวน์โหลดเสร็จสิ้น
      */
-    async waitForPDFAndDownload(jobId, fileName, maxAttempts = 15, interval = 2000) {
+    async waitForPDFAndDownload(jobId, fileName, maxAttempts = 20, interval = 3000) {
         if (!jobId || !fileName) {
             return Promise.reject(new Error('Job ID and file name are required'));
         }
 
+        console.log(`เริ่มตรวจสอบ PDF: jobId=${jobId}, fileName=${fileName}`);
+
         let attempts = 0;
+        // ตัวแปรสำหรับเพิ่มเวลารอแบบเลื่อนตัว (exponential backoff)
+        let currentInterval = interval;
 
         return new Promise((resolve, reject) => {
             const checkJob = async () => {
@@ -182,26 +207,54 @@ class ReportTaxJournalDeductService {
                     }
 
                     attempts++;
-                    console.log(`Checking PDF status: Attempt ${attempts} of ${maxAttempts}`);
-                    const status = await this.checkJobStatus(jobId, fileName);
+                    console.log(`Checking PDF status: Attempt ${attempts} of ${maxAttempts} (interval: ${currentInterval}ms)`);
 
-                    if (status.completed) {
-                        // เมื่อสร้าง PDF เสร็จ
-                        console.log("PDF generation completed. Downloading...");
-                        this.downloadTaxReportPDF(jobId, fileName);
-                        resolve({ success: true, message: 'ดาวน์โหลด PDF สำเร็จ' });
-                    } else if (status.message === "regenerated") {
-                        // กรณีที่ไฟล์ถูกสร้างเสร็จแต่ไม่พบไฟล์ ต้องสั่งสร้างใหม่
-                        console.warn("PDF file not found. Need to regenerate.");
-                        reject(new Error('ไม่พบไฟล์ PDF กรุณาลองใหม่อีกครั้ง'));
-                    } else {
-                        // ถ้ายังไม่เสร็จ รอแล้วลองใหม่
-                        console.log("PDF generation in progress. Waiting...");
-                        setTimeout(checkJob, interval);
+                    try {
+                        const status = await this.checkJobStatus(jobId, fileName);
+
+                        if (status.completed) {
+                            // เมื่อสร้าง PDF เสร็จ
+                            console.log("PDF generation completed. Downloading...");
+                            this.downloadTaxReportPDF(jobId, fileName);
+                            resolve({ success: true, message: 'ดาวน์โหลด PDF สำเร็จ' });
+                        } else if (status.message === "File needs to be regenerated" || status.message === "regenerated") {
+                            // กรณีที่ไฟล์ถูกสร้างเสร็จแต่ไม่พบไฟล์ ต้องสั่งสร้างใหม่
+                            console.warn("PDF file not found. Need to regenerate.");
+                            reject(new Error('ไม่พบไฟล์ PDF กรุณาลองใหม่อีกครั้ง'));
+                        } else {
+                            // ถ้ายังไม่เสร็จ รอแล้วลองใหม่
+                            console.log("PDF generation in progress. Waiting...");
+
+                            // ถ้าเป็น server error หรือ timeout ให้เพิ่มเวลารอ
+                            if (status.message && (status.message.includes('timeout') || status.message.includes('server busy'))) {
+                                currentInterval = Math.min(currentInterval * 1.5, 10000); // เพิ่มเวลารอแต่ไม่เกิน 10 วินาที
+                            }
+
+                            setTimeout(checkJob, currentInterval);
+                        }
+                    } catch (error) {
+                        console.error("Error during status check:", error.message);
+
+                        // เพิ่มเวลารอเมื่อเกิดข้อผิดพลาด
+                        currentInterval = Math.min(currentInterval * 1.5, 10000);
+
+                        if (attempts < maxAttempts) {
+                            console.log(`Will retry in ${currentInterval}ms...`);
+                            setTimeout(checkJob, currentInterval);
+                        } else {
+                            reject(error);
+                        }
                     }
-                } catch (error) {
-                    console.error("Error while checking job status:", error);
-                    reject(error);
+                } catch (generalError) {
+                    console.error("General error while checking job status:", generalError);
+
+                    if (attempts < maxAttempts) {
+                        // ลองใหม่ในกรณีข้อผิดพลาดทั่วไป
+                        currentInterval = Math.min(currentInterval * 1.5, 10000);
+                        setTimeout(checkJob, currentInterval);
+                    } else {
+                        reject(generalError);
+                    }
                 }
             };
 
@@ -211,24 +264,54 @@ class ReportTaxJournalDeductService {
     }
 
     /**
-     * สร้างและดาวน์โหลด PDF รายงานภาษี (ฟังก์ชันรวมในขั้นตอนเดียว)
+     * สร้างและดาวน์โหลด PDF รายงานภาษี
      * @param {Object} params - พารามิเตอร์สำหรับการสร้าง PDF
      * @returns {Promise} - Promise ที่ resolve เมื่อเริ่มดาวน์โหลด
      */
     async generateAndDownloadPDF(params) {
         try {
             console.log("Starting PDF generation with params:", params);
-            const result = await this.generateTaxReportPDF(params);
 
-            if (result.success) {
+            // เพิ่ม retry logic สำหรับการสร้าง PDF
+            let retryCount = 0;
+            const maxRetries = 3;
+            let result;
+
+            while (retryCount < maxRetries) {
+                try {
+                    result = await this.generateTaxReportPDF(params);
+                    break; // ถ้าสำเร็จให้ออกจาก loop
+                } catch (error) {
+                    retryCount++;
+                    console.warn(`Error generating PDF, attempt ${retryCount} of ${maxRetries}:`, error.message);
+
+                    if (retryCount >= maxRetries) {
+                        throw error; // โยนข้อผิดพลาดหลังจากลองครบตามจำนวนที่กำหนด
+                    }
+
+                    // รอสักครู่ก่อนลองใหม่
+                    await new Promise(resolve => setTimeout(resolve, 3000 * retryCount));
+                }
+            }
+
+            if (result && result.success) {
                 const { jobId, fileName } = result.data;
                 console.log(`PDF generation initiated. Job ID: ${jobId}, File: ${fileName}`);
-                return await this.waitForPDFAndDownload(jobId, fileName);
+
+                // สร้างการทำงานแบบ race condition ระหว่างการรอ PDF และ timeout
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('PDF generation timeout after 3 minutes')), 180000);
+                });
+
+                return await Promise.race([
+                    this.waitForPDFAndDownload(jobId, fileName),
+                    timeoutPromise
+                ]);
             } else {
-                console.error("Failed to generate PDF:", result.message);
+                console.error("Failed to generate PDF:", result ? result.message : "No result");
                 return {
                     success: false,
-                    message: result.message || 'ไม่สามารถสร้างไฟล์ PDF ได้'
+                    message: result && result.message ? result.message : 'ไม่สามารถสร้างไฟล์ PDF ได้'
                 };
             }
         } catch (error) {

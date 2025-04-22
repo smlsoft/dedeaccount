@@ -5,13 +5,13 @@ class ReportTaxJournalService {
         // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
         const apiUrl = import.meta.env.VUE_APP_API;
         console.log("API URL from env:", apiUrl);
-        
+
         // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
         if (!apiUrl) {
             // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
             console.warn("API URL is not defined in environment. Using fallback URL.");
-            this.baseUrl = process.env.NODE_ENV === 'development' 
-                ? 'https://api.dev.dedepos.com/'
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:3345/'
                 : 'https://api.dedepos.com/';
         } else {
             this.baseUrl = apiUrl;
@@ -20,7 +20,7 @@ class ReportTaxJournalService {
                 this.baseUrl += '/';
             }
         }
-        
+
         console.log("Base URL initialized:", this.baseUrl);
     }
 
@@ -41,11 +41,11 @@ class ReportTaxJournalService {
             if (path.startsWith('/')) {
                 path = path.substring(1);
             }
-            
+
             // สร้าง URL เต็มรูปแบบ
             const fullUrl = `${this.baseUrl}${path}`;
             console.log("Creating API URL:", fullUrl);
-            
+
             return new URL(fullUrl);
         } catch (error) {
             console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
@@ -121,19 +121,35 @@ class ReportTaxJournalService {
             }
 
             const url = this.createApiUrl(`apireport/journaltax/check/${jobId}/${fileName}`);
-            
+
             console.log("Checking job status:", url.toString());
-            const response = await axios.get(url.toString());
+
+            // เพิ่ม timeout และ retry options
+            const response = await axios.get(url.toString(), {
+                timeout: 10000, // 10 วินาที
+                retry: 3,
+                retryDelay: 1000,
+                retryCondition: (error) => {
+                    return error.code === 'ECONNABORTED' ||
+                        (error.response && error.response.status >= 500);
+                }
+            });
+
             return {
                 completed: response.data.success,
                 ...response.data
             };
         } catch (error) {
+            // จัดการ error เฉพาะ timeout
+            if (error.code === 'ECONNABORTED') {
+                console.warn('Request timeout, server might be processing. Will retry.');
+                return { completed: false, message: "PDF generation in progress (timeout)" };
+            }
+
             console.error('Error checking job status:', error);
             throw error;
         }
     }
-
     /**
      * ดาวน์โหลดไฟล์ PDF รายงานภาษี
      * @param {string} jobId - รหัสงาน PDF
@@ -147,9 +163,9 @@ class ReportTaxJournalService {
         try {
             const url = this.createApiUrl(`apireport/journaltax/download/${jobId}/${fileName}`);
             const downloadUrl = url.toString();
-            
+
             console.log("Downloading PDF from:", downloadUrl);
-            
+
             // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
             window.open(downloadUrl, '_blank');
         } catch (error) {
@@ -166,10 +182,12 @@ class ReportTaxJournalService {
      * @param {number} interval - ช่วงเวลาระหว่างการตรวจสอบในมิลลิวินาที (default: 2000)
      * @returns {Promise} - Promise ที่ resolve เมื่อดาวน์โหลดเสร็จสิ้น
      */
-    async waitForPDFAndDownload(jobId, fileName, maxAttempts = 15, interval = 2000) {
+    async waitForPDFAndDownload(jobId, fileName, maxAttempts = 20, interval = 3000) {
+        // เพิ่มจำนวนครั้งการลองและระยะเวลารอ
         if (!jobId || !fileName) {
             return Promise.reject(new Error('Job ID and file name are required'));
         }
+        console.log(`เริ่มตรวจสอบ PDF: jobId=${jobId}, fileName=${fileName}`);
 
         let attempts = 0;
 
@@ -183,25 +201,41 @@ class ReportTaxJournalService {
 
                     attempts++;
                     console.log(`Checking PDF status: Attempt ${attempts} of ${maxAttempts}`);
-                    const status = await this.checkJobStatus(jobId, fileName);
 
-                    if (status.completed) {
-                        // เมื่อสร้าง PDF เสร็จ
-                        console.log("PDF generation completed. Downloading...");
-                        this.downloadTaxReportPDF(jobId, fileName);
-                        resolve({ success: true, message: 'ดาวน์โหลด PDF สำเร็จ' });
-                    } else if (status.message === "regenerated") {
-                        // กรณีที่ไฟล์ถูกสร้างเสร็จแต่ไม่พบไฟล์ ต้องสั่งสร้างใหม่
-                        console.warn("PDF file not found. Need to regenerate.");
-                        reject(new Error('ไม่พบไฟล์ PDF กรุณาลองใหม่อีกครั้ง'));
-                    } else {
-                        // ถ้ายังไม่เสร็จ รอแล้วลองใหม่
-                        console.log("PDF generation in progress. Waiting...");
-                        setTimeout(checkJob, interval);
+                    try {
+                        const status = await this.checkJobStatus(jobId, fileName);
+
+                        if (status.completed) {
+                            // เมื่อสร้าง PDF เสร็จ
+                            console.log("PDF generation completed. Downloading...");
+                            this.downloadTaxReportPDF(jobId, fileName);
+                            resolve({ success: true, message: 'ดาวน์โหลด PDF สำเร็จ' });
+                        } else if (status.message === "regenerated") {
+                            // กรณีที่ไฟล์ถูกสร้างเสร็จแต่ไม่พบไฟล์ ต้องสั่งสร้างใหม่
+                            console.warn("PDF file not found. Need to regenerate.");
+                            reject(new Error('ไม่พบไฟล์ PDF กรุณาลองใหม่อีกครั้ง'));
+                        } else {
+                            // ถ้ายังไม่เสร็จ รอแล้วลองใหม่
+                            console.log("PDF generation in progress. Waiting...");
+                            setTimeout(checkJob, interval);
+                        }
+                    } catch (error) {
+                        console.error("Error during status check:", error.message);
+
+                        // เพิ่มการตรวจสอบว่าเป็น error 500 หรือไม่
+                        if (error.response && error.response.status === 500) {
+                            console.log(`Server error (500), waiting longer before retry (attempt ${attempts})...`);
+                            // เพิ่มเวลารอมากขึ้นเมื่อเกิด error 500
+                            setTimeout(checkJob, interval * 2);
+                        } else {
+                            // ลองใหม่ตามปกติสำหรับข้อผิดพลาดอื่นๆ
+                            setTimeout(checkJob, interval);
+                        }
                     }
-                } catch (error) {
-                    console.error("Error while checking job status:", error);
-                    reject(error);
+                } catch (generalError) {
+                    console.error("General error while checking job status:", generalError);
+                    // ลองใหม่แม้เกิดข้อผิดพลาดทั่วไป
+                    setTimeout(checkJob, interval);
                 }
             };
 
