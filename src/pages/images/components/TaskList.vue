@@ -257,8 +257,8 @@
         </div>
         <div class="flex-1 flex align-items-center justify-content-center">
           <Paginator
-            :rows="20"
-            v-model:first="props.firstPage"
+            :rows="rowsPerPage"
+            v-model:first="first"
             :totalRecords="props.totalItemsCount"
             @page="onPage($event)"
             :rowsPerPageOptions="[20, 50, 100]"
@@ -271,8 +271,7 @@
             <InputText
               v-model="searchText"
               placeholder="ค้นหา...."
-              @keyup="keyup()"
-              @keydown="keydown()"
+              @input="onSearchInput"
             />
           </span>
         </div>
@@ -283,9 +282,21 @@
   </DataTable>
 </template>
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import Utils from "@/utils/";
-const searchText = ref(props.filters);
+
+const searchText = ref(props.filters || "");
+const first = ref(props.firstPage || 0);
+const rowsPerPage = ref(20);
+
+// Watch for changes in props to update local state
+watch(() => props.firstPage, (newValue) => {
+  first.value = newValue;
+});
+
+watch(() => props.filters, (newValue) => {
+  searchText.value = newValue || "";
+});
 
 const totalDocumentStatusColumn = (rowData) => {
   let total = 0;
@@ -297,7 +308,28 @@ const totalDocumentStatusColumn = (rowData) => {
   return total;
 };
 
-onMounted(() => {});
+onMounted(() => {
+  // ตรวจสอบ modeMenu และดึงค่า perPage จาก localStorage ตาม mode
+  if (props.modeMenu === 1) { // upload
+    const savedPerPage = localStorage.getItem('images_job_upload_perPage');
+    if (savedPerPage) {
+      rowsPerPage.value = parseInt(savedPerPage);
+    }
+  } else if (props.modeMenu === 2) { // approve
+    const savedPerPage = localStorage.getItem('images_job_approve_perPage');
+    if (savedPerPage) {
+      rowsPerPage.value = parseInt(savedPerPage);
+    }
+  } else if (props.modeMenu === 3) { // daily
+    const savedPerPage = localStorage.getItem('images_job_daily_perPage');
+    if (savedPerPage) {
+      rowsPerPage.value = parseInt(savedPerPage);
+    }
+  }
+  
+  first.value = props.firstPage || 0;
+  searchText.value = props.filters || "";
+});
 
 //modeMenu
 // 1 = เมนู upload image
@@ -333,6 +365,16 @@ function showDialogConfigJob(data) {
   emit("showDialogConfigJob", data);
 }
 
+function onSearchInput(event) {
+  // Add debounce for search input to prevent too many requests
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    emit("keyup", searchText.value);
+  }, 300);
+}
+
+let searchTimeout = null;
+
 function keyup() {
   emit("keyup", searchText.value);
 }
@@ -360,9 +402,10 @@ function textstatus(data) {
 }
 
 function onPage(event) {
-  let activePage = event.page + 1;
-  let limitPage = event.rows;
-  emit("onPage", activePage, limitPage);
+  rowsPerPage.value = event.rows;
+  first.value = event.first;
+  let activePage = Math.floor(event.first / event.rows) + 1;
+  emit("onPage", activePage, event.rows);
 }
 </script>
 <style>

@@ -1,7 +1,7 @@
 <script setup>
 import AuthenService from "@/services/AuthenService";
 import { useApp } from "@/stores/app.js";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { menus } from "@/api/menu";
 import { useToast } from "primevue/usetoast";
 import { useRouter } from "vue-router";
@@ -10,6 +10,7 @@ import slideMenu from "@/components/layout/SlideMenu.vue";
 import topMenu from "@/components/layout/TopBar.vue";
 import getListShop from "@/components/ListShop.vue";
 import { getAuth, signOut } from "firebase/auth";
+import AppNavigation from "@/utils/app_navigation";
 
 const auth = getAuth();
 const storeApp = useApp();
@@ -128,6 +129,14 @@ function createShopScuuess(status) {
     openSelectShop();
   }
 }
+
+// Add a watch on the active menu item
+watch(() => storeApp.activePage, (newActivePage, oldActivePage) => {
+  if (newActivePage !== oldActivePage) {
+    // When changing main menu, clear all pagination states
+    AppNavigation.cleanupPaginationState();
+  }
+});
 </script>
 
 <template>

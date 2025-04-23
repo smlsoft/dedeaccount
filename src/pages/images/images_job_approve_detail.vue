@@ -1209,6 +1209,43 @@ async function saveComment(id, data, index) {
     });
   }
 }
+
+async function updateStatusForAllSelected(statusCode) {
+  if (selectedImg.length === 0) {
+    return;
+  }
+  
+  // Show loading state for selected images
+  for (const item of selectedImg.value) {
+    data_list.value.filter(function (ele) {
+      if (ele.guidfixed === item.guidfixed) {
+        ele.status = 99; // Loading state
+      }
+    });
+  }
+  
+  // Update status for each selected document
+  for (const item of selectedImg.value) {
+    await updateStatus(item.guidfixed, statusCode);
+  }
+  
+  // Update UI with new status
+  setTimeout(() => {
+    for (const item of selectedImg.value) {
+      data_list.value.filter(function (ele) {
+        if (ele.guidfixed === item.guidfixed) {
+          ele.status = statusCode;
+        }
+      });
+    } 
+    
+    removeSelectedImg();
+    checkImageApprove();
+    selectedDocument(false);
+  }, 300);
+  
+
+}
 </script>
 <template>
   <AppLayout>
@@ -1371,6 +1408,35 @@ async function saveComment(id, data, index) {
               <div
                 class="flex flex-wrap align-items-center justify-content-center"
               >
+                <!-- Add status change buttons above the TransitionGroup -->
+                <div v-if="selectedImg.length > 0 && ischeckApprove" class="w-full mb-2 flex justify-content-center">
+                  <span class="p-buttonset">
+                    <Button 
+                      label="ผ่าน" 
+                      icon="pi pi-check-circle" 
+                      class="p-button-success p-button-sm "
+                      @click="updateStatusForAllSelected(1)"
+                    />
+                    <Button 
+                      label="ไม่ผ่าน" 
+                      icon="pi pi-times-circle" 
+                      class="p-button-danger p-button-sm"
+                      @click="updateStatusForAllSelected(2)"
+                    />
+                    <Button 
+                      label="ห้ามลงรายวัน" 
+                      icon="pi pi-ban" 
+                      class="p-button-warning p-button-sm"
+                      @click="updateStatusForAllSelected(3)"
+                    />
+                    <Button 
+                      label="รอตรวจสอบ" 
+                      icon="pi pi-clock" 
+                      class="p-button-info p-button-sm"
+                      @click="updateStatusForAllSelected(0)"
+                    />
+                  </span>
+                </div>
                 <TransitionGroup name="fade">
                   <div
                     v-if="isDataListNull == false"

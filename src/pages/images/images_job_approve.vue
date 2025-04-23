@@ -5,10 +5,12 @@ import TaskService from "@/services/TaskService";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import TaskList from "./components/TaskList.vue";
 import { useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import Utils from "@/utils/";
+import AppNavigation from "@/utils/app_navigation";
+
 const storeApp = useApp();
 const router = useRouter();
 const toast = useToast();
@@ -26,10 +28,25 @@ const sortField = ref("ownerat");
 const sortOrder = ref(-1);
 
 onMounted(() => {
+  // Check if there's a saved perPage value for this page
+  const savedPerPage = localStorage.getItem('images_job_approve_perPage');
+  if (savedPerPage) {
+    limitPage.value = parseInt(savedPerPage);
+  }
+  
   getTaskList();
   storeApp.setPageTitle("ตรวจสอบรูปภาพเอกสาร");
   storeApp.setActivePage("images_job_approve");
   storeApp.setActiveChild("");
+});
+
+onBeforeUnmount(() => {
+  // เมื่อออกไปจากหน้า images_job_approve แต่ไม่ได้เปลี่ยนเมนูหลัก
+  // เช็คว่ายังอยู่ในเมนู images_job_approve หรือไม่
+  if (storeApp.activePage === 'images_job_approve' && storeApp.activeChild !== '') {
+    // ล้างค่า perPage เฉพาะเมื่อไม่ได้อยู่ในหน้า images_job_approve
+    localStorage.removeItem('images_job_approve_perPage');
+  }
 });
 
 function getTaskList() {
@@ -49,6 +66,7 @@ function getTaskList() {
         loading.value = false;
         data_list.value = res.data;
         totalItemsCount.value = res.pagination.total;
+        firstPage.value = (activePage.value - 1) * limitPage.value;
       }
     })
     .catch((err) => {
@@ -79,18 +97,22 @@ function onRowSelect(data) {
 }
 
 function keyup(ketData) {
-  filters.value = ketData;
-  console.log(filters.value);
+  search.value = ketData;
+  console.log(search.value);
 
   clearTimeout(typingTimer.value);
   typingTimer.value = setTimeout(doneTyping, doneTypingInterval.value);
 }
+
 function keydown() {
   clearTimeout(typingTimer.value);
 }
+
 function doneTyping() {
   activePage.value = 1;
   firstPage.value = 0;
+  loading.value = true;
+  
   TaskService.getTaskList(
     limitPage.value,
     activePage.value,
@@ -103,7 +125,7 @@ function doneTyping() {
       console.log(res);
       if (res.success) {
         data_list.value = res.data;
-        totalItemsCount.value = res.total;
+        totalItemsCount.value = res.pagination.total;
         console.log(totalItemsCount.value);
       }
       loading.value = false;
@@ -117,6 +139,11 @@ function doneTyping() {
 function onPage(active, limit) {
   activePage.value = active;
   limitPage.value = limit;
+  firstPage.value = (active - 1) * limit;
+  
+  // Save the perPage value to localStorage
+  localStorage.setItem('images_job_approve_perPage', limit.toString());
+  
   getTaskList();
 }
 </script>
