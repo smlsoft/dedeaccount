@@ -182,6 +182,9 @@ const showOveray = ref(false);
 const warringAccountperiod = ref(false);
 const useImage = ref(false);
 
+const debtorData = ref(null);
+const creditorData = ref(null);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -1817,6 +1820,16 @@ function selectDucumentFormat(data) {
     ];
   }
 }
+
+function debtorSelected(data) {
+  console.log("Debtor data received:", data);
+  debtorData.value = data;
+}
+
+function creditorSelected(data) {
+  console.log("Creditor data received:", data);
+  creditorData.value = data;
+}
 </script>
 
 <template>
@@ -2222,6 +2235,8 @@ function selectDucumentFormat(data) {
                         v-on:selectAccount="selectAccount"
                         v-on:setAccountPeriod="setAccountPeriod"
                         v-on:selectDucumentFormat="selectDucumentFormat"
+                        v-on:debtorSelected="debtorSelected"
+                        v-on:creditorSelected="creditorSelected"
                       >
                       </JournalForm>
                     </div>
@@ -2237,6 +2252,9 @@ function selectDucumentFormat(data) {
                       :isUpdate="readMode"
                       :vats="vats"
                       :vats_valid="vats_valid"
+                      :debtorData="debtorData"
+                      :creditorData="creditorData"
+                      :debtaccounttype="daily_form.debtaccounttype"
                       v-on:addBoxVat="addBoxVat"
                       v-on:deleteDetailVat="deleteDetailVat"
                       v-on:calVatAmount="calVatAmount"
@@ -2255,6 +2273,9 @@ function selectDucumentFormat(data) {
                       :isUpdate="readMode"
                       :taxes="taxes"
                       :taxes_valid="taxes_valid"
+                      :debtorData="debtorData"
+                      :creditorData="creditorData"
+                      :debtaccounttype="daily_form.debtaccounttype" 
                       v-on:addBoxTax="addBoxTax"
                       v-on:deleteDetailTax="deleteDetailTax"
                       v-on:getSumTaxBase="getSumTaxBase"

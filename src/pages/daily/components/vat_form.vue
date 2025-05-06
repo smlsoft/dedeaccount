@@ -49,14 +49,14 @@ const props = defineProps({
   vats_valid: Object,
   isUpdate: Boolean,
   id: String,
+  debtorData: Object, // เพิ่ม props สำหรับรับข้อมูลลูกหนี้
+  creditorData: Object, // เพิ่ม props สำหรับรับข้อมูลเจ้าหนี้
+  debtaccounttype: String, // เพิ่ม props สำหรับตรวจสอบประเภทบัญชี (ลูกหนี้/เจ้าหนี้)
 });
 
 onMounted(async () => {
   vatvalue.value = del_data.value.index + 1;
 });
-
-// Fix: Moved this line inside onMounted to prevent execution during component initialization
-// vatvalue.value = del_data.index + 1;
 
 function deleteDetailVat() {
   emit("deleteDetailVat", del_data.value.index);
@@ -65,6 +65,50 @@ function deleteDetailVat() {
 
 function addBoxVat() {
   emit("addBoxVat");
+  
+  // เพิ่มการตรวจสอบว่ามีข้อมูลลูกหนี้หรือเจ้าหนี้หรือไม่ และใช้ข้อมูลนั้นเติมในรายการล่าสุดที่เพิ่ม
+  setTimeout(() => {
+    const lastIndex = props.vats.length - 1;
+    if (lastIndex >= 0) {
+      // ตรวจสอบประเภทบัญชีและดึงข้อมูลที่เหมาะสม
+      if (props.debtaccounttype === "0" && props.debtorData) {
+        // ใช้ข้อมูลลูกหนี้
+        fillVatDataFromContact(lastIndex, props.debtorData);
+      } else if (props.debtaccounttype === "1" && props.creditorData) {
+        // ใช้ข้อมูลเจ้าหนี้
+        fillVatDataFromContact(lastIndex, props.creditorData);
+      }
+    }
+  }, 100);
+}
+
+// เพิ่มฟังก์ชันใหม่สำหรับเติมข้อมูลภาษีจากข้อมูลลูกหนี้/เจ้าหนี้
+function fillVatDataFromContact(index, contactData) {
+  if (contactData) {
+    console.log("Filling VAT data from contact:", contactData);
+    
+    // เติมข้อมูลชื่อผู้เสียภาษี
+    if (contactData.names && contactData.names.length > 0) {
+      const thaiName = contactData.names.find(n => n.code === "th");
+      if (thaiName) {
+        props.vats[index].custname = thaiName.name;
+      }
+    }
+    
+    // เติมเลขประจำตัวผู้เสียภาษี
+    if (contactData.taxid) {
+      props.vats[index].custtaxid = contactData.taxid;
+    }
+    
+    // กำหนดสถานประกอบการและรหัสสาขา
+    if (contactData.branchnumber) {
+      props.vats[index].organization = contactData.branchnumber === "00000" ? 0 : 1;
+      props.vats[index].branchcode = contactData.branchnumber;
+    } else {
+      props.vats[index].organization = 0;
+      props.vats[index].branchcode = "00000";
+    }
+  }
 }
 
 function removeBoxVat(data, index) {

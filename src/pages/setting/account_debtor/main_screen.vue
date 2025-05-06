@@ -172,11 +172,11 @@ function transformDebtorModels() {
     branchnumber: form_model.value.branchnumber,
     addressforbilling: {
       address: [form_model.value.address],
-      districtcode: form_model.value.districtcode,
+      districtcode: form_model.value.district ? form_model.value.district.id : "",
       phoneprimary: form_model.value.phoneprimary,
-      provincecode: form_model.value.provincecode,
-      subdistrictcode: form_model.value.subdistrictcode,
-      zipcode: parseInt(form_model.value.zipcode),
+      provincecode: form_model.value.province ? form_model.value.province.id : "",
+      subdistrictcode: form_model.value.subdistrict ? form_model.value.subdistrict.id : "",
+      zipcode: form_model.value.zipcode ? parseInt(form_model.value.zipcode.zip_code || form_model.value.zipcode) : "",
     },
     personaltype: parseInt(form_model.value.personaltype),
     customertype: parseInt(form_model.value.customertype),
@@ -417,4 +417,3 @@ function doneTyping(data) {
   background-color: #fff;
 }
 </style>
-./form_input.vue

@@ -341,6 +341,9 @@ export default {
     getDebtorById(id) {
         return instanceApi(true).get(`/debtaccount/debtor/` + id).then(res => res.data);
     },
+    getDebtorByCode(code) {
+        return instanceApi(true).get(`/debtaccount/debtor/code/` + code).then(res => res.data);
+    },
     putDebtor(id, data) {
         return instanceApi(true).put(`/debtaccount/debtor/` + id, data).then(res => res.data);
     },
@@ -366,6 +369,9 @@ export default {
     },
     getCreditorById(id) {
         return instanceApi(true).get(`/debtaccount/creditor/` + id).then(res => res.data);
+    },
+    getCreditorByCode(code) {
+        return instanceApi(true).get(`/debtaccount/creditor/code/` + code).then(res => res.data);
     },
     putCreditor(id, data) {
         return instanceApi(true).put(`/debtaccount/creditor/` + id, data).then(res => res.data);

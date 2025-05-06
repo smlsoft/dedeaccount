@@ -80,11 +80,70 @@ const emit = defineEmits([
   "selectAccount",
   "setAccountPeriod",
   "selectDucumentFormat",
+  "debtorSelected", // เพิ่ม emit สำหรับส่งข้อมูลลูกหนี้
+  "creditorSelected", // เพิ่ม emit สำหรับส่งข้อมูลเจ้าหนี้
 ]);
 
 onMounted(async () => {
   checkAccountPeriod(props.daily_form.docdate);
 });
+
+// เพิ่มการตรวจสอบการเปลี่ยนค่า debtor และ creditor
+watch(
+  () => props.daily_form.debtor,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      console.log("Debtor changed to:", newVal);
+      fetchDebtorData(newVal);
+    }
+  }
+);
+
+watch(
+  () => props.daily_form.creditor,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      console.log("Creditor changed to:", newVal);
+      fetchCreditorData(newVal);
+    }
+  }
+);
+
+// ปรับปรุงฟังก์ชันดึงข้อมูลลูกหนี้
+function fetchDebtorData(id) {
+  if (!id) return;
+  
+  console.log("Fetching debtor data for CODE:", id);
+  MasterdataService.getDebtorByCode(id)
+    .then((res) => {
+      console.log("Debtor API response:", res);
+      if (res.data) {
+        // ส่งข้อมูลลูกหนี้ไปยัง component หลัก
+        emit("debtorSelected", res.data);
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching debtor data:", err);
+    });
+}
+
+// ปรับปรุงฟังก์ชันดึงข้อมูลเจ้าหนี้
+function fetchCreditorData(id) {
+  if (!id) return;
+  
+  console.log("Fetching creditor data for CODE:", id);
+  MasterdataService.getCreditorByCode(id)
+    .then((res) => {
+      console.log("Creditor API response:", res);
+      if (res.data) {
+        // ส่งข้อมูลเจ้าหนี้ไปยัง component หลัก
+        emit("creditorSelected", res.data);
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching creditor data:", err);
+    });
+}
 
 function selectAccount(data, field, index) {
   emit("selectAccount", data, index);

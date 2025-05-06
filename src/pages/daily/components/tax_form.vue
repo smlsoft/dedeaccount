@@ -54,6 +54,9 @@ const props = defineProps({
   taxes_valid: Object,
   id: String,
   isUpdate: Boolean,
+  debtorData: Object, // เพิ่ม props สำหรับรับข้อมูลลูกหนี้
+  creditorData: Object, // เพิ่ม props สำหรับรับข้อมูลเจ้าหนี้
+  debtaccounttype: String, // เพิ่ม props สำหรับตรวจสอบประเภทบัญชี (ลูกหนี้/เจ้าหนี้)
 });
 const emit = defineEmits(["addBoxTax", "deleteDetailTax", "getSumTaxBase"]);
 
@@ -80,7 +83,54 @@ function removeBoxTax(data, index) {
 
 function addBoxTax() {
   emit("addBoxTax");
+  
+  // เพิ่มการตรวจสอบว่ามีข้อมูลลูกหนี้หรือเจ้าหนี้หรือไม่ และใช้ข้อมูลนั้นเติมในรายการล่าสุดที่เพิ่ม
+  setTimeout(() => {
+    const lastIndex = props.taxes.length - 1;
+    if (lastIndex >= 0) {
+      // ตรวจสอบประเภทบัญชีและดึงข้อมูลที่เหมาะสม
+      if (props.debtaccounttype === "0" && props.debtorData) {
+        // ใช้ข้อมูลลูกหนี้
+        fillTaxDataFromContact(lastIndex, props.debtorData);
+      } else if (props.debtaccounttype === "1" && props.creditorData) {
+        // ใช้ข้อมูลเจ้าหนี้
+        fillTaxDataFromContact(lastIndex, props.creditorData);
+      }
+    }
+  }, 100);
 }
+
+// เพิ่มฟังก์ชันใหม่สำหรับเติมข้อมูลภาษีจากข้อมูลลูกหนี้/เจ้าหนี้
+function fillTaxDataFromContact(index, contactData) {
+  if (contactData) {
+    console.log("Filling TAX data from contact:", contactData);
+    
+    // เติมข้อมูลชื่อผู้เสียภาษี
+    if (contactData.names && contactData.names.length > 0) {
+      const thaiName = contactData.names.find(n => n.code === "th");
+      if (thaiName) {
+        props.taxes[index].custname = thaiName.name;
+      }
+    }
+    
+    // เติมเลขประจำตัวผู้เสียภาษี
+    if (contactData.taxid) {
+      props.taxes[index].custtaxid = contactData.taxid;
+    }
+    
+    // สร้างที่อยู่จากข้อมูลที่มี
+    if (contactData.addressforbilling) {
+      let address = "";
+      
+      if (contactData.addressforbilling.address && contactData.addressforbilling.address.length > 0) {
+        address = contactData.addressforbilling.address.join(" ");
+      }
+      
+      props.taxes[index].address = address;
+    }
+  }
+}
+
 function deleteDetailTax() {
   emit("deleteDetailTax", del_data.value.index);
   deleteDetailTaxDialog.value = false;

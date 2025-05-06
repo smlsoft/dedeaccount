@@ -253,7 +253,7 @@ const searchZipcode = async (id) => {
         </span>
       </div>
 
-      <div class="field col-12 md:col-6">
+      <!-- <div class="field col-12 md:col-6">
         <Dropdown
           :filter="true"
           :disabled="readMode"
@@ -298,7 +298,7 @@ const searchZipcode = async (id) => {
           optionLabel="zip_code"
           placeholder="รหัสไปรษณีย์"
         />
-      </div>
+      </div> -->
 
       <div class="field col-6 md:col-12">
         <span class="p-float-label">
