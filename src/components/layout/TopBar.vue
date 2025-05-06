@@ -1,14 +1,39 @@
 <script setup>
 import { useApp } from "@/stores/app.js";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+
 const storeApp = useApp();
-const shopName = localStorage.shop_name;
-const userName = localStorage._usercode;
+
+// แทนที่จะใช้ computed property ให้ใช้ ref ที่เราอัพเดตได้
+const shopName = ref(localStorage.shop_name || "");
+const userName = ref(localStorage._usercode || "");
 
 const emit = defineEmits(["openSelectShop"]);
 
 function openSelectShop() {
   emit("openSelectShop");
 }
+
+// ฟังก์ชันสำหรับจัดการเหตุการณ์เมื่อมีการอัพเดต shop
+function handleShopUpdate(event) {
+  if (event.detail && event.detail.shopName) {
+    shopName.value = event.detail.shopName;
+  }
+}
+
+onMounted(() => {
+  // รับฟังเหตุการณ์ shop-updated ที่เราส่งจากหน้า shop_profile
+  window.addEventListener('shop-updated', handleShopUpdate);
+  
+  // ตั้งค่าเริ่มต้นจาก localStorage
+  shopName.value = localStorage.shop_name || "";
+  userName.value = localStorage._usercode || "";
+});
+
+onUnmounted(() => {
+  // ทำความสะอาด event listener เมื่อ component ถูกทำลาย
+  window.removeEventListener('shop-updated', handleShopUpdate);
+});
 </script>
 
 <template>

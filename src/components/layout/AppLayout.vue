@@ -39,6 +39,8 @@ const openSelectShop = () => {
       console.log(res);
       if (res.success) {
         listShop.value = res.data;
+
+        console.log(listShop.value);
         setTimeout(() => {
           checkShop();
           displaySelectShop.value = true;

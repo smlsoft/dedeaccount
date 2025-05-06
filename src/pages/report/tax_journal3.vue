@@ -27,20 +27,39 @@
         <!-- Report Section -->
         <div class="report-container" ref="reportRef">
           <!-- Report Header -->
-          <div class="text-center mb-3">
-            <h2 class="m-0">{{ shopName }}</h2>
-            <p class="m-0">
-              จากวันที่ : {{ formatDateThai(searchParams.fromdate) }} ถึงวันที่
-              : {{ formatDateThai(searchParams.todate) }}
-            </p>
-          </div>
-
-          <div class="flex justify-content-between mb-2">
-            <div>
-              <strong>หัวข้อ : {{ reportTitle }}</strong>
+          <div class="mb-4">
+            <!-- ส่วนหัวตรงกลาง -->
+            <div
+              class="flex justify-content-center align-items-center flex-column"
+            >
+              <h2 class="font-bold text-xl mb-0">
+                รายงานภาษีหัก ณ ที่จ่าย ภ.ง.ด.3
+              </h2>
+              <p class="mb-3">
+                จากวันที่ :
+                {{ formatDateThai(searchParams.fromdate) }} ถึงวันที่ :
+                {{ formatDateThai(searchParams.todate) }}
+              </p>
             </div>
-            <div>
-              <span>หน้า : {{ currentPage }}/{{ totalPages }}</span>
+
+            <!-- ส่วนข้อมูลบรรทัดที่ 1 -->
+            <div class="flex justify-content-between align-items-center mb-2">
+              <div>
+                <span class="font-bold">ชื่อสถานประกอบการ:</span>
+                {{ shopName }}
+              </div>
+              <div>
+                <span class="font-bold">เลขประจำตัวผู้เสียภาษี:</span>
+                {{ shopTaxId }}
+              </div>
+            </div>
+
+            <!-- ส่วนข้อมูลบรรทัดที่ 2 -->
+            <div class="flex justify-content-between align-items-center mb-2">
+              <div>
+                <span class="font-bold">ที่อยู่:</span> {{ shopAddress }}
+              </div>
+              <div><span class="font-bold">สาขา:</span> (สำนักงานใหญ่)</div>
             </div>
           </div>
 
@@ -61,7 +80,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, index) in paginatedData" :key="item.id">
+                <tr
+                  v-for="(item, index) in paginatedData"
+                  :key="item.id"
+                  @click="handleRowClick(item)"
+                  :class="{
+                    'row-selected': selectedItem && selectedItem.id === item.id,
+                  }"
+                >
                   <td class="text-center">
                     {{ (currentPage - 1) * itemsPerPage + index + 1 }}
                   </td>
@@ -161,97 +187,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Data Table for Admin/Editing (Optional) -->
-        <div class="mt-5" v-if="showDataTable">
-          <DataTable
-            :value="taxData"
-            :rowHover="true"
-            :paginator="true"
-            :rows="10"
-            :loading="loading"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            :rowsPerPageOptions="[10, 20, 50]"
-            currentPageReportTemplate="{first} ถึง {last} จาก {totalRecords} รายการ"
-            responsiveLayout="scroll"
-            stripedRows
-            class="p-datatable-sm"
-          >
-            <Column field="taxdate" header="วันที่" sortable>
-              <template #body="slotProps">
-                {{ formatDate(slotProps.data.taxdate) }}
-              </template>
-            </Column>
-            <Column
-              field="taxdocno"
-              header="เลขที่หนังสือรับรอง"
-              sortable
-            ></Column>
-            <Column field="custname" header="ชื่อผู้เสียภาษี" sortable></Column>
-            <Column
-              field="custtaxid"
-              header="เลขประจำตัวผู้เสียภาษี"
-              sortable
-            ></Column>
-            <Column field="organization" header="สำนักงานใหญ่/สาขา" sortable>
-              <template #body="slotProps">
-                {{
-                  slotProps.data.organization === 0
-                    ? "สำนักงานใหญ่"
-                    : "สาขา " + slotProps.data.branchcode
-                }}
-              </template>
-            </Column>
-            <Column header="ประเภทเงินได้" sortable>
-              <template #body="slotProps">
-                {{
-                  slotProps.data.details && slotProps.data.details[0]
-                    ? slotProps.data.details[0].description
-                    : ""
-                }}
-              </template>
-            </Column>
-            <Column header="ฐานภาษี" sortable>
-              <template #body="slotProps">
-                {{
-                  formatCurrency(
-                    slotProps.data.details && slotProps.data.details[0]
-                      ? slotProps.data.details[0].taxbase
-                      : 0
-                  )
-                }}
-              </template>
-            </Column>
-            <Column header="อัตราภาษี" sortable>
-              <template #body="slotProps">
-                {{
-                  slotProps.data.details && slotProps.data.details[0]
-                    ? slotProps.data.details[0].taxrate + "%"
-                    : "0%"
-                }}
-              </template>
-            </Column>
-            <Column header="ภาษีที่หัก" sortable>
-              <template #body="slotProps">
-                {{
-                  formatCurrency(
-                    slotProps.data.details && slotProps.data.details[0]
-                      ? slotProps.data.details[0].taxamount
-                      : 0
-                  )
-                }}
-              </template>
-            </Column>
-            <Column header="ดำเนินการ">
-              <template #body>
-                <div class="flex justify-content-center gap-2">
-                  <Button icon="pi pi-pencil" rounded text severity="info" />
-                  <Button icon="pi pi-trash" rounded text severity="danger" />
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
       </div>
     </MainContentWarp>
   </AppLayout>
@@ -349,6 +284,13 @@
       </p>
     </section>
   </Dialog>
+
+  <!-- DetailDocDialog Component -->
+  <DetailDocDialog
+    v-model:visible="openDetailDocNo"
+    :docno="selectedDocNo"
+    :allowEdit="true"
+  />
 </template>
 
 <script setup>
@@ -358,12 +300,28 @@ import MainContentWarp from "@/components/MainContentWarp.vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import ReportTaxJournalService from "@/services/ReportTaxJournalService.js";
+import ShopService from "@/services/ShopService.js";
+import DetailDocDialog from "@/components/DetailDocDialog.vue";
 
 const storeApp = useApp();
-const shopName = localStorage.shop_name;
+const shopId = localStorage.shopid;
+
+// ข้อมูลกิจการ
+const shopData = ref({
+  names: [{ code: "th", name: "" }],
+  address: [{ code: "th", name: "" }],
+  settings: { taxid: "" },
+});
+
+// ตัวแปรเก็บข้อมูลกิจการในรูปแบบที่ง่ายต่อการใช้งาน
+const shopName = computed(
+  () => shopData.value.names?.[0]?.name || localStorage.shop_name || ""
+);
+const shopAddress = computed(() => shopData.value.address?.[0]?.name || "");
+const shopTaxId = computed(() => shopData.value.settings?.taxid || "");
+
 const toast = useToast();
 const reportRef = ref(null);
-const showDataTable = ref(false);
 const taxData = ref([]);
 const loading = ref(false);
 const isPdfLoading = ref(false);
@@ -374,6 +332,29 @@ const pagination = ref({
   total: 0,
   totalPage: 0,
 });
+
+// ตัวแปรสำหรับ DetailDocDialog
+const openDetailDocNo = ref(false);
+const selectedDocNo = ref(null);
+
+// ตัวแปรสำหรับการเลือกแถว
+const selectedItem = ref(null);
+
+// ฟังก์ชันเมื่อคลิกแถวในตาราง
+const handleRowClick = (item) => {
+  // ตรวจสอบว่ากำลังคลิกแถวเดียวกับที่เลือกอยู่หรือไม่
+  if (selectedItem.value && selectedItem.value.id === item.id) {
+    // ถ้าคลิกแถวเดิม ให้เปิด dialog เท่านั้น ไม่ต้องเปลี่ยน selection
+    selectedDocNo.value = item.docno;
+    openDetailDocNo.value = true;
+    return;
+  }
+
+  // ถ้าเป็นแถวใหม่ ให้อัปเดต selectedItem
+  selectedItem.value = item;
+  selectedDocNo.value = item.docno;
+  openDetailDocNo.value = true;
+};
 
 // Search dialog
 const searchDialogVisible = ref(false);
@@ -520,6 +501,8 @@ const generatePDF = async () => {
       todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
+      taxid: shopTaxId.value,
+      address: shopAddress.value
     };
 
     console.log("Generating PDF with params:", params);
@@ -621,6 +604,8 @@ const fetchData = async () => {
       todate: formatDateTimeForAPI(searchParams.todate),
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
+      taxid: shopTaxId.value,
+      address: shopAddress.value
     };
 
     console.log("Fetching data with params:", params);
@@ -694,13 +679,46 @@ watch(taxData, () => {
 });
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
-onMounted(() => {
+onMounted(async () => {
   // แสดง dialog ค้นหาทันทีเมื่อโหลดหน้า
   searchDialogVisible.value = true;
 
   storeApp.setPageTitle("รายงานภาษีหัก ณ ที่จ่าย ภ.ง.ด.3");
   storeApp.setActivePage("report_tax_list");
   storeApp.setActiveChild("report_tax_journal3");
+
+  try {
+    const result = await ShopService.getShop(shopId);
+    if (result.success) {
+      shopData.value = result.data;
+
+      // ตรวจสอบและเพิ่มข้อมูลที่จำเป็นถ้ายังไม่มี
+      if (!shopData.value.names || !shopData.value.names.length) {
+        shopData.value.names = [
+          {
+            code: "th",
+            name: localStorage.shop_name || "",
+            isauto: false,
+            isdelete: false,
+          },
+        ];
+      }
+
+      if (!shopData.value.address || !shopData.value.address.length) {
+        shopData.value.address = [
+          { code: "th", name: "", isauto: false, isdelete: false },
+        ];
+      }
+
+      if (!shopData.value.settings) {
+        shopData.value.settings = { taxid: "" };
+      }
+    } else {
+      console.error("Error fetching shop data:", result.msg);
+    }
+  } catch (error) {
+    console.error("Error fetching shop data:", error);
+  }
 });
 </script>
 <style scoped>
@@ -729,8 +747,24 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.report-table tbody tr:nth-child(even) {
+.report-table tbody tr {
+  cursor: pointer;
+}
+
+.report-table tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.report-table tbody tr.row-selected {
+  background-color: #e0f0ff;
+}
+
+.report-table tbody tr:nth-child(even):not(.row-selected) {
   background-color: #f9f9f9;
+}
+
+.report-table tbody tr:nth-child(even):hover:not(.row-selected) {
+  background-color: #f0f7ff;
 }
 
 .report-table tfoot {

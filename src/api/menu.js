@@ -281,6 +281,12 @@ export const menus = [
     name: "master",
     children: [
       {
+        title: "ตั้งค่ากิจการ",
+        icon: "pi pi-building",
+        to: "/setting/shop_profile",
+        name: "shop_profile",
+      },
+      {
         title: "กำหนดรหัสบัญชี",
         icon: "pi pi-microsoft",
         to: "/chart/list",

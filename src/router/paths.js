@@ -669,8 +669,13 @@ export default [
     component: () => import("../pages/report/receivable_report.vue"),
   },
 
-
-
-
+  {
+    path: "/setting/shop_profile",
+    name: "shop_profile",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/setting/shop_profile/main.vue"),
+  },
 
 ];

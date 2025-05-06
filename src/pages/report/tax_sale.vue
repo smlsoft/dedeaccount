@@ -25,20 +25,36 @@
         <!-- Report Section -->
         <div class="report-container" ref="reportRef">
           <!-- Report Header -->
-          <div class="text-center mb-3">
-            <h2 class="m-0">{{ shopName }}</h2>
-            <p class="m-0">
-              ปีภาษี : {{ searchParams.year }} งวดที่ :
-              {{ searchParams.period }}
-            </p>
-          </div>
-
-          <div class="flex justify-content-between mb-2">
-            <div>
-              <strong>หัวข้อ : {{ reportTitle }}</strong>
+          <div class="mb-4">
+            <!-- ส่วนหัวตรงกลาง -->
+            <div class="flex justify-content-center align-items-center flex-column">
+              <h2 class="font-bold text-xl mb-0">รายงานภาษีขาย</h2>
+              <p class="mb-3">
+                เดือนภาษี{{ getPeriodName(searchParams.period) }} ปีภาษี
+                {{ searchParams.year }}
+              </p>
             </div>
-            <div>
-              <span>หน้า : {{ currentPage }}/{{ totalPages }}</span>
+
+            <!-- ส่วนข้อมูลบรรทัดที่ 1 -->
+            <div class="flex justify-content-between align-items-center mb-2">
+              <div>
+                <span class="font-bold">ชื่อสถานประกอบการ:</span>
+                {{ shopName }}
+              </div>
+              <div>
+                <span class="font-bold">เลขประจำตัวผู้เสียภาษี:</span>
+                {{ shopTaxId }}
+              </div>
+            </div>
+
+            <!-- ส่วนข้อมูลบรรทัดที่ 2 -->
+            <div class="flex justify-content-between align-items-center">
+              <div>
+                <span class="font-bold">ที่อยู่:</span> {{ shopAddress }}
+              </div>
+              <div>
+                <span class="font-bold">สาขา:</span> (สำนักงานใหญ่)
+              </div>
             </div>
           </div>
 
@@ -60,7 +76,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, index) in paginatedData" :key="item.id">
+                <tr
+                  v-for="(item, index) in paginatedData"
+                  :key="item.id"
+                  @click="handleRowClick(item)"
+                  :class="{
+                    'row-selected': selectedItem && selectedItem.id === item.id,
+                  }"
+                >
                   <td class="text-center">
                     {{ (currentPage - 1) * itemsPerPage + index + 1 }}
                   </td>
@@ -71,7 +94,9 @@
                   <td>{{ item.custname }}</td>
                   <td>{{ item.custtaxid }}</td>
                   <td class="text-center">
-                    {{ item.organization === 0 ? "สำนักงานใหญ่" : item.branchcode }}
+                    {{
+                      item.organization === 0 ? "สำนักงานใหญ่" : item.branchcode
+                    }}
                   </td>
                   <td class="text-right">
                     {{ formatCurrency(item.exceptvat || 0) }}
@@ -83,7 +108,9 @@
                   <td class="text-right">
                     {{ formatCurrency(item.total || calculateTotal(item)) }}
                   </td>
-                  <td class="text-center">{{ item.vatsubmit ? "ยื่นเพิ่มเติม" : "" }}</td>
+                  <td class="text-center">
+                    {{ item.vatsubmit ? "ยื่นเพิ่มเติม" : "" }}
+                  </td>
                 </tr>
               </tbody>
               <tfoot>
@@ -147,79 +174,6 @@
               />
             </div>
           </div>
-        </div>
-
-        <!-- Data Table for Admin/Editing (Optional) -->
-        <div class="mt-5" v-if="showDataTable">
-          <DataTable
-            :value="vatData"
-            :rowHover="true"
-            :paginator="true"
-            :rows="10"
-            :loading="loading"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            :rowsPerPageOptions="[10, 20, 50]"
-            currentPageReportTemplate="{first} ถึง {last} จาก {totalRecords} รายการ"
-            responsiveLayout="scroll"
-            stripedRows
-            class="p-datatable-sm"
-          >
-            <Column field="vatdocno" header="เลขที่เอกสาร" sortable></Column>
-            <Column field="vatdate" header="วันที่เอกสาร" sortable>
-              <template #body="slotProps">
-                {{ formatDate(slotProps.data.vatdate) }}
-              </template>
-            </Column>
-            <Column
-              field="custname"
-              header="ชื่อผู้ประกอบการ"
-              sortable
-            ></Column>
-            <Column
-              field="custtaxid"
-              header="เลขประจำตัวผู้เสียภาษี"
-              sortable
-            ></Column>
-            <Column field="branchcode" header="สาขา" sortable></Column>
-            <Column field="exceptvat" header="ยอดยกเว้นภาษี" sortable>
-              <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.exceptvat) }}
-              </template>
-            </Column>
-            <Column field="vatbase" header="มูลค่าสินค้า" sortable>
-              <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.vatbase) }}
-              </template>
-            </Column>
-            <Column field="vatamount" header="ภาษีมูลค่าเพิ่ม" sortable>
-              <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.vatamount) }}
-              </template>
-            </Column>
-            <Column field="total" header="รวมทั้งสิ้น" sortable>
-              <template #body="slotProps">
-                {{
-                  formatCurrency(
-                    slotProps.data.total || calculateTotal(slotProps.data)
-                  )
-                }}
-              </template>
-            </Column>
-            <Column field="vatsubmit" header="ยื่นเพิ่มเติม" sortable>
-              <template #body="slotProps">
-                {{ slotProps.data.vatsubmit ? "x" : "" }}
-              </template>
-            </Column>
-            <Column field="remark" header="หมายเหตุ" sortable></Column>
-            <Column header="ดำเนินการ">
-              <template #body>
-                <div class="flex justify-content-center gap-2">
-                  <Button icon="pi pi-pencil" rounded text severity="info" />
-                  <Button icon="pi pi-trash" rounded text severity="danger" />
-                </div>
-              </template>
-            </Column>
-          </DataTable>
         </div>
       </div>
     </MainContentWarp>
@@ -320,6 +274,13 @@
       </p>
     </section>
   </Dialog>
+
+  <!-- DetailDocDialog Component -->
+  <DetailDocDialog
+    v-model:visible="openDetailDocNo"
+    :docno="selectedDocNo"
+    :allowEdit="true"
+  />
 </template>
 
 <script setup>
@@ -329,22 +290,33 @@ import MainContentWarp from "@/components/MainContentWarp.vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import reportTaxVatService from "@/services/ReportTaxVatService.js";
+import ShopService from "@/services/ShopService.js";
+import DetailDocDialog from "@/components/DetailDocDialog.vue";
 
 const storeApp = useApp();
-const shopName = localStorage.shop_name;
+const shopId = localStorage.shopid;
+
+// ข้อมูลกิจการ
+const shopData = ref({
+  names: [{ code: "th", name: "" }],
+  address: [{ code: "th", name: "" }],
+  settings: { taxid: "" },
+});
+
+// ตัวแปรเก็บข้อมูลกิจการในรูปแบบที่ง่ายต่อการใช้งาน
+const shopName = computed(
+  () => shopData.value.names?.[0]?.name || localStorage.shop_name || ""
+);
+const shopAddress = computed(() => shopData.value.address?.[0]?.name || "");
+const shopTaxId = computed(() => shopData.value.settings?.taxid || "");
+
 const toast = useToast();
 const reportRef = ref(null);
-const showDataTable = ref(false);
 const vatData = ref([]);
 const loading = ref(false);
 const isPdfLoading = ref(false);
 const pdfStatusVisible = ref(false);
-const pagination = ref({
-  perPage: 20,
-  page: 0,
-  total: 0,
-  totalPage: 0,
-});
+const selectedItem = ref(null); // เพิ่มตัวแปรสำหรับเก็บแถวที่เลือก
 
 // ค่าคงที่สำหรับรายงานภาษีขาย (mode = 1)
 const TAX_MODE = 1;
@@ -378,9 +350,9 @@ const { currentYear, currentMonth } = getCurrentDate();
 const searchParams = reactive({
   limit: 20,
   offset: 0,
-  mode: TAX_MODE, // กำหนดค่าคงที่
-  year: currentYear, // ใช้ปีปัจจุบัน
-  period: currentMonth, // ใช้เดือนปัจจุบัน
+  mode: TAX_MODE,
+  year: currentYear,
+  period: currentMonth,
   shopid: localStorage.shopid,
   shopname: localStorage.shop_name,
 });
@@ -423,9 +395,7 @@ const calculateTotal = (item) => {
 };
 
 // ชื่อรายงาน
-const reportTitle = computed(() => {
-  return "รายงานภาษีขาย";
-});
+const reportTitle = computed(() => "รายงานภาษีขาย");
 
 // การแบ่งหน้า
 const totalPages = computed(() => {
@@ -480,15 +450,15 @@ const periods = [
 const calculateTaxPeriodDates = () => {
   const year = searchParams.year - 543; // แปลงจากปี พ.ศ. เป็น ค.ศ.
   const month = searchParams.period - 1; // เดือนใน JavaScript เริ่มจาก 0
-  
+
   // วันแรกของเดือน
   const startDate = new Date(year, month, 1);
   startDate.setHours(0, 0, 0, 0);
-  
+
   // วันสุดท้ายของเดือน
   const endDate = new Date(year, month + 1, 0);
   endDate.setHours(23, 59, 59, 999);
-  
+
   return { startDate, endDate };
 };
 
@@ -500,18 +470,11 @@ const openSearchDialog = () => {
 // ฟังก์ชันค้นหาและปิด dialog
 const searchAndCloseDialog = () => {
   const { startDate, endDate } = calculateTaxPeriodDates();
-  
+
   // เพิ่มข้อมูลวันที่เริ่มต้นและสิ้นสุดในพารามิเตอร์
   searchParams.fromdate = startDate;
   searchParams.todate = endDate;
-  
-  console.log("Search with period dates:", {
-    year: searchParams.year,
-    period: searchParams.period,
-    fromdate: formatDateTimeForAPI(startDate),
-    todate: formatDateTimeForAPI(endDate)
-  });
-  
+
   fetchData();
   searchDialogVisible.value = false;
 };
@@ -536,18 +499,18 @@ const generatePDF = async () => {
 
   try {
     const { startDate, endDate } = calculateTaxPeriodDates();
-    
+
     const params = {
-      mode: TAX_MODE, // ใช้ค่าคงที่
+      mode: TAX_MODE,
       year: searchParams.year,
       period: searchParams.period,
       fromdate: formatDateTimeForAPI(startDate),
       todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
+      taxid: shopTaxId.value,
+      address: shopAddress.value
     };
-
-    console.log("Generating PDF with params:", params);
 
     const result = await reportTaxVatService.generateVatReportPDF(params);
 
@@ -572,8 +535,6 @@ const generatePDF = async () => {
           life: 3000,
         });
       } catch (waitError) {
-        console.error("Error waiting for PDF:", waitError);
-
         // ตรวจสอบข้อความผิดพลาด
         if (waitError.message.includes("ไม่พบไฟล์ PDF")) {
           toast.add({
@@ -600,7 +561,6 @@ const generatePDF = async () => {
       });
     }
   } catch (error) {
-    console.error("Error generating PDF:", error);
     toast.add({
       severity: "error",
       summary: "ผิดพลาด",
@@ -618,26 +578,25 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const { startDate, endDate } = calculateTaxPeriodDates();
-    
+
     const params = {
       limit: searchParams.limit,
       offset: searchParams.offset,
-      mode: TAX_MODE, // ใช้ค่าคงที่
+      mode: TAX_MODE,
       year: searchParams.year,
       period: searchParams.period,
       fromdate: formatDateTimeForAPI(startDate),
       todate: formatDateTimeForAPI(endDate),
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
+      taxid: shopTaxId.value,
+      address: shopAddress.value
     };
-
-    console.log("Fetching data with params:", params);
 
     const result = await reportTaxVatService.getVatReport(params);
 
     if (result.success) {
       vatData.value = result.data;
-      pagination.value = result.pagination;
       toast.add({
         severity: "success",
         summary: "สำเร็จ",
@@ -645,7 +604,6 @@ const fetchData = async () => {
         life: 3000,
       });
     } else {
-      console.error("Error fetching data:", result.msg);
       toast.add({
         severity: "error",
         summary: "ผิดพลาด",
@@ -654,7 +612,6 @@ const fetchData = async () => {
       });
     }
   } catch (error) {
-    console.error("Error fetching data:", error);
     toast.add({
       severity: "error",
       summary: "ผิดพลาด",
@@ -696,10 +653,99 @@ const formatCurrency = (value) => {
   });
 };
 
+// ฟังก์ชันสำหรับแปลงเลขเดือนเป็นชื่อเดือน
+const getPeriodName = (period) => {
+  const periodNames = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
+  return periodNames[period - 1] || "";
+};
+
 // เมื่อข้อมูลเปลี่ยน กลับไปหน้าแรก
 watch(vatData, () => {
   currentPage.value = 1;
+  selectedItem.value = null; // รีเซ็ตแถวที่เลือกเมื่อข้อมูลเปลี่ยน
 });
+
+// ตัวแปรสำหรับ DetailDocDialog
+const openDetailDocNo = ref(false);
+const selectedDocNo = ref(null);
+
+// ฟังก์ชันจัดการคลิกที่แถว
+const handleRowClick = (item) => {
+  // ตรวจสอบว่ากำลังคลิกแถวเดียวกับที่เลือกอยู่หรือไม่
+  if (selectedItem.value && selectedItem.value.id === item.id) {
+    // ถ้าคลิกแถวเดิม ให้เปิด dialog เท่านั้น ไม่ต้องเปลี่ยน selection
+    selectedDocNo.value = item.docno;
+    openDetailDocNo.value = true;
+    return;
+  }
+
+  // ถ้าเป็นแถวใหม่ ให้อัปเดต selectedItem
+  selectedItem.value = item;
+  selectedDocNo.value = item.docno;
+  openDetailDocNo.value = true;
+
+  // สร้าง event object สำหรับเรียกใช้งาน onRowSelect
+  const event = {
+    data: item,
+  };
+
+  onRowSelect(event);
+};
+
+// Event handler สำหรับ row select
+const onRowSelect = (event) => {
+  selectedDocNo.value = event.data.docno;
+  openDetailDocNo.value = true;
+};
+
+// ฟังก์ชันสำหรับดึงข้อมูลกิจการ
+const getShopData = async () => {
+  try {
+    const result = await ShopService.getShop(shopId);
+    if (result.success) {
+      shopData.value = result.data;
+
+      // ตรวจสอบและเพิ่มข้อมูลที่จำเป็นถ้ายังไม่มี
+      if (!shopData.value.names || !shopData.value.names.length) {
+        shopData.value.names = [
+          {
+            code: "th",
+            name: localStorage.shop_name || "",
+            isauto: false,
+            isdelete: false,
+          },
+        ];
+      }
+
+      if (!shopData.value.address || !shopData.value.address.length) {
+        shopData.value.address = [
+          { code: "th", name: "", isauto: false, isdelete: false },
+        ];
+      }
+
+      if (!shopData.value.settings) {
+        shopData.value.settings = { taxid: "" };
+      }
+    } else {
+      console.error("ไม่สามารถดึงข้อมูลกิจการได้:", result);
+    }
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลกิจการ:", error);
+  }
+};
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
 onMounted(() => {
@@ -709,12 +755,48 @@ onMounted(() => {
   storeApp.setPageTitle("รายงานภาษีขาย");
   storeApp.setActivePage("report_tax_list");
   storeApp.setActiveChild("report_tax_sale");
+
+  // ดึงข้อมูลกิจการ
+  getShopData();
 });
 </script>
 
 <style scoped>
 .report-container {
   font-family: "Sarabun", sans-serif;
+}
+
+.report-header {
+  margin-bottom: 1rem;
+}
+
+.report-title-center {
+  text-align: center;
+}
+
+.report-main-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.report-period {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.report-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-left,
+.info-right {
+  font-size: 1rem;
+}
+
+.label {
+  font-weight: bold;
 }
 
 .report-table-container {
@@ -738,8 +820,24 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.report-table tbody tr:nth-child(even) {
+.report-table tbody tr {
+  cursor: pointer;
+}
+
+.report-table tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.report-table tbody tr.row-selected {
+  background-color: #e0f0ff;
+}
+
+.report-table tbody tr:nth-child(even):not(.row-selected) {
   background-color: #f9f9f9;
+}
+
+.report-table tbody tr:nth-child(even):hover:not(.row-selected) {
+  background-color: #f0f7ff;
 }
 
 .report-table tfoot {
