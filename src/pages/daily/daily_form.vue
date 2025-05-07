@@ -1830,6 +1830,15 @@ function creditorSelected(data) {
   console.log("Creditor data received:", data);
   creditorData.value = data;
 }
+
+function clearDebtor() {
+  console.log("Clearing debtor data");
+  debtorData.value = null;
+}
+function clearCreditor() {
+  console.log("Clearing creditor data");
+  creditorData.value = null;
+}
 </script>
 
 <template>
@@ -2237,6 +2246,8 @@ function creditorSelected(data) {
                         v-on:selectDucumentFormat="selectDucumentFormat"
                         v-on:debtorSelected="debtorSelected"
                         v-on:creditorSelected="creditorSelected"
+                        v-on:clearDebtor="clearDebtor"
+                        v-on:clearCreditor="clearCreditor"
                       >
                       </JournalForm>
                     </div>
@@ -2275,7 +2286,7 @@ function creditorSelected(data) {
                       :taxes_valid="taxes_valid"
                       :debtorData="debtorData"
                       :creditorData="creditorData"
-                      :debtaccounttype="daily_form.debtaccounttype" 
+                      :debtaccounttype="daily_form.debtaccounttype"
                       v-on:addBoxTax="addBoxTax"
                       v-on:deleteDetailTax="deleteDetailTax"
                       v-on:getSumTaxBase="getSumTaxBase"

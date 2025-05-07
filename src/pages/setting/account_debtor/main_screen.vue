@@ -36,15 +36,14 @@ const form_model = ref({
   branchnumber: "00000",
   addressforbilling: "",
   address: "",
-
   districtcode: "",
   provincecode: "",
   subdistrictcode: "",
   zipcode: "",
-
   phoneprimary: "",
-  personaltype: 0,
-  customertype: 0,
+  personaltype: 1,
+  customertype: 1,
+  groups: [],
 });
 
 const form_valid = ref({
@@ -133,8 +132,9 @@ function clearForm() {
     address: "",
     addressforbilling: "",
     phoneprimary: "",
-    customertype: 0,
-    personaltype: 0,
+    customertype: 1,
+    personaltype: 1,
+    groups: [],
   };
   form_valid.value = {
     code: true,
@@ -172,14 +172,25 @@ function transformDebtorModels() {
     branchnumber: form_model.value.branchnumber,
     addressforbilling: {
       address: [form_model.value.address],
-      districtcode: form_model.value.district ? form_model.value.district.id : "",
+      districtcode: form_model.value.district
+        ? form_model.value.district.id
+        : "",
       phoneprimary: form_model.value.phoneprimary,
-      provincecode: form_model.value.province ? form_model.value.province.id : "",
-      subdistrictcode: form_model.value.subdistrict ? form_model.value.subdistrict.id : "",
-      zipcode: form_model.value.zipcode ? parseInt(form_model.value.zipcode.zip_code || form_model.value.zipcode) : "",
+      provincecode: form_model.value.province
+        ? form_model.value.province.id
+        : "",
+      subdistrictcode: form_model.value.subdistrict
+        ? form_model.value.subdistrict.id
+        : "",
+      zipcode: form_model.value.zipcode
+        ? parseInt(
+            form_model.value.zipcode.zip_code || form_model.value.zipcode
+          )
+        : "",
     },
     personaltype: parseInt(form_model.value.personaltype),
     customertype: parseInt(form_model.value.customertype),
+    groups: [],
   };
 
   // console.log(data)
@@ -270,9 +281,9 @@ async function verifyData() {
     form_valid.value.name = false;
     err_msg += "กรุณากรอกข้อมูล ชื่อลูกหนี้ ";
     checkValid += 1;
-  } 
+  }
 
-  if (form_model.value.customertype == 1) {
+  if (form_model.value.customertype == 2) {
     if (form_model.value.branchnumber == "") {
       form_valid.value.branchnumber = false;
       err_msg += "กรุณากรอกข้อมูล หมายเลขสาขา ";

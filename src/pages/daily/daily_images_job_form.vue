@@ -2337,6 +2337,9 @@ function clearData() {
   //   },
   // ];
   // daily_form.value.parid = "0000000";
+  daily_form.value.debtaccounttype = "0";
+  daily_form.value.debtor = "";
+  daily_form.value.creditor = "";
 
   daily_form.value.journaldetail.forEach((element) => {
     element.debitamount = 0;

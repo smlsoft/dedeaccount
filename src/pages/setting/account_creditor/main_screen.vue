@@ -35,8 +35,9 @@ const form_model = ref({
   address: "",
   addressforbilling: "",
   phoneprimary: "",
-  personaltype: 0,
-  customertype: 0,
+  personaltype: 1,
+  customertype: 1,
+  groups: [],
 });
 
 const form_valid = ref({
@@ -113,8 +114,9 @@ function clearForm() {
     address: "",
     addressforbilling: "",
     phoneprimary: "",
-    personaltype: 0,
-    customertype: 0,
+    personaltype: 1,
+    customertype: 1,
+    groups: [],
   };
   form_valid.value = {
     code: true,
@@ -156,6 +158,7 @@ function transformCreditorModels() {
     },
     personaltype: parseInt(form_model.value.personaltype),
     customertype: parseInt(form_model.value.customertype),
+    groups: [],
   };
 
   return data;
@@ -246,7 +249,7 @@ async function verifyData() {
     checkValid += 1;
   }
 
-  if (form_model.value.customertype == 1) {
+  if (form_model.value.customertype == 2) {
     if (form_model.value.branchnumber == "") {
       form_valid.value.branchnumber = false;
       err_msg += "กรุณากรอกข้อมูล หมายเลขสาขา ";

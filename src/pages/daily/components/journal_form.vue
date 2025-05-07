@@ -82,19 +82,24 @@ const emit = defineEmits([
   "selectDucumentFormat",
   "debtorSelected", // เพิ่ม emit สำหรับส่งข้อมูลลูกหนี้
   "creditorSelected", // เพิ่ม emit สำหรับส่งข้อมูลเจ้าหนี้
+  "clearCreditor",
+  "clearDebtor",
 ]);
 
 onMounted(async () => {
   checkAccountPeriod(props.daily_form.docdate);
 });
 
-// เพิ่มการตรวจสอบการเปลี่ยนค่า debtor และ creditor
 watch(
   () => props.daily_form.debtor,
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       console.log("Debtor changed to:", newVal);
       fetchDebtorData(newVal);
+    } else if (newVal === null && oldVal !== null) {
+      // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า
+      console.log("Debtor cleared");
+      emit("clearDebtor", null);
     }
   }
 );
@@ -105,6 +110,10 @@ watch(
     if (newVal && newVal !== oldVal) {
       console.log("Creditor changed to:", newVal);
       fetchCreditorData(newVal);
+    } else if (newVal === null && oldVal !== null) {
+      // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า
+      console.log("Creditor cleared");
+      emit("clearCreditor", null);
     }
   }
 );
@@ -112,7 +121,7 @@ watch(
 // ปรับปรุงฟังก์ชันดึงข้อมูลลูกหนี้
 function fetchDebtorData(id) {
   if (!id) return;
-  
+
   console.log("Fetching debtor data for CODE:", id);
   MasterdataService.getDebtorByCode(id)
     .then((res) => {
@@ -130,7 +139,7 @@ function fetchDebtorData(id) {
 // ปรับปรุงฟังก์ชันดึงข้อมูลเจ้าหนี้
 function fetchCreditorData(id) {
   if (!id) return;
-  
+
   console.log("Fetching creditor data for CODE:", id);
   MasterdataService.getCreditorByCode(id)
     .then((res) => {
@@ -450,6 +459,8 @@ function navigateHorizontal(currentIndex, currentField, direction) {
     }, 10); // Small delay to ensure DOM is ready
   }
 }
+
+
 </script>
 
 <template>
@@ -552,6 +563,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
       >
         <span class="p-float-label">
           <Dropdown
+            showClear
             v-model="props.daily_form.debtor"
             :options="props.customer_detail"
             :disabled="props.isUpdate"
@@ -582,6 +594,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
       >
         <span class="p-float-label">
           <Dropdown
+            showClear
             v-model="props.daily_form.creditor"
             :options="props.creditor_detail"
             :disabled="props.isUpdate"

@@ -53,7 +53,11 @@ function updatePersonalType(type) {
 }
 function updateCustomertype(type) {
   this.props.form_model.customertype = type;
-  return this.props.form_model.customertype;
+  if (type == 1) {
+    this.props.form_model.branchnumber = "00000";
+  } else {
+    this.props.form_model.branchnumber = "";
+  }
 }
 
 /// ThaiProvinces
@@ -166,11 +170,11 @@ const searchZipcode = async (id) => {
           id="naturalperson"
           name="personaltype"
           class="personaltype"
-          value="0"
+          value="1"
           :disabled="readMode"
           v-model="props.form_model.personaltype"
           :class="!props.form_valid.personaltype ? 'p-invalid ' : ''"
-          @change="updatePersonalType(0)"
+          @change="updatePersonalType(1)"
         />
         <label for="naturalperson">บุคคลธรรมดา</label>
         <input
@@ -178,11 +182,11 @@ const searchZipcode = async (id) => {
           id="juristicperson"
           name="personaltype"
           class="personaltype"
-          value="1"
+          value="2"
           :disabled="readMode"
           v-model="props.form_model.personaltype"
           :class="!props.form_valid.personaltype ? 'p-invalid ' : ''"
-          @change="updatePersonalType(1)"
+          @change="updatePersonalType(2)"
         />
         <label for="juristicperson">นิติบุคคล</label>
       </div>
@@ -206,11 +210,11 @@ const searchZipcode = async (id) => {
           id="headbranch"
           name="customertype"
           class="customertype"
-          value="0"
+          value="1"
           :disabled="readMode"
           v-model="props.form_model.customertype"
           :class="!props.form_valid.customertype ? 'p-invalid ' : ''"
-          @change="updateCustomertype(0)"
+          @change="updateCustomertype(1)"
         />
         <label for="headbranch">สำนักงานใหญ่</label>
         <input
@@ -218,11 +222,11 @@ const searchZipcode = async (id) => {
           id="subbranch"
           name="customertype"
           class="customertype"
-          value="1"
+          value="2"
           :disabled="readMode"
           v-model="props.form_model.customertype"
           :class="!props.form_valid.customertype ? 'p-invalid ' : ''"
-          @change="updateCustomertype(1)"
+          @change="updateCustomertype(2)"
         />
         <label for="subbranch">สาขา</label>
       </div>
