@@ -80,53 +80,59 @@
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="(item, index) in paginatedData"
-                  :key="item.id"
-                  @click="handleRowClick(item)"
-                  :class="{
-                    'row-selected': selectedItem && selectedItem.id === item.id,
-                  }"
-                >
-                  <td class="text-center">
-                    {{ (currentPage - 1) * itemsPerPage + index + 1 }}
-                  </td>
-                  <td>{{ item.custname }}</td>
-                  <td>{{ item.address || "-" }}</td>
-                  <td class="text-center">{{ item.custtaxid }}</td>
-                  <td class="text-center">{{ item.taxdocno }}</td>
-                  <td class="text-center">
-                    {{
-                      item.details && item.details[0]
-                        ? item.details[0].description
-                        : ""
-                    }}
-                  </td>
-                  <td class="text-center">
-                    {{ formatDateThai(item.taxdate) }}
-                  </td>
-                  <td class="text-center">
-                    {{
-                      item.details && item.details[0]
-                        ? item.details[0].taxrate + "%"
-                        : ""
-                    }}
-                  </td>
-                  <td class="text-right">
-                    {{
-                      item.details && item.details[0]
-                        ? formatCurrency(item.details[0].taxbase)
-                        : "0.00"
-                    }}
-                  </td>
-                  <td class="text-right">
-                    {{
-                      item.details && item.details[0]
-                        ? formatCurrency(item.details[0].taxamount)
-                        : "0.00"
-                    }}
-                  </td>
-                </tr>
+                <template v-for="(item, index) in paginatedData" :key="item.id">
+                  <!-- สำหรับแต่ละรายการ ใน details เราจะวนลูปแสดงข้อมูล -->
+                  <template
+                    v-for="(detail, detailIndex) in item.details"
+                    :key="`${item.id}-${detailIndex}`"
+                  >
+                    <!-- แสดงเฉพาะ detail ที่มีข้อมูล (มี taxbase หรือ description) -->
+                    <tr
+                      v-if="detail.taxbase > 0 || detail.description"
+                      @click="handleRowClick(item)"
+                      :class="{
+                        'row-selected':
+                          selectedItem && selectedItem.id === item.id,
+                      }"
+                    >
+                      <!-- แสดงลำดับเฉพาะแถวแรกของแต่ละกลุ่ม -->
+                      <td class="text-center">
+                        {{
+                          detailIndex === 0
+                            ? (currentPage - 1) * itemsPerPage + index + 1
+                            : ""
+                        }}
+                      </td>
+
+                      <!-- ข้อมูลของผู้มีเงินได้ แสดงเฉพาะในแถวแรกของแต่ละกลุ่ม -->
+                      <td>{{ detailIndex === 0 ? item.custname : "" }}</td>
+                      <td>
+                        {{ detailIndex === 0 ? item.address || "-" : "" }}
+                      </td>
+                      <td class="text-center">
+                        {{ detailIndex === 0 ? item.custtaxid : "" }}
+                      </td>
+                      <td class="text-center">
+                        {{ detailIndex === 0 ? item.taxdocno : "" }}
+                      </td>
+
+                      <!-- ข้อมูลรายละเอียดที่แตกต่างกันในแต่ละ detail -->
+                      <td class="text-center">{{ detail.description }}</td>
+                      <td class="text-center">
+                        {{
+                          detailIndex === 0 ? formatDateThai(item.taxdate) : ""
+                        }}
+                      </td>
+                      <td class="text-center">{{ detail.taxrate }}%</td>
+                      <td class="text-right">
+                        {{ formatCurrency(detail.taxbase) }}
+                      </td>
+                      <td class="text-right">
+                        {{ formatCurrency(detail.taxamount) }}
+                      </td>
+                    </tr>
+                  </template>
+                </template>
               </tbody>
               <tfoot>
                 <tr>
@@ -399,24 +405,30 @@ const searchParams = reactive({
   shopname: localStorage.shop_name,
 });
 
-// คำนวณผลรวม
+// คำนวณผลรวม - ปรับให้รวมทุกรายการใน details
 const totalTaxBase = computed(() => {
   return taxData.value.reduce((sum, item) => {
-    const details =
-      item.details && item.details.length > 0
-        ? item.details[0]
-        : { taxbase: 0 };
-    return sum + parseFloat(details.taxbase || 0);
+    // วนลูปรวมจากทุกรายการใน details
+    const detailsSum = item.details
+      ? item.details.reduce((detailSum, detail) => {
+          return detailSum + parseFloat(detail.taxbase || 0);
+        }, 0)
+      : 0;
+
+    return sum + detailsSum;
   }, 0);
 });
 
 const totalTaxAmount = computed(() => {
   return taxData.value.reduce((sum, item) => {
-    const details =
-      item.details && item.details.length > 0
-        ? item.details[0]
-        : { taxamount: 0 };
-    return sum + parseFloat(details.taxamount || 0);
+    // วนลูปรวมจากทุกรายการใน details
+    const detailsSum = item.details
+      ? item.details.reduce((detailSum, detail) => {
+          return detailSum + parseFloat(detail.taxamount || 0);
+        }, 0)
+      : 0;
+
+    return sum + detailsSum;
   }, 0);
 });
 
@@ -502,7 +514,7 @@ const generatePDF = async () => {
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
       taxid: shopTaxId.value,
-      address: shopAddress.value
+      address: shopAddress.value,
     };
 
     console.log("Generating PDF with params:", params);
@@ -605,7 +617,7 @@ const fetchData = async () => {
       shopid: searchParams.shopid,
       shopname: searchParams.shopname,
       taxid: shopTaxId.value,
-      address: shopAddress.value
+      address: shopAddress.value,
     };
 
     console.log("Fetching data with params:", params);
