@@ -270,6 +270,9 @@ const expenses_form_valid = ref({
 
 const activeTabIndex = ref(0);
 
+const debtorData = ref(null);
+const creditorData = ref(null);
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -297,25 +300,79 @@ watch(daily_form.value, (newValue, oldValue) => {
     sendChange(0);
   }
 });
-watch(vats.value, (newValue, oldValue) => {
-  if (vats.value.length > 0) {
-    isChange.value = true;
-    sendChange(1);
-  } else {
-    isChange.value = false;
-    sendChange(0);
-  }
-});
 
-watch(taxes.value, (newValue, oldValue) => {
-  if (taxes.value.length > 0) {
-    isChange.value = true;
-    sendChange(1);
-  } else {
-    isChange.value = false;
-    sendChange(0);
+// เพิ่ม watch สำหรับติดตามการเปลี่ยนแปลงของลูกหนี้และเจ้าหนี้
+watch(
+  () => daily_form.value.debtor,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      console.log("Debtor changed to:", newVal);
+      fetchDebtorData(newVal);
+    } else if (newVal === null && oldVal !== null) {
+      // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า
+      console.log("Debtor cleared");
+      clearDebtor();
+    }
   }
-});
+);
+
+watch(
+  () => daily_form.value.creditor,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      console.log("Creditor changed to:", newVal);
+      fetchCreditorData(newVal);
+    } else if (newVal === null && oldVal !== null) {
+      // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า
+      console.log("Creditor cleared");
+      clearCreditor();
+    }
+  }
+);
+
+// เพิ่มฟังก์ชันสำหรับดึงข้อมูลลูกหนี้
+function fetchDebtorData(id) {
+  if (!id) return;
+
+  console.log("Fetching debtor data for CODE:", id);
+  MasterdataService.getDebtorByCode(id)
+    .then((res) => {
+      console.log("Debtor API response:", res);
+      if (res.data) {
+        debtorData.value = res.data;
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching debtor data:", err);
+    });
+}
+
+// เพิ่มฟังก์ชันสำหรับดึงข้อมูลเจ้าหนี้
+function fetchCreditorData(id) {
+  if (!id) return;
+
+  console.log("Fetching creditor data for CODE:", id);
+  MasterdataService.getCreditorByCode(id)
+    .then((res) => {
+      console.log("Creditor API response:", res);
+      if (res.data) {
+        creditorData.value = res.data;
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching creditor data:", err);
+    });
+}
+
+function clearDebtor() {
+  console.log("Clearing debtor data");
+  debtorData.value = null;
+}
+
+function clearCreditor() {
+  console.log("Clearing creditor data");
+  creditorData.value = null;
+}
 
 onMounted(async () => {
   jobId.value = route.params.id;
@@ -1329,7 +1386,7 @@ async function onSaveExpenses() {
   }
 }
 
-function verifyDataIncome() {
+async function verifyDataIncome() {
   var errorCount = 0;
 
   if (income_form.value.docdate == "") {
@@ -2341,10 +2398,9 @@ function clearData() {
   daily_form.value.debtor = "";
   daily_form.value.creditor = "";
 
-  daily_form.value.journaldetail.forEach((element) => {
-    element.debitamount = 0;
-    element.creditamount = 0;
-  });
+  // ล้างข้อมูลลูกหนี้และเจ้าหนี้
+  debtorData.value = null;
+  creditorData.value = null;
 
   daily_form_has.value = {
     accountdescription: daily_form.value.accountdescription,
@@ -3206,6 +3262,9 @@ function swapType(type) {
                       <VatForm
                         :vats="vats"
                         :vats_valid="vats_valid"
+                        :debtorData="debtorData"
+                        :creditorData="creditorData"
+                        :debtaccounttype="daily_form.debtaccounttype"
                         v-on:addBoxVat="addBoxVat"
                         v-on:deleteDetailVat="deleteDetailVat"
                         v-on:calVatAmount="calVatAmount"
@@ -3223,6 +3282,9 @@ function swapType(type) {
                       <TaxForm
                         :taxes="taxes"
                         :taxes_valid="taxes_valid"
+                        :debtorData="debtorData"
+                        :creditorData="creditorData"
+                        :debtaccounttype="daily_form.debtaccounttype"
                         v-on:addBoxTax="addBoxTax"
                         v-on:deleteDetailTax="deleteDetailTax"
                         v-on:getSumTaxBase="getSumTaxBase"

@@ -58,6 +58,29 @@ onMounted(async () => {
   vatvalue.value = del_data.value.index + 1;
 });
 
+// เพิ่ม watch สำหรับติดตามการเปลี่ยนแปลงของ debtorData และ creditorData
+watch(
+  () => [props.debtorData, props.creditorData, props.debtaccounttype],
+  ([newDebtorData, newCreditorData, newDebtAccountType]) => {
+    console.log("VAT Form - Props changed:", { newDebtorData, newCreditorData, newDebtAccountType });
+    
+    // อัปเดตข้อมูลใน VAT items ที่มีอยู่แล้ว
+    if (props.vats && props.vats.length > 0) {
+      props.vats.forEach((vat, index) => {
+        // ถ้ายังไม่มีข้อมูลชื่อผู้เสียภาษี ให้เติมข้อมูลใหม่
+        if (!vat.custname || vat.custname === "") {
+          if (newDebtAccountType === "0" && newDebtorData) {
+            fillVatDataFromContact(index, newDebtorData);
+          } else if (newDebtAccountType === "1" && newCreditorData) {
+            fillVatDataFromContact(index, newCreditorData);
+          }
+        }
+      });
+    }
+  },
+  { deep: true, immediate: true }
+);
+
 function deleteDetailVat() {
   emit("deleteDetailVat", del_data.value.index);
   deleteDetailVatDialog.value = false;
@@ -84,13 +107,13 @@ function addBoxVat() {
 
 // เพิ่มฟังก์ชันใหม่สำหรับเติมข้อมูลภาษีจากข้อมูลลูกหนี้/เจ้าหนี้
 function fillVatDataFromContact(index, contactData) {
-  if (contactData) {
+  if (contactData && props.vats[index]) {
     console.log("Filling VAT data from contact:", contactData);
     
     // เติมข้อมูลชื่อผู้เสียภาษี
     if (contactData.names && contactData.names.length > 0) {
       const thaiName = contactData.names.find(n => n.code === "th");
-      if (thaiName) {
+      if (thaiName && thaiName.name) {
         props.vats[index].custname = thaiName.name;
       }
     }

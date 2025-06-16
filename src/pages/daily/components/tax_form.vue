@@ -62,6 +62,29 @@ const emit = defineEmits(["addBoxTax", "deleteDetailTax", "getSumTaxBase"]);
 
 onMounted(async () => {});
 
+// เพิ่ม watch สำหรับติดตามการเปลี่ยนแปลงของ debtorData และ creditorData
+watch(
+  () => [props.debtorData, props.creditorData, props.debtaccounttype],
+  ([newDebtorData, newCreditorData, newDebtAccountType]) => {
+    console.log("TAX Form - Props changed:", { newDebtorData, newCreditorData, newDebtAccountType });
+    
+    // อัปเดตข้อมูลใน TAX items ที่มีอยู่แล้ว
+    if (props.taxes && props.taxes.length > 0) {
+      props.taxes.forEach((tax, index) => {
+        // ถ้ายังไม่มีข้อมูลชื่อผู้เสียภาษี ให้เติมข้อมูลใหม่
+        if (!tax.custname || tax.custname === "") {
+          if (newDebtAccountType === "0" && newDebtorData) {
+            fillTaxDataFromContact(index, newDebtorData);
+          } else if (newDebtAccountType === "1" && newCreditorData) {
+            fillTaxDataFromContact(index, newCreditorData);
+          }
+        }
+      });
+    }
+  },
+  { deep: true, immediate: true }
+);
+
 function getSumTaxBase(data) {
   emit("getSumTaxBase", data);
 }
@@ -102,13 +125,13 @@ function addBoxTax() {
 
 // เพิ่มฟังก์ชันใหม่สำหรับเติมข้อมูลภาษีจากข้อมูลลูกหนี้/เจ้าหนี้
 function fillTaxDataFromContact(index, contactData) {
-  if (contactData) {
+  if (contactData && props.taxes[index]) {
     console.log("Filling TAX data from contact:", contactData);
     
     // เติมข้อมูลชื่อผู้เสียภาษี
     if (contactData.names && contactData.names.length > 0) {
       const thaiName = contactData.names.find(n => n.code === "th");
-      if (thaiName) {
+      if (thaiName && thaiName.name) {
         props.taxes[index].custname = thaiName.name;
       }
     }
