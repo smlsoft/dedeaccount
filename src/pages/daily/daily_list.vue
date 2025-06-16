@@ -318,6 +318,26 @@ function getSumCreditAmount(data) {
   return sum;
 }
 
+// เพิ่มฟังก์ชันสำหรับดึงชื่อลูกหนี้/เจ้าหนี้
+function getContactName(data) {
+  if (data.debtaccounttype === 0) {
+    // ลูกหนี้
+    if (data.debtor && data.debtor.names && data.debtor.names.length > 0) {
+      const thaiName = data.debtor.names.find(n => n.code === "th");
+      return thaiName ? thaiName.name : "ไม่ได้กำหนด";
+    }
+    return "ไม่ได้กำหนด";
+  } else if (data.debtaccounttype === 1) {
+    // เจ้าหนี้
+    if (data.creditor && data.creditor.names && data.creditor.names.length > 0) {
+      const thaiName = data.creditor.names.find(n => n.code === "th");
+      return thaiName ? thaiName.name : "ไม่ได้กำหนด";
+    }
+    return "ไม่ได้กำหนด";
+  }
+  return "ไม่ได้กำหนด";
+}
+
 function filterDocDate(event, mode, key) {
   console.log(event);
   if (event.value == "") {
@@ -475,32 +495,26 @@ function closefiltersColum() {
                 </div>
               </template>
             </Column>
-            <!-- <Column
-              field="accountyear"
-              header="ปีบัญชี"
-              :sortable="true"
+            <!-- เพิ่ม Column ชื่อ -->
+            <Column
+              header="ชื่อ"
+              :sortable="false"
               :showFilterMenu="false"
               :showClearButton="false"
             >
-              <template #filter>
+              <template #body="slotProps">
+                {{ getContactName(slotProps.data) }}
+              </template>
+              <template #filter v-if="showfilters">
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByAccYear"
                     placeholder="ค้นหา...."
-                    @keyup="keyup()"
-                    @keydown="keydown()"
                     class="p-inputtext-sm"
-                    type="number"
-                    :min="0"
-                  />
-                  <Button
-                    icon="pi pi-filter-slash"
-                    class="p-button-rounded p-button-text p-button-plain"
-                    @click="clearFilter('accountyear')"
+                    disabled
                   />
                 </div>
               </template>
-            </Column> -->
+            </Column>
             <Column
               field="accountperiod"
               header="งวดบัญชี"

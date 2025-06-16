@@ -2208,17 +2208,27 @@ function getAccountGroup() {
 }
 
 function addBoxVat() {
+  // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
+  const vatDate = daily_form.value.docdate || Utils.getDateTime();
+  
+  // กำหนดประเภทภาษีตาม debtaccounttype อย่างชัดเจน
+  // "0" = ลูกหนี้ → ภาษีขาย (vattype = 0, vatmode = 1)
+  // "1" = เจ้าหนี้ → ภาษีซื้อ (vattype = 1, vatmode = 0)
+  const isCreditor = daily_form.value.debtaccounttype === "1";
+  const vatType = isCreditor ? 1 : 0;
+  const vatMode = isCreditor ? 0 : 1; // vatmode: 0=ภาษีซื้อ, 1=ภาษีขาย
+
   vats.value.push({
-    vattype: 0,
-    vatdate: Utils.getDateTime(),
+    vattype: vatType,
+    vatdate: vatDate,
     vatdocno: "",
-    vatperiod: "1",
+    vatperiod: new Date(vatDate).getMonth() + 1,
     vatyear: parseInt(Utils.getYear().toString()) + 543,
     vatbase: 0,
     vatrate: 0,
     vatamount: 0,
     exceptvat: 0,
-    vatmode: 0,
+    vatmode: vatMode,
     vatsubmit: false,
     custname: "",
     custtaxid: "",
@@ -2278,13 +2288,29 @@ function setBranch(index) {
 }
 
 function addBoxTax() {
+  // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
+  const taxDate = daily_form.value.docdate || Utils.getDateTime();
+  
+  // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
+  let custType = 0; // default เป็นบุคคลธรรมดา
+  
+  if (daily_form.value.debtaccounttype === "0" && debtorData.value) {
+    // ใช้ข้อมูลลูกหนี้
+    custType = debtorData.value.custtype || 0;
+  } else if (daily_form.value.debtaccounttype === "1" && creditorData.value) {
+    // ใช้ข้อมูลเจ้าหนี้
+    custType = creditorData.value.custtype || 0;
+  }
+
   taxes.value.push({
     taxdocno: "",
-    taxdate: Utils.getDateTime(),
+    taxdate: taxDate, // ใช้วันที่เอกสาร
     custname: "",
-    custtype: 0,
+    custtype: custType, // ใช้ custtype จากข้อมูลลูกหนี้/เจ้าหนี้
+   
     custtaxid: "",
     taxtype: 0,
+    address: "",
     details: [
       {
         description: "",
@@ -2398,6 +2424,24 @@ function clearData() {
   daily_form.value.debtor = "";
   daily_form.value.creditor = "";
 
+  // แก้ไขการล้างค่า journaldetail - คงรายการเดิมไว้แต่ล้างค่า debit และ credit
+  if (daily_form.value.journaldetail && daily_form.value.journaldetail.length > 0) {
+    daily_form.value.journaldetail.forEach((item) => {
+      item.debitamount = 0;
+      item.creditamount = 0;
+    });
+  } else {
+    // ถ้าไม่มีรายการเลย ให้สร้างรายการเปล่า
+    daily_form.value.journaldetail = [
+      {
+        accountcode: "",
+        accountname: "",
+        debitamount: 0,
+        creditamount: 0,
+      },
+    ];
+  }
+
   // ล้างข้อมูลลูกหนี้และเจ้าหนี้
   debtorData.value = null;
   creditorData.value = null;
@@ -2415,14 +2459,7 @@ function clearData() {
     exdocrefno: daily_form.value.exdocrefno,
     journaltype: daily_form.value.journaltype,
     bookcode: daily_form.value.bookcode,
-    journaldetail: [
-      {
-        accountcode: "",
-        accountname: "",
-        debitamount: 0,
-        creditamount: 0,
-      },
-    ],
+    journaldetail: daily_form.value.journaldetail,
     parid: daily_form.value.parid,
   };
 
@@ -2473,9 +2510,9 @@ function clearDataIncome() {
   income_form.value.totaldiscount = 0;
   income_form.value.totalvatvalue = 0;
   income_form.value.totalbeforevat = 0;
-  income_form.value.totalaftervat = 0;
-  income_form.value.totalexceptvat = 0;
-  income_form.value.totalamount = 0;
+  income_form.value.totalaftervat = 0, /// มูลค่าหลังภาษี
+  income_form.value.totalexceptvat = 0, /// มูลค่ายกเว้นภาษี
+  income_form.value.totalamount = 0, /// มูลค่ารวมทั้งสิ้น
   income_form.value.payment = {
     paymenttype: 1,
     paymentamount: 0,

@@ -105,12 +105,31 @@ function removeBoxTax(data, index) {
 }
 
 function addBoxTax() {
+  // ใช้วันที่เอกสารจาก parent component ผ่าน props หรือวันที่ปัจจุบัน
+  const taxDate = Utils.getDateTime(); // ค่าเริ่มต้น
+  
+  // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
+  let custType = 0; // default เป็นบุคคลธรรมดา
+  
+  if (props.debtaccounttype === "0" && props.debtorData) {
+    // ใช้ข้อมูลลูกหนี้
+    custType = props.debtorData.custtype || 0;
+  } else if (props.debtaccounttype === "1" && props.creditorData) {
+    // ใช้ข้อมูลเจ้าหนี้
+    custType = props.creditorData.custtype || 0;
+  }
+
   emit("addBoxTax");
   
   // เพิ่มการตรวจสอบว่ามีข้อมูลลูกหนี้หรือเจ้าหนี้หรือไม่ และใช้ข้อมูลนั้นเติมในรายการล่าสุดที่เพิ่ม
   setTimeout(() => {
     const lastIndex = props.taxes.length - 1;
     if (lastIndex >= 0) {
+      // ตั้งค่า custtype
+      if (props.taxes[lastIndex]) {
+        props.taxes[lastIndex].custtype = custType;
+      }
+      
       // ตรวจสอบประเภทบัญชีและดึงข้อมูลที่เหมาะสม
       if (props.debtaccounttype === "0" && props.debtorData) {
         // ใช้ข้อมูลลูกหนี้
@@ -139,6 +158,11 @@ function fillTaxDataFromContact(index, contactData) {
     // เติมเลขประจำตัวผู้เสียภาษี
     if (contactData.taxid) {
       props.taxes[index].custtaxid = contactData.taxid;
+    }
+    
+    // เติม custtype จากข้อมูลลูกหนี้/เจ้าหนี้
+    if (contactData.custtype !== undefined && contactData.custtype !== null) {
+      props.taxes[index].custtype = contactData.custtype;
     }
     
     // สร้างที่อยู่จากข้อมูลที่มี

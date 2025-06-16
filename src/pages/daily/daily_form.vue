@@ -1657,18 +1657,25 @@ function addBoxVat() {
   const currentDate = Utils.getDateTime();
   // ดึงเดือนจากวันที่ปัจจุบัน (เดือนใน JavaScript เริ่มจาก 0)
   const currentMonth = new Date(currentDate).getMonth() + 1;
+  
+  // กำหนดประเภทภาษีตาม debtaccounttype
+  // "0" = ลูกหนี้ → ภาษีขาย (vattype = 0, vatmode = 1)
+  // "1" = เจ้าหนี้ → ภาษีซื้อ (vattype = 1, vatmode = 0)
+  const isCreditor = daily_form.value.debtaccounttype === "1";
+  const vatType = isCreditor ? 1 : 0;
+  const vatMode = isCreditor ? 0 : 1; // vatmode: 0=ภาษีซื้อ, 1=ภาษีขาย
 
   vats.value.push({
-    vattype: 0,
+    vattype: vatType,
     vatdate: currentDate,
     vatdocno: "",
-    vatperiod: currentMonth.toString(), // ใช้เดือนปัจจุบันแทนค่าคงที่ "1"
+    vatperiod: currentMonth.toString(),
     vatyear: parseInt(Utils.getYear().toString()) + 543,
     vatbase: 0,
     vatrate: 0,
     vatamount: 0,
     exceptvat: 0,
-    vatmode: 0,
+    vatmode: vatMode, // แก้ไขจากค่าคงที่ 0 เป็นค่าที่คำนวณได้
     vatsubmit: false,
     custname: "",
     custtaxid: "",
@@ -1732,13 +1739,28 @@ function selectSortUse(event) {
   getDocumentImageGroup();
 }
 function addBoxTax() {
+  // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
+  const taxDate = daily_form.value.docdate || Utils.getDateTime();
+  
+  // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
+  let custType = 0; // default เป็นบุคคลธรรมดา
+  
+  if (daily_form.value.debtaccounttype === "0" && debtorData.value) {
+    // ใช้ข้อมูลลูกหนี้
+    custType = debtorData.value.custtype || 0;
+  } else if (daily_form.value.debtaccounttype === "1" && creditorData.value) {
+    // ใช้ข้อมูลเจ้าหนี้
+    custType = creditorData.value.custtype || 0;
+  }
+
   taxes.value.push({
     taxdocno: "",
-    taxdate: Utils.getDateTime(),
+    taxdate: taxDate, // ใช้วันที่เอกสาร
     custname: "",
-    custtype: 0,
+    custtype: custType, // ใช้ custtype จากข้อมูลลูกหนี้/เจ้าหนี้
     custtaxid: "",
     taxtype: 0,
+    address: "",
     details: [
       {
         description: "",

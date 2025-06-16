@@ -605,7 +605,7 @@ function onScroll() {
             </div>
           </div>
         </template>
-        <template #content class="p-0">
+        <template #content >
           <div
             class="p-3 card"
             v-if="data_gallery.length == 0 && data_list.length == 0"
