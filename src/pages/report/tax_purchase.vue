@@ -473,31 +473,32 @@ const reportTitle = computed(() => {
   return "รายงานภาษีซื้อ";
 });
 
-// การแบ่งหน้า
+// การแบ่งหน้า - ใช้ข้อมูลจาก API response
 const totalPages = computed(() => {
-  if (vatData.value.length === 0) return 1;
-  return Math.ceil(vatData.value.length / itemsPerPage.value);
+  return pagination.value.totalPage || 1;
 });
 
 const paginatedData = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage.value,
-    vatData.value.length
-  );
-  return vatData.value.slice(startIndex, endIndex);
+  // สำหรับ server-side pagination แสดงข้อมูลทั้งหมดที่ได้รับ
+  return vatData.value;
 });
 
 // ฟังก์ชันการเปลี่ยนหน้า
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
+    // อัปเดต offset และเรียก API
+    searchParams.offset = (page - 1) * itemsPerPage.value;
+    fetchData();
   }
 };
 
-// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรก
-watch(itemsPerPage, () => {
+// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรกและเรียก API
+watch(itemsPerPage, (newValue) => {
   currentPage.value = 1;
+  searchParams.limit = newValue;
+  searchParams.offset = 0;
+  fetchData();
 });
 
 // ตัวเลือกสำหรับ Dropdown
@@ -765,10 +766,10 @@ const getPeriodName = (period) => {
   return periodNames[period - 1] || "";
 };
 
-// เมื่อข้อมูลเปลี่ยน กลับไปหน้าแรก
-watch(vatData, () => {
-  currentPage.value = 1;
-});
+// เมื่อข้อมูลเปลี่ยน ไม่ต้องกลับไปหน้าแรกเพราะเราจัดการแล้ว
+// watch(vatData, () => {
+//   currentPage.value = 1;
+// });
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
 onMounted(() => {

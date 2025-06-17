@@ -437,31 +437,32 @@ const reportTitle = computed(() => {
   return "รายงานภาษีหัก ณ ที่จ่าย ภ.ง.ด.3";
 });
 
-// การแบ่งหน้า
+// การแบ่งหน้า - ใช้ข้อมูลจาก API response  
 const totalPages = computed(() => {
-  if (taxData.value.length === 0) return 1;
-  return Math.ceil(taxData.value.length / itemsPerPage.value);
+  return pagination.value.totalPage || 1;
 });
 
 const paginatedData = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage.value,
-    taxData.value.length
-  );
-  return taxData.value.slice(startIndex, endIndex);
+  // สำหรับ server-side pagination แสดงข้อมูลทั้งหมดที่ได้รับ
+  return taxData.value;
 });
 
 // ฟังก์ชันการเปลี่ยนหน้า
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
+    // อัปเดต offset และเรียก API
+    searchParams.offset = (page - 1) * itemsPerPage.value;
+    fetchData();
   }
 };
 
-// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรก
-watch(itemsPerPage, () => {
+// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรกและเรียก API
+watch(itemsPerPage, (newValue) => {
   currentPage.value = 1;
+  searchParams.limit = newValue;
+  searchParams.offset = 0;
+  fetchData();
 });
 
 // ตั้งค่าเวลาของวันที่เริ่มต้นเป็น 00:00:00
@@ -583,6 +584,36 @@ const generatePDF = async () => {
   }
 };
 
+// เพิ่มฟังก์ชันที่ยังขาดหายไป
+const checkJobStatus = async (jobId, fileName) => {
+  try {
+    const result = await ReportTaxJournalService.checkJobStatus(jobId, fileName);
+    return result;
+  } catch (error) {
+    console.error('Error checking job status:', error);
+    throw error;
+  }
+};
+
+const downloadTaxReportPDF = (jobId, fileName) => {
+  try {
+    ReportTaxJournalService.downloadTaxReportPDF(jobId, fileName);
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    throw error;
+  }
+};
+
+const waitForPDFAndDownload = async (jobId, fileName) => {
+  try {
+    const result = await ReportTaxJournalService.waitForPDFAndDownload(jobId, fileName);
+    return result;
+  } catch (error) {
+    console.error('Error waiting for PDF:', error);
+    throw error;
+  }
+};
+
 // ฟอร์แมตวันที่และเวลาสำหรับส่ง API (YYYY-MM-DD HH:MM:SS)
 const formatDateTimeForAPI = (date) => {
   if (!date) return "";
@@ -685,10 +716,10 @@ const formatCurrency = (value) => {
   });
 };
 
-// เมื่อข้อมูลเปลี่ยน กลับไปหน้าแรก
-watch(taxData, () => {
-  currentPage.value = 1;
-});
+// เมื่อข้อมูลเปลี่ยน ไม่ต้องกลับไปหน้าแรกเพราะเราจัดการแล้ว
+// watch(taxData, () => {
+//   currentPage.value = 1;
+// });
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
 onMounted(async () => {

@@ -1659,14 +1659,13 @@ function addBoxVat() {
   const currentMonth = new Date(currentDate).getMonth() + 1;
   
   // กำหนดประเภทภาษีตาม debtaccounttype
-  // "0" = ลูกหนี้ → ภาษีขาย (vattype = 0, vatmode = 1)
-  // "1" = เจ้าหนี้ → ภาษีซื้อ (vattype = 1, vatmode = 0)
+  // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
+  // "1" = เจ้าหนี้ → ภาษีซื้อ (vatmode = 0)
   const isCreditor = daily_form.value.debtaccounttype === "1";
-  const vatType = isCreditor ? 1 : 0;
   const vatMode = isCreditor ? 0 : 1; // vatmode: 0=ภาษีซื้อ, 1=ภาษีขาย
 
   vats.value.push({
-    vattype: vatType,
+    vattype: 0, // vattype ต้องเป็น 0 (ปกติ) เสมอ
     vatdate: currentDate,
     vatdocno: "",
     vatperiod: currentMonth.toString(),
@@ -1675,7 +1674,7 @@ function addBoxVat() {
     vatrate: 0,
     vatamount: 0,
     exceptvat: 0,
-    vatmode: vatMode, // แก้ไขจากค่าคงที่ 0 เป็นค่าที่คำนวณได้
+    vatmode: vatMode, // vatmode เปลี่ยนตาม debtaccounttype
     vatsubmit: false,
     custname: "",
     custtaxid: "",

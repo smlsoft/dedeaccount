@@ -1592,7 +1592,7 @@ function verifyPaymentExpenses() {
   return true;
 }
 
-function verifyDataExpenses() {
+async function verifyDataExpenses() {
   var errorCount = 0;
 
   if (expenses_form.value.docdate == "") {
@@ -2211,24 +2211,26 @@ function addBoxVat() {
   // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
   const vatDate = daily_form.value.docdate || Utils.getDateTime();
   
-  // กำหนดประเภทภาษีตาม debtaccounttype อย่างชัดเจน
-  // "0" = ลูกหนี้ → ภาษีขาย (vattype = 0, vatmode = 1)
-  // "1" = เจ้าหนี้ → ภาษีซื้อ (vattype = 1, vatmode = 0)
+  // ดึงเดือนจากวันที่ใบกำกับ (เดือนใน JavaScript เริ่มจาก 0)
+  const vatMonth = new Date(vatDate).getMonth() + 1;
+  
+  // กำหนดประเภทภาษีตาม debtaccounttype
+  // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
+  // "1" = เจ้าหนี้ → ภาษีซื้อ (vatmode = 0)
   const isCreditor = daily_form.value.debtaccounttype === "1";
-  const vatType = isCreditor ? 1 : 0;
   const vatMode = isCreditor ? 0 : 1; // vatmode: 0=ภาษีซื้อ, 1=ภาษีขาย
 
   vats.value.push({
-    vattype: vatType,
+    vattype: 0, // vattype ต้องเป็น 0 (ปกติ) เสมอ
     vatdate: vatDate,
     vatdocno: "",
-    vatperiod: new Date(vatDate).getMonth() + 1,
+    vatperiod: vatMonth.toString(),
     vatyear: parseInt(Utils.getYear().toString()) + 543,
     vatbase: 0,
     vatrate: 0,
     vatamount: 0,
     exceptvat: 0,
-    vatmode: vatMode,
+    vatmode: vatMode, // vatmode เปลี่ยนตาม debtaccounttype
     vatsubmit: false,
     custname: "",
     custtaxid: "",
@@ -2305,6 +2307,7 @@ function addBoxTax() {
   taxes.value.push({
     taxdocno: "",
     taxdate: taxDate, // ใช้วันที่เอกสาร
+   
     custname: "",
     custtype: custType, // ใช้ custtype จากข้อมูลลูกหนี้/เจ้าหนี้
    

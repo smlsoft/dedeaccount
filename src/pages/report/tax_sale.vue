@@ -3,7 +3,9 @@
     <MainContentWarp>
       <div class="surface-card p-4 shadow-2 border-round">
         <div class="mb-3 flex align-items-center justify-content-between">
-          <span class="text-xl font-medium text-900">รายงานภาษี / ภาษีขาย</span>
+          <span class="text-xl font-medium text-900"
+            >รายงานภาษี / ภาษีขาย</span
+          >
           <div class="flex gap-2">
             <Button
               label="PDF"
@@ -27,11 +29,14 @@
           <!-- Report Header -->
           <div class="mb-4">
             <!-- ส่วนหัวตรงกลาง -->
-            <div class="flex justify-content-center align-items-center flex-column">
-              <h2 class="font-bold text-xl mb-0">รายงานภาษีขาย</h2>
+            <div
+              class="flex justify-content-center align-items-center flex-column"
+            >
+              <h2 class="font-bold text-xl mb-0">
+                รายงานภาษีขาย
+              </h2>
               <p class="mb-3">
-                เดือนภาษี{{ getPeriodName(searchParams.period) }} ปีภาษี
-                {{ searchParams.year }}
+                ประจำเดือน {{ getPeriodName(searchParams.period) }} ปี {{ searchParams.year }}
               </p>
             </div>
 
@@ -48,13 +53,11 @@
             </div>
 
             <!-- ส่วนข้อมูลบรรทัดที่ 2 -->
-            <div class="flex justify-content-between align-items-center">
+            <div class="flex justify-content-between align-items-center mb-2">
               <div>
                 <span class="font-bold">ที่อยู่:</span> {{ shopAddress }}
               </div>
-              <div>
-                <span class="font-bold">สาขา:</span> (สำนักงานใหญ่)
-              </div>
+              <div><span class="font-bold">สาขา:</span> (สำนักงานใหญ่)</div>
             </div>
           </div>
 
@@ -65,14 +68,13 @@
                   <th class="text-center">ลำดับ</th>
                   <th class="text-center">วันที่</th>
                   <th class="text-center">เลขที่ใบกำกับ</th>
-                  <th class="text-center">ชื่อผู้ซื้อสินค้า/ผู้รับบริการ</th>
+                  <th class="text-center">ชื่อลูกค้า</th>
                   <th class="text-center">เลขประจำตัวผู้เสียภาษี</th>
-                  <th class="text-center">สำนักงานใหญ่</th>
-                  <th class="text-center">ยอดยกเว้นภาษี</th>
-                  <th class="text-center">มูลค่าสินค้า/บริการ</th>
-                  <th class="text-center">จำนวนเงินภาษี</th>
+                  <th class="text-center">สาขา</th>
+                  <th class="text-center">ฐานภาษี</th>
+                  <th class="text-center">ภาษี</th>
+                  <th class="text-center">ยกเว้นภาษี</th>
                   <th class="text-center">รวมทั้งสิ้น</th>
-                  <th class="text-center">ยื่นเพิ่มเติม</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,39 +92,25 @@
                   <td class="text-center">
                     {{ formatDateThai(item.vatdate) }}
                   </td>
-                  <td>{{ item.vatdocno }}</td>
+                  <td class="text-center">{{ item.vatdocno }}</td>
                   <td>{{ item.custname }}</td>
-                  <td>{{ item.custtaxid }}</td>
+                  <td class="text-center">{{ item.custtaxid }}</td>
                   <td class="text-center">
-                    {{
-                      item.organization === 0 ? "สำนักงานใหญ่" : item.branchcode
-                    }}
-                  </td>
-                  <td class="text-right">
-                    {{ formatCurrency(item.exceptvat || 0) }}
+                    {{ item.organization === 0 ? "สำนักงานใหญ่" : item.branchcode }}
                   </td>
                   <td class="text-right">{{ formatCurrency(item.vatbase) }}</td>
-                  <td class="text-right">
-                    {{ formatCurrency(item.vatamount) }}
-                  </td>
-                  <td class="text-right">
-                    {{ formatCurrency(item.total || calculateTotal(item)) }}
-                  </td>
-                  <td class="text-center">
-                    {{ item.vatsubmit ? "ยื่นเพิ่มเติม" : "" }}
-                  </td>
+                  <td class="text-right">{{ formatCurrency(item.vatamount) }}</td>
+                  <td class="text-right">{{ formatCurrency(item.exceptvat) }}</td>
+                  <td class="text-right">{{ formatCurrency(calculateTotal(item)) }}</td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
                   <td colspan="6" class="text-center">รวม</td>
-                  <td class="text-right">
-                    {{ formatCurrency(totalExceptVat) }}
-                  </td>
                   <td class="text-right">{{ formatCurrency(totalBase) }}</td>
                   <td class="text-right">{{ formatCurrency(totalTax) }}</td>
+                  <td class="text-right">{{ formatCurrency(totalExceptVat) }}</td>
                   <td class="text-right">{{ formatCurrency(grandTotal) }}</td>
-                  <td></td>
                 </tr>
               </tfoot>
             </table>
@@ -206,13 +194,13 @@
             <Dropdown
               v-model="searchParams.year"
               :options="years"
+              class="w-full"
               optionLabel="label"
               optionValue="value"
-              class="w-full"
               inputId="yearDropdown"
               :input-style="{ height: '54px' }"
             />
-            <label for="yearDropdown">ปี</label>
+            <label for="yearDropdown">ปี (พ.ศ.)</label>
           </div>
         </div>
         <div class="col-6">
@@ -220,9 +208,9 @@
             <Dropdown
               v-model="searchParams.period"
               :options="periods"
+              class="w-full"
               optionLabel="label"
               optionValue="value"
-              class="w-full"
               inputId="periodDropdown"
               :input-style="{ height: '54px' }"
             />
@@ -316,10 +304,82 @@ const vatData = ref([]);
 const loading = ref(false);
 const isPdfLoading = ref(false);
 const pdfStatusVisible = ref(false);
-const selectedItem = ref(null); // เพิ่มตัวแปรสำหรับเก็บแถวที่เลือก
+const pagination = ref({
+  perPage: 20,
+  page: 0,
+  total: 0,
+  totalPage: 0,
+});
+
+// ตัวแปรสำหรับ DetailDocDialog
+const openDetailDocNo = ref(false);
+const selectedDocNo = ref(null);
+const selectedRow = ref(null);
+
+// ตัวแปรสำหรับการเลือกแถว
+const selectedItem = ref(null);
+
+// ฟังก์ชันเมื่อคลิกแถวใน DataTable
+const rowClick = (event) => {
+  selectedRow.value = event.data;
+  selectedDocNo.value = event.data.vatdocno;
+  openDetailDocNo.value = true;
+};
+
+// ฟังก์ชันเมื่อคลิกแถวในรายงาน
+const handleRowClick = (item) => {
+  // ตรวจสอบว่ากำลังคลิกแถวเดียวกับที่เลือกอยู่หรือไม่
+  if (selectedItem.value && selectedItem.value.id === item.id) {
+    // ถ้าคลิกแถวเดิม ให้เปิด dialog เท่านั้น ไม่ต้องเปลี่ยน selection
+    selectedDocNo.value = item.docno;
+    openDetailDocNo.value = true;
+    return;
+  }
+
+  // ถ้าเป็นแถวใหม่ ให้อัปเดต selectedItem
+  selectedItem.value = item;
+  selectedDocNo.value = item.docno;
+  openDetailDocNo.value = true;
+};
 
 // ค่าคงที่สำหรับรายงานภาษีขาย (mode = 1)
 const TAX_MODE = 1;
+
+// ฟังก์ชันสำหรับดึงข้อมูลกิจการ
+const getShopData = async () => {
+  try {
+    const result = await ShopService.getShop(shopId);
+    if (result.success) {
+      shopData.value = result.data;
+
+      // ตรวจสอบและเพิ่มข้อมูลที่จำเป็นถ้ายังไม่มี
+      if (!shopData.value.names || !shopData.value.names.length) {
+        shopData.value.names = [
+          {
+            code: "th",
+            name: localStorage.shop_name || "",
+            isauto: false,
+            isdelete: false,
+          },
+        ];
+      }
+
+      if (!shopData.value.address || !shopData.value.address.length) {
+        shopData.value.address = [
+          { code: "th", name: "", isauto: false, isdelete: false },
+        ];
+      }
+
+      if (!shopData.value.settings) {
+        shopData.value.settings = { taxid: "" };
+      }
+    } else {
+      console.error("ไม่สามารถดึงข้อมูลกิจการได้:", result);
+    }
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลกิจการ:", error);
+  }
+};
 
 // Search dialog
 const searchDialogVisible = ref(false);
@@ -350,11 +410,11 @@ const { currentYear, currentMonth } = getCurrentDate();
 const searchParams = reactive({
   limit: 20,
   offset: 0,
-  mode: TAX_MODE,
-  year: currentYear,
-  period: currentMonth,
-  shopid: localStorage.shopid,
-  shopname: localStorage.shop_name,
+  mode: TAX_MODE, // กำหนดค่าคงที่ เป็นภาษีขาย
+  year: currentYear, // ใช้ปีปัจจุบัน
+  period: currentMonth, // ใช้เดือนปัจจุบัน
+  shopid: shopId,
+  shopname: shopName,
 });
 
 // คำนวณผลรวม
@@ -395,33 +455,36 @@ const calculateTotal = (item) => {
 };
 
 // ชื่อรายงาน
-const reportTitle = computed(() => "รายงานภาษีขาย");
+const reportTitle = computed(() => {
+  return "รายงานภาษีขาย";
+});
 
-// การแบ่งหน้า
+// การแบ่งหน้า - ใช้ข้อมูลจาก API response
 const totalPages = computed(() => {
-  if (vatData.value.length === 0) return 1;
-  return Math.ceil(vatData.value.length / itemsPerPage.value);
+  return pagination.value.totalPage || 1;
 });
 
 const paginatedData = computed(() => {
-  const startIndex = (currentPage.value - 1) * itemsPerPage.value;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage.value,
-    vatData.value.length
-  );
-  return vatData.value.slice(startIndex, endIndex);
+  // สำหรับ server-side pagination แสดงข้อมูลทั้งหมดที่ได้รับ
+  return vatData.value;
 });
 
 // ฟังก์ชันการเปลี่ยนหน้า
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
+    // อัปเดต offset และเรียก API
+    searchParams.offset = (page - 1) * itemsPerPage.value;
+    fetchData();
   }
 };
 
-// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรก
-watch(itemsPerPage, () => {
+// เมื่อเปลี่ยนขนาดรายการต่อหน้า กลับไปหน้าแรกและเรียก API
+watch(itemsPerPage, (newValue) => {
   currentPage.value = 1;
+  searchParams.limit = newValue;
+  searchParams.offset = 0;
+  fetchData();
 });
 
 // ตัวเลือกสำหรับ Dropdown
@@ -475,6 +538,13 @@ const searchAndCloseDialog = () => {
   searchParams.fromdate = startDate;
   searchParams.todate = endDate;
 
+  console.log("Search with period dates:", {
+    year: searchParams.year,
+    period: searchParams.period,
+    fromdate: formatDateTimeForAPI(startDate),
+    todate: formatDateTimeForAPI(endDate),
+  });
+
   fetchData();
   searchDialogVisible.value = false;
 };
@@ -501,7 +571,7 @@ const generatePDF = async () => {
     const { startDate, endDate } = calculateTaxPeriodDates();
 
     const params = {
-      mode: TAX_MODE,
+      mode: TAX_MODE, // ใช้ค่าคงที่
       year: searchParams.year,
       period: searchParams.period,
       fromdate: formatDateTimeForAPI(startDate),
@@ -511,6 +581,8 @@ const generatePDF = async () => {
       taxid: shopTaxId.value,
       address: shopAddress.value
     };
+
+    console.log("Generating PDF with params:", params);
 
     const result = await reportTaxVatService.generateVatReportPDF(params);
 
@@ -535,6 +607,8 @@ const generatePDF = async () => {
           life: 3000,
         });
       } catch (waitError) {
+        console.error("Error waiting for PDF:", waitError);
+
         // ตรวจสอบข้อความผิดพลาด
         if (waitError.message.includes("ไม่พบไฟล์ PDF")) {
           toast.add({
@@ -561,6 +635,7 @@ const generatePDF = async () => {
       });
     }
   } catch (error) {
+    console.error("Error generating PDF:", error);
     toast.add({
       severity: "error",
       summary: "ผิดพลาด",
@@ -582,7 +657,7 @@ const fetchData = async () => {
     const params = {
       limit: searchParams.limit,
       offset: searchParams.offset,
-      mode: TAX_MODE,
+      mode: TAX_MODE, // ใช้ค่าคงที่
       year: searchParams.year,
       period: searchParams.period,
       fromdate: formatDateTimeForAPI(startDate),
@@ -593,10 +668,13 @@ const fetchData = async () => {
       address: shopAddress.value
     };
 
+    console.log("Fetching data with params:", params);
+
     const result = await reportTaxVatService.getVatReport(params);
 
     if (result.success) {
       vatData.value = result.data;
+      pagination.value = result.pagination;
       toast.add({
         severity: "success",
         summary: "สำเร็จ",
@@ -604,6 +682,7 @@ const fetchData = async () => {
         life: 3000,
       });
     } else {
+      console.error("Error fetching data:", result.msg);
       toast.add({
         severity: "error",
         summary: "ผิดพลาด",
@@ -612,6 +691,7 @@ const fetchData = async () => {
       });
     }
   } catch (error) {
+    console.error("Error fetching data:", error);
     toast.add({
       severity: "error",
       summary: "ผิดพลาด",
@@ -655,97 +735,20 @@ const formatCurrency = (value) => {
 
 // ฟังก์ชันสำหรับแปลงเลขเดือนเป็นชื่อเดือน
 const getPeriodName = (period) => {
-  const periodNames = [
-    "มกราคม",
-    "กุมภาพันธ์",
-    "มีนาคม",
-    "เมษายน",
-    "พฤษภาคม",
-    "มิถุนายน",
-    "กรกฎาคม",
-    "สิงหาคม",
-    "กันยายน",
-    "ตุลาคม",
-    "พฤศจิกายน",
-    "ธันวาคม",
+  const periods = [
+    "", "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
   ];
-  return periodNames[period - 1] || "";
+  return periods[period] || "";
 };
 
-// เมื่อข้อมูลเปลี่ยน กลับไปหน้าแรก
-watch(vatData, () => {
-  currentPage.value = 1;
-  selectedItem.value = null; // รีเซ็ตแถวที่เลือกเมื่อข้อมูลเปลี่ยน
-});
+// เมื่อข้อมูลเปลี่ยน ไม่ต้องกลับไปหน้าแรกเพราะเราจัดการแล้ว
+// watch(vatData, () => {
+//   currentPage.value = 1;
+//   selectedItem.value = null; // รีเซ็ตแถวที่เลือกเมื่อข้อมูลเปลี่ยน
+// });
 
-// ตัวแปรสำหรับ DetailDocDialog
-const openDetailDocNo = ref(false);
-const selectedDocNo = ref(null);
 
-// ฟังก์ชันจัดการคลิกที่แถว
-const handleRowClick = (item) => {
-  // ตรวจสอบว่ากำลังคลิกแถวเดียวกับที่เลือกอยู่หรือไม่
-  if (selectedItem.value && selectedItem.value.id === item.id) {
-    // ถ้าคลิกแถวเดิม ให้เปิด dialog เท่านั้น ไม่ต้องเปลี่ยน selection
-    selectedDocNo.value = item.docno;
-    openDetailDocNo.value = true;
-    return;
-  }
-
-  // ถ้าเป็นแถวใหม่ ให้อัปเดต selectedItem
-  selectedItem.value = item;
-  selectedDocNo.value = item.docno;
-  openDetailDocNo.value = true;
-
-  // สร้าง event object สำหรับเรียกใช้งาน onRowSelect
-  const event = {
-    data: item,
-  };
-
-  onRowSelect(event);
-};
-
-// Event handler สำหรับ row select
-const onRowSelect = (event) => {
-  selectedDocNo.value = event.data.docno;
-  openDetailDocNo.value = true;
-};
-
-// ฟังก์ชันสำหรับดึงข้อมูลกิจการ
-const getShopData = async () => {
-  try {
-    const result = await ShopService.getShop(shopId);
-    if (result.success) {
-      shopData.value = result.data;
-
-      // ตรวจสอบและเพิ่มข้อมูลที่จำเป็นถ้ายังไม่มี
-      if (!shopData.value.names || !shopData.value.names.length) {
-        shopData.value.names = [
-          {
-            code: "th",
-            name: localStorage.shop_name || "",
-            isauto: false,
-            isdelete: false,
-          },
-        ];
-      }
-
-      if (!shopData.value.address || !shopData.value.address.length) {
-        shopData.value.address = [
-          { code: "th", name: "", isauto: false, isdelete: false },
-        ];
-      }
-
-      if (!shopData.value.settings) {
-        shopData.value.settings = { taxid: "" };
-      }
-    } else {
-      console.error("ไม่สามารถดึงข้อมูลกิจการได้:", result);
-    }
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลกิจการ:", error);
-  }
-};
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
 onMounted(() => {
