@@ -95,6 +95,7 @@ watch(
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       console.log("Debtor changed to:", newVal);
+      // เรียกใช้ API ทั้งในโหมดสร้างใหม่และแก้ไข
       fetchDebtorData(newVal);
     } else if (newVal === null && oldVal !== null) {
       // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า
@@ -109,6 +110,7 @@ watch(
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       console.log("Creditor changed to:", newVal);
+      // เรียกใช้ API ทั้งในโหมดสร้างใหม่และแก้ไข
       fetchCreditorData(newVal);
     } else if (newVal === null && oldVal !== null) {
       // เมื่อค่าเปลี่ยนจากมีค่าเป็น null = กดปุ่มล้างค่า

@@ -2,38 +2,26 @@ import axios from 'axios';
 
 class ReportPayableReceivableService {
     constructor() {
-        this.baseUrl = null;
-        this.initialized = false;
-        this.initializeBaseUrl();
-    }
+        // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
+        const apiUrl = import.meta.env.VUE_APP_API;
+        console.log("API URL from env:", apiUrl);
 
-    initializeBaseUrl() {
-        // ตรวจสอบ environment variable ทั้งแบบ Vite และ Webpack
-        this.baseUrl = import.meta.env?.VUE_APP_API || process.env?.VUE_APP_API;
-        
-        if (this.baseUrl) {
+        // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
+        if (!apiUrl) {
+            // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
+            console.warn("API URL is not defined in environment. Using fallback URL.");
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'https://api.dev.dedepos.com/'
+                : 'https://api.dedepos.com/';
+        } else {
+            this.baseUrl = apiUrl;
+            // เพิ่ม / ท้าย URL ถ้าไม่มี
             if (!this.baseUrl.endsWith('/')) {
                 this.baseUrl += '/';
             }
-            this.initialized = true;
-            console.log("Base URL initialized:", this.baseUrl);
-        } else {
-            console.warn("VUE_APP_API is not defined in environment variables");
-            this.initialized = false;
-            
-            // ใช้ค่า fallback ในกรณีที่ไม่มี env variable (เฉพาะ development)
-            if (import.meta.env?.MODE === 'development' || process.env?.NODE_ENV === 'development') {
-                this.baseUrl = 'https://api.dev.dedepos.com/';
-                this.initialized = true;
-                console.warn("Using fallback URL for development:", this.baseUrl);
-            }
         }
-    }
 
-    checkInitialization() {
-        if (!this.initialized || !this.baseUrl) {
-            throw new Error("VUE_APP_API is not defined in environment variables. Please check your .env file.");
-        }
+        console.log("Base URL initialized:", this.baseUrl);
     }
 
     /**
@@ -71,16 +59,29 @@ class ReportPayableReceivableService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลรายงาน
      */
     async getReceivableReport(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/accounts_receivable/`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            // สร้าง URL ด้วย method ที่สร้างขึ้น
+            const url = this.createApiUrl('apireport/accounts_receivable/');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            // เพิ่ม default params ที่จำเป็น
+            if (!url.searchParams.has('accountcode')) {
+                url.searchParams.append('accountcode', '113010');
+            }
+            if (!url.searchParams.has('custcode')) {
+                url.searchParams.append('custcode', '');
+            }
+
+            console.log("Fetching Receivable report from:", url.toString());
+            const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
             console.error('Error fetching Receivable report:', error);
@@ -94,16 +95,28 @@ class ReportPayableReceivableService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลรายงาน
      */
     async getPayableReport(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/accounts_payable/`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            const url = this.createApiUrl('apireport/accounts_payable/');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            // เพิ่ม default params ที่จำเป็น
+            if (!url.searchParams.has('accountcode')) {
+                url.searchParams.append('accountcode', '113010');
+            }
+            if (!url.searchParams.has('custcode')) {
+                url.searchParams.append('custcode', '');
+            }
+
+            console.log("Fetching Payable report from:", url.toString());
+            const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
             console.error('Error fetching Payable report:', error);
@@ -117,8 +130,6 @@ class ReportPayableReceivableService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลการสร้างไฟล์
      */
     async generateReceivableReportPDF(params) {
-        this.checkInitialization();
-        
         try {
             const url = this.createApiUrl('apireport/accounts_receivable/genPDF');
 
@@ -160,8 +171,6 @@ class ReportPayableReceivableService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลการสร้างไฟล์
      */
     async generatePayableReportPDF(params) {
-        this.checkInitialization();
-        
         try {
             // แก้ไขเป็น accounts_payable (ไม่มี s)
             const url = this.createApiUrl('apireport/accounts_payable/genPDF');
@@ -206,8 +215,6 @@ class ReportPayableReceivableService {
      * @returns {Promise} - Promise ที่ resolve เป็นสถานะงาน
      */
     async checkJobStatus(jobId, fileName, reportType = 'payable') {
-        this.checkInitialization();
-        
         try {
             if (!jobId || !fileName) {
                 throw new Error('Job ID and file name are required');

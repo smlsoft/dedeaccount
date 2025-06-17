@@ -2,38 +2,26 @@ import axios from 'axios';
 
 class ReportTaxJournalService {
     constructor() {
-        this.baseUrl = null;
-        this.initialized = false;
-        this.initializeBaseUrl();
-    }
+        // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
+        const apiUrl = import.meta.env.VUE_APP_API;
+        console.log("API URL from env:", apiUrl);
 
-    initializeBaseUrl() {
-        // ตรวจสอบ environment variable ทั้งแบบ Vite และ Webpack
-        this.baseUrl = import.meta.env?.VUE_APP_API || process.env?.VUE_APP_API;
-        
-        if (this.baseUrl) {
+        // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
+        if (!apiUrl) {
+            // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
+            console.warn("API URL is not defined in environment. Using fallback URL.");
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'https://api.dev.dedepos.com/'
+                : 'https://api.dedepos.com/';
+        } else {
+            this.baseUrl = apiUrl;
+            // เพิ่ม / ท้าย URL ถ้าไม่มี
             if (!this.baseUrl.endsWith('/')) {
                 this.baseUrl += '/';
             }
-            this.initialized = true;
-            console.log("Base URL initialized:", this.baseUrl);
-        } else {
-            console.warn("VUE_APP_API is not defined in environment variables");
-            this.initialized = false;
-            
-            // ใช้ค่า fallback ในกรณีที่ไม่มี env variable (เฉพาะ development)
-            if (import.meta.env?.MODE === 'development' || process.env?.NODE_ENV === 'development') {
-                this.baseUrl = 'https://api.dev.dedepos.com/';
-                this.initialized = true;
-                console.warn("Using fallback URL for development:", this.baseUrl);
-            }
         }
-    }
 
-    checkInitialization() {
-        if (!this.initialized || !this.baseUrl) {
-            throw new Error("VUE_APP_API is not defined in environment variables. Please check your .env file.");
-        }
+        console.log("Base URL initialized:", this.baseUrl);
     }
 
     /**
@@ -63,20 +51,29 @@ class ReportTaxJournalService {
             console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
             throw new Error(`Invalid URL construction: ${error.message}`);
         }
-   }
+    }
 
-    // ดึงข้อมูลรายงานภาษีหัก ณ ที่จ่าย
+    /**
+     * ดึงข้อมูลรายงานภาษีหัก ณ ที่จ่าย
+     * @param {Object} params - พารามิเตอร์สำหรับการค้นหา
+     * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลรายงาน
+     */
     async getTaxReport(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/journaltax/`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            // สร้าง URL ด้วย method ที่สร้างขึ้น
+            const url = this.createApiUrl('apireport/journaltax/');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            console.log("Fetching tax report from:", url.toString());
+            const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
             console.error('Error fetching Tax report:', error);
@@ -84,18 +81,26 @@ class ReportTaxJournalService {
         }
     }
 
-    // สร้างไฟล์ PDF รายงานภาษีหัก ณ ที่จ่าย
+    /**
+     * สร้างไฟล์ PDF รายงานภาษีหัก ณ ที่จ่าย
+     * @param {Object} params - พารามิเตอร์สำหรับการสร้าง PDF
+     * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลการสร้างไฟล์
+     */
     async generateTaxReportPDF(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/journaltax/genPDF`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
-            });
+            const url = this.createApiUrl('apireport/journaltax/genPDF');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            console.log("Generating PDF from:", url.toString());
+            const response = await axios.get(url.toString());
             return response.data;
         } catch (error) {
             console.error('Error generating Tax report PDF:', error);

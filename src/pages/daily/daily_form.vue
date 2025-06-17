@@ -362,6 +362,16 @@ function getGLDetail(id) {
           res.data.debtaccounttype == 0 ? res.data.debtor.code : "";
         daily_form.value.creditor =
           res.data.debtaccounttype == 1 ? res.data.creditor.code : "";
+
+        // เพิ่มการเก็บข้อมูลลูกหนี้/เจ้าหนี้ใน debtorData และ creditorData
+        if (res.data.debtaccounttype == 0 && res.data.debtor) {
+          debtorData.value = res.data.debtor;
+          creditorData.value = null;
+        } else if (res.data.debtaccounttype == 1 && res.data.creditor) {
+          creditorData.value = res.data.creditor;
+          debtorData.value = null;
+        }
+
         daily_form.value.accountdescription = res.data.accountdescription;
         daily_form.value.accountgroup = res.data.accountgroup;
         daily_form.value.accountperiod = res.data.accountperiod;
@@ -1653,10 +1663,10 @@ function getAccountGroup() {
 }
 
 function addBoxVat() {
-  // ดึงวันที่ปัจจุบัน
-  const currentDate = Utils.getDateTime();
-  // ดึงเดือนจากวันที่ปัจจุบัน (เดือนใน JavaScript เริ่มจาก 0)
-  const currentMonth = new Date(currentDate).getMonth() + 1;
+  // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
+  const vatDate = daily_form.value.docdate || Utils.getDateTime();
+  // ดึงเดือนจากวันที่เอกสาร (เดือนใน JavaScript เริ่มจาก 0)
+  const currentMonth = new Date(vatDate).getMonth() + 1;
   
   // กำหนดประเภทภาษีตาม debtaccounttype
   // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
@@ -1666,7 +1676,7 @@ function addBoxVat() {
 
   vats.value.push({
     vattype: 0, // vattype ต้องเป็น 0 (ปกติ) เสมอ
-    vatdate: currentDate,
+    vatdate: vatDate, // ใช้วันที่เอกสาร
     vatdocno: "",
     vatperiod: currentMonth.toString(),
     vatyear: parseInt(Utils.getYear().toString()) + 543,
@@ -2322,9 +2332,11 @@ function clearCreditor() {
             <Button
               :disabled="readMode"
               @click="onSave"
+             
               label="บันทึกรายวัน"
               icon="pi pi-save"
               class="w-auto p-button-success"
+
             ></Button>
           </div>
         </div>

@@ -2,37 +2,54 @@ import axios from 'axios';
 
 class ReportTaxJournalDeductService {
     constructor() {
-        this.baseUrl = null;
-        this.initialized = false;
-        this.initializeBaseUrl();
-    }
+        // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
+        const apiUrl = import.meta.env.VUE_APP_API;
+        console.log("API URL from env:", apiUrl);
 
-    initializeBaseUrl() {
-        // ตรวจสอบ environment variable ทั้งแบบ Vite และ Webpack
-        this.baseUrl = import.meta.env?.VUE_APP_API || process.env?.VUE_APP_API;
-        
-        if (this.baseUrl) {
+        // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
+        if (!apiUrl) {
+            // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
+            console.warn("API URL is not defined in environment. Using fallback URL.");
+            this.baseUrl = process.env.NODE_ENV === 'development'
+                ? 'https://api.dev.dedepos.com/'
+                : 'https://api.dedepos.com/';
+        } else {
+            this.baseUrl = apiUrl;
+            // เพิ่ม / ท้าย URL ถ้าไม่มี
             if (!this.baseUrl.endsWith('/')) {
                 this.baseUrl += '/';
             }
-            this.initialized = true;
-            console.log("Base URL initialized:", this.baseUrl);
-        } else {
-            console.warn("VUE_APP_API is not defined in environment variables");
-            this.initialized = false;
-            
-            // ใช้ค่า fallback ในกรณีที่ไม่มี env variable (เฉพาะ development)
-            if (import.meta.env?.MODE === 'development' || process.env?.NODE_ENV === 'development') {
-                this.baseUrl = 'https://api.dev.dedepos.com/';
-                this.initialized = true;
-                console.warn("Using fallback URL for development:", this.baseUrl);
-            }
         }
+
+        console.log("Base URL initialized:", this.baseUrl);
     }
 
-    checkInitialization() {
-        if (!this.initialized || !this.baseUrl) {
-            throw new Error("VUE_APP_API is not defined in environment variables. Please check your .env file.");
+    /**
+     * สร้าง URL ที่ถูกต้องสำหรับการเรียก API
+     * @param {string} path - เส้นทาง API
+     * @returns {URL} - URL object ที่สร้างขึ้น
+     */
+    createApiUrl(path) {
+        // ตรวจสอบว่ามีการกำหนด baseUrl หรือไม่
+        if (!this.baseUrl) {
+            console.error("Base URL is not initialized");
+            throw new Error("API URL is not properly configured");
+        }
+
+        try {
+            // ลบ / ด้านหน้าของ path ถ้ามี
+            if (path.startsWith('/')) {
+                path = path.substring(1);
+            }
+
+            // สร้าง URL เต็มรูปแบบ
+            const fullUrl = `${this.baseUrl}${path}`;
+            console.log("Creating API URL:", fullUrl);
+
+            return new URL(fullUrl);
+        } catch (error) {
+            console.error("Failed to create URL:", error, "Path:", path, "Base URL:", this.baseUrl);
+            throw new Error(`Invalid URL construction: ${error.message}`);
         }
     }
 
@@ -42,15 +59,22 @@ class ReportTaxJournalDeductService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลรายงาน
      */
     async getTaxReport(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/journaltaxdeduct/`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
+            // สร้าง URL ด้วย method ที่สร้างขึ้น
+            const url = this.createApiUrl('apireport/journaltaxdeduct/');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            console.log("Fetching tax report from:", url.toString());
+            const response = await axios.get(url.toString(), {
+                timeout: 30000 // 30 วินาที
             });
             return response.data;
         } catch (error) {
@@ -65,15 +89,21 @@ class ReportTaxJournalDeductService {
      * @returns {Promise} - Promise ที่ resolve เป็นข้อมูลการสร้างไฟล์
      */
     async generateTaxReportPDF(params) {
-        this.checkInitialization();
-        
         try {
-            const response = await axios.get(`${this.baseUrl}apireport/journaltaxdeduct/genPDF`, {
-                params: params,
-                headers: {
-                    Authorization: `Bearer ${localStorage._token}`,
-                    "Content-Type": "application/json",
-                },
+            const url = this.createApiUrl('apireport/journaltaxdeduct/genPDF');
+
+            // เพิ่ม params ทั้งหมด
+            if (params) {
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== null) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+            }
+
+            console.log("Generating PDF from:", url.toString());
+            const response = await axios.get(url.toString(), {
+                timeout: 30000 // 30 วินาที
             });
             return response.data;
         } catch (error) {
@@ -89,8 +119,6 @@ class ReportTaxJournalDeductService {
      * @returns {Promise} - Promise ที่ resolve เป็นสถานะงาน
      */
     async checkJobStatus(jobId, fileName) {
-        this.checkInitialization();
-        
         try {
             if (!jobId || !fileName) {
                 throw new Error('Job ID and file name are required');
@@ -133,8 +161,6 @@ class ReportTaxJournalDeductService {
      * @param {string} fileName - ชื่อไฟล์
      */
     downloadTaxReportPDF(jobId, fileName) {
-        this.checkInitialization();
-        
         if (!jobId || !fileName) {
             throw new Error('Job ID and file name are required');
         }
@@ -162,8 +188,6 @@ class ReportTaxJournalDeductService {
      * @returns {Promise} - Promise ที่ resolve เมื่อดาวน์โหลดเสร็จสิ้น
      */
     async waitForPDFAndDownload(jobId, fileName, maxAttempts = 20, interval = 3000) {
-        this.checkInitialization();
-        
         if (!jobId || !fileName) {
             return Promise.reject(new Error('Job ID and file name are required'));
         }
@@ -245,8 +269,6 @@ class ReportTaxJournalDeductService {
      * @returns {Promise} - Promise ที่ resolve เมื่อเริ่มดาวน์โหลด
      */
     async generateAndDownloadPDF(params) {
-        this.checkInitialization();
-        
         try {
             console.log("Starting PDF generation with params:", params);
 
