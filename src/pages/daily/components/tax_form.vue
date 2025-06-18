@@ -247,239 +247,243 @@ function deleteDetailTableTax(data, index) {
       รวมภาษีหัก ณ ที่จ่าย : {{ Utils.formatCurrency(sum_taxamount) }} บาท
     </div>
   </div>
-  <div
-    class="surface-card p-4 shadow-2 mb-3 border-round"
-    v-for="(data, indexx) in props.taxes"
-    :key="indexx"
-  >
-    <div class="mb-0 flex align-items-center justify-content-between">
-      <div class="flex align-items-center">
-        <span class="text-md font-medium text-900"
-          >รายการที่ {{ indexx + 1 }}</span
-        >
-      </div>
-      <div>
-        <Button
-          v-if="!props.isUpdate"
-          icon="pi pi-times"
-          class="p-button-text p-button-plain p-button-rounded p-button-danger"
-          @click="removeBoxTax(data, indexx)"
-        ></Button>
-      </div>
-    </div>
-    <div class="surface-border border-top-1 opacity-50 mb-0 col-12"></div>
-
-    <div class="grid formgrid p-fluid">
-      <div class="field col-12 md:col-12">
-        <label class="font-medium text-900">ภาษี</label>
-        <div class="flex">
-          <div class="flex">
-            <div class="field-radiobutton">
-              <RadioButton
-                name="taxtype"
-                :value="0"
-                v-model="data.taxtype"
-                :disabled="props.isUpdate"
-              />
-              <label>ภาษีถูกหัก ณ ที่จ่าย</label>
-            </div>
-          </div>
-          <div class="flex ml-4">
-            <div class="field-radiobutton">
-              <RadioButton
-                name="taxtype"
-                :value="1"
-                v-model="data.taxtype"
-                :disabled="props.isUpdate"
-              />
-              <label>ภาษีหัก ณ ที่จ่าย</label>
-            </div>
-          </div>
+  
+  <!-- ปรับความสูงให้เต็มพื้นที่ของ tab -->
+  <div class="tax-scroll-container" style="height: calc(100vh - 200px); overflow-y: auto;">
+    <div
+      class="surface-card p-4 shadow-2 mb-3 border-round"
+      v-for="(data, indexx) in props.taxes"
+      :key="indexx"
+    >
+      <div class="mb-0 flex align-items-center justify-content-between">
+        <div class="flex align-items-center">
+          <span class="text-md font-medium text-900"
+            >รายการที่ {{ indexx + 1 }}</span
+          >
         </div>
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">วันที่หัก ณ ที่จ่าย</label>
-        <DatePicker
-          dateFormat="d/m/yy"
-          v-model="data.taxdate"
-          :modelValue="data.taxdate"
-          :showIcon="true"
-          :disabled="props.isUpdate"
-          :class="props.taxes_valid[indexx].taxdate ? 'p-invalid' : ''"
-          :buddhist="buddhistYear"
-          :hideOnDateTimeSelect="true"
-          :hiddenTime="true"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">เลขที่เอกสาร</label>
-        <InputText
-          :disabled="props.isUpdate"
-          type="text"
-          v-model="data.taxdocno"
-          :class="props.taxes_valid[indexx].taxdocno ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ชื่อ</label>
-        <InputText
-          :disabled="props.isUpdate"
-          type="text"
-          v-model="data.custname"
-          :class="props.taxes_valid[indexx].custname ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900"
-          >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน</label
-        >
-        <InputText
-          type="text"
-          v-model="data.custtaxid"
-          :disabled="props.isUpdate"
-          :class="props.taxes_valid[indexx].custtaxid ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-12">
-        <label class="font-medium text-900">ที่อยู่</label>
-        <InputText
-          type="text"
-          v-model="data.address"
-          :disabled="props.isUpdate"
-          :class="props.taxes_valid[indexx].address ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ประเภท</label>
-        <div class="flex mt-2">
-          <div class="flex">
-            <div class="field-radiobutton">
-              <RadioButton
-                name="custtype"
-                :value="0"
-                v-model="data.custtype"
-                :disabled="props.isUpdate"
-              />
-              <label>บุคคลธรรมดา</label>
-            </div>
-          </div>
-          <div class="flex ml-4">
-            <div class="field-radiobutton">
-              <RadioButton
-                name="custtype"
-                :value="1"
-                v-model="data.custtype"
-                :disabled="props.isUpdate"
-              />
-              <label>นิติบุคคล</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="field col-12">
-        <DataTable
-          :value="data.details"
-          editMode="cell"
-          @cell-edit-complete="onCellEditCompleteTax"
-          class="editable-cells-table"
-          responsiveLayout="scroll"
-        >
-          <Column
-            field="description"
-            header="รายละเอียด"
-            bodyStyle="text-align: left !important"
-            headerStyle="text-align:center;width: 20%"
-            footerStyle="text-align: right !important"
-            footer="รวม"
-          >
-            <template #body="{ data, field }">
-              {{ data[field] }}
-            </template>
-
-            <template #editor="{ data, field, index }" v-if="!props.isUpdate">
-              <InputText v-model="data[field]" autofocus :id="'des_' + index" />
-            </template>
-          </Column>
-          <Column
-            field="taxbase"
-            header="ฐานภาษี"
-            :bodyClass="'vatbase_' + indexx"
-            footerStyle="text-align: right !important"
-            bodyStyle="text-align: right !important"
-            headerStyle="text-align:center;width: 10%"
-            style="width: 13%"
-          >
-            <template #footer>
-              {{ getSumTaxBase(data.details) }}
-            </template>
-            <template #body="{ data, field }">
-              {{ Utils.formatCurrency(data[field]) }}
-            </template>
-
-            <template #editor="{ data, field }" v-if="!props.isUpdate">
-              <InputNumber
-                v-model="data[field]"
-                autofocus
-                mode="decimal"
-                :maxFractionDigits="2"
-                style="text-align: right"
-              />
-            </template>
-          </Column>
-
-          <Column
-            field="taxrate"
-            header="อัตรา"
-            bodyStyle="text-align: right !important"
-            headerStyle="text-align:center;width: 10%"
-            style="width: 13%"
-          >
-            <template #body="{ data, field }">
-              {{ Utils.formatCurrency(data[field]) }}
-            </template>
-
-            <template #editor="{ data, field }" v-if="!props.isUpdate">
-              <InputNumber
-                v-model="data[field]"
-                autofocus
-                mode="decimal"
-                :maxFractionDigits="2"
-                style="text-align: right"
-              />
-            </template>
-          </Column>
-
-          <Column
-            field="taxamount"
-            header="ภาษีหัก ณ ที่จ่าย"
-            footerStyle="text-align: right !important"
-            style="text-align: right !important"
-            headerStyle="text-align:center;width: 10%"
-          >
-            <template #footer>
-              {{
-                 getSumTaxAmount(data.details)
-              }}
-            </template>
-            <template #body="{ data, field }">
-              {{ Utils.formatCurrency(data[field]) }}
-            </template>
-          </Column>
-          <Column
-            header="ลบ"
-            bodyStyle="text-align:center"
-            style="width: 5%"
+        <div>
+          <Button
             v-if="!props.isUpdate"
+            icon="pi pi-times"
+            class="p-button-text p-button-plain p-button-rounded p-button-danger"
+            @click="removeBoxTax(data, indexx)"
+          ></Button>
+        </div>
+      </div>
+      <div class="surface-border border-top-1 opacity-50 mb-0 col-12"></div>
+
+      <div class="grid formgrid p-fluid">
+        <div class="field col-12 md:col-12">
+          <label class="font-medium text-900">ภาษี</label>
+          <div class="flex">
+            <div class="flex">
+              <div class="field-radiobutton">
+                <RadioButton
+                  name="taxtype"
+                  :value="0"
+                  v-model="data.taxtype"
+                  :disabled="props.isUpdate"
+                />
+                <label>ภาษีถูกหัก ณ ที่จ่าย</label>
+              </div>
+            </div>
+            <div class="flex ml-4">
+              <div class="field-radiobutton">
+                <RadioButton
+                  name="taxtype"
+                  :value="1"
+                  v-model="data.taxtype"
+                  :disabled="props.isUpdate"
+                />
+                <label>ภาษีหัก ณ ที่จ่าย</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">วันที่หัก ณ ที่จ่าย</label>
+          <DatePicker
+            dateFormat="d/m/yy"
+            v-model="data.taxdate"
+            :modelValue="data.taxdate"
+            :showIcon="true"
+            :disabled="props.isUpdate"
+            :class="props.taxes_valid[indexx].taxdate ? 'p-invalid' : ''"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="true"
+            :hiddenTime="true"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">เลขที่เอกสาร</label>
+          <InputText
+            :disabled="props.isUpdate"
+            type="text"
+            v-model="data.taxdocno"
+            :class="props.taxes_valid[indexx].taxdocno ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ชื่อ</label>
+          <InputText
+            :disabled="props.isUpdate"
+            type="text"
+            v-model="data.custname"
+            :class="props.taxes_valid[indexx].custname ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900"
+            >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน</label
           >
-            <template #body="slotProps">
-              <Button
-                icon="pi pi-times"
-                class="p-button-rounded p-button-danger p-button-text"
-                @click="deleteDetailTableTax(slotProps.index, indexx)"
-              />
-            </template>
-          </Column>
-        </DataTable>
+          <InputText
+            type="text"
+            v-model="data.custtaxid"
+            :disabled="props.isUpdate"
+            :class="props.taxes_valid[indexx].custtaxid ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-12">
+          <label class="font-medium text-900">ที่อยู่</label>
+          <InputText
+            type="text"
+            v-model="data.address"
+            :disabled="props.isUpdate"
+            :class="props.taxes_valid[indexx].address ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ประเภท</label>
+          <div class="flex mt-2">
+            <div class="flex">
+              <div class="field-radiobutton">
+                <RadioButton
+                  name="custtype"
+                  :value="0"
+                  v-model="data.custtype"
+                  :disabled="props.isUpdate"
+                />
+                <label>บุคคลธรรมดา</label>
+              </div>
+            </div>
+            <div class="flex ml-4">
+              <div class="field-radiobutton">
+                <RadioButton
+                  name="custtype"
+                  :value="1"
+                  v-model="data.custtype"
+                  :disabled="props.isUpdate"
+                />
+                <label>นิติบุคคล</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12">
+          <DataTable
+            :value="data.details"
+            editMode="cell"
+            @cell-edit-complete="onCellEditCompleteTax"
+            class="editable-cells-table"
+            responsiveLayout="scroll"
+          >
+            <Column
+              field="description"
+              header="รายละเอียด"
+              bodyStyle="text-align: left !important"
+              headerStyle="text-align:center;width: 20%"
+              footerStyle="text-align: right !important"
+              footer="รวม"
+            >
+              <template #body="{ data, field }">
+                {{ data[field] }}
+              </template>
+
+              <template #editor="{ data, field, index }" v-if="!props.isUpdate">
+                <InputText v-model="data[field]" autofocus :id="'des_' + index" />
+              </template>
+            </Column>
+            <Column
+              field="taxbase"
+              header="ฐานภาษี"
+              :bodyClass="'vatbase_' + indexx"
+              footerStyle="text-align: right !important"
+              bodyStyle="text-align: right !important"
+              headerStyle="text-align:center;width: 10%"
+              style="width: 13%"
+            >
+              <template #footer>
+                {{ getSumTaxBase(data.details) }}
+              </template>
+              <template #body="{ data, field }">
+                {{ Utils.formatCurrency(data[field]) }}
+              </template>
+
+              <template #editor="{ data, field }" v-if="!props.isUpdate">
+                <InputNumber
+                  v-model="data[field]"
+                  autofocus
+                  mode="decimal"
+                  :maxFractionDigits="2"
+                  style="text-align: right"
+                />
+              </template>
+            </Column>
+
+            <Column
+              field="taxrate"
+              header="อัตรา"
+              bodyStyle="text-align: right !important"
+              headerStyle="text-align:center;width: 10%"
+              style="width: 13%"
+            >
+              <template #body="{ data, field }">
+                {{ Utils.formatCurrency(data[field]) }}
+              </template>
+
+              <template #editor="{ data, field }" v-if="!props.isUpdate">
+                <InputNumber
+                  v-model="data[field]"
+                  autofocus
+                  mode="decimal"
+                  :maxFractionDigits="2"
+                  style="text-align: right"
+                />
+              </template>
+            </Column>
+
+            <Column
+              field="taxamount"
+              header="ภาษีหัก ณ ที่จ่าย"
+              footerStyle="text-align: right !important"
+              style="text-align: right !important"
+              headerStyle="text-align:center;width: 10%"
+            >
+              <template #footer>
+                {{
+                   getSumTaxAmount(data.details)
+                }}
+              </template>
+              <template #body="{ data, field }">
+                {{ Utils.formatCurrency(data[field]) }}
+              </template>
+            </Column>
+            <Column
+              header="ลบ"
+              bodyStyle="text-align:center"
+              style="width: 5%"
+              v-if="!props.isUpdate"
+            >
+              <template #body="slotProps">
+                <Button
+                  icon="pi pi-times"
+                  class="p-button-rounded p-button-danger p-button-text"
+                  @click="deleteDetailTableTax(slotProps.index, indexx)"
+                />
+              </template>
+            </Column>
+          </DataTable>
+        </div>
       </div>
     </div>
   </div>
@@ -499,3 +503,28 @@ function deleteDetailTableTax(data, index) {
     v-on:confirm="deleteDetailTax"
   ></DialogForm>
 </template>
+
+<style scoped>
+.tax-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.tax-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tax-scroll-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.tax-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.tax-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+</style>

@@ -172,271 +172,275 @@ function handleVatPeriodInput(event, index) {
       รวมยอดภาษี : {{ Utils.formatCurrency(sum_vatamount) }} บาท
     </div>
   </div>
-  <div
-    class="surface-card p-4 shadow-2 mb-3 border-round"
-    v-for="(data, index) in props.vats"
-    :key="index"
-  >
-    <div class="mb-0 flex align-items-center justify-content-between">
-      <div class="flex align-items-center">
-        <span class="text-md font-medium text-900"
-          >รายการที่ {{ index + 1 }}</span
-        >
-      </div>
-      <div>
-        <Button
-          v-if="!props.isUpdate"
-          icon="pi pi-times"
-          class="p-button-text p-button-plain p-button-rounded p-button-danger"
-          @click="removeBoxVat(data, index)"
-        ></Button>
-      </div>
-    </div>
-    <div class="surface-border border-top-1 opacity-50 mb-0 col-12"></div>
-    <div class="grid formgrid p-fluid">
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">วันที่ใบกำกับ</label>
-        <DatePicker
-          dateFormat="d/m/yy"
-          v-model="data.vatdate"
-          :modelValue="data.vatdate"
-          :showIcon="true"
-          :disabled="props.isUpdate"
-          :class="props.vats_valid[index].vatdate ? 'p-invalid' : ''"
-          :buddhist="buddhistYear"
-          :hideOnDateTimeSelect="true"
-          :hiddenTime="true"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">เลขที่ใบกำกับ</label>
-        <InputText
-          type="text"
-          v-model="data.vatdocno"
-          :disabled="props.isUpdate"
-          :class="props.vats_valid[index].vatdocno ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ชื่อ</label>
-        <InputText
-          type="text"
-          v-model="data.custname"
-          :disabled="props.isUpdate"
-          :class="props.vats_valid[index].custname ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900"
-          >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน</label
-        >
-        <InputText
-          type="text"
-          v-model="data.custtaxid"
-          :disabled="props.isUpdate"
-          :class="props.vats_valid[index].custtaxid ? 'p-invalid' : ''"
-        />
-      </div>
-
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">สถานประกอบการ</label>
-        <div class="flex mt-2">
-          <div class="flex">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`organization_${index}`"
-                :value="0"
-                :disabled="props.isUpdate"
-                v-model="data.organization"
-                @change="setBranch(index)"
-              />
-              <label>สำนักงานใหญ่</label>
-            </div>
-          </div>
-          <div class="flex ml-4">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`organization_${index}`"
-                :value="1"
-                :disabled="props.isUpdate"
-                v-model="data.organization"
-                @change="setBranch(index)"
-              />
-              <label>สาขา</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ลำดับที่สาขา</label>
-        <InputText
-          type="text"
-          v-model="data.branchcode"
-          :disabled="data.organization == 0 || props.isUpdate"
-          :class="props.vats_valid[index].branchcode ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ปีภาษี</label>
-
-        <InputText
-          type="number"
-          :min="0"
-          :disabled="props.isUpdate"
-          v-model="data.vatyear"
-          :class="props.vats_valid[index].vatyear ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">เดือนภาษี</label>
-        <InputText
-          type="number"
-          :min="1"
-          :max="12"
-          :disabled="props.isUpdate"
-          v-model="data.vatperiod"
-          @input="handleVatPeriodInput($event, index)"
-          :class="props.vats_valid[index].vatperiod ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ฐานภาษี</label>
-
-        <InputNumber
-          v-model="data.vatbase"
-          autofocus
-          mode="decimal"
-          :disabled="props.isUpdate"
-          :maxFractionDigits="2"
-          @update:modelValue="calVatAmount(index)"
-          style="text-align: right"
-          :class="props.vats_valid[index].vatbase ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">อัตราภาษี</label>
-
-        <InputNumber
-          v-model="data.vatrate"
-          autofocus
-          mode="decimal"
-          :disabled="props.isUpdate"
-          @update:modelValue="calVatAmount(index)"
-          :maxFractionDigits="2"
-          style="text-align: right"
-          :class="props.vats_valid[index].vatrate ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ภาษี</label>
-        <div class="flex">
-          <div class="flex">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`vatmode_${index}`"
-                :value="0"
-                v-model="data.vatmode"
-                :disabled="props.isUpdate"
-              />
-              <label>ภาษีซื้อ</label>
-            </div>
-          </div>
-          <div class="flex ml-4">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`vatmode_${index}`"
-                :value="1"
-                v-model="data.vatmode"
-                :disabled="props.isUpdate"
-              />
-              <label>ภาษีขาย</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ประเภทภาษี</label>
-        <div class="flex">
-          <div class="flex">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`vattype_${index}`"
-                :value="0"
-                v-model="data.vattype"
-                :disabled="props.isUpdate"
-              />
-              <label>ปกติ</label>
-            </div>
-          </div>
-          <div class="flex ml-4" v-if="data.vatmode != '1'">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`vattype_${index}`"
-                :value="1"
-                v-model="data.vattype"
-                :disabled="props.isUpdate"
-              />
-              <label>ขอคืนไม่ได้</label>
-            </div>
-          </div>
-          <div class="flex ml-4">
-            <div class="field-radiobutton">
-              <RadioButton
-                :name="`vattype_${index}`"
-                :value="2"
-                v-model="data.vattype"
-                :disabled="props.isUpdate"
-              />
-              <label>ไม่ถึงกำหนดชำระ</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ยอดภาษี</label>
-        <InputNumber
-          v-model="data.vatamount"
-          autofocus
-          mode="decimal"
-          :disabled="props.isUpdate"
-          :maxFractionDigits="2"
-          style="text-align: right"
-          :class="props.vats_valid[index].vatamount ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12 md:col-6">
-        <label class="font-medium text-900">ยอดยกเว้นภาษี</label>
-
-        <InputNumber
-          v-model="data.exceptvat"
-          autofocus
-          mode="decimal"
-          :maxFractionDigits="2"
-          :disabled="props.isUpdate"
-          style="text-align: right"
-          :class="props.vats_valid[index].exceptvat ? 'p-invalid' : ''"
-        />
-      </div>
-      <div class="field col-12">
-        <label class="font-medium text-900">หมายเหตุ</label>
-
-        <Textarea
-          id="notes"
-          :autoResize="true"
-          :rows="4"
-          :disabled="props.isUpdate"
-          v-model="data.remark"
-        ></Textarea>
-      </div>
-
-      <div class="field col-12 mt-1">
+  
+  <!-- ปรับความสูงให้เต็มพื้นที่ของ tab -->
+  <div class="vat-scroll-container" style="height: calc(100vh - 200px); overflow-y: auto;">
+    <div
+      class="surface-card p-4 shadow-2 mb-3 border-round"
+      v-for="(data, index) in props.vats"
+      :key="index"
+    >
+      <div class="mb-0 flex align-items-center justify-content-between">
         <div class="flex align-items-center">
-          <Checkbox
-            :binary="true"
-            v-model="data.vatsubmit"
+          <span class="text-md font-medium text-900"
+            >รายการที่ {{ index + 1 }}</span
+          >
+        </div>
+        <div>
+          <Button
+            v-if="!props.isUpdate"
+            icon="pi pi-times"
+            class="p-button-text p-button-plain p-button-rounded p-button-danger"
+            @click="removeBoxVat(data, index)"
+          ></Button>
+        </div>
+      </div>
+      <div class="surface-border border-top-1 opacity-50 mb-0 col-12"></div>
+      <div class="grid formgrid p-fluid">
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">วันที่ใบกำกับ</label>
+          <DatePicker
+            dateFormat="d/m/yy"
+            v-model="data.vatdate"
+            :modelValue="data.vatdate"
+            :showIcon="true"
             :disabled="props.isUpdate"
-          ></Checkbox>
-          <span class="ml-2">ยื่นเพิ่ม</span>
+            :class="props.vats_valid[index].vatdate ? 'p-invalid' : ''"
+            :buddhist="buddhistYear"
+            :hideOnDateTimeSelect="true"
+            :hiddenTime="true"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">เลขที่ใบกำกับ</label>
+          <InputText
+            type="text"
+            v-model="data.vatdocno"
+            :disabled="props.isUpdate"
+            :class="props.vats_valid[index].vatdocno ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ชื่อ</label>
+          <InputText
+            type="text"
+            v-model="data.custname"
+            :disabled="props.isUpdate"
+            :class="props.vats_valid[index].custname ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900"
+            >เลขประจำตัวผู้เสียภาษี/เลขที่บัตรประชาชน</label
+          >
+          <InputText
+            type="text"
+            v-model="data.custtaxid"
+            :disabled="props.isUpdate"
+            :class="props.vats_valid[index].custtaxid ? 'p-invalid' : ''"
+          />
+        </div>
+
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">สถานประกอบการ</label>
+          <div class="flex mt-2">
+            <div class="flex">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`organization_${index}`"
+                  :value="0"
+                  :disabled="props.isUpdate"
+                  v-model="data.organization"
+                  @change="setBranch(index)"
+                />
+                <label>สำนักงานใหญ่</label>
+              </div>
+            </div>
+            <div class="flex ml-4">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`organization_${index}`"
+                  :value="1"
+                  :disabled="props.isUpdate"
+                  v-model="data.organization"
+                  @change="setBranch(index)"
+                />
+                <label>สาขา</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ลำดับที่สาขา</label>
+          <InputText
+            type="text"
+            v-model="data.branchcode"
+            :disabled="data.organization == 0 || props.isUpdate"
+            :class="props.vats_valid[index].branchcode ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ปีภาษี</label>
+
+          <InputText
+            type="number"
+            :min="0"
+            :disabled="props.isUpdate"
+            v-model="data.vatyear"
+            :class="props.vats_valid[index].vatyear ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">เดือนภาษี</label>
+          <InputText
+            type="number"
+            :min="1"
+            :max="12"
+            :disabled="props.isUpdate"
+            v-model="data.vatperiod"
+            @input="handleVatPeriodInput($event, index)"
+            :class="props.vats_valid[index].vatperiod ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ฐานภาษี</label>
+
+          <InputNumber
+            v-model="data.vatbase"
+            autofocus
+            mode="decimal"
+            :disabled="props.isUpdate"
+            :maxFractionDigits="2"
+            @update:modelValue="calVatAmount(index)"
+            style="text-align: right"
+            :class="props.vats_valid[index].vatbase ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">อัตราภาษี</label>
+
+          <InputNumber
+            v-model="data.vatrate"
+            autofocus
+            mode="decimal"
+            :disabled="props.isUpdate"
+            @update:modelValue="calVatAmount(index)"
+            :maxFractionDigits="2"
+            style="text-align: right"
+            :class="props.vats_valid[index].vatrate ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ภาษี</label>
+          <div class="flex">
+            <div class="flex">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`vatmode_${index}`"
+                  :value="0"
+                  v-model="data.vatmode"
+                  :disabled="props.isUpdate"
+                />
+                <label>ภาษีซื้อ</label>
+              </div>
+            </div>
+            <div class="flex ml-4">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`vatmode_${index}`"
+                  :value="1"
+                  v-model="data.vatmode"
+                  :disabled="props.isUpdate"
+                />
+                <label>ภาษีขาย</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ประเภทภาษี</label>
+          <div class="flex">
+            <div class="flex">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`vattype_${index}`"
+                  :value="0"
+                  v-model="data.vattype"
+                  :disabled="props.isUpdate"
+                />
+                <label>ปกติ</label>
+              </div>
+            </div>
+            <div class="flex ml-4" v-if="data.vatmode != '1'">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`vattype_${index}`"
+                  :value="1"
+                  v-model="data.vattype"
+                  :disabled="props.isUpdate"
+                />
+                <label>ขอคืนไม่ได้</label>
+              </div>
+            </div>
+            <div class="flex ml-4">
+              <div class="field-radiobutton">
+                <RadioButton
+                  :name="`vattype_${index}`"
+                  :value="2"
+                  v-model="data.vattype"
+                  :disabled="props.isUpdate"
+                />
+                <label>ไม่ถึงกำหนดชำระ</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ยอดภาษี</label>
+          <InputNumber
+            v-model="data.vatamount"
+            autofocus
+            mode="decimal"
+            :disabled="props.isUpdate"
+            :maxFractionDigits="2"
+            style="text-align: right"
+            :class="props.vats_valid[index].vatamount ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12 md:col-6">
+          <label class="font-medium text-900">ยอดยกเว้นภาษี</label>
+
+          <InputNumber
+            v-model="data.exceptvat"
+            autofocus
+            mode="decimal"
+            :maxFractionDigits="2"
+            :disabled="props.isUpdate"
+            style="text-align: right"
+            :class="props.vats_valid[index].exceptvat ? 'p-invalid' : ''"
+          />
+        </div>
+        <div class="field col-12">
+          <label class="font-medium text-900">หมายเหตุ</label>
+
+          <Textarea
+            id="notes"
+            :autoResize="true"
+            :rows="4"
+            :disabled="props.isUpdate"
+            v-model="data.remark"
+          ></Textarea>
+        </div>
+
+        <div class="field col-12 mt-1">
+          <div class="flex align-items-center">
+            <Checkbox
+              :binary="true"
+              v-model="data.vatsubmit"
+              :disabled="props.isUpdate"
+            ></Checkbox>
+            <span class="ml-2">ยื่นเพิ่ม</span>
+          </div>
         </div>
       </div>
     </div>
@@ -456,3 +460,28 @@ function handleVatPeriodInput(event, index) {
     v-on:confirm="deleteDetailVat"
   ></DialogForm>
 </template>
+
+<style scoped>
+.vat-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.vat-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.vat-scroll-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 3px;
+}
+
+.vat-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.vat-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+</style>
