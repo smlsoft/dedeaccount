@@ -27,7 +27,7 @@ const activePage = ref(1);
 const firstPage = ref(0);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(100);
+const limitPage = ref(1000);
 
 const showSkeleton = ref(false);
 const totalPage = ref(0);
@@ -168,7 +168,7 @@ function getTaskById(guidfixed) {
 }
 
 function getDocumentImageGroupScroll() {
-  limitPage.value = 100;
+  limitPage.value = 1000;
   showSkeleton.value = true;
   ImageDataService.getDocumentImageGroup(
     limitPage.value,

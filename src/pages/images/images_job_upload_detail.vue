@@ -37,7 +37,7 @@ const firstPage = ref(0);
 const uploadmodel = ref(false);
 const AllImageUsed = ref([]);
 const searchItem = ref("");
-const limitPage = ref(100);
+const limitPage = ref(1000);
 
 const fileLimit = ref(100);
 const uploadedFileCount = ref(0);
@@ -179,7 +179,7 @@ function onClose() {
 }
 
 function getDocumentImageGroupScroll() {
-  limitPage.value = 100;
+  limitPage.value = 1000;
   showSkeleton.value = true;
   ImageDataService.getDocumentImageGroup(
     limitPage.value,
@@ -552,7 +552,7 @@ function openModalUpload() {
 
 function uploadSuccess() {
   uploadmodel.value = false;
-  limitPage.value = 100;
+  limitPage.value = 1000;
   activePage.value = 1;
   firstPage.value = 0;
   getDocumentImageGroup();

@@ -148,6 +148,7 @@ const showThumbnails = ref(false);
 const modeEdit = ref(false);
 
 const confirmRemoveImgDialog = ref(false);
+const confirmCompleteDialog = ref(false);
 const divCheckGl = ref(null);
 const heightIamgeDivCheckGl = ref(null);
 const jobId = ref("");
@@ -2586,10 +2587,19 @@ function nextImageOnSave(old_img) {
   activeIndexList.value = 0;
   activeIndex.value = 0;
 
+  // ตรวจสอบว่ามีรูปเหลือให้บันทึกหรือไม่
   if (data_list.value.length > activeIndexList.value) {
     console.log(data_list.value[activeIndexList.value].guidfixed);
     useImage(data_list.value[activeIndexList.value].guidfixed);
+  } else {
+    // ถ้าบันทึกรูปหมดแล้ว แสดง dialog แจ้งเตือน
+    confirmCompleteDialog.value = true;
   }
+}
+
+function confirmComplete() {
+  confirmCompleteDialog.value = false;
+  goList();
 }
 
 function checkUseImgByUser(user) {
@@ -3494,6 +3504,13 @@ function swapType(type) {
         :textContent="conSave"
         v-on:close="confirmSaveDialog = false"
         v-on:confirm="confirmSave"
+      ></DialogForm>
+      <DialogForm
+        :confirmDialog="confirmCompleteDialog"
+        :textContent="'บันทึกรูปภาพทั้งหมดเรียบร้อยแล้ว'"
+        :textContent2="'กดตกลงเพื่อกลับไปหน้ารายการ'"
+        :showCloseButton="false"
+        v-on:confirm="confirmComplete"
       ></DialogForm>
       <DialogForm
         :confirmDialog="confirmChangeImageDialog"
