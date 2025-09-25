@@ -2571,7 +2571,7 @@ function clearDataExpenses() {
   expenses_form_valid.value.expensescode1 = false;
 }
 
-function nextImageOnSave(old_img) {
+async function nextImageOnSave(old_img) {
   console.log(data_list.value);
   console.log(data_list.value.length);
   console.log(old_img);
@@ -2587,13 +2587,37 @@ function nextImageOnSave(old_img) {
   activeIndexList.value = 0;
   activeIndex.value = 0;
 
-  // ตรวจสอบว่ามีรูปเหลือให้บันทึกหรือไม่
+  // ตรวจสอบว่ามีรูปเหลือใน Galleria หรือไม่
   if (data_list.value.length > activeIndexList.value) {
     console.log(data_list.value[activeIndexList.value].guidfixed);
     useImage(data_list.value[activeIndexList.value].guidfixed);
   } else {
-    // ถ้าบันทึกรูปหมดแล้ว แสดง dialog แจ้งเตือน
-    confirmCompleteDialog.value = true;
+    // ถ้ารูปใน Galleria หมดแล้ว ให้เช็คว่าต้องโหลดรูปชุดใหม่หรือไม่
+    try {
+      const nextPageResponse = await ImageDataService.documentimagegroupnoreserve(
+        limitPage.value,
+        activePage.value + 1, // เพิ่ม page เพื่อโหลดรูปชุดใหม่
+        searchItem.value,
+        jobId.value
+      );
+      
+      if (nextPageResponse.success && nextPageResponse.data && nextPageResponse.data.length > 0) {
+        // ยังมีรูปชุดใหม่ที่ต้องบันทึก - โหลดมาแสดง
+        console.log('Loading next batch of images:', nextPageResponse.data.length);
+        data_list.value = nextPageResponse.data;
+        totalItemsCount.value = nextPageResponse.pagination.total;
+        activePage.value++;
+        useImage(data_list.value[0].guidfixed);
+      } else {
+        // ไม่มีรูปที่ต้องบันทึกแล้ว - จบจริงๆ
+        console.log('No more images to process - showing completion dialog');
+        confirmCompleteDialog.value = true;
+      }
+    } catch (error) {
+      console.error('Error loading next batch of images:', error);
+      // ถ้า error ให้แสดง dialog เสร็จสิ้น
+      confirmCompleteDialog.value = true;
+    }
   }
 }
 

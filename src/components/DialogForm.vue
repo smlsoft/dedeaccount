@@ -7,6 +7,10 @@ const props = defineProps({
   confirmDialog: Boolean,
   textDetail: Array,
   mode: Number,
+  showCloseButton: {
+    type: Boolean,
+    default: true
+  },
 });
 
 const emit = defineEmits(["close", "confirm"]);
@@ -29,9 +33,10 @@ function onConfirm() {
 
   <Dialog
     :visible="props.confirmDialog"
-    @update:visible="onClose"
+    @update:visible="props.showCloseButton ? onClose : null"
     appendTo="body"
     :modal="true"
+    :closable="props.showCloseButton"
     :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
     :style="{ width: '40vw' }"
   >
@@ -75,6 +80,7 @@ function onConfirm() {
     <template #footer>
       <div class="border-top-1 surface-border pt-3">
         <Button
+          v-if="props.showCloseButton"
           icon="pi pi-times"
           @click="onClose"
           label="ไม่"
