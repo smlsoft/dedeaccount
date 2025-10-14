@@ -677,5 +677,14 @@ export default [
     },
     component: () => import("../pages/setting/shop_profile/main.vue"),
   },
+  /// งบกำไรขาดทุน 12 เดือน
+  {
+    path: "/report/report_journal12columns",
+    name: "report_journal12columns",
+    meta: {
+      auth: true,
+    },
+    component: () => import("../pages/report/report_journal12columns.vue"),
+  },
 
 ];

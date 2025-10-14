@@ -23,6 +23,7 @@ const form_model = ref({
   accountlevel: 1,
   accountname: "",
   consolidateaccountcode: "",
+  financialstatements: 1,
 });
 
 onMounted(() => {

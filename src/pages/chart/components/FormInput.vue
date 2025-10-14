@@ -18,6 +18,7 @@ const form_model = ref({
   accountlevel: 1,
   accountname: "",
   consolidateaccountcode: "",
+  financialstatements: 1,
 });
 const form_valid = ref({
   accountcode: true,
@@ -39,6 +40,12 @@ const categorys = ref([
   { name: "5 ~ ค่าใช้จ่าย", code: 5 },
 ]);
 const selectedcategory = ref();
+
+const financialstatements = ref([
+  { name: "1 ~ ทั่วไป", code: 1 },
+  { name: "2 ~ ต้นทุนขาย", code: 2 },
+]);
+const selectedfinancialstatements = ref();
 
 const groups = ref([]);
 const selectedgroup = ref();
@@ -212,6 +219,26 @@ function verifyData() {
               v-model="form_model.accountcategory"
             />
             <label :for="category.code">{{ category.name }}</label>
+          </div>
+        </div>
+      </div>
+      <div class="field mb-12 col-12 md:col-12">
+        <label for="financialstatements" class="font-medium text-900"
+          >ผลกระทบต่องบการเงิน</label
+        >
+        <div class="flex flex-wrap card-container blue-container">
+          <div
+            v-for="financial of financialstatements"
+            :key="financial.code"
+            class="field-radiobutton m-3"
+          >
+            <RadioButton
+              :id="financial.code"
+              name="financialstatements"
+              :value="financial.code"
+              v-model="form_model.financialstatements"
+            />
+            <label :for="financial.code">{{ financial.name }}</label>
           </div>
         </div>
       </div>

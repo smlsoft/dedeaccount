@@ -30,6 +30,10 @@ const accountCategoryList = ref([
   { name: "รายได้", code: 4 },
   { name: "ค่าใช้จ่าย", code: 5 },
 ]);
+const financialstatementsList = ref([
+  { name: "ทั่วไป", code: 1 },
+  { name: "ต้นทุนขาย", code: 2 },
+]);
 
 onMounted(() => {
   storeApp.setPageTitle("นำเข้าผังบัญชี");
@@ -88,6 +92,10 @@ function ImportFile() {
           results[index].account_level != undefined
             ? parseInt(results[index].account_level.toString().trim())
             : "",
+        financialstatements:
+          results[index].financial_statements != undefined
+            ? parseInt(results[index].financial_statements.toString().trim())
+            : 1,
       });
     }
     error_msg.value = [];
@@ -193,6 +201,12 @@ function newResultCategory(data) {
   result = accountCategoryList.value.filter((val) => val.code == data);
   return result.length > 0 ? result[0].name : "ไม่พบข้อมูล";
 }
+
+function newResultFinancialStatements(data) {
+  var result = [];
+  result = financialstatementsList.value.filter((val) => val.code == data);
+  return result.length > 0 ? result[0].name : "ไม่พบข้อมูล";
+}
 </script>
 
 <template>
@@ -266,6 +280,11 @@ function newResultCategory(data) {
             <Column field="accountbalancetype" header="ด้านบัญชี">
               <template #body="{ data, field }">
                 {{ newResultBalance(data[field]) }}
+              </template>
+            </Column>
+            <Column field="financialstatements" header="ผลกระทบต่องบการเงิน">
+              <template #body="{ data, field }">
+                {{ newResultFinancialStatements(data[field]) }}
               </template>
             </Column>
           </DataTable>

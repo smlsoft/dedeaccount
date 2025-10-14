@@ -157,6 +157,12 @@ export const menus = [
         to: "/report/profitandloss",
       },
       {
+        title: "งบกำไรขาดทุน 12 เดือน",
+        icon: "pi pi-chart-line",
+        name: "report_journal12columns",
+        to: "/report/report_journal12columns",
+      },
+      {
         title: "งบแสดงฐานะทางการเงิน",
         icon: "pi pi-chart-line",
         name: "report_balancesheet",

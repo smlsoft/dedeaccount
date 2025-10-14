@@ -23,6 +23,7 @@ const form_model = ref({
   accountlevel: 1,
   accountname: "",
   consolidateaccountcode: "",
+  financialstatements: 1,
 });
 
 onMounted(async () => {
@@ -47,6 +48,7 @@ async function getDetail(id) {
         form_model.value.consolidateaccountcode =
           res.data.consolidateaccountcode ?? "";
         form_model.value.accountbalancetype = res.data.accountbalancetype ?? 1;
+        form_model.value.financialstatements = res.data.financialstatements ?? 1;
       }
       //   console.log(form_model.value);
     }
