@@ -64,8 +64,8 @@
             <table class="report-table">
               <thead>
                 <tr>
-                  <th rowspan="2" class="text-left">รายการ</th>
-                  <th rowspan="2" class="text-center">รหัสบัญชี</th>
+                  <th class="text-left" style="min-width: 200px;">รายการ</th>
+                  <th class="text-center" style="min-width: 90px;">รหัสบัญชี</th>
                   <th 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
@@ -73,7 +73,7 @@
                   >
                     {{ month.displayName }}
                   </th>
-                  <th rowspan="2" class="text-center">รวม</th>
+                  <th class="text-center" style="min-width: 100px;">รวม</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,22 +90,26 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right"
+                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(item.total_amount) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(item.total_amount) }]">
+                    {{ formatCurrency(item.total_amount) }}
+                  </td>
                 </tr>
                 <tr class="subtotal-row">
                   <td colspan="2" class="text-right font-bold">รวมรายได้</td>
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right font-bold"
+                    :class="['text-right font-bold', { 'negative-value': isNegative(reportData.revenue.summary.monthTotals[month.key]) }]"
                   >
                     {{ formatCurrency(reportData.revenue.summary.monthTotals[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(reportData.revenue.summary.grandTotal) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(reportData.revenue.summary.grandTotal) }]">
+                    {{ formatCurrency(reportData.revenue.summary.grandTotal) }}
+                  </td>
                 </tr>
 
                 <!-- ต้นทุนขาย -->
@@ -121,22 +125,26 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right"
+                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(item.total_amount) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(item.total_amount) }]">
+                    {{ formatCurrency(item.total_amount) }}
+                  </td>
                 </tr>
                 <tr class="subtotal-row">
                   <td colspan="2" class="text-right font-bold">รวมต้นทุนขาย</td>
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right font-bold"
+                    :class="['text-right font-bold', { 'negative-value': isNegative(reportData.costOfSales.summary.monthTotals[month.key]) }]"
                   >
                     {{ formatCurrency(reportData.costOfSales.summary.monthTotals[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(reportData.costOfSales.summary.grandTotal) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(reportData.costOfSales.summary.grandTotal) }]">
+                    {{ formatCurrency(reportData.costOfSales.summary.grandTotal) }}
+                  </td>
                 </tr>
 
                 <!-- กำไรขั้นต้น -->
@@ -145,11 +153,13 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right font-bold"
+                    :class="['text-right font-bold', { 'negative-value': isNegative(reportData.grossProfit.monthTotals[month.key]) }]"
                   >
                     {{ formatCurrency(reportData.grossProfit.monthTotals[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(reportData.grossProfit.grandTotal) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(reportData.grossProfit.grandTotal) }]">
+                    {{ formatCurrency(reportData.grossProfit.grandTotal) }}
+                  </td>
                 </tr>
 
                 <!-- ค่าใช้จ่าย -->
@@ -165,22 +175,26 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right"
+                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(item.total_amount) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(item.total_amount) }]">
+                    {{ formatCurrency(item.total_amount) }}
+                  </td>
                 </tr>
                 <tr class="subtotal-row">
                   <td colspan="2" class="text-right font-bold">รวมค่าใช้จ่าย</td>
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right font-bold"
+                    :class="['text-right font-bold', { 'negative-value': isNegative(reportData.expense.summary.monthTotals[month.key]) }]"
                   >
                     {{ formatCurrency(reportData.expense.summary.monthTotals[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(reportData.expense.summary.grandTotal) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(reportData.expense.summary.grandTotal) }]">
+                    {{ formatCurrency(reportData.expense.summary.grandTotal) }}
+                  </td>
                 </tr>
 
                 <!-- กำไรสุทธิ -->
@@ -189,11 +203,13 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    class="text-right font-bold"
+                    :class="['text-right font-bold', { 'negative-value': isNegative(reportData.netProfit.monthTotals[month.key]) }]"
                   >
                     {{ formatCurrency(reportData.netProfit.monthTotals[month.key] || 0) }}
                   </td>
-                  <td class="text-right font-bold">{{ formatCurrency(reportData.netProfit.grandTotal) }}</td>
+                  <td :class="['text-right font-bold', { 'negative-value': isNegative(reportData.netProfit.grandTotal) }]">
+                    {{ formatCurrency(reportData.netProfit.grandTotal) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -546,14 +562,25 @@ const formatDateThai = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
-// ฟังก์ชันฟอร์แมตจำนวนเงิน
+// ฟังก์ชันฟอร์แมตจำนวนเงิน - ถ้าติดลบจะแสดงด้วยวงเล็บ
 const formatCurrency = (value) => {
   if (!value && value !== 0) return "0.00";
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  return num.toLocaleString("th-TH", {
+  const absNum = Math.abs(num);
+  const formatted = absNum.toLocaleString("th-TH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+  
+  // ถ้าเป็นค่าติดลบ ให้ใช้วงเล็บแทนเครื่องหมายลบ
+  return num < 0 ? `(${formatted})` : formatted;
+};
+
+// ฟังก์ชันตรวจสอบว่าเป็นค่าลบหรือไม่
+const isNegative = (value) => {
+  if (!value && value !== 0) return false;
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return num < 0;
 };
 
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
@@ -618,61 +645,99 @@ onMounted(async () => {
 
 .report-table-container {
   overflow-x: auto;
+  background: #ffffff;
 }
 
 .report-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  border: 1px solid #d1d5db;
 }
 
 .report-table th,
 .report-table td {
-  border: 1px solid #ddd;
   padding: 6px 8px;
   white-space: nowrap;
+  border: 1px solid #e5e7eb;
 }
 
 .report-table th {
-  background-color: #2c5aa0;
-  color: white;
-  font-weight: bold;
+  background-color: #e0f2fe;
+  color: #0c4a6e;
+  font-weight: 600;
   text-align: center;
+  padding: 8px 6px;
+  font-size: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .report-table th.month-header {
-  min-width: 80px;
+  min-width: 75px;
 }
 
 .report-table tbody tr.section-header td {
-  background-color: #e8f0fe;
-  font-weight: bold;
-  padding: 8px;
+  background-color: #f0f9ff;
+  font-weight: 600;
+  padding: 6px 8px;
+  color: #075985;
+  font-size: 13.5px;
 }
 
 .report-table tbody tr.subtotal-row td {
-  background-color: #f5f5f5;
-  font-weight: bold;
-  border-top: 2px solid #999;
+  background-color: #fef9e7;
+  font-weight: 600;
+  padding: 5px 6px;
+  color: #78350f;
 }
 
 .report-table tbody tr.total-row td {
-  background-color: #e3f2fd;
-  font-weight: bold;
-  font-size: 14px;
-  border-top: 2px solid #666;
-  border-bottom: 2px solid #666;
+  background-color: #dbeafe;
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 6px 6px;
+  color: #1e40af;
 }
 
 .report-table tbody tr.net-profit td {
-  background-color: #c8e6c9;
-  font-size: 15px;
-  border-top: 3px double #333;
-  border-bottom: 3px double #333;
+  background-color: #d1fae5;
+  font-size: 14px;
+  font-weight: 700;
+  border-top: 2px solid #6ee7b7;
+  border-bottom: 2px solid #6ee7b7;
+  padding: 7px 6px;
+  color: #065f46;
 }
 
-.report-table tbody tr:not(.section-header):not(.subtotal-row):not(.total-row):hover {
-  background-color: #f9f9f9;
+.report-table tbody tr:not(.section-header):not(.subtotal-row):not(.total-row):not(.net-profit) td {
+  color: #374151;
+  background-color: #ffffff;
+}
+
+/* Hover effect สำหรับ row ธรรมดา */
+.report-table tbody tr:not(.section-header):not(.subtotal-row):not(.total-row):not(.net-profit):hover td {
+  background-color: #fef3c7 !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover effect สำหรับ subtotal row */
+.report-table tbody tr.subtotal-row:hover td {
+  background-color: #fde68a !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover effect สำหรับ total row */
+.report-table tbody tr.total-row:hover td {
+  background-color: #bfdbfe !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Hover effect สำหรับ net profit row */
+.report-table tbody tr.net-profit:hover td {
+  background-color: #a7f3d0 !important;
+  transition: background-color 0.2s ease;
 }
 
 .text-left {
@@ -685,13 +750,61 @@ onMounted(async () => {
 
 .text-right {
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .pl-4 {
-  padding-left: 24px;
+  padding-left: 16px !important;
 }
 
 .font-bold {
-  font-weight: bold;
+  font-weight: 600;
+}
+
+/* Negative values styling - แสดงด้วยวงเล็บและสีแดงอ่อนมาก */
+.negative-value {
+  color: #ef4444 !important;
+  font-weight: 500;
+}
+
+/* Positive emphasis for summary rows */
+.subtotal-row .negative-value,
+.total-row .negative-value,
+.net-profit .negative-value {
+  color: #ef4444 !important;
+  font-weight: 700;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1200px) {
+  .report-table {
+    font-size: 12px;
+  }
+  
+  .report-table th,
+  .report-table td {
+    padding: 3px 5px;
+  }
+  
+  .report-table th.month-header {
+    min-width: 65px;
+  }
+}
+
+/* Scrollbar styling */
+.report-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.report-table-container::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.report-table-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+.report-table-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 </style>
