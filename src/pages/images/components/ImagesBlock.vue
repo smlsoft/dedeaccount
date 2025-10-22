@@ -18,7 +18,9 @@
       class="static flex align-items-center justify-content-center hover:shadow-3"
     >
       <div
-        v-if="Utils.checkTypeImage(props.images_data.imagereferences[0].imageuri)"
+        v-if="
+          Utils.checkTypeImage(props.images_data.imagereferences[0].imageuri)
+        "
       >
         <img
           :src="props.images_data.imagereferences[0].imageuri"
@@ -34,7 +36,9 @@
           "
         />
       </div>
-      <div v-if="Utils.checkTypePDF(props.images_data.imagereferences[0].imageuri)">
+      <div
+        v-if="Utils.checkTypePDF(props.images_data.imagereferences[0].imageuri)"
+      >
         <img
           src="@/assets/pdf-icon.svg"
           alt="PDF file"
@@ -134,7 +138,6 @@
       <Checkbox
         v-if="
           isSelectedDocument &&
-          props.images_data.imagereferences.length === 1 &&
           props.images_data.references.length === 0 &&
           !checkUseImg(props.images_data.guidfixed)
         "
@@ -499,6 +502,7 @@ function addToGroupImage(data) {
 
 function selectModeImage() {
   console.log("selectModeImage");
+  console.log(props.images_data);
 
   if (props.ischeckApprove) {
     selectImg(
@@ -508,17 +512,13 @@ function selectModeImage() {
       props.images_data_index
     );
   } else {
-    if (props.images_data.imagereferences.length > 1) {
-      console.log("group");
-      return;
-    } else {
-      selectImg(
-        props.images_data.guidfixed,
-        props.images_data.tags,
-        props.images_data.imagereferences[0],
-        props.images_data_index
-      );
-    }
+    console.log("group");
+    selectImg(
+      props.images_data.guidfixed,
+      props.images_data.tags,
+      props.images_data.imagereferences[0],
+      props.images_data_index
+    );
   }
 }
 

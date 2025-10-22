@@ -10,7 +10,9 @@
     "build:dev": "vite build --mode development",
     "build:loser": "vite build --mode loser",
     "build": "vite build",
-    "preview": "vite preview --port 5050 --host 0.0.0.0"
+    "preview": "vite preview --port 5050 --host 0.0.0.0",
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
   },
   "dependencies": {
     "axios": "^0.26.1",

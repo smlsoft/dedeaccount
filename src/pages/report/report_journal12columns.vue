@@ -90,7 +90,8 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
+                    :class="['text-right clickable-cell', { 'negative-value': isNegative(item[month.key]) }]"
+                    @click="openLedgerDetail(item.accountcode, month.key)"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
@@ -125,7 +126,8 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
+                    :class="['text-right clickable-cell', { 'negative-value': isNegative(item[month.key]) }]"
+                    @click="openLedgerDetail(item.accountcode, month.key)"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
@@ -175,7 +177,8 @@
                   <td 
                     v-for="month in reportData.monthRange" 
                     :key="month.key"
-                    :class="['text-right', { 'negative-value': isNegative(item[month.key]) }]"
+                    :class="['text-right clickable-cell', { 'negative-value': isNegative(item[month.key]) }]"
+                    @click="openLedgerDetail(item.accountcode, month.key)"
                   >
                     {{ formatCurrency(item[month.key] || 0) }}
                   </td>
@@ -304,12 +307,15 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import ShopService from "@/services/ShopService.js";
 import ReportJournal12columnService from "@/services/ReportJorunal12column.js";
+
+const router = useRouter();
 
 const storeApp = useApp();
 const shopId = localStorage.shopid;
@@ -583,6 +589,33 @@ const isNegative = (value) => {
   return num < 0;
 };
 
+// ฟังก์ชันเปิดหน้า ledger พร้อมกรอง
+const openLedgerDetail = (accountcode, monthKey) => {
+  if (!accountcode || !monthKey) return;
+  
+  // แปลง monthKey (เช่น "2024-10") เป็นวันที่
+  const [year, month] = monthKey.split('-');
+  
+  // สร้างวันที่ 1 ของเดือน
+  const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+  
+  // สร้างวันสุดท้ายของเดือน
+  const endDate = new Date(parseInt(year), parseInt(month), 0);
+  
+  // เปิดหน้าใหม่พร้อมส่งข้อมูล
+  const routeData = router.resolve({
+    name: 'ledger',
+    query: {
+      accountcode: accountcode,
+      startdate: startDate.toISOString(),
+      enddate: endDate.toISOString(),
+      autoSearch: 'true'
+    }
+  });
+  
+  window.open(routeData.href, '_blank');
+};
+
 // โหลดข้อมูลเมื่อคอมโพเนนต์ถูกโหลด
 onMounted(async () => {
   // แสดง dialog ค้นหาทันทีเมื่อโหลดหน้า
@@ -765,6 +798,17 @@ onMounted(async () => {
 .negative-value {
   color: #ef4444 !important;
   font-weight: 500;
+}
+
+/* Clickable cells - เซลล์ที่คลิกได้ */
+.clickable-cell {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-cell:hover {
+  background-color: #dbeafe !important;
+  font-weight: 600;
 }
 
 /* Positive emphasis for summary rows */

@@ -274,6 +274,14 @@ const activeTabIndex = ref(0);
 const debtorData = ref(null);
 const creditorData = ref(null);
 
+// คำนวณค่า numVisible จากจำนวนข้อมูลใน data_list
+const numVisibleGalleria = computed(() => {
+  const dataLength = data_list.value?.length || 0;
+  // ถ้ามีข้อมูลน้อยกว่า 10 รายการ ให้แสดงตามจำนวนที่มี
+  // ถ้ามีมากกว่า 10 ให้แสดง 10 รายการ
+  return Math.min(dataLength, 10);
+});
+
 onUnmounted(() => {
   console.log(
     "unmounted--------------------------------------------------------"
@@ -994,9 +1002,19 @@ async function confirmSave() {
   var old_img = selectedImgData.value.guidfixed;
   if (modeEdit.value) {
     MasterdataService.putGLJournal(from_input, daily_form.value.guidfixed)
-      .then((res) => {
+      .then(async (res) => {
         console.log(res);
         if (res.success) {
+          // คำนวณจำนวนรูปใหม่
+          try {
+            const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+              jobId.value
+            );
+            console.log("Recount result:", statusRes);
+          } catch (statusErr) {
+            console.error("Failed to recount images:", statusErr);
+          }
+
           removeSelectImg();
           confirmSaveDialog.value = false;
           toast.add({
@@ -1016,9 +1034,19 @@ async function confirmSave() {
       });
   } else {
     MasterdataService.postGLJournal(from_input)
-      .then((res) => {
+      .then(async (res) => {
         console.log(res);
         if (res.success) {
+          // คำนวณจำนวนรูปใหม่
+          try {
+            const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+              jobId.value
+            );
+            console.log("Recount result:", statusRes);
+          } catch (statusErr) {
+            console.error("Failed to recount images:", statusErr);
+          }
+
           removeSelectImg();
           confirmSaveDialog.value = false;
           toast.add({
@@ -3282,6 +3310,7 @@ function swapType(type) {
                         :customer_detail="customer_detail"
                         :creditor_detail="creditor_detail"
                         :income_expenses_mode="false"
+                        :isUpdate="false"
                         v-on:ImportDaliy="ImportDaliy"
                         v-on:deleteDetail="deleteDetail"
                         v-on:addColumn="addColumn"
@@ -3431,7 +3460,7 @@ function swapType(type) {
               :value="data_list"
               thumbnailsPosition="top"
               :showThumbnails="true"
-              :numVisible="10"
+              :numVisible="numVisibleGalleria"
               v-model:activeIndex="activeIndexList"
               @update:activeIndex="nextImage"
             >

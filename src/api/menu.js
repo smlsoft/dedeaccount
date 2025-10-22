@@ -317,7 +317,7 @@ export const menus = [
       //   name: "group_list",
       // },
       {
-        title: "กำหนดสมุดรายวันขึ้นต้น",
+        title: "กำหนดสมุดรายวันขั้นต้น",
         icon: "pi pi-cog",
         to: "/setting/account_book/main",
         name: "account_book",

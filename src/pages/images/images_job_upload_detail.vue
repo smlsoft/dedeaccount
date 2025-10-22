@@ -16,6 +16,7 @@ import DatePicker from "@/components/widget/DatePicker.vue";
 import $ from "jquery";
 
 import DocumentPreview from "./components/documentPreview.vue";
+import { computed } from "vue";
 
 const confirmChangeImage = ref("ต้องการเปลี่ยนรูปภาพ ");
 const content = ref();
@@ -148,6 +149,18 @@ onMounted(() => {
 
   storeApp.setActivePage("images_job_upload");
   storeApp.setActiveChild("images_job_upload_detail");
+});
+
+// ตรวจสอบว่ามีรูปชุด (imagereferences.length > 1) ใน selectedImg หรือไม่
+const hasGroupImage = computed(() => {
+  return selectedImg.value.some((img) => {
+    // หา data จาก data_list ที่ตรงกับ guidfixed
+    const imageData = data_list.value.find(
+      (item) => item.guidfixed === img.guidfixed
+    );
+    // ตรวจสอบว่ามี imagereferences มากกว่า 1 หรือไม่
+    return imageData && imageData.imagereferences && imageData.imagereferences.length > 1;
+  });
 });
 
 function getTaskById(guidfixed) {
@@ -563,9 +576,22 @@ async function documentImageUnGroup(data) {
   console.log(data);
 
   await ImageDataService.putDocumentImageUnGroup(data)
-    .then((res) => {
+    .then(async (res) => {
       console.log(res);
       if (res.success) {
+        // คำนวณจำนวนรูปใหม่
+        try {
+          const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+            jobId.value
+          );
+          console.log("Recount result:", statusRes);
+
+          // ดึงข้อมูล task ใหม่หลังจากอัปเดตสถานะเสร็จ
+          await getTaskById(jobId.value);
+        } catch (statusErr) {
+          console.error("Failed to recount images:", statusErr);
+        }
+
         toast.add({
           severity: "success",
           summary: "success",
@@ -1089,7 +1115,6 @@ function resizeSplitter(isOveray) {
 }
 
 function showImg(data) {
-
   showImgData.value = null;
   selectedImag.value = data;
   showImgData.value = data.imagereferences;
@@ -1143,6 +1168,20 @@ function removeSelectedImg() {
   data_list.value.forEach((element) => {
     element.ischecked = false;
   });
+}
+
+function openGroupDialog() {
+  // ตรวจสอบว่ามีรูปชุดหรือไม่ก่อนเปิด dialog
+  if (hasGroupImage.value) {
+    toast.add({
+      severity: "warn",
+      summary: "ไม่สามารถรวมเอกสารได้",
+      detail: "ไม่สามารถรวมรูปภาพที่เป็นชุดได้",
+      life: 3000,
+    });
+    return;
+  }
+  updateRefDialog.value = true;
 }
 
 function clearFilterDocumentImageGroup() {
@@ -1199,6 +1238,7 @@ async function saveGropImages() {
       taskguid: route.params.id,
       tags: tag.value,
       uploadedat: Utils.getFormatDateTime(newDate),
+      billcount: 1,
     };
   } else {
     return;
@@ -1211,6 +1251,19 @@ async function saveGropImages() {
       data_save_group.value
     );
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่
+      try {
+        const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+          jobId.value
+        );
+        console.log("Recount result:", statusRes);
+
+        // ดึงข้อมูล task ใหม่หลังจากอัปเดตสถานะเสร็จ
+        await getTaskById(jobId.value);
+      } catch (statusErr) {
+        console.error("Failed to recount images:", statusErr);
+      }
+
       toast.add({
         severity: "success",
         summary: "success",
@@ -1262,6 +1315,19 @@ async function addImageGroup() {
     );
     //console.log(res);
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่
+      try {
+        const recountRes = await ImageDataService.putRecountDocumentImageGroup(
+          jobId.value
+        );
+        console.log("Recount result:", recountRes);
+
+        // ดึงข้อมูล task ใหม่หลังจากอัปเดตสถานะเสร็จ
+        await getTaskById(jobId.value);
+      } catch (recountErr) {
+        console.error("Failed to recount images:", recountErr);
+      }
+
       toast.add({
         severity: "success",
         summary: "success",
@@ -1572,7 +1638,7 @@ function sentCountDataImage(data) {
             class="p-button-info text-white p-button-sm"
             icon="pi pi-pencil"
             label="รวมเอกสาร"
-            @click="updateRefDialog = true"
+            @click="openGroupDialog()"
           />
         </div>
         <div class="ml-1">
@@ -1729,7 +1795,7 @@ function sentCountDataImage(data) {
             </div>
             <DocumentPreview
               ref="dialogComment"
-              v-if="showImgData != null "
+              v-if="showImgData != null"
               :allimage_used="AllImageUsed"
               :showOveray="showOveray"
               :showImgData="showImgData"

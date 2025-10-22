@@ -39,6 +39,9 @@ const tempImageReferences = ref([]);
 const dialogComment = ref(false);
 const comment = ref("");
 const isIPad = ref(false);
+const loadingCopy = ref(false);
+const dialogCopy = ref(false);
+const copyCount = ref(1);
 
 const props = defineProps({
   showImgData: Object,
@@ -50,6 +53,7 @@ const props = defineProps({
   modeMenu: Number,
   resetIndex: Number,
   loading: Boolean,
+  isSelectedDocument: Boolean,
 });
 
 const emit = defineEmits([
@@ -63,6 +67,7 @@ const emit = defineEmits([
   "updateXorderImageReferences",
   "saveComment",
   "getDocumentImage",
+  "copyDocument",
 ]);
 
 onUnmounted(() => {});
@@ -400,6 +405,83 @@ function scrollToBottom() {
   dialogContent.scrollTop = dialogContent.scrollHeight;
 }
 
+function showCopyDialog() {
+  copyCount.value = 1;
+  dialogCopy.value = true;
+}
+
+function cancelCopy() {
+  copyCount.value = 1;
+  dialogCopy.value = false;
+}
+
+async function copyDocument() {
+  // Validate
+  if (!copyCount.value || copyCount.value < 1) {
+    toast.add({
+      severity: "warn",
+      summary: "แจ้งเตือน",
+      detail: "กรุณาระบุจำนวนที่ต้องการ copy (อย่างน้อย 1)",
+      life: 3000,
+    });
+    return;
+  }
+
+  try {
+    loadingCopy.value = true;
+    dialogCopy.value = false;
+
+    // สร้างข้อมูลสำหรับ copy ตามจำนวนที่ระบุ
+    const copyData = [];
+
+    for (let i = 0; i < copyCount.value; i++) {
+      props.selectedImag.imagereferences.forEach((img) => {
+        copyData.push({
+          name: img.name,
+          metafileat: img.metafileat,
+          imageuri: img.imageuri,
+          uploadedby: img.uploadedby,
+          uploadedat: new Date().toISOString(),
+          billcount: props.selectedImag.billcount || 1,
+          tags: [`copy-${i + 1}`],
+          taskguid: props.selectedImag.taskguid,
+        });
+      });
+    }
+
+    const result = await ImageDataService.postDocumentImageBulk(copyData);
+
+    if (result.success) {
+      toast.add({
+        severity: "success",
+        summary: "สำเร็จ",
+        detail: `Copy เอกสาร ${copyCount.value} ชุด เรียบร้อยแล้ว`,
+        life: 3000,
+      });
+
+      copyCount.value = 1;
+      emit("copyDocument");
+    } else {
+      toast.add({
+        severity: "error",
+        summary: "ข้อผิดพลาด",
+        detail: "ไม่สามารถ copy เอกสารได้",
+        life: 3000,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    toast.add({
+      severity: "error",
+      summary: "ข้อผิดพลาด",
+      detail: "เกิดข้อผิดพลาดในการ copy เอกสาร",
+      life: 3000,
+    });
+  } finally {
+    loadingCopy.value = false;
+  }
+}
+
 defineExpose({
   scrollToBottom,
 });
@@ -474,6 +556,14 @@ defineExpose({
           :loading="loaddingButton"
         /> -->
         <div v-if="props.modeMenu == 2">
+          <Button
+            icon="pi pi-copy"
+            label="คัดลอก"
+            class="p-button-info p-button-sm mr-1"
+            @click="showCopyDialog()"
+            :loading="loadingCopy"
+            :disabled="props.jobStatus != 1 || props.selectedImag.imagereferences.length > 1 || props.isSelectedDocument"
+          />
           <Button
             :disabled="
               props.selectedImag.references.length > 0 ||
@@ -600,7 +690,6 @@ defineExpose({
               :src="'/images/components/zoom?uri=' + slotProps.item.imageuri"
               class="static"
               v-if="isIPad == false"
-              
             >
             </iframe>
             <img
@@ -817,11 +906,9 @@ defineExpose({
       <div class="surface-card shadow-3 border-round p-3 flex-auto">
         <div class="mb-3">
           <span class="text-900 font-medium inline-block mr-3">
-            {{ commets.commentedby }}
+            /* Lines 820-821 omitted */
           </span>
-          <span class="text-500 text-sm">
-            {{ Utils.getDateFormatDMYHM(commets.commentedat) }}
-          </span>
+          <span class="text-500 text-sm"> /* Lines 823-824 omitted */ </span>
         </div>
         <div class="line-height-3 text-700 mb-2">
           {{ commets.comment }}
@@ -848,6 +935,49 @@ defineExpose({
         icon="pi pi-save"
         class="p-button-success m-0 mt-1 p-button-sm"
         @click="saveComment()"
+      />
+    </template>
+  </Dialog>
+
+  <Dialog
+    v-model:visible="dialogCopy"
+    header="Copy เอกสาร"
+    :modal="true"
+    :style="{ width: '400px' }"
+    @update:visible="cancelCopy()"
+  >
+    <div class="grid formgrid p-fluid pt-3">
+      <div class="field mb-12 col-12">
+        <label class="font-medium text-900 mb-2"
+          >ระบุจำนวนที่ต้องการ Copy</label
+        >
+        <InputNumber
+          v-model="copyCount"
+          :min="1"
+          :max="100"
+          showButtons
+          placeholder="จำนวน"
+          class="w-full"
+        />
+        <small class="text-500 mt-2 block">
+          จะสร้างเอกสารใหม่ {{ copyCount }} ชุด (รวม
+          {{ copyCount * props.selectedImag.imagereferences.length }} รูป)
+        </small>
+      </div>
+    </div>
+    <template #footer>
+      <Button
+        label="ยกเลิก"
+        icon="pi pi-times"
+        class="p-button-text"
+        @click="cancelCopy()"
+      />
+      <Button
+        label="Copy"
+        icon="pi pi-copy"
+        class="p-button-success"
+        @click="copyDocument()"
+        :loading="loadingCopy"
       />
     </template>
   </Dialog>

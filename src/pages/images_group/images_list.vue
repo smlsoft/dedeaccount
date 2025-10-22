@@ -1609,6 +1609,7 @@ async function saveGropImages(mode) {
         imagereferences: imagereferences,
         title: title.value,
         uploadedat: Utils.getFormatDateTime(newDate),
+        billcount: 1,
       };
     } else {
       return;
@@ -1627,6 +1628,7 @@ async function saveGropImages(mode) {
         imagereferences: imagereferences,
         title: title2.value,
         uploadedat: Utils.getFormatDateTime(newDate),
+        billcount: 1,
       };
     } else {
       return;

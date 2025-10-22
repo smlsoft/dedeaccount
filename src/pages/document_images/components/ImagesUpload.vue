@@ -619,6 +619,7 @@ function myUploader() {
                   imageuri: res.data.uri,
                   uploadedby: localStorage._usercode,
                   uploadedat: Utils.getFormatDateTime(new Date()),
+                  billcount: 1,
                 });
 
                 loadImg.value = index + 1;

@@ -163,8 +163,9 @@ export default {
         // console.log(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
-    getAccountledger(startdate, enddate, accountcode, custtype, custcode) {
+    getAccountledger(startdate, enddate, accountcode, custtype, custcode, accountbook) {
         var searchcustcode = "";
+        var searchaccountbook = "";
 
         if (custcode != '' && custcode != undefined && custcode != null) {
             /// 0 = ลูกหนี้ 1 = เจ้าหนี้
@@ -176,9 +177,13 @@ export default {
             }
         }
 
+        if (accountbook != '' && accountbook != undefined && accountbook != null) {
+            searchaccountbook = `&bookcode=${accountbook}`;
+        }
 
-        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}`);
-        return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}`).then(res => res.data);
+
+        console.log(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}${searchaccountbook}`);
+        return instanceApi(true).get(`/gl/report/ledgeraccount?startdate=${startdate}&enddate=${enddate}&accountcode=${accountcode}${searchcustcode}${searchaccountbook}`).then(res => res.data);
     },
 
     postAccountChart(data) {

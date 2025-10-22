@@ -55,6 +55,11 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },
 
+    // recount document image group คำนวณจำนวนรูปใหม่
+    putRecountDocumentImageGroup(id) {
+        return instanceApi(true).put(`/documentimagegroup/task/` + id + `/recount`).then(res => res.data);
+    },
+
     //add update status ALL in job document image group
     putDocumentImageGroupStatusAll(id, data) {
         return instanceApi(true).put(`/documentimagegroup/task/` + id + `/status`, data).then(res => res.data);
@@ -86,6 +91,15 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/documentimages`, data).then(res => res.data);
     },
 
+
+    updateBillCountDocumentimageGroup(id, data) {
+        console.log(id)
+        console.log(data)
+        return instanceApi(true).put(`/documentimagegroup/` + id, data).then(res => res.data);
+    },
+
+
+
     //Group
     postDocumentImageGroup(data) {
         return instanceApi(true).post(`/documentimagegroup`, data).then(res => res.data);
@@ -106,14 +120,16 @@ export default {
         return instanceApi(true).post(`/documentimage/upload?module=${module}`, fd).then(res => res.data);
     },
 
-    //noreserve
+    //noreserve 
+    // ***** เอา &reserve=1 ออกก่อน *****
+    // เพื่อให้ใน Galleria แสดงรูปครบถ้วน
     documentimagegroupnoreserve(limitPage, page, search, sorttaskguid) {
         var q = "";
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`);
-        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&reserve=1&ref=1&status=1`).then(res => res.data);
+        console.log(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&ref=1&status=1&reserveby=1`);
+        return instanceApi(true).get(`/documentimagegroup?limit=${limitPage}&page=${page}${q}&sort=xorder:1,guidfixed:1&taskguid=${sorttaskguid}&ref=1&status=1&reserveby=1`).then(res => res.data);
     },
 
     // เพิ่มรูปใน Group Image

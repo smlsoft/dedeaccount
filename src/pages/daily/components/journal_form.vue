@@ -461,8 +461,6 @@ function navigateHorizontal(currentIndex, currentField, direction) {
     }, 10); // Small delay to ensure DOM is ready
   }
 }
-
-
 </script>
 
 <template>
@@ -775,8 +773,9 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           ? 'border-top: 6px solid'
           : 'border-top: 0px solid'
       "
+      v-if="!props.isUpdate"
     >
-      <div class="flex flex-column gap-2">
+      <div class="flex flex-column gap-2" >
         <div class="flex align-items-center gap-2">
           <h1 class="m-0 font-semibold text-900 text-xl line-height-3">
             นำเข้ารายการบัญชี

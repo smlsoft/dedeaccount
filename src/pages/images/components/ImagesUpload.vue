@@ -640,6 +640,7 @@ function myUploader() {
                     imageuri: res.data.uri,
                     uploadedby: localStorage._usercode,
                     uploadedat: Utils.getFormatDateTime(new Date()),
+                    billcount: 1,
                   });
 
                   loadImg.value = index + 1;
@@ -728,6 +729,7 @@ function uploadFilePDF(file, index) {
           imageuri: res.data.uri,
           uploadedby: localStorage._usercode,
           uploadedat: Utils.getFormatDateTime(new Date()),
+          billcount: 1,
         });
 
         loadImg.value = index + 1;
@@ -816,6 +818,7 @@ function saveDocumentImage() {
     }
   });
 
+  console.log("อัพโหลดรูปภาพ ใน job");
   console.log(data);
 
   loadingSaveDocumentImage.value = true;

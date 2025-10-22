@@ -1475,6 +1475,18 @@ async function addImageGroup() {
     );
     //console.log(res);
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่ (ถ้ามี jobId)
+      if (jobId.value && jobId.value !== "") {
+        try {
+          const recountRes = await ImageDataService.putRecountDocumentImageGroup(
+            jobId.value
+          );
+          console.log("Recount result:", recountRes);
+        } catch (recountErr) {
+          console.error("Failed to recount images:", recountErr);
+        }
+      }
+
       confirmGroupImageDialog.value = false;
       activePage.value = 1;
       selectedImg.value = [];
@@ -1764,6 +1776,7 @@ async function saveGropImages() {
       imagereferences: imagereferences,
       title: title2.value,
       uploadedat: Utils.getFormatDateTime(newDate),
+      billcount:1,
     };
   } else {
     return;

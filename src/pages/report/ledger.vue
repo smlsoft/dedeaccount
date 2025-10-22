@@ -1,77 +1,66 @@
 <template>
   <AppLayout>
     <MainContentWarp>
-      <div class="surface-card p-3 shadow-2 border-round">
-        <div class="mb-2 flex align-items-center justify-content-between">
-          <span class="text-xl font-medium text-900">
-            <i class="pi pi-book" style="font-size: 1.5rem">
-              {{ $t("statement") }} / {{ $t("ledger") }}
-            </i>
-          </span>
-          <Button
-            label="ค้นหา"
-            icon="pi pi-cog"
-            @click="showSearch = true"
-            class="p-button-rounded mr-2"
-          />
-        </div>
-
-        <div class="px-1 surface-section flex-auto">
-          <div class="card p-2">
-            <div class="flex flex-column" v-if="isvisible">
-              <div id="textbox">
-                <div>
-                  <span style="font-weight: bold; font-size: 30px">{{
-                    $t("ledger")
-                  }}</span>
-                  <br />
-                  <br />
-                  <span style="font-weight: bold" class="alignleft"
-                    >{{ $t("sincetime") }} : {{ startDateShow }}</span
-                  >
-
-                  <span style="font-weight: bold">
-                    {{ $t("totime") }} : {{ endDateShow }}</span
-                  >
-
-                  <br />
-                  <span style="font-weight: bold" class="alignleft">
-                    <br />
-                    {{ nameCheck(accountcode1) }}
-                  </span>
-
-                  <span style="font-weight: bold" class="alignleft">
-                    {{ nameCheck2(accountcode2) }}
-                  </span>
-                  <div class="alignright">
-                    <Button
-                      label="ส่งออก Excel"
-                      icon="pi pi-file-excel "
-                      class="p-button-primary mr-1"
-                      @click="dswitch(1)"
-                      :disabled="isvisible === false"
-                    />
-
-                    <Button
-                      label="ส่งออก PDF"
-                      icon="pi pi-file-pdf"
-                      class="p-button-primary mr-1"
-                      @click="dswitch(2)"
-                      :disabled="isvisible === false"
-                    />
-
-                    <Button
-                      type="button"
-                      label="ค้นหา"
-                      icon="pi pi-cog"
-                      @click="reloadRoute()"
-                    />
-                  </div>
-                </div>
+      <!-- Compact Header -->
+      <div class="compact-header">
+        <div class="surface-card shadow-1 border-round">
+          <div class="p-2">
+            <div class="flex align-items-center justify-content-between gap-2 flex-wrap">
+              <!-- Title & Filter Button -->
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-book text-lg text-primary"></i>
+                <h3 class="m-0 text-lg font-semibold text-900">{{ $t("ledger") }}</h3>
               </div>
+              
+              <!-- Filter Tags -->
+              <div v-if="isvisible" class="flex align-items-center gap-1 flex-wrap flex-1 justify-content-center">
+                <Chip class="filter-chip-compact">
+                  <i class="pi pi-calendar text-xs mr-1"></i>
+                  <span class="text-xs">{{ startDateShow }} - {{ endDateShow }}</span>
+                </Chip>
+                
+                <Chip v-if="accountcode1 && accountcode1 !== ''" class="filter-chip-compact">
+                  <i class="pi pi-book text-xs mr-1"></i>
+                  <span class="text-xs" v-if="!state || !accountcode2 || accountcode2 === ''">
+                    {{ accountcode1 }}
+                  </span>
+                  <span class="text-xs" v-else>
+                    {{ accountcode1 }} → {{ accountcode2 }}
+                  </span>
+                </Chip>
+                
+                <Chip v-if="custcode && custcode !== ''" class="filter-chip-compact filter-chip-customer">
+                  <i class="pi pi-users text-xs mr-1"></i>
+                  <span class="text-xs">{{ getCustName() }}</span>
+                </Chip>
+                
+                <Chip v-if="accountbook && accountbook !== ''" class="filter-chip-compact">
+                  <i class="pi pi-book text-xs mr-1"></i>
+                  <span class="text-xs">{{ getBookName() }}</span>
+                </Chip>
+                
+                <Chip v-if="result" class="filter-chip-compact filter-chip-info">
+                  <i class="pi pi-check-circle text-xs mr-1"></i>
+                  <span class="text-xs">ทุกบัญชี</span>
+                </Chip>
+              </div>
+              
+              <!-- Filter Button -->
+              <Button
+                icon="pi pi-filter-fill"
+                label="ตัวกรอง"
+                @click="showSearch = true"
+                class="p-button-sm p-button-text"
+                severity="secondary"
+              />
             </div>
           </div>
-          <DataTable
+        </div>
+      </div>
+
+      <!-- Data Table Section -->
+      <div class="table-container">
+        <DataTable
             v-if="isvisible"
             :value="newData"
             rowGroupMode="subheader"
@@ -80,11 +69,11 @@
             :sortOrder="1"
             scrollable
             :loading="loading"
-            scrollHeight="80vh"
-            class="p-datatable-sm"
+            scrollHeight="calc(100vh - 120px)"
+            class="p-datatable-sm compact-table"
             v-model:selection="selectedRow"
             selectionMode="single"
-            @row-click="rowClick"
+            @row-click="handleRowClick"
             breakpoint="960px"
             responsiveLayout="stack"
             style="z-index: 0; width: 100%"
@@ -107,7 +96,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("account_code")
                     }}</span></template
                   >
@@ -123,7 +112,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("account_name")
                     }}</span></template
                   >
@@ -133,7 +122,6 @@
                   style="
                     flex-direction: column !important;
                     font-weight: 700;
-                    background-color: rgb(234, 234, 234);
                     border-width: 1px;
                     border-bottom-color: white;
                     width: 80%;
@@ -153,7 +141,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("date")
                     }}</span></template
                   >
@@ -169,7 +157,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("docno")
                     }}</span></template
                   >
@@ -186,7 +174,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("description")
                     }}</span></template
                   >
@@ -203,7 +191,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("debit")
                     }}</span></template
                   >
@@ -219,7 +207,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("credit")
                     }}</span></template
                   >
@@ -235,7 +223,7 @@
                   "
                 >
                   <template #header>
-                    <span style="font-size: 18px">{{
+                    <span style="font-size: 13px">{{
                       $t("amount")
                     }}</span></template
                   >
@@ -256,7 +244,7 @@
                     slotProps.data.docdate != undefined
                   "
                 >
-                  {{ dateCheck(slotProps.data.docdate) }}</span
+                  {{ formatDate(slotProps.data.docdate) }}</span
                 >
               </template>
             </Column>
@@ -421,7 +409,7 @@
               style="border-width: 1px; max-width: 15.5%"
               bodyStyle="text-align: right;flex-direction: row-reverse; "
               ><template #body="slotProps">
-                <span>{{ read55(slotProps.data.amount) }}</span>
+                <span>{{ formatAmount(slotProps.data.amount) }}</span>
               </template></Column
             >
             <template #groupheader="slotProps">
@@ -431,7 +419,7 @@
                   slotProps.data.accountcodegroup != undefined
                 "
                 style="
-                  font-size: 18px;
+                  font-size: 13px;
                   min-width: 8%;
                   font-weight: 600;
                   min-height: 1000;
@@ -447,7 +435,7 @@
                   slotProps.data.accountnamegroup != undefined
                 "
                 style="
-                  font-size: 18px;
+                  font-size: 13px;
                   min-width: 83%;
                   font-weight: 600;
                   min-height: 99%;
@@ -458,186 +446,269 @@
               >
             </template>
           </DataTable>
-        </div>
       </div>
 
       <Dialog
         v-model:visible="showSearch"
-        :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-        :style="{ width: '50vw' }"
+        :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
+        :style="{ width: '70vw' }"
         :modal="true"
+        :dismissableMask="true"
+        :draggable="false"
       >
         <template #header>
-          <i class="pi pi-cog" style="font-size: 1.5rem"> ค้นหา</i>
+          <div class="flex align-items-center gap-2">
+            <i class="pi pi-search text-primary" style="font-size: 1.25rem"></i>
+            <span class="font-bold text-lg">ค้นหารายงานบัญชีแยกประเภท</span>
+          </div>
         </template>
 
-        <div class="grid p-fluid formgrid">
-          <div class="field mb-4 col-6 md:col-6 ml-0">
-            <label for="startDate" class="font-medium text-900"
-              >{{ $t("from_acc_code") }}
-            </label>
-
-            <Dropdown
-              v-model="accountcode"
-              :showClear="true"
-              :filter="true"
-              :filterFields="['accountcode', 'accountname']"
-              field="accountcode"
-              :options="groups"
-              filterPlaceholder="ค้นหา"
-              placeholder="เลือกทั้งหมด"
-              @change="selectAccount($event)"
-              optionLabel="label"
-              optionValue="accountcode"
-            >
-            </Dropdown>
-          </div>
-          <div class="field mb-4 col-6 md:col-6 ml-0">
-            <label for="endDate" class="font-medium text-900"
-              >{{ $t("to_acc_code") }}
-            </label>
-            <Dropdown
-              :disabled="state == false"
-              v-model="accountcode2"
-              :showClear="true"
-              :filter="true"
-              :filterFields="['accountcode', 'accountname']"
-              field="accountcode"
-              :options="groups"
-              filterPlaceholder="ค้นหา"
-              placeholder="เลือก"
-              @change="selectAccount2($event)"
-              optionLabel="label"
-              optionValue="accountcode"
-            />
-          </div>
-          <div class="field mb-4 col-6 md:col-6 ml-0">
-            <label for="custtype" class="font-medium text-900">
-              ประเภทลูกหนี้/เจ้าหนี้
-            </label>
-            <div
-              class="flex align-items-center justify-content-center custtype mt-2"
-            >
-              <div class="flex field-checkbox">
-                <RadioButton
-                  id="custtype"
-                  name="custtype"
-                  :value="0"
-                  v-model="custtype"
-                  @change="clearCustcode()"
-                />
-                <label>ลูกหนี้</label>
+        <div class="p-fluid compact-search-dialog">
+          <div class="grid">
+            <!-- Left Column -->
+            <div class="col-12 md:col-6">
+              <!-- Account Code Section -->
+              <div class="search-section">
+                <h5 class="section-title">
+                  <i class="pi pi-book mr-2"></i>ช่วงผังบัญชี
+                </h5>
+                <div class="grid">
+                  <div class="col-12">
+                    <label for="accountFrom" class="block mb-1 text-sm">
+                      {{ $t("from_acc_code") }}
+                    </label>
+                    <Dropdown
+                      id="accountFrom"
+                      v-model="accountcode"
+                      :showClear="accountcode != ''"
+                      :filter="true"
+                      :filterFields="['accountcode', 'accountname']"
+                      field="accountcode"
+                      :options="groups"
+                      filterPlaceholder="ค้นหาผังบัญชี..."
+                      placeholder="เลือกทั้งหมด"
+                      @change="selectAccount($event)"
+                      optionLabel="label"
+                      optionValue="accountcode"
+                      class="w-full p-inputtext-sm"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <label for="accountTo" class="block mb-1 text-sm">
+                      {{ $t("to_acc_code") }}
+                    </label>
+                    <Dropdown
+                      id="accountTo"
+                      :disabled="state == false"
+                      v-model="accountcode2"
+                      :showClear="accountcode2 != ''"
+                      :filter="true"
+                      :filterFields="['accountcode', 'accountname']"
+                      field="accountcode"
+                      :options="groups"
+                      filterPlaceholder="ค้นหาผังบัญชี..."
+                      placeholder="เลือกผังบัญชี"
+                      @change="selectAccount2($event)"
+                      optionLabel="label"
+                      optionValue="accountcode"
+                      class="w-full p-inputtext-sm"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <div class="flex gap-3">
+                      <div class="flex align-items-center">
+                        <Checkbox 
+                          v-model="state" 
+                          inputId="rangeCheck" 
+                          :binary="true" 
+                          @change="toggleAccountRange()" 
+                        />
+                        <label for="rangeCheck" class="ml-2 cursor-pointer text-sm">
+                          {{ $t("range_acc") }}
+                        </label>
+                      </div>
+                      <div class="flex align-items-center">
+                        <Checkbox 
+                          v-model="result" 
+                          inputId="activeCheck" 
+                          :binary="true" 
+                          @change="toggleActiveAccount()" 
+                        />
+                        <label for="activeCheck" class="ml-2 cursor-pointer text-sm">
+                          {{ $t("acctive_ac") }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="flex field-checkbox ml-3">
-                <RadioButton
-                  id="custtype"
-                  name="custtype"
-                  :value="1"
-                  v-model="custtype"
-                />
-                <label>เจ้าหนี้</label>
+
+              <!-- Date Range Section -->
+              <div class="search-section">
+                <h5 class="section-title">
+                  <i class="pi pi-calendar mr-2"></i>ช่วงเวลา
+                </h5>
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <label for="startDate" class="block mb-1 text-sm">
+                      {{ $t("sincetime") }}
+                    </label>
+                    <DatePicker
+                      id="startDate"
+                      dateFormat="d/m/yy"
+                      v-model="startDate"
+                      :showIcon="true"
+                      :buddhist="buddhistYear"
+                      :hideOnDateTimeSelect="true"
+                      :hiddenTime="true"
+                      class="w-full p-inputtext-sm"
+                      placeholder="เลือกวันที่เริ่มต้น"
+                    />
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <label for="endDate" class="block mb-1 text-sm">
+                      {{ $t("totime") }}
+                    </label>
+                    <DatePicker
+                      id="endDate"
+                      dateFormat="d/m/yy"
+                      v-model="endDate"
+                      :showIcon="true"
+                      :buddhist="buddhistYear"
+                      :hideOnDateTimeSelect="true"
+                      :hiddenTime="true"
+                      class="w-full p-inputtext-sm"
+                      placeholder="เลือกวันที่สิ้นสุด"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="field mb-4 col-6 md:col-6 ml-0" v-if="custtype == 0">
-            <label for="endDate" class="font-medium text-900">ลูกหนี้ </label>
-            <Dropdown
-              v-model="custcode"
-              :showClear="custcode != '' ? true : false"
-              :filter="true"
-              :filterFields="['code', 'names']"
-              field="code"
-              :options="debtorlist"
-              filterPlaceholder="ค้นหา"
-              placeholder="เลือก"
-              optionLabel="label"
-              optionValue="code"
-            />
-          </div>
-          <div class="field mb-4 col-6 md:col-6 ml-0" v-if="custtype == 1">
-            <label for="endDate" class="font-medium text-900">เจ้าหนี้ </label>
-            <Dropdown
-              v-model="custcode"
-              :showClear="custcode != '' ? true : false"
-              :filter="true"
-              :filterFields="['code', 'names']"
-              field="code"
-              :options="creditorlist"
-              filterPlaceholder="ค้นหา"
-              placeholder="เลือก"
-              optionLabel="label"
-              optionValue="code"
-            />
-          </div>
-          <div class="field col-12">
-            <div class="field-checkbox">
-              <Checkbox v-model="result" :binary="true" @change="addall()" />
-              <label>{{ $t("acctive_ac") }}</label>
+
+            <!-- Right Column -->
+            <div class="col-12 md:col-6">
+              <!-- Customer Section -->
+              <div class="search-section">
+                <h5 class="section-title">
+                  <i class="pi pi-users mr-2"></i>ลูกหนี้ / เจ้าหนี้
+                </h5>
+                <div class="grid">
+                  <div class="col-12">
+                    <label class="block mb-1 text-sm">ประเภท</label>
+                    <div class="flex gap-3">
+                      <div class="flex align-items-center">
+                        <RadioButton
+                          inputId="debtor"
+                          name="custtype"
+                          :value="0"
+                          v-model="custtype"
+                          @change="clearCustcode()"
+                        />
+                        <label for="debtor" class="ml-2 cursor-pointer text-sm">ลูกหนี้</label>
+                      </div>
+                      <div class="flex align-items-center">
+                        <RadioButton
+                          inputId="creditor"
+                          name="custtype"
+                          :value="1"
+                          v-model="custtype"
+                          @change="clearCustcode()"
+                        />
+                        <label for="creditor" class="ml-2 cursor-pointer text-sm">เจ้าหนี้</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label for="customer" class="block mb-1 text-sm">
+                      {{ custtype == 0 ? 'ลูกหนี้' : 'เจ้าหนี้' }}
+                    </label>
+                    <Dropdown
+                      id="customer"
+                      v-model="custcode"
+                      :showClear="custcode != ''"
+                      :filter="true"
+                      :filterFields="['code', 'names']"
+                      field="code"
+                      :options="custtype == 0 ? debtorlist : creditorlist"
+                      filterPlaceholder="ค้นหา..."
+                      :placeholder="'เลือก' + (custtype == 0 ? 'ลูกหนี้' : 'เจ้าหนี้')"
+                      optionLabel="label"
+                      optionValue="code"
+                      class="w-full p-inputtext-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Journal Book Section -->
+              <div class="search-section">
+                <h5 class="section-title">
+                  <i class="pi pi-book mr-2"></i>สมุดรายวัน
+                </h5>
+                <div class="grid">
+                  <div class="col-12">
+                    <label for="journalbook" class="block mb-1 text-sm">
+                      เลือกสมุดรายวัน
+                    </label>
+                    <Dropdown
+                      id="journalbook"
+                      v-model="accountbook"
+                      :showClear="accountbook != ''"
+                      :filter="true"
+                      :filterFields="['code', 'name1']"
+                      field="code"
+                      :options="journalbooklist"
+                      filterPlaceholder="ค้นหาสมุดรายวัน..."
+                      placeholder="เลือกสมุดรายวัน"
+                      optionLabel="label"
+                      optionValue="code"
+                      class="w-full p-inputtext-sm"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="field-checkbox">
-              <Checkbox v-model="state" :binary="true" @change="switchOn()" />
-              <label>{{ $t("range_acc") }}</label>
-            </div>
-          </div>
-
-          <div class="field col-12 md:col-6">
-            <label for="startDate" class="font-medium text-900"
-              >{{ $t("sincetime") }} :</label
-            >
-            <DatePicker
-              class="field mb-12 col-12 md:col-12"
-              dateFormat="d/m/yy"
-              v-model="startDate"
-              :modelValue="startDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-6">
-            <label for="endDate" class="font-medium text-900"
-              >{{ $t("totime") }} :</label
-            >
-            <DatePicker
-              class="field mb-10 col-12 md:col-12"
-              dateFormat="d/m/yy"
-              v-model="endDate"
-              :modelValue="endDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-
-          <div class="field-checkbox col-12 md:col-12 p-button-outlined">
-            <Button
-              class="text-center"
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exportreport()"
-              ><i class="pi pi-book"></i>
-
-              <label style="text-align: center; margin: auto"
-                >{{ $t("process") }}
-              </label></Button
-            >
           </div>
         </div>
+
+        <template #footer>
+          <div class="flex gap-2 justify-content-between">
+            <Button
+              label="ล้างค่า"
+              icon="pi pi-refresh"
+              class="p-button-outlined p-button-warning"
+              @click="clearAllFilters()"
+            />
+            <div class="flex gap-2">
+              <Button
+                label="ยกเลิก"
+                icon="pi pi-times"
+                class="p-button-outlined p-button-secondary"
+                @click="showSearch = false"
+              />
+              <Button
+                label="จัดทำรายงาน"
+                icon="pi pi-check"
+                class="p-button-primary"
+                @click="generateReport()"
+                :loading="loading"
+              />
+            </div>
+          </div>
+        </template>
       </Dialog>
       <Dialog
         v-model:visible="openDetailDocNo"
         :breakpoints="{ '960px': '90vw', '640px': '100vw' }"
         :style="{ width: '50vw' }"
       >
+
         <template #header>
           <h3>
             {{ daily_form.docno }}
             <i
               class="pi pi-pencil text-yellow-500 hover:text-blue-500 cursor-pointer"
-              @click="goDetail(daily_form.guidfixed)"
+              @click="navigateToDetail(daily_form.guidfixed)"
             ></i>
           </h3>
         </template>
@@ -808,19 +879,19 @@ import MainContentWarp from "@/components/MainContentWarp.vue";
 import ImageDataService from "@/services/ImageDataService";
 import MasterdataService from "@/services/MasterdataService";
 import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import TrialBalance from "./components/tableTrialBalance.vue";
 import Ledger from "./components/tableLedger.vue";
-import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
 import $ from "jquery";
 import Utils from "@/utils/";
 import DatePicker from "@/components/widget/DatePicker.vue";
-import XLSX from "xlsx";
 import router from "../../router";
 import { useToast } from "primevue/usetoast";
 import utils from "../../utils";
-const detail = ref();
-const textContent = ref("ต้องการลบข้อมูลรายวัน เลขที่เอกสาร");
+
+const route = useRoute();
+
 const taxes = ref([]);
 const readMode = ref(true);
 const activeIndexList = ref(0);
@@ -850,60 +921,36 @@ const vats_valid = ref([
     branchcode: false,
   },
 ]);
-const dailynum = ref("");
-const head_example = ref([]);
-const detail_example = ref([]);
-const Dswitch = ref(false);
-const detail_examplenumbertwo = ref([]);
 const daily_form = ref([]);
 const textChart = ref("");
 const showTabImage = ref(false);
 const toast = useToast();
-const deleteDetailDialog = ref(false);
-const totalItemsCount = ref(0);
 const filters = ref(null);
-const loading = ref(true);
-const selectAll = ref("");
+const loading = ref(false);
 const activePage = ref(1);
-const typingTimer = ref(null);
-const doneTypingInterval = ref(1000);
-const firstPage = ref(0);
-const accDescript = ref("");
 const worm = ref("เลือกทั้งหมด");
 const sortField = ref("accountcode");
 const sortOrder = ref(1);
-const searchItem = ref("");
-const limitPage = ref(1000);
-const confirmDeleteDialog = ref(false);
 const startDateShow = ref();
 const endDateShow = ref();
-const expandedRows = ref([]);
 const openDetailDocNo = ref(false);
-const filteredCountries = ref();
 const storeApp = useApp();
 const isvisible = ref(false);
-const isvisible2 = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const startDate = ref();
 const endDate = ref();
 const dataImage = ref([]);
-const accountGroup = ref("");
-const accountcode = ref([]);
-const accountcode1 = ref([]);
+const accountcode = ref("");
+const accountcode1 = ref("");
 const accountgroup = ref("");
 const consolidateaccountcode = ref("");
-const accountcode2 = ref([]);
+const accountcode2 = ref("");
 const dataaccountcode = ref("");
 const state = ref(false);
 const group = ref([]);
 const data_list = ref([{}]);
-const data_listPdf = ref([{}]);
-const data_list2 = ref([]);
-const docno = ref();
 const balance = ref();
-const balancenext = ref();
 const result = ref(false);
-const accountmaintypeList = ref([{ name: "0", code: 1 }]);
 
 const daily_form_valid = ref({
   accountdescription: false,
@@ -918,21 +965,7 @@ const daily_form_valid = ref({
   accountcode1:false,
 });
 const newData = ref([]);
-const props = defineProps({
-  daily_form: Object,
-  daily_form_valid: Object,
-  isUpdate: Boolean,
-  accountChart_detail: Array,
-  accountBook_detail: Array,
-  groupAccount_detail: Array,
-  id: String,
-});
-const groups = ref([
-  // { accountcode: "11000", accountname: "สินทรัพย์" },
-  // { accountcode: "11001", accountname: "เงินสด" },
-  // { accountcode: "11002", accountname: "หนี้สิน" },
-]);
-const ica = ref(false);
+const groups = ref([]);
 
 /// 0 = ลูกหนี้ 1 = เจ้าหนี้
 const custtype = ref(0);
@@ -941,70 +974,98 @@ const debtorlist = ref([]);
 const creditorlist = ref([]);
 const showSearch = ref(false);
 
-pdfMake.fonts = {
-  Sarabun: {
-    normal:
-      "https://fonts.gstatic.com/s/sarabun/v12/DtVjJx26TKEr37c9WBJDnlQN9gk.ttf",
-    bold: "https://fonts.gstatic.com/s/sarabun/v12/DtVmJx26TKEr37c9YK5sulwm6gDXvwE.ttf",
-    italics:
-      "https://fonts.gstatic.com/s/sarabun/v12/DtVhJx26TKEr37c9aBBJmnYI5gnOpg.ttf",
-    bolditalics:
-      "https://fonts.gstatic.com/s/sarabun/v12/DtVkJx26TKEr37c9aBBxJlks7iLSrwFUlw.ttf",
-  },
-};
+// สมุดรายวัน
+const accountbook = ref("");
+const journalbooklist = ref([]);
+
+
 
 onMounted(async () => {
   await getAccountChart();
   await getDebtorList();
   await getCreditorsList();
+  await getJournalBookList();
 
-  getDate();
-  switchOn();
+  initializeDateRange();
+  toggleAccountRange();
 
-  //   newResultdocno();
-  // console.log(data_list.value);
-  // getAccountChartList();
-  //   getAccountledger();
-  // getGLJournalList();
   storeApp.setPageTitle("บัญชีแยกประเภท");
   storeApp.setActivePage("report_list");
   storeApp.setActiveChild("ledger");
 
-  showSearch.value = true;
+  // ตรวจสอบว่ามีพารามิเตอร์จาก query string หรือไม่
+  if (route.query.accountcode) {
+    accountcode.value = route.query.accountcode;
+    accountcode1.value = route.query.accountcode;
+    dataaccountcode.value = route.query.accountcode + ":" + route.query.accountcode;
+  }
+
+  if (route.query.startdate) {
+    startDate.value = new Date(route.query.startdate);
+  }
+
+  if (route.query.enddate) {
+    endDate.value = new Date(route.query.enddate);
+  }
+
+  // ถ้ามีพารามิเตอร์ autoSearch ให้ค้นหาทันที
+  if (route.query.autoSearch === 'true') {
+    await fetchLedgerReport();
+    isvisible.value = true;
+  } else {
+    showSearch.value = true;
+  }
 });
 
-// async function getAccountChart() {
-//   try {
-//     const res = await MasterdataService.getAccountChartList(limitPage.value);
-//     console.log(res);
-//     if (res.success) {
-//       groups.value = res.data;
-//     }
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }
-function rowClick(event) {
-  console.log(event.data.docno);
-  getGLDetail(event.data.docno);
+function handleRowClick(event) {
+  // ป้องกันการคลิกในแถว "ยกไป" และ "ยกมา"
+  if (event.data.docno === "ยกไป" || event.data.docno === "ยกมา" || event.data.docno === "ยกมา ") {
+    return;
+  }
+  fetchJournalDetail(event.data.docno);
 }
-function nameCheck(data) {
+
+function formatAccountName(data) {
   if (data == "") {
-    return (data = " รหัสผังบัญชีทั้งหมด");
+    return " รหัสผังบัญชีทั้งหมด";
   } else if (data == accountcode1.value && accountcode2.value == "") {
-    return (data = "ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value);
+    return "ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value;
   } else {
-    return (data =
-      "ตั้งแต่ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value);
+    return "ตั้งแต่ผังบัญชีที่" + "\n" + ":" + "\n" + accountcode1.value;
   }
 }
-function nameCheck2(data) {
+
+function formatAccountNameRange(data) {
   if (data == "") {
-    return (data = "");
+    return "";
   } else if (data == accountcode2.value) {
-    return (data = "ถึงผังบัญชีที่" + "\n" + ":" + "\n" + accountcode2.value);
+    return "ถึงผังบัญชีที่" + "\n" + ":" + "\n" + accountcode2.value;
   }
 }
+
+function getCustName() {
+  if (!custcode.value) return "";
+  
+  const list = custtype.value == 0 ? debtorlist.value : creditorlist.value;
+  const customer = list.find(item => item.code === custcode.value);
+  
+  if (customer) {
+    return customer.code + " - " + customer.names[0].name;
+  }
+  return custcode.value;
+}
+
+function getBookName() {
+  if (!accountbook.value) return "";
+  
+  const book = journalbooklist.value.find(item => item.code === accountbook.value);
+  
+  if (book && book.name1) {
+    return book.code + " - " + book.name1;
+  }
+  return accountbook.value;
+}
+
 async function getAccountChart() {
   try {
     const res = await MasterdataService.getAccountChartList(
@@ -1014,7 +1075,6 @@ async function getAccountChart() {
       sortField.value,
       sortOrder.value
     );
-    console.log(res);
     if (res.success) {
       groups.value = res.data.sort(function (obj1, obj2) {
         return obj1.code - obj2.code;
@@ -1028,7 +1088,6 @@ async function getAccountChart() {
           (ele.accountcode == null && ele.accountname == null) ||
           (ele.accountcode == "" && ele.accountname == "")
         ) {
-          // console.log("this is null");
           worm.value = "เลือกทั้งหมด";
           return (ele.label =
             ele.accountcode + "เลือกทั้งหมด" + ele.accountname);
@@ -1039,7 +1098,6 @@ async function getAccountChart() {
       });
     }
   } catch (err) {
-    console.log(err);
   }
 }
 async function getDebtorList() {
@@ -1060,9 +1118,9 @@ async function getDebtorList() {
       });
     }
   } catch (err) {
-    console.log(err);
   }
 }
+
 async function getCreditorsList() {
   try {
     const res = await MasterdataService.getCreditorList(
@@ -1072,7 +1130,6 @@ async function getCreditorsList() {
       sortField.value,
       sortOrder.value
     );
-    console.log(res);
     if (res.success) {
       creditorlist.value = res.data.sort(function (obj1, obj2) {
         return obj1.code - obj2.code;
@@ -1082,10 +1139,40 @@ async function getCreditorsList() {
       });
     }
   } catch (err) {
-    console.log(err);
   }
 }
-function dateCheck(data) {
+
+async function getJournalBookList() {
+  try {
+    const res = await MasterdataService.getJournalBookList(
+      10000,
+      activePage.value,
+      filters.value,
+      sortField.value,
+      sortOrder.value
+    );
+    if (res.success) {
+      journalbooklist.value = res.data.sort(function (obj1, obj2) {
+        return obj1.code - obj2.code;
+      });
+      journalbooklist.value.unshift({
+        code: "",
+        name1: "เลือกทั้งหมด",
+      });
+      journalbooklist.value.forEach((ele) => {
+        if (ele.code === "") {
+          ele.label = "เลือกทั้งหมด";
+        } else {
+          ele.label = ele.code + " ~ " + ele.name1;
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error fetching journal book list:", err);
+  }
+}
+
+function formatDate(data) {
   if (data == "NaN/NaN/NaN") {
     return "";
   } else if (data.length <= 7) {
@@ -1094,21 +1181,11 @@ function dateCheck(data) {
     return Utils.getDateFormatDMY(data);
   }
 }
-function checkadExceldll() {
-  result.value == false;
-  console.log(result.value);
-  if (result.value == false) {
-    result.value == false;
-    DownloadExampleExcel();
-  } else if (result.value == true) {
-    DownloadExampleExcelAll();
-  }
-}
-function getDocumentImageByDocNo(docno) {
+
+function fetchDocumentImages(docno) {
   ImageDataService.getDocumentImageByDocNo(docno)
     .then((res) => {
       if (res.success) {
-        console.log(res);
         showTabImage.value = true;
         setTimeout(() => {
           dataImage.value = res.data.imagereferences;
@@ -1116,27 +1193,15 @@ function getDocumentImageByDocNo(docno) {
       }
     })
     .catch((err) => {
-      console.log(err + " : ไม่เจอรูป");
       showTabImage.value = false;
     });
 }
-function dswitch(data) {
-  console.log(data);
-  if (data == 1) {
-    return (Dswitch.value = false), exreportpdf();
-  } else if (data == 2) {
-    return (Dswitch.value = true), exreportpdf();
-  }
-  exreportpdf();
-}
-function getGLDetail(docno) {
-  console.log(docno);
 
+function fetchJournalDetail(docno) {
   MasterdataService.getGLledger(docno)
     .then((res) => {
       if (res.success) {
-        console.log(res);
-        getDocumentImageByDocNo(docno);
+        fetchDocumentImages(docno);
 
         openDetailDocNo.value = true;
         const vat = res.data.vats;
@@ -1233,21 +1298,9 @@ function getGLDetail(docno) {
             taxes.value.push(taxes_temp);
           }
         }
-
-        // console.log(daily_form.value);
-        // console.log(vats.value);
-        // console.log(taxes.value);
-
-        // toast.add({
-        //   severity: "success",
-        //   summary: "success",
-        //   detail: "ดึงข้อมูลเอกสาร : " + docno + " สำเร็จ",
-        //   life: 3000,
-        // });
       }
     })
     .catch((err) => {
-      console.log(err);
       openDetailDocNo.value = false;
       toast.add({
         severity: "error",
@@ -1280,11 +1333,10 @@ function putvatValid() {
     branchcode: false,
   });
 }
-function addall() {
-  // result.value = true;
-  console.log(result.value);
+function toggleActiveAccount() {
 }
-function switchOn() {
+
+function toggleAccountRange() {
   if (state.value == true) {
     dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
 
@@ -1297,59 +1349,37 @@ function switchOn() {
 }
 
 function selectAccount(event) {
-  // if ((event.value = "")) {
-  //   console.log("emty");
-  // }
-  console.log(event);
   state.value == false;
   accountcode1.value = event.value;
 
-  console.log(state.value);
-
-  console.log(event.value);
-
   accountcode1.value = event.value;
-  if (accountcode1.value != "") {
+  if (accountcode1.value != "" && accountcode1.value != null) {
     dataaccountcode.value = accountcode1.value + ":" + accountcode1.value;
-  } else if (accountcode1.value == "") {
-    dataaccountcode.value =
-      accountcode1.value + "เลือกทั้งหมด" + accountcode1.value;
+  } else {
+    dataaccountcode.value = "";
   }
-
-  // else if ((state.value = true)) {
-  //   dataaccountcode.value = event.value + ":" + event.value;
-  // }
-
-  console.log(dataaccountcode.value);
 }
 function selectAccount2(event) {
-  if ((state.value = false)) {
-    accountcode2.value = event.value;
-
+  accountcode2.value = event.value;
+  
+  if (!accountcode1.value || accountcode1.value === "" || accountcode1.value === null) {
+    dataaccountcode.value = "";
+  } else if (!accountcode2.value || accountcode2.value === "" || accountcode2.value === null) {
     dataaccountcode.value = accountcode1.value + ":" + accountcode1.value;
-  } else if ((state.value = true)) {
-    state.value = true;
+  } else {
     dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
+    state.value = true;
   }
-  if (accountcode1.value != "" && state.value == false) {
-    dataaccountcode.value = accountcode1.value + ":" + accountcode1.value;
-  } else if (accountcode1.value == "" && state.value == true) {
-    dataaccountcode.value =
-      accountcode1.value + "เลือกทั้งหมด" + accountcode2.value;
-  }
-
-  state.value = true;
-  // accountcode2.value = event.value;
-  // dataaccountcode.value = accountcode1.value + ":" + accountcode2.value;
 }
-function exportreport() {
-  exreport2();
+
+function generateReport() {
+  fetchLedgerReport();
   isvisible.value = true;
 }
-function reloadRoute() {
-  showSearch.value = true;
-}
-function read55(data) {
+
+
+
+function formatAmount(data) {
   if (result.value == false) {
     return utils.formatNumberforamount(data);
   }
@@ -1357,27 +1387,34 @@ function read55(data) {
     return utils.formatNumber(data);
   }
 }
-function exreport2() {
+
+function fetchLedgerReport() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 
-  if (dataaccountcode.value == ":") {
+  // ถ้า dataaccountcode เป็น ":" หรือ "null:null" หรือมี null ให้เซ็ตเป็น ""
+  if (dataaccountcode.value == ":" || 
+      dataaccountcode.value == "null:null" || 
+      dataaccountcode.value.includes("null") ||
+      !dataaccountcode.value) {
     dataaccountcode.value = "";
   }
+  
   isvisible.value = true;
   MasterdataService.getAccountledger(
     startdate,
     enddate,
     dataaccountcode.value,
     custtype.value,
-    custcode.value
+    custcode.value,
+    accountbook.value
   )
 
     .then((res) => {
-      // console.log(res.data);
       newData.value = [];
       startDateShow.value = Utils.getYearBuddhist(startDate.value);
       endDateShow.value = Utils.getYearBuddhist(endDate.value);
+      
       res.data.forEach((element, index) => {
         if (
           element.balance == 0 &&
@@ -1385,10 +1422,7 @@ function exreport2() {
           element.balance == element.nextbalance &&
           element.details.length > 0
         ) {
-          // console.log("1");
           data_list.value.push(element);
-
-          // console.log(data_list.value);
         } else if (
           (element.balance != 0 &&
             element.nextbalance != 0 &&
@@ -1418,7 +1452,6 @@ function exreport2() {
           element.details.length == 0 &&
           result.value == true
         ) {
-          console.log("5");
           data_list.value.push(element);
         }
       });
@@ -1431,105 +1464,86 @@ function exreport2() {
             data.nextbalance != 0 &&
             result.value == false
           ) {
-            data.details.unshift({
-              docdate: "",
-              docno: "",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: utils.formatNumberforamount(data.amount),
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
-            });
-
-            data.details.push({
-              docdate: "",
-              docno: "ยกไป",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: utils.formatNumberforamount(data.nextbalance),
-              // accountcodegroup: data.accountcode,
-              // accountnamegroup: data.accountname,
-            });
+            // เมื่อ balance = 0 ไม่ต้องเพิ่มแถวว่าง เพิ่มเฉพาะ group header ให้รายการแรก
+            if (data.details.length > 0) {
+              data.details[0].accountcodegroup = data.accountcode;
+              data.details[0].accountnamegroup = data.accountname;
+              
+              // เพิ่มแถว "ยกไป" เฉพาะเมื่อมี details
+              data.details.push({
+                docdate: "",
+                docno: "ยกไป",
+                accountdescription: "",
+                credit: "",
+                debit: "",
+                amount: utils.formatNumberforamount(data.nextbalance),
+              });
+            }
           } else if (result.value == true && data.balance == 0) {
-            data.details.unshift({
-              docdate: "",
-              docno: "ยกมา ",
-              accountdescription: "",
-              credit: "",
-              debit: data.balance,
-              amount: utils.formatNumber(data.amount),
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
-            });
+            if (data.details.length > 0) {
+              data.details.unshift({
+                docdate: "",
+                docno: "ยกมา ",
+                accountdescription: "",
+                credit: "",
+                debit: data.balance,
+                amount: utils.formatNumber(data.amount),
+                accountcodegroup: data.accountcode,
+                accountnamegroup: data.accountname,
+              });
 
-            data.details.push({
-              docdate: "",
-              docno: "ยกไป",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: data.nextbalance,
-            });
+              data.details.push({
+                docdate: "",
+                docno: "ยกไป",
+                accountdescription: "",
+                credit: "",
+                debit: "",
+                amount: data.nextbalance,
+              });
+            }
           } else if (
             data.balance == 0 &&
             data.nextbalance == 0 &&
             data.details.length == 0
           ) {
           } else if (data.balance != 0 && data.nextbalance != 0) {
-            // console.log(data.accountcode + "เงื่อนไข 1919191");
-            data.details.unshift({
-              docdate: "",
-              docno: "ยกมา",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: data.balance,
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
-            });
+            if (data.details.length > 0) {
+              data.details.unshift({
+                docdate: "",
+                docno: "ยกมา",
+                accountdescription: "",
+                credit: "",
+                debit: "",
+                amount: data.balance,
+                accountcodegroup: data.accountcode,
+                accountnamegroup: data.accountname,
+              });
 
-            // data.details.unshift({
-            //   docdate: data.accountcode,
-            //   docno: data.accountname,
-            //   accountdescription: "",
-            //   credit: "",
-            //   debit: "",
-            //   amount: "",
-            //   accountcodegroup: data.accountcode,
-            //   accountnamegroup: data.accountname,
-            // });
-
-            data.details.push({
-              docdate: "",
-              docno: "ยกไป",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: data.nextbalance,
-            });
+              data.details.push({
+                docdate: "",
+                docno: "ยกไป",
+                accountdescription: "",
+                credit: "",
+                debit: "",
+                amount: data.nextbalance,
+              });
+            }
           } else {
-            console.log(data.accountcode + "เงื่อนไขที่3");
-            data.details.unshift({
-              docdate: "",
-              docno: "",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: utils.formatNumberforamount(data.amount),
-              accountcodegroup: data.accountcode,
-              accountnamegroup: data.accountname,
-            });
-
-            data.details.push({
-              docdate: "",
-              docno: "ยกไป",
-              accountdescription: "",
-              credit: "",
-              debit: "",
-              amount: data.nextbalance,
-            });
+            // กรณีอื่นๆ ที่ไม่ควรมีแถวว่าง
+            if (data.details.length > 0) {
+              data.details[0].accountcodegroup = data.accountcode;
+              data.details[0].accountnamegroup = data.accountname;
+              
+              // เพิ่มแถว "ยกไป" เฉพาะเมื่อมี details
+              data.details.push({
+                docdate: "",
+                docno: "ยกไป",
+                accountdescription: "",
+                credit: "",
+                debit: "",
+                amount: data.nextbalance,
+              });
+            }
           }
 
           data.details.forEach((element, index) => {
@@ -1538,44 +1552,23 @@ function exreport2() {
         });
 
         setTimeout(() => {
-          // console.log("newData", newData.value);
-
-          var html = $("tr.p-rowgroup-header td "); //.html();
+          var html = $("tr.p-rowgroup-header td ");
 
           for (var i = 0; i < html.length; i++) {
             if (!html[i].innerHTML.includes("span")) {
-              // console.log(html[i].innerHTML);
               html[i].style.display = "none";
             }
-
-            // if (!html[i].html().includes("span")) {
-            //   console.log(html[i]);
-            // }
           }
-          // var html2 = $("tr.tabindex=-1");
-          // for (var i = 0; i < html2.length; i++) {
-          //   if (!html2[i].innerHTML.includes("span")) {
-          //     console.log(html2[i].innerHTML);
-          //     html2[i].style.display = "none";
-          //   }
-          // }
-          // if (!html.includes("span")) {
-          //   console.log($("tr.p-rowgroup-header td"));
-          // }
         }, 10);
         setTimeout(() => {
           if (data_list.value == "") {
             group.value = data.details[0];
           }
         }, 100);
-        console.log(data_list.value);
-        // console.log(res.data);
         if (result.value == true) {
           data_list.value = res.data;
         }
-        // console.log(data_list.value);
 
-        console.log(res);
         toast.add({
           severity: "success",
           summary: "จัดทำรายงานสำเร็จ",
@@ -1595,730 +1588,17 @@ function exreport2() {
       });
       isvisible.value = false;
       loading.value = false;
-      console.log(err);
     });
-  //   newResultCategory();
-  //   getGLJournalList();
-  // expandAll();
   loading.value = false;
 }
-function exreportpdf() {
-  let startdate = Utils.getDateFromYear(startDate.value);
-  let enddate = Utils.getDateFromYear(endDate.value);
 
-  if (dataaccountcode.value == ":") {
-    dataaccountcode.value = "";
-  }
-  isvisible.value = true;
-  MasterdataService.getAccountledger(
-    startdate,
-    enddate,
-    dataaccountcode.value,
-    (accountgroup.value = ""),
-    (consolidateaccountcode.value = "")
-  )
-
-    .then((res) => {
-      loading.value = true;
-      console.log(Dswitch.value);
-      if (res.success) {
-        data_listPdf.value = res.data;
-        if (Dswitch.value == false) {
-          checkadExceldll();
-        } else {
-          exportdowloadPDF();
-        }
-
-        setTimeout(() => {}, 100);
-
-        console.log(res);
-        toast.add({
-          severity: "success",
-          summary: "จัดทำรายงานสำเร็จ",
-          life: 1000,
-        });
-      }
-      loading.value = false;
-    })
-
-    .catch((err) => {
-      toast.add({
-        severity: "error",
-        summary: "จัดทำรายงานไม่สำเร็จ",
-        detail: "โปรดตรวจสอบวันที่และผังบัญชี",
-        life: 3000,
-      });
-      isvisible.value = false;
-      loading.value = false;
-      console.log(err);
-    });
-  //   newResultCategory();
-  //   getGLJournalList();
-  // expandAll();
-}
-//output------
-async function exportdowloadPDF() {
-  var body = [];
-  var enddate = "";
-  var startdate = "";
-  body = await buildFromJson();
-
-  startdate = Utils.getYearBuddhist(startDate.value);
-  enddate = Utils.getYearBuddhist(endDate.value);
-
-  var docDefinition = pageSetup(body, startdate, enddate);
-  pdfMake.createPdf(docDefinition).download("บัญชีแยกประเภท.pdf");
-}
-function pageSetup(data, startdate, enddate) {
-  var docDefinition = {
-    content: [
-      {
-        text:
-          "รายงานบัญชีแยกประเภท" +
-          "\n" +
-          localStorage.shop_name +
-          "\n" +
-          "สิ้นสุด ณ  วันที่" +
-          Utils.getDateShowText(enddate) +
-          "\n" +
-          "\n ",
-
-        style: "header",
-        bold: true,
-        alignment: "center",
-      },
-
-      {
-        style: "tableExample",
-
-        table: {
-          widths: ["15%", "25%", "13%", "10%", "10%", "10%", "17%"],
-          body: data,
-        },
-        layout: "noBorders",
-      },
-    ],
-    pageOrientation: "lightHorizontalLines",
-    pageMargins: [15, 15, 15, 15],
-    defaultStyle: {
-      font: "Sarabun",
-      fontSize: 12,
-      columnGap: 20,
-      color: "#0A065D",
-    },
-    styles: {
-      header: {
-        bold: true,
-        alignment: "center",
-      },
-    },
-  };
-  return docDefinition;
-}
-function buildFromJson() {
-  var body = [];
-
-  body.push([
-    { text: "รหัสบัญชี", style: ["header", "textdecoration"] },
-    { text: "ชื่อบัญชี", style: ["header", "textdecoration"] },
-    { colSpan: 5, text: "" },
-    { text: "" },
-    { text: "" },
-    { text: "" },
-    { text: "" },
-  ]);
-  body.push([
-    { text: "วันที่", style: "header" },
-    { text: "เลขที่เอกสาร", style: "header" },
-    { colSpan: 2, text: "รายละเอียด", style: "header" },
-    { text: "" },
-    { text: "เดบิต ", style: "header" },
-    { text: "เครดิต", style: "header" },
-    { text: "ยอดรวม", style: "header" },
-  ]);
-  console.log(data_listPdf.value);
-  data_listPdf.value.forEach((data) => {
-    if (
-      data.balance == data.nextbalance &&
-      data.balance == 0 &&
-      data.nextbalance == 0 &&
-      data.details.length > 0
-    ) {
-      console.log("1");
-      body.push([
-        {
-          text: data.accountcode,
-          fillColor: "#d8eaf2",
-          style: ["header", "textdecoration"],
-        },
-
-        { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-      ]);
-
-      body.push([
-        { text: "" },
-
-        { text: checkbalanceWord(data.balance) },
-        { colSpan: 2, text: "" },
-        { text: "" },
-        { text: "" },
-        { text: "" },
-        { text: checkbalance(data.balance), alignment: "center" },
-      ]);
-      data.details.forEach((details) => {
-        // console.log(details);
-        body.push([
-          { text: Utils.getDateFormatDMY(details.docdate) },
-          { text: details.docno },
-          { colSpan: 2, text: details.accountdescription },
-          { text: "" },
-          {
-            text: checkzero(Utils.formatNumber(details.debit)),
-            alignment: "center",
-          },
-          {
-            text: checkzero(Utils.formatNumber(details.credit)),
-            alignment: "center",
-          },
-          { text: Utils.formatNumber(details.amount), alignment: "center" },
-        ]);
-      });
-
-      body.push([
-        { text: "" },
-        { text: "ยกไป" },
-
-        { colSpan: 2, text: "", style: ["header", "textdecoration"] },
-        {
-          text: "",
-        },
-
-        { text: "" },
-        { text: "" },
-        {
-          text: data.nextbalance,
-          alignment: "center",
-        },
-      ]);
-    } else if (data.balance == 0 && data.nextbalance == 0) {
-    } else {
-      body.push([
-        {
-          text: data.accountcode,
-          fillColor: "#d8eaf2",
-        },
-
-        { colSpan: 6, text: data.accountname, fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-        { text: "", fillColor: "#d8eaf2" },
-      ]);
-
-      body.push([
-        { text: "" },
-
-        { text: checkbalanceWord(data.balance) },
-        { colSpan: 2, text: "" },
-        { text: "" },
-        { text: "" },
-        { text: "" },
-        { text: checkbalance(data.balance), alignment: "center" },
-      ]);
-      data.details.forEach((details) => {
-        // console.log(details);
-        body.push([
-          { text: Utils.getDateFormatDMY(details.docdate) },
-          { text: details.docno },
-          { colSpan: 2, text: details.accountdescription },
-          { text: "" },
-          {
-            text: checkzero(Utils.formatNumber(details.debit)),
-            alignment: "center",
-          },
-          {
-            text: checkzero(Utils.formatNumber(details.credit)),
-            alignment: "center",
-          },
-          { text: Utils.formatNumber(details.amount), alignment: "center" },
-        ]);
-      });
-
-      body.push([
-        { text: "" },
-        { text: "ยกไป" },
-
-        { colSpan: 2, text: "", style: ["header", "textdecoration"] },
-        {
-          text: "",
-        },
-
-        { text: "" },
-        { text: "" },
-        {
-          text: checkbalance(data.nextbalance),
-          alignment: "center",
-        },
-      ]);
-    }
-  });
-
-  return body;
-}
-function DownloadExampleExcel() {
-  detail_example.value = [];
-  result.value == false;
-  console.log("DownloadExampleExcel");
-
-  detail_example.value.push(
-    {
-      1: "รหัสบัญชี",
-
-      2: "ชื่อบัญชี",
-      3: "",
-      4: "",
-      5: "",
-      6: "",
-      7: "",
-      8: "",
-    },
-    {
-      1: "วันที่",
-
-      2: "เลขที่เอกสาร",
-      3: "รายละเอียด",
-      4: "เดบิต",
-      5: "เครดิต",
-      6: "ยอดรวม",
-      7: "",
-      8: "",
-    }
-    // {
-    //   1: data.accountcode,
-
-    //   2: data.accountname,
-    //   3: "",
-    //   4: "",
-    //   5: "",
-    //   6: "",
-    //   7: "",
-    //   8: "",
-    // }
-  );
-  data_listPdf.value.forEach((data) => {
-    if (
-      data.balance == data.nextbalance &&
-      data.balance == 0 &&
-      data.nextbalance == 0 &&
-      result.value == false &&
-      data.details.length != 0
-    ) {
-      detail_example.value.push({
-        1: data.accountcode,
-
-        2: data.accountname,
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: "",
-        8: "",
-      });
-
-      data.details.forEach((details) => {
-        // console.log(details);
-
-        detail_example.value.push({
-          1: Utils.getDateFormatDMY(details.docdate),
-
-          2: details.docno,
-          3: details.accountdescription,
-          4: checkzero(Utils.formatNumberforExcel(details.debit)),
-          5: checkzero(Utils.formatNumberforExcel(details.credit)),
-          6: Utils.formatNumberforExcel(details.amount),
-          7: "",
-          8: "",
-        });
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      });
-    } else if (
-      data.balance == data.nextbalance &&
-      data.balance == 0 &&
-      data.nextbalance == 0 &&
-      result.value == false &&
-      data.details.length == 0
-    ) {
-      console.log("invalid");
-    } else if (
-      data.balance != 0 &&
-      data.nextbalance == 0 &&
-      result.value == false
-    ) {
-      detail_example.value.push({
-        1: data.accountcode,
-
-        2: data.accountname,
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: "",
-        8: "",
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: checkbalaceWord(data.balance),
-        3: "",
-        4: "",
-        5: "",
-        6: checkbalance(data.balance),
-        7: "",
-        8: "",
-      });
-      data.details.forEach((details) => {
-        // console.log(details);
-
-        detail_example.value.push({
-          1: Utils.getDateFormatDMY(details.docdate),
-
-          2: details.docno,
-          3: details.accountdescription,
-          4: checkzero(Utils.formatNumberforExcel(details.debit)),
-          5: checkzero(Utils.formatNumberforExcel(details.credit)),
-          6: Utils.formatNumberforExcel(details.amount),
-          7: "",
-          8: "",
-        });
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      });
-    } else if (
-      data.balance == 0 &&
-      data.nextbalance != 0 &&
-      result.value == false
-    ) {
-      detail_example.value.push({
-        1: data.accountcode,
-
-        2: data.accountname,
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: "",
-        8: "",
-      });
-
-      data.details.forEach((details) => {
-        // console.log(details);
-
-        detail_example.value.push({
-          1: Utils.getDateFormatDMY(details.docdate),
-
-          2: details.docno,
-          3: details.accountdescription,
-          4: checkzero(Utils.formatNumberforExcel(details.debit)),
-          5: checkzero(Utils.formatNumberforExcel(details.credit)),
-          6: Utils.formatNumberforExcel(details.amount),
-          7: "",
-          8: "",
-        });
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      });
-    } else if (
-      data.balance == 0 &&
-      data.nextbalance == 0 &&
-      data.details.length == 0
-    ) {
-    } else if (data.balance != 0 && data.nextbalance != 0) {
-      detail_example.value.push({
-        1: data.accountcode,
-
-        2: data.accountname,
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: "",
-        8: "",
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกมา",
-        3: "",
-        4: "",
-        5: "",
-        6: data.balance,
-        7: "",
-        8: "",
-      });
-      data.details.forEach((details) => {
-        // console.log(details);
-
-        detail_example.value.push({
-          1: Utils.getDateFormatDMY(details.docdate),
-
-          2: details.docno,
-          3: details.accountdescription,
-          4: checkzero(Utils.formatNumberforExcel(details.debit)),
-          5: checkzero(Utils.formatNumberforExcel(details.credit)),
-          6: Utils.formatNumberforExcel(details.amount),
-          7: "",
-          8: "",
-        });
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      });
-    } else if ((result.value = true)) {
-      console.log("restrue");
-    } else {
-      detail_example.value.push({
-        1: data.accountcode,
-
-        2: data.accountname,
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: "",
-        8: "",
-      });
-
-      data.details.forEach((details) => {
-        // console.log(details);
-
-        detail_example.value.push({
-          1: Utils.getDateFormatDMY(details.docdate),
-
-          2: details.docno,
-          3: details.accountdescription,
-          4: checkzero(Utils.formatNumberforExcel(details.debit)),
-          5: checkzero(Utils.formatNumberforExcel(details.credit)),
-          6: Utils.formatNumberforExcel(details.amount),
-          7: "",
-          8: "",
-        });
-      });
-      detail_example.value.push({
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      });
-    }
-  });
-
-  var config = { raw: true, type: "string" };
-  var Example = XLSX.utils.json_to_sheet(
-    detail_example.value,
-    detail_examplenumbertwo.value,
-    head_example.value,
-    config
-  );
-
-  var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, Example, "รายงานบัญชีแยกประเภท");
-  XLSX.writeFile(wb, "รายงานบัญชีแยกประเภท.xlsx");
-}
-function DownloadExampleExcelAll() {
-  detail_example.value = [];
-  console.log("DownloadExampleExcelAll");
-  detail_example.value.push(
-    {
-      1: "รหัสบัญชี",
-
-      2: "ชื่อบัญชี",
-      3: "",
-      4: "",
-      5: "",
-      6: "",
-      7: "",
-      8: "",
-    },
-    {
-      1: "วันที่",
-
-      2: "เลขที่เอกสาร",
-      3: "รายละเอียด",
-      4: "เดบิต",
-      5: "เครดิต",
-      6: "ยอดรวม",
-      7: "",
-      8: "",
-    }
-  );
-  data_listPdf.value.forEach((data) => {
-    detail_example.value.push({
-      1: data.accountcode,
-
-      2: data.accountname,
-      3: "",
-      4: "",
-      5: "",
-      6: "",
-      7: "",
-      8: "",
-    });
-    detail_example.value.push({
-      1: "",
-
-      2: "ยกมา",
-      3: "",
-      4: "",
-      5: "",
-      6: data.balance,
-      7: "",
-      8: "",
-    });
-    data.details.forEach((details) => {
-      // console.log(details);
-
-      detail_example.value.push({
-        1: Utils.getDateFormatDMY(details.docdate),
-
-        2: details.docno,
-        3: details.accountdescription,
-        4: checkzero(Utils.formatNumberforExcel(details.debit)),
-        5: checkzero(Utils.formatNumberforExcel(details.credit)),
-        6: Utils.formatNumberforExcel(details.amount),
-        7: "",
-        8: "",
-      });
-    });
-    detail_example.value.push(
-      {
-        1: "",
-
-        2: "ยกไป",
-        3: "",
-        4: "",
-        5: "",
-        6: data.nextbalance,
-        7: "",
-        8: "",
-      }
-      // {
-      //   "": "",
-      //   "": "",
-      //   วันที่: "",
-      //   เลขที่เอกสาร: "",
-      //   รายละเอียด: "",
-      //   เดบิต: "เดบิต",
-      //   เครดิต: "เครดิต",
-      //   ยอดรวม: "",
-      // },
-    );
-    // detail_example.value.push({
-    //   รหัสบัญชี: "รหัสบัญชี",
-
-    //   วันที่: "วันที่",
-    //   ชื่อบัญชี: "ชื่อบัญชี",
-    //   เลขที่เอกสาร: "เลขที่เอกสาร",
-    //   รายละเอียด: "รายละเอียด",
-    //   เดบิต: "เดบิต",
-    //   เครดิต: "เครดิต",
-    //   ยอดรวม: "ยอดรวม",
-    // });
-  });
-
-  var config = { raw: true, type: "string" };
-  var Example = XLSX.utils.json_to_sheet(
-    detail_example.value,
-    detail_examplenumbertwo.value,
-    head_example.value,
-    config
-  );
-
-  var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, Example, "รายงานข้อมูลผังบัญชี");
-  XLSX.writeFile(wb, "รายงานข้อมูลผังบัญชี.xlsx");
-}
-function getDate() {
+function initializeDateRange() {
   var date = new Date();
   startDate.value = new Date(date.getFullYear(), date.getMonth(), 1);
   endDate.value = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
-function checkzero(data) {
-  // console.log(data);
-  if (data == 0) {
-    return "";
-  } else {
-    return data;
-  }
-}
-function checkbalance(data) {
-  balance.value = data;
-  if (balance.value == 0 && result.value == false) {
-    return "";
-  } else if (balance == 0 && result.value == true) {
-    console.log();
-    return data;
-  } else {
-    // console.log(data);
-    return data;
-  }
-}
-function checkbalanceWord(data) {
-  if (data == 0 && result.value == false) {
-    return;
-  } else {
-    return "ยกมา";
-  }
-}
 
-function goDetail(data) {
-  console.log(data);
+function navigateToDetail(data) {
   router.push({
     name: "dailyUpdate",
     params: { id: data, mode: "edit" },
@@ -2328,6 +1608,38 @@ function goDetail(data) {
 function clearCustcode() {
   custcode.value = "";
 }
+
+function clearAccountBook() {
+  accountbook.value = "";
+}
+
+function clearAllFilters() {
+  // ล้างค่าผังบัญชี
+  accountcode.value = "";
+  accountcode1.value = "";
+  accountcode2.value = "";
+  dataaccountcode.value = "";
+  state.value = false;
+  result.value = false;
+  
+  // ล้างค่าลูกหนี้/เจ้าหนี้
+  custtype.value = 0;
+  custcode.value = "";
+  
+  // ล้างค่าสมุดรายวัน
+  accountbook.value = "";
+  
+  // รีเซ็ตวันที่เป็นเดือนปัจจุบัน
+  initializeDateRange();
+  
+  toast.add({
+    severity: "info",
+    summary: "ล้างค่าตัวกรองแล้ว",
+    detail: "กรุณาเลือกเงื่อนไขการค้นหาใหม่",
+    life: 2000,
+  });
+}
+
 </script>
 <style lang="scss" scoped>
 .bold-font {
@@ -2343,17 +1655,7 @@ function clearCustcode() {
     border-bottom-color: white;
   }
 }
-::v-deep(.p-rowgroup-header) {
-  td {
-    background-color: rgb(240, 240, 240);
-  }
-  span {
-    font-size: 12em;
-    background-color: rgb(240, 240, 240);
 
-    border-bottom-color: rgb(0, 0, 0);
-  }
-}
 iframe {
   display: block; /* iframes are inline by default */
   background: #000;
@@ -2361,6 +1663,8 @@ iframe {
   height: 100%; /* Viewport-relative units */
   width: 100%;
 }
+
+
 
 .p-datatable .p-column-header-content {
   flex-direction: column !important;
@@ -2396,5 +1700,254 @@ iframe {
 .alignright {
   align-items: flex-end;
   float: right;
+}
+
+/* Compact Ledger Styles - ประหยัดพื้นที่สูงสุด */
+.compact-header {
+  margin-bottom: 0.5rem;
+  
+  h3 {
+    color: #1e293b;
+    letter-spacing: -0.025em;
+  }
+  
+  .surface-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+  
+  ::v-deep(.filter-chip-compact) {
+    background: #ffffff;
+    color: #475569;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    height: 1.75rem;
+    
+    .pi {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    
+    .text-xs {
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+  }
+  
+  ::v-deep(.filter-chip-customer) {
+    background: #fffbeb;
+    border-color: #fbbf24;
+    color: #92400e;
+    
+    .pi {
+      color: #d97706;
+    }
+  }
+  
+  ::v-deep(.filter-chip-info) {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1e40af;
+    
+    .pi {
+      color: #3b82f6;
+    }
+  }
+  
+  ::v-deep(.p-button-text) {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.813rem;
+  }
+}
+
+.table-container {
+  margin-top: 0.5rem;
+}
+
+/* Compact Table - เน้นข้อมูล */
+.compact-table {
+  font-size: 0.813rem !important;
+}
+
+/* ลด padding ของ DataTable */
+::v-deep(.p-datatable) {
+  .p-datatable-header {
+    padding: 0.4rem;
+    background: #f8f9fa;
+  }
+  
+  .p-datatable-thead > tr > th {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.813rem !important;
+    background-color: #e2e8f0 !important;
+    color: #334155 !important;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+  }
+  
+  .p-datatable-tbody > tr > td {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.813rem !important;
+    border: 1px solid #e2e8f0;
+  }
+  
+  /* สลับสีแถว - Zebra striping โทนเทาอ่อน */
+  .p-datatable-tbody > tr:nth-child(even):not(.p-rowgroup-header) {
+    background-color: #f8fafc !important;
+  }
+  
+  .p-datatable-tbody > tr:nth-child(odd):not(.p-rowgroup-header) {
+    background-color: #ffffff !important;
+  }
+  
+  /* Group Header - สีเทาฟ้าอ่อน */
+  .p-rowgroup-header td {
+    padding: 0.5rem 0.6rem !important;
+    background-color: #cbd5e1 !important;
+    font-weight: 600;
+    font-size: 0.875rem !important;
+    border-left: 3px solid #64748b !important;
+    color: #1e293b !important;
+  }
+  
+  /* Hover effect - สีเหลืองอ่อนพาสเทล */
+  .p-datatable-tbody > tr:not(.p-rowgroup-header):hover {
+    background-color: #fef3c7 !important;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+}
+
+/* Compact Divider */
+::v-deep(.p-divider.p-divider-vertical) {
+  margin: 0 0.5rem;
+  height: 1.25rem;
+}
+
+/* ลด height ของ buttons */
+.p-button-text {
+  background: transparent;
+  border-color: transparent;
+  padding: 0.4rem !important;
+}
+
+.p-button-text:hover {
+  background: rgba(100, 116, 139, 0.1) !important;
+}
+
+.p-button-text:enabled:active {
+  background: rgba(100, 116, 139, 0.2) !important;
+}
+
+/* Icons ในตาราง */
+::v-deep(.p-datatable) {
+  .pi {
+    font-size: 0.75rem;
+  }
+}
+
+/* Compact Search Dialog */
+.compact-search-dialog {
+  .search-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    
+    .section-title {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+      
+      .pi {
+        font-size: 0.875rem;
+      }
+    }
+    
+    label {
+      font-size: 0.813rem;
+      font-weight: 500;
+      color: #475569;
+    }
+  }
+  
+  ::v-deep(.p-inputtext-sm) {
+    font-size: 0.813rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  ::v-deep(.p-dropdown.p-inputtext-sm) {
+    .p-dropdown-label {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.813rem;
+    }
+    
+    .p-dropdown-trigger {
+      width: 2rem;
+    }
+  }
+  
+  ::v-deep(.p-calendar.p-inputtext-sm) {
+    input {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.813rem;
+    }
+    
+    .p-datepicker-trigger {
+      width: 2rem;
+    }
+  }
+  
+  ::v-deep(.p-checkbox) {
+    width: 1rem;
+    height: 1rem;
+    
+    .p-checkbox-box {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+  
+  ::v-deep(.p-radiobutton) {
+    width: 1rem;
+    height: 1rem;
+    
+    .p-radiobutton-box {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+/* Responsive - ยิ่งน้อยยิ่งดี */
+@media (max-width: 768px) {
+  .compact-header {
+    font-size: 0.875rem;
+  }
+  
+  .compact-header .flex {
+    flex-wrap: wrap;
+  }
+  
+  ::v-deep(.p-datatable) {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      padding: 0.35rem 0.5rem !important;
+      font-size: 0.75rem !important;
+    }
+  }
+  
+  .compact-search-dialog {
+    .search-section {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+  }
 }
 </style>

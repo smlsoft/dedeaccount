@@ -14,6 +14,7 @@ import $ from "jquery";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import DocumentPreview from "./components/documentPreview.vue";
 import { async } from "pdfmake/build/pdfmake";
+import { computed } from "vue";
 
 const storeApp = useApp();
 const router = useRouter();
@@ -102,9 +103,13 @@ const totalDocumentStatus_0 = ref("0");
 const totalDocumentStatus_1 = ref("0");
 const totalDocumentStatus_1_1 = ref("0");
 const totalDocumentStatus_2 = ref("0");
+const billcount = ref(0);
 
 const dialogComment = ref();
 const screenHeight = window.screen.height;
+
+
+
 onMounted(() => {
   jobId.value = route.params.id;
   getDocumentImageGroup();
@@ -114,12 +119,26 @@ onMounted(() => {
   storeApp.setActiveChild("images_job_approve_detail");
 });
 
+// ตรวจสอบว่ามีรูปชุด (imagereferences.length > 1) ใน selectedImg หรือไม่
+const hasGroupImage = computed(() => {
+  return selectedImg.value.some((img) => {
+    // หา data จาก data_list ที่ตรงกับ guidfixed
+    const imageData = data_list.value.find(
+      (item) => item.guidfixed === img.guidfixed
+    );
+    // ตรวจสอบว่ามี imagereferences มากกว่า 1 หรือไม่
+    return imageData && imageData.imagereferences && imageData.imagereferences.length > 1;
+  });
+});
+
 function getTaskById(guidfixed) {
   TaskService.getTaskById(guidfixed)
     .then((res) => {
       console.log(res);
       if (res.success) {
         job.value = res.data;
+
+        console.log(job.value);
         if (res.data.totaldocumentstatus == null) {
           totalDocumentStatus_0.value = "0";
           totalDocumentStatus_1.value = "0";
@@ -152,6 +171,7 @@ function getTaskById(guidfixed) {
         totalDocumentStatus_1.value = filteredStatus_1[0].total.toString();
         totalDocumentStatus_1_1.value = filteredStatus_1_1[0].total.toString();
         totalDocumentStatus_2.value = filteredStatus_2[0].total.toString();
+        billcount.value = res.data.billcount;
 
         storeApp.setPageTitle("ตรวจสอบรูป JOB #" + job.value.name);
       }
@@ -402,6 +422,13 @@ async function updateStatus(guidfixed, data_status) {
       status
     );
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่
+      try {
+        await ImageDataService.putRecountDocumentImageGroup(jobId.value);
+      } catch (recountErr) {
+        console.error("Failed to recount images:", recountErr);
+      }
+      
       getTaskById(jobId.value);
       return true;
     }
@@ -447,6 +474,8 @@ async function updateStatusAll(guidfixed, data_status) {
 
 async function updateStatusFrist(data) {
   if (isSelectedDocument.value) {
+
+
     selectImg(data);
   }
   // console.log(data.guidfixed);
@@ -610,9 +639,22 @@ async function documentImageUnGroup(data) {
   console.log(data);
 
   await ImageDataService.putDocumentImageUnGroup(data)
-    .then((res) => {
+    .then(async (res) => {
       console.log(res);
       if (res.success) {
+        // คำนวณจำนวนรูปใหม่
+        try {
+          const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+            jobId.value
+          );
+          console.log("Recount result:", statusRes);
+
+          // ดึงข้อมูล task ใหม่หลังจากอัปเดตสถานะเสร็จ
+          await getTaskById(jobId.value);
+        } catch (statusErr) {
+          console.error("Failed to recount images:", statusErr);
+        }
+
         toast.add({
           severity: "success",
           summary: "success",
@@ -656,10 +698,12 @@ function dragStart(data, event, index) {
       // console.log(data);
       if (data.imagereferences.length == 1 && data.references.length == 0) {
         if (selectedImg.value.length == 0) {
+          // กำหนด billcount = 1 ให้กับรูปที่เริ่ม drag
+          const imageRef = { ...data.imagereferences[0], billcount: 1 };
           selectedImg.value.push({
             guidfixed: data.guidfixed,
             tags: data.tags,
-            documentimageguid: data.imagereferences[0],
+            documentimageguid: imageRef,
             data_index: startIndex.value,
           });
           ischeckedImage();
@@ -751,19 +795,23 @@ async function drop(data, event, index) {
             if (result_detail.length > 0) {
               updateRefDialog.value = true;
             } else {
+              // กำหนด billcount = 1 ให้กับรูปที่จะรวมเข้าชุด
+              const imageRef = { ...imagesDragData.value.imagereferences[0], billcount: 1 };
               selectedImg.value.push({
                 guidfixed: imagesDragData.value.guidfixed,
                 tags: data.tags,
-                documentimageguid: imagesDragData.value.imagereferences[0],
+                documentimageguid: imageRef,
                 data_index: endIndex.value,
               });
             }
             updateRefDialog.value = true;
           } else {
+            // กำหนด billcount = 1 ให้กับรูปที่จะรวมเข้าชุด
+            const imageRef = { ...data.imagereferences[0], billcount: 1 };
             selectedImg.value.push({
               guidfixed: data.guidfixed,
               tags: data.tags,
-              documentimageguid: data.imagereferences[0],
+              documentimageguid: imageRef,
               data_index: endIndex.value,
             });
             updateRefDialog.value = true;
@@ -863,6 +911,16 @@ async function addImageGroup() {
     );
     //console.log(res);
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่
+      try {
+        const recountRes = await ImageDataService.putRecountDocumentImageGroup(
+          jobId.value
+        );
+        console.log("Recount result:", recountRes);
+      } catch (recountErr) {
+        console.error("Failed to recount images:", recountErr);
+      }
+
       toast.add({
         severity: "success",
         summary: "success",
@@ -1031,6 +1089,7 @@ async function saveGropImages() {
       taskguid: route.params.id,
       tags: tag.value,
       uploadedat: Utils.getFormatDateTime(newDate),
+      billcount: 1
     };
   } else {
     return;
@@ -1043,6 +1102,19 @@ async function saveGropImages() {
       data_save_group.value
     );
     if (res.success) {
+      // คำนวณจำนวนรูปใหม่
+      try {
+        const statusRes = await ImageDataService.putRecountDocumentImageGroup(
+          jobId.value
+        );
+        console.log("Recount result:", statusRes);
+
+        // ดึงข้อมูล task ใหม่หลังจากอัปเดตสถานะเสร็จ
+        await getTaskById(jobId.value);
+      } catch (statusErr) {
+        console.error("Failed to recount images:", statusErr);
+      }
+
       toast.add({
         severity: "success",
         summary: "success",
@@ -1118,6 +1190,21 @@ function removeSelectedImg() {
     element.ischecked = false;
   });
 }
+
+function openGroupDialog() {
+  // ตรวจสอบว่ามีรูปชุดหรือไม่ก่อนเปิด dialog
+  if (hasGroupImage.value) {
+    toast.add({
+      severity: "warn",
+      summary: "ไม่สามารถกำหนดชุดเอกสารได้",
+      detail: "ไม่สามารถรวมรูปภาพที่เป็นชุดได้",
+      life: 3000,
+    });
+    return;
+  }
+  updateRefDialog.value = true;
+}
+
 async function updateTagImage(id, data) {
   // console.log(id);
   // console.log(data);
@@ -1178,6 +1265,10 @@ function updateXorderImageReferences(guidfiexd, data) {
     });
 }
 
+
+
+
+
 async function saveComment(id, data, index) {
   loading.value = true;
   let newData = {
@@ -1214,7 +1305,7 @@ async function updateStatusForAllSelected(statusCode) {
   if (selectedImg.length === 0) {
     return;
   }
-  
+
   // Show loading state for selected images
   for (const item of selectedImg.value) {
     data_list.value.filter(function (ele) {
@@ -1223,12 +1314,20 @@ async function updateStatusForAllSelected(statusCode) {
       }
     });
   }
-  
+
   // Update status for each selected document
   for (const item of selectedImg.value) {
     await updateStatus(item.guidfixed, statusCode);
   }
-  
+
+  // คำนวณจำนวนรูปใหม่หลังจาก update ทั้งหมดเสร็จ
+  try {
+    await ImageDataService.putRecountDocumentImageGroup(jobId.value);
+    await getTaskById(jobId.value);
+  } catch (recountErr) {
+    console.error("Failed to recount images:", recountErr);
+  }
+
   // Update UI with new status
   setTimeout(() => {
     for (const item of selectedImg.value) {
@@ -1237,14 +1336,12 @@ async function updateStatusForAllSelected(statusCode) {
           ele.status = statusCode;
         }
       });
-    } 
-    
+    }
+
     removeSelectedImg();
     checkImageApprove();
     selectedDocument(false);
   }, 300);
-  
-
 }
 </script>
 <template>
@@ -1298,7 +1395,7 @@ async function updateStatusForAllSelected(statusCode) {
             class="p-button-info text-white p-button-sm"
             icon="pi pi-pencil"
             label="กำหนดชุดเอกสาร"
-            @click="updateRefDialog = true"
+            @click="openGroupDialog()"
           />
         </div>
         <div class="ml-1">
@@ -1368,6 +1465,14 @@ async function updateStatusForAllSelected(statusCode) {
           icon="pi pi-times-circle"
           class="ml-2 bg-red-400"
         />
+        <!-- billcount -->
+        <Chip
+          :label="String(billcount)"
+          icon="pi pi-list"
+          class="ml-2 bg-purple-200"
+        />
+
+
         <ToggleButton
           v-model="sizeImageBloc"
           onLabel=""
@@ -1409,32 +1514,37 @@ async function updateStatusForAllSelected(statusCode) {
                 class="flex flex-wrap align-items-center justify-content-center"
               >
                 <!-- Add status change buttons above the TransitionGroup -->
-                <div v-if="selectedImg.length > 0 && ischeckApprove" class="w-full mb-2 flex justify-content-center">
+                <div
+                  v-if="selectedImg.length > 0 && ischeckApprove"
+                  class="w-full mb-2 flex justify-content-center"
+                >
                   <span class="p-buttonset">
-                    <Button 
-                      label="ผ่าน" 
-                      icon="pi pi-check-circle" 
-                      class="p-button-success p-button-sm "
+                    <Button
+                      label="ผ่าน"
+                      icon="pi pi-check-circle"
+                      class="p-button-success p-button-sm"
                       @click="updateStatusForAllSelected(1)"
                     />
-                    <Button 
-                      label="ไม่ผ่าน" 
-                      icon="pi pi-times-circle" 
+                    <Button
+                      label="ไม่ผ่าน"
+                      icon="pi pi-times-circle"
                       class="p-button-danger p-button-sm"
                       @click="updateStatusForAllSelected(2)"
                     />
-                    <Button 
-                      label="ห้ามลงรายวัน" 
-                      icon="pi pi-ban" 
+                    <Button
+                      label="ห้ามลงรายวัน"
+                      icon="pi pi-ban"
                       class="p-button-warning p-button-sm"
                       @click="updateStatusForAllSelected(3)"
                     />
-                    <Button 
-                      label="รอตรวจสอบ" 
-                      icon="pi pi-clock" 
+                    <Button
+                      label="รอตรวจสอบ"
+                      icon="pi pi-clock"
                       class="p-button-info p-button-sm"
                       @click="updateStatusForAllSelected(0)"
                     />
+
+                    
                   </span>
                 </div>
                 <TransitionGroup name="fade">
@@ -1505,12 +1615,14 @@ async function updateStatusForAllSelected(statusCode) {
               :ischeckApprove="ischeckApprove"
               :modeMenu="2"
               :loading="loading"
+              :isSelectedDocument="isSelectedDocument"
               v-on:closeDocumentPreview="closeDocumentPreview"
               v-on:upDateStatusImage="upDateStatusImage"
               v-on:documentImageUnGroup="documentImageUnGroup"
               v-on:updateTagImage="updateTagImage"
               v-on:updateXorderImageReferences="updateXorderImageReferences"
               v-on:saveComment="saveComment"
+              v-on:copyDocument="getDocumentImageGroup"
             />
           </SplitterPanel>
         </Splitter>
@@ -1618,6 +1730,8 @@ async function updateStatusForAllSelected(statusCode) {
       v-on:close="onColseConfirmGroupImageDialog"
       v-on:confirm="addImageGroup()"
     ></DialogForm>
+
+
   </AppLayout>
 </template>
 <style scoped>
