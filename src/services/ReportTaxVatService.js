@@ -3,22 +3,18 @@ import axios from 'axios';
 class ReportTaxVatService {
     constructor() {
         // ดึงค่า API URL จาก environment variable และตรวจสอบค่า
-        const apiUrl = import.meta.env.VUE_APP_API;
-        console.log("API URL from env:", apiUrl);
+        const reportApiUrl = process.env.VUE_APP_API_REPORT;
+        const apiUrl = process.env.VUE_APP_API;
+        
+        console.log("Report API URL from env:", reportApiUrl);
+        console.log("Main API URL from env:", apiUrl);
 
-        // ตรวจสอบและกำหนดค่า baseUrl ที่ถูกต้อง
-        if (!apiUrl) {
-            // กำหนดค่าเริ่มต้นในกรณีที่ไม่มีค่า env
-            console.warn("API URL is not defined in environment. Using fallback URL.");
-            this.baseUrl = process.env.NODE_ENV === 'development'
-                ? 'https://api.dev.dedepos.com/'
-                : 'https://api.dedepos.com/';
-        } else {
-            this.baseUrl = apiUrl;
-            // เพิ่ม / ท้าย URL ถ้าไม่มี
-            if (!this.baseUrl.endsWith('/')) {
-                this.baseUrl += '/';
-            }
+        // ใช้ Report API URL เป็นหลัก ถ้าไม่มีใช้ Main API URL
+        this.baseUrl = reportApiUrl || apiUrl || 'https://api.dedepos.com/';
+        
+        // เพิ่ม / ท้าย URL ถ้าไม่มี
+        if (!this.baseUrl.endsWith('/')) {
+            this.baseUrl += '/';
         }
 
         console.log("Base URL initialized:", this.baseUrl);

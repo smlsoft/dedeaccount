@@ -20,6 +20,8 @@ export default defineConfig({
       // Required: will fail if the API_KEY environment variable is not provided.
       VUE_APP_API: undefined,
 
+      VUE_APP_API_REPORT: undefined,
+
       VUE_APP_URL: undefined,
 
       VUE_APP_TITLE: undefined,
