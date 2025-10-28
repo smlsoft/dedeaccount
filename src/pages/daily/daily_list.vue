@@ -6,12 +6,14 @@ import { useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
+import { useDailyList } from "@/stores/dailyList.js";
 import Utils from "@/utils/";
 import DialogForm from "@/components/DialogForm.vue";
 import DatePicker from "@/components/widget/DatePicker.vue";
 import dayjs from "dayjs";
 
 const storeApp = useApp();
+const storeDailyList = useDailyList();
 const router = useRouter();
 const toast = useToast();
 const detail = ref();
@@ -21,31 +23,12 @@ const data_list = ref([]);
 const deleteDetailDialog = ref(false);
 const totalItemsCount = ref(0);
 const loading = ref(true);
-const activePage = ref(1);
 const typingTimer = ref(null);
 const doneTypingInterval = ref(1000);
-const firstPage = ref(0);
 
-const sortField = ref("docdate");
-const sortOrder = ref(-1);
-const searchItem = ref("");
-const limitPage = ref(20);
-const confirmDeleteDialog = ref(false);
-const expandedRows = ref([]);
-
-const showfilters = ref(false);
 const tempCheckDate = ref(null);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
-const filtersByDocNo = ref(null);
-const filtersByDocDate = ref(null);
-const sendFiltersByDocDate = ref(null);
-const filtersByAccYear = ref(null);
-const filtersByAccPeriod = ref(null);
-const filtersByDescription = ref(null);
-const filtersByAmount = ref(null);
-const filtersByCreateDate = ref(null);
-const sendFiltersByCreateDate = ref(null);
-const filtersByCreateBy = ref(null);
+const confirmDeleteDialog = ref(false);
 const confirmDeleteDialogBatchId = ref(false);
 const listGlBatchId = ref([]);
 
@@ -56,21 +39,23 @@ onMounted(() => {
   storeApp.setActiveChild("daily_list");
 });
 
+
 function getGLJournalList() {
   loading.value = true;
   MasterdataService.getGLJournalList(
-    limitPage.value,
-    activePage.value,
-    filtersByDocNo.value,
-    sendFiltersByDocDate.value,
-    filtersByAccYear.value,
-    filtersByAccPeriod.value,
-    filtersByDescription.value,
-    filtersByAmount.value,
-    sendFiltersByCreateDate.value,
-    filtersByCreateBy.value,
-    sortField.value,
-    sortOrder.value
+    storeDailyList.limitPage,
+    storeDailyList.activePage,
+    storeDailyList.filtersByDocNo,
+    storeDailyList.sendFiltersByDocDate,
+    storeDailyList.filtersByAccYear,
+    storeDailyList.filtersByAccPeriod,
+    storeDailyList.filtersByDebtorName,
+    storeDailyList.filtersByDescription,
+    storeDailyList.filtersByAmount,
+    storeDailyList.sendFiltersByCreateDate,
+    storeDailyList.filtersByCreateBy,
+    storeDailyList.sortField,
+    storeDailyList.sortOrder
   )
     .then((res) => {
       console.log(res);
@@ -87,6 +72,7 @@ function getGLJournalList() {
     });
 }
 
+
 function keyup() {
   clearTimeout(typingTimer.value);
   typingTimer.value = setTimeout(doneTyping, doneTypingInterval.value);
@@ -95,21 +81,21 @@ function keydown() {
   clearTimeout(typingTimer.value);
 }
 function doneTyping() {
-  activePage.value = 1;
-  firstPage.value = 0;
+  storeDailyList.resetPagination();
   MasterdataService.getGLJournalList(
-    limitPage.value,
-    activePage.value,
-    filtersByDocNo.value,
-    sendFiltersByDocDate.value,
-    filtersByAccYear.value,
-    filtersByAccPeriod.value,
-    filtersByDescription.value,
-    filtersByAmount.value,
-    sendFiltersByCreateDate.value,
-    filtersByCreateBy.value,
-    sortField.value,
-    sortOrder.value
+    storeDailyList.limitPage,
+    storeDailyList.activePage,
+    storeDailyList.filtersByDocNo,
+    storeDailyList.sendFiltersByDocDate,
+    storeDailyList.filtersByAccYear,
+    storeDailyList.filtersByAccPeriod,
+    storeDailyList.filtersByDebtorName,
+    storeDailyList.filtersByDescription,
+    storeDailyList.filtersByAmount,
+    storeDailyList.sendFiltersByCreateDate,
+    storeDailyList.filtersByCreateBy,
+    storeDailyList.sortField,
+    storeDailyList.sortOrder
   )
     .then((res) => {
       console.log(res);
@@ -127,26 +113,7 @@ function doneTyping() {
 }
 
 function clearFilter(key) {
-  if (key == "docno") {
-    filtersByDocNo.value = null;
-  } else if (key == "docdate") {
-    filtersByDocDate.value = null;
-    sendFiltersByDocDate.value = null;
-  } else if (key == "accountyear") {
-    filtersByAccYear.value = null;
-  } else if (key == "accountperiod") {
-    filtersByAccPeriod.value = null;
-  } else if (key == "description") {
-    filtersByDescription.value = null;
-  } else if (key == "amount") {
-    filtersByAmount.value = null;
-  } else if (key == "createdate") {
-    filtersByCreateDate.value = null;
-    sendFiltersByCreateDate.value = null;
-  } else if (key == "createby") {
-    filtersByCreateBy.value = null;
-  }
-
+  storeDailyList.clearFilter(key);
   doneTyping();
 }
 
@@ -229,23 +196,24 @@ function getAccountGroup() {
 }
 
 function onPage(event) {
-  activePage.value = event.page + 1;
-  limitPage.value = event.rows;
+  storeDailyList.setPage(event.page + 1, event.first);
+  storeDailyList.setLimit(event.rows);
   loading.value = true;
 
   MasterdataService.getGLJournalList(
-    limitPage.value,
-    activePage.value,
-    filtersByDocNo.value,
-    sendFiltersByDocDate.value,
-    filtersByAccYear.value,
-    filtersByAccPeriod.value,
-    filtersByDescription.value,
-    filtersByAmount.value,
-    sendFiltersByCreateDate.value,
-    filtersByCreateBy.value,
-    sortField.value,
-    sortOrder.value
+    storeDailyList.limitPage,
+    storeDailyList.activePage,
+    storeDailyList.filtersByDocNo,
+    storeDailyList.sendFiltersByDocDate,
+    storeDailyList.filtersByAccYear,
+    storeDailyList.filtersByAccPeriod,
+    storeDailyList.filtersByDebtorName,
+    storeDailyList.filtersByDescription,
+    storeDailyList.filtersByAmount,
+    storeDailyList.sendFiltersByCreateDate,
+    storeDailyList.filtersByCreateBy,
+    storeDailyList.sortField,
+    storeDailyList.sortOrder
   )
     .then((res) => {
       console.log(res);
@@ -264,23 +232,23 @@ function onClose() {
 }
 function sortBy(data) {
   //console.log(data);
-  sortField.value = data.sortField;
-  sortOrder.value = data.sortOrder;
+  storeDailyList.setSort(data.sortField, data.sortOrder);
 
   loading.value = true;
   MasterdataService.getGLJournalList(
-    limitPage.value,
-    activePage.value,
-    filtersByDocNo.value,
-    sendFiltersByDocDate.value,
-    filtersByAccYear.value,
-    filtersByAccPeriod.value,
-    filtersByDescription.value,
-    filtersByAmount.value,
-    sendFiltersByCreateDate.value,
-    filtersByCreateBy.value,
-    sortField.value,
-    sortOrder.value
+    storeDailyList.limitPage,
+    storeDailyList.activePage,
+    storeDailyList.filtersByDocNo,
+    storeDailyList.sendFiltersByDocDate,
+    storeDailyList.filtersByAccYear,
+    storeDailyList.filtersByAccPeriod,
+    storeDailyList.filtersByDebtorName,
+    storeDailyList.filtersByDescription,
+    storeDailyList.filtersByAmount,
+    storeDailyList.sendFiltersByCreateDate,
+    storeDailyList.filtersByCreateBy,
+    storeDailyList.sortField,
+    storeDailyList.sortOrder
   )
     .then((res) => {
       //console.log(res);
@@ -358,34 +326,22 @@ function filterDocDate(event, mode, key) {
     }
     // console.log(dayjs(keyDate).format("YYYY-MM-DD"));
     if (key == "docdate") {
-      sendFiltersByDocDate.value = dayjs(keyDate).format("YYYY-MM-DD");
+      storeDailyList.sendFiltersByDocDate = dayjs(keyDate).format("YYYY-MM-DD");
     } else if (key == "createdate") {
-      sendFiltersByCreateDate.value = dayjs(keyDate).format("YYYY-MM-DD");
+      storeDailyList.sendFiltersByCreateDate = dayjs(keyDate).format("YYYY-MM-DD");
     }
 
-    console.log(sendFiltersByCreateDate.value);
+    console.log(storeDailyList.sendFiltersByCreateDate);
     doneTyping();
   }, 100);
 }
 
 function showfiltersColum() {
-  showfilters.value = true;
+  storeDailyList.toggleFilters(true);
 }
 
 function closefiltersColum() {
-  showfilters.value = false;
-
-  filtersByDocNo.value = null;
-  filtersByDocDate.value = null;
-  sendFiltersByDocDate.value = null;
-  filtersByAccYear.value = null;
-  filtersByAccPeriod.value = null;
-  filtersByDescription.value = null;
-  filtersByAmount.value = null;
-  filtersByCreateDate.value = null;
-  sendFiltersByCreateDate.value = null;
-  filtersByCreateBy.value = null;
-
+  storeDailyList.closeFilters();
   doneTyping();
 }
 </script>
@@ -403,9 +359,9 @@ function closefiltersColum() {
             responsiveLayout="scroll"
             @sort="sortBy"
             scrollHeight="77vh"
-            v-model:expandedRows="expandedRows"
+            v-model:expandedRows="storeDailyList.expandedRows"
             :rowHover="true"
-            :filterDisplay="showfilters ? 'row' : ''"
+            :filterDisplay="storeDailyList.showfilters ? 'row' : ''"
           >
             <template #header>
               <div class="flex justify-content-between">
@@ -419,16 +375,16 @@ function closefiltersColum() {
                 </div>
                 <div>
                   <Button
-                    :label="!showfilters ? 'ค้นหา' : 'ปิดการค้นหา'"
-                    :icon="!showfilters ? 'pi pi-filter' : 'pi pi-filter-slash'"
+                    :label="!storeDailyList.showfilters ? 'ค้นหา' : 'ปิดการค้นหา'"
+                    :icon="!storeDailyList.showfilters ? 'pi pi-filter' : 'pi pi-filter-slash'"
                     class="w-auto"
                     :class="
-                      !showfilters
+                      !storeDailyList.showfilters
                         ? 'p-button-outlined p-button-info'
                         : 'p-button-info'
                     "
                     @click="
-                      !showfilters ? showfiltersColum() : closefiltersColum()
+                      !storeDailyList.showfilters ? showfiltersColum() : closefiltersColum()
                     "
                   />
                 </div>
@@ -447,7 +403,7 @@ function closefiltersColum() {
               <template #filter>
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByDocNo"
+                    v-model="storeDailyList.filtersByDocNo"
                     placeholder="ค้นหา...."
                     @keyup="keyup()"
                     @keydown="keydown()"
@@ -477,8 +433,8 @@ function closefiltersColum() {
                   <DatePicker
                     placeholder="ค้นหา...."
                     dateFormat="d/m/yy"
-                    v-model="filtersByDocDate"
-                    :modelValue="filtersByDocDate"
+                    v-model="storeDailyList.filtersByDocDate"
+                    :modelValue="storeDailyList.filtersByDocDate"
                     :showIcon="true"
                     :buddhist="buddhistYear"
                     :hideOnDateTimeSelect="true"
@@ -505,12 +461,19 @@ function closefiltersColum() {
               <template #body="slotProps">
                 {{ getContactName(slotProps.data) }}
               </template>
-              <template #filter v-if="showfilters">
+              <template #filter>
                 <div class="flex align-content-center">
                   <InputText
+                    v-model="storeDailyList.filtersByDebtorName"
                     placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
                     class="p-inputtext-sm"
-                    disabled
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('debtorname')"
                   />
                 </div>
               </template>
@@ -525,7 +488,7 @@ function closefiltersColum() {
               <template #filter>
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByAccPeriod"
+                    v-model="storeDailyList.filtersByAccPeriod"
                     placeholder="ค้นหา...."
                     @keyup="keyup()"
                     @keydown="keydown()"
@@ -552,7 +515,7 @@ function closefiltersColum() {
               <template #filter>
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByDescription"
+                    v-model="storeDailyList.filtersByDescription"
                     placeholder="ค้นหา...."
                     @keyup="keyup()"
                     @keydown="keydown()"
@@ -582,7 +545,7 @@ function closefiltersColum() {
               <template #filter>
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByAmount"
+                    v-model="storeDailyList.filtersByAmount"
                     placeholder="ค้นหา...."
                     @keyup="keyup()"
                     @keydown="keydown()"
@@ -612,8 +575,8 @@ function closefiltersColum() {
                   <DatePicker
                     placeholder="ค้นหา...."
                     dateFormat="d/m/yy"
-                    v-model="filtersByCreateDate"
-                    :modelValue="filtersByCreateDate"
+                    v-model="storeDailyList.filtersByCreateDate"
+                    :modelValue="storeDailyList.filtersByCreateDate"
                     :showIcon="true"
                     :buddhist="buddhistYear"
                     :hideOnDateTimeSelect="true"
@@ -640,7 +603,7 @@ function closefiltersColum() {
               <template #filter>
                 <div class="flex align-content-center">
                   <InputText
-                    v-model="filtersByCreateBy"
+                    v-model="storeDailyList.filtersByCreateBy"
                     placeholder="ค้นหา...."
                     @keyup="keyup()"
                     @keydown="keydown()"
@@ -734,8 +697,8 @@ function closefiltersColum() {
             </template>
           </DataTable>
           <Paginator
-            :rows="20"
-            v-model:first="firstPage"
+            :rows="storeDailyList.limitPage"
+            v-model:first="storeDailyList.firstPage"
             :totalRecords="totalItemsCount"
             @page="onPage($event)"
             :rowsPerPageOptions="[20, 50, 100]"

@@ -407,7 +407,7 @@ async function getAccountGroup() {
     //console.log(res);
     if (res.success) {
       groups.value.push({
-        code: "gruupAll",
+        code: "groupAll",
         name1: "ทั้งหมด",
       });
 
@@ -455,7 +455,7 @@ async function getDataReport() {
   loadingTrialBalance.value = true;
 
   let accountgroup =
-    accountGroup.value == "gruupAll" ? null : accountGroup.value;
+    accountGroup.value == "groupAll" ? null : accountGroup.value;
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
 

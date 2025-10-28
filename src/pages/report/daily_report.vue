@@ -330,7 +330,7 @@ async function getAccountGroup() {
     //console.log(res);
     if (res.success) {
       groups.value.push({
-        code: "gruupAll",
+        code: "groupAll",
         name1: "ทั้งหมด",
       });
 
@@ -354,6 +354,7 @@ async function getAccountGroup() {
 
 function getAccountChartList() {
   loading.value = true;
+  
   MasterdataService.getAccountChartList(
     limitPage.value,
     activePage.value,
@@ -596,10 +597,13 @@ function getAccountGroupList() {
 function getGLJournalList() {
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
+  
+  // ถ้าเลือก groupAll ให้ส่ง null แทน
+  let selectedGroup = accountGroup.value === 'groupAll' ? null : accountGroup.value;
 
   loading.value = true;
   MasterdataService.getdailyreport(
-    accountGroup.value,
+    selectedGroup,
     startdate,
     enddate,
     limitPage.value,
@@ -681,9 +685,12 @@ function onPage(event) {
   activePage.value = event.page + 1;
   limitPage.value = event.rows;
   loading.value = true;
+  
+  // ถ้าเลือก groupAll ให้ส่ง null แทน
+  let selectedGroup = accountGroup.value === 'groupAll' ? null : accountGroup.value;
 
   MasterdataService.getdailyreport(
-    accountGroup.value,
+    selectedGroup,
     startDate.value,
     endDate.value,
     limitPage.value,
@@ -711,8 +718,12 @@ function sortBy(data) {
   sortOrder.value = data.sortOrder;
 
   loading.value = true;
+  
+  // ถ้าเลือก groupAll ให้ส่ง null แทน
+  let selectedGroup = accountGroup.value === 'groupAll' ? null : accountGroup.value;
+  
   MasterdataService.getdailyreport(
-    accountGroup.value,
+    selectedGroup,
     startDate.value,
     endDate.value,
     limitPage.value,

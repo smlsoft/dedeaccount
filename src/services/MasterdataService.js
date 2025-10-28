@@ -9,13 +9,21 @@ export default {
         }
         // console.log(`/gl/chartofaccount?limit=50000${filtteraccount}`);
         return instanceApi(true).get(`/gl/chartofaccount?limit=50000${filtteraccount}`).then(res => res.data);
-    }
-    , getdailyreport(accountgroup, startdate, enddate, limitPage, page, search, sortField, sortOrder) {
+    },
+    getdailyreport(accountgroup, startdate, enddate, limitPage, page, search, sortField, sortOrder) {
         var q = "";
+        var groupParam = "";
+        
         if (search != "" && search != undefined && search != null) {
             q = "&q=" + search
         }
-        return instanceApi(true).get(`/gl/journal?accountgroup=${accountgroup}&startdate=${startdate}&enddate=${enddate}&limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        
+        // เพิ่ม accountgroup ใน URL เฉพาะเมื่อมีค่าและไม่ใช่ null
+        if (accountgroup != "" && accountgroup != undefined && accountgroup != null) {
+            groupParam = `accountgroup=${accountgroup}&`;
+        }
+        
+        return instanceApi(true).get(`/gl/journal?${groupParam}startdate=${startdate}&enddate=${enddate}&limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
 
     getAccountGroup() {
@@ -35,12 +43,13 @@ export default {
     ImportGLJournal(data) {
         return instanceApi(true).post(`/gl/journal/bulk`, data).then(res => res.data);
     },
-    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDescription, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
+    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDebtorName, filtersByDescription, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
         //console.log('Page' + page);
         var docno = "";
         var docdate = "";
         var accountyear = "";
         var accountperiod = "";
+        var debtorname = "";
         var description = "";
         var amount = "";
         var createdate = "";
@@ -61,6 +70,10 @@ export default {
             accountperiod = "&accountperiod=" + filtersByAccPeriod
         }
 
+        if (filtersByDebtorName != "" && filtersByDebtorName != undefined && filtersByDebtorName != null) {
+            debtorname = "&debtorname=" + filtersByDebtorName
+        }
+
         if (filtersByDescription != "" && filtersByDescription != undefined && filtersByDescription != null) {
             description = "&accountdescription=" + filtersByDescription
         }
@@ -77,8 +90,8 @@ export default {
             createdby = "&createdby=" + filtersByCreateBy
         }
 
-        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
 
     getGLJournalListByDocref(data) {
