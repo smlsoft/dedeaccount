@@ -16,8 +16,7 @@
                 <h2 class="text-2xl font-semibold text-900 m-0">กระดาษทำการ</h2>
                 <p  v-if="!isvisible" class="text-600 m-0 mt-1" >รายงานกระดาษทำการทางบัญชี</p>
                 <p v-if="isvisible" class="text-600 m-0 mt-1">
-                  ช่วงวันที่
-                  {{ headDataReportWorkSheet.startDateShow }} ถึง
+                  ณ วันที่
                   {{ headDataReportWorkSheet.endDateShow }}
                 </p>
               </div>
@@ -75,14 +74,14 @@
               เงื่อนไขการค้นหารายงาน
             </h1>
             <span class="text-600 text-base">
-              กรุณาเลือกช่วงวันที่และเงื่อนไขที่ต้องการเรียกรายงาน
+              กรุณาเลือกวันที่และเงื่อนไขที่ต้องการเรียกรายงาน
             </span>
           </div>
         </template>
 
         <section class="flex flex-column w-full mt-4">
           <div class="grid">
-            <div class="col-12 md:col-6">
+            <!-- <div class="col-12 md:col-6">
               <div class="p-float-label w-full">
                 <Calendar
                   v-model="startDate"
@@ -95,9 +94,9 @@
                 />
                 <label for="startDateCalendar">{{ $t("sincetime") }}</label>
               </div>
-            </div>
+            </div> -->
 
-            <div class="col-12 md:col-6">
+            <div class="col-12 md:col-12">
               <div class="p-float-label w-full">
                 <Calendar
                   v-model="endDate"
@@ -109,7 +108,7 @@
                   :minDate="startDate"
                   aria-label="เลือกวันที่สิ้นสุด"
                 />
-                <label for="endDateCalendar">{{ $t("totime") }}</label>
+                <label for="endDateCalendar">ณ วันที่</label>
               </div>
             </div>
 

@@ -13,135 +13,346 @@
       >
         <ColumnGroup type="header">
           <Row>
-            <Column header="" :rowspan="2" :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }" headerClass="header-group">
+            <Column
+              header=""
+              :rowspan="2"
+              :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }"
+              headerClass="header-group"
+            >
               <template #header>ชื่อบัญชี</template>
             </Column>
-            <Column header="" :colspan="2" :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }" headerClass="header-group">
+            <Column
+              header=""
+              :colspan="2"
+              :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }"
+              headerClass="header-group"
+            >
               <template #header>ยอดสะสม</template>
             </Column>
-            <Column header="" :colspan="2" :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }" headerClass="header-group">
+            <Column
+              header=""
+              :colspan="2"
+              :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }"
+              headerClass="header-group"
+            >
               <template #header>งบกำไรขาดทุน</template>
             </Column>
-            <Column header="" :colspan="2" :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }" headerClass="header-group">
+            <Column
+              header=""
+              :colspan="2"
+              :style="{ width: '24%', minWidth: '24%', maxWidth: '24%' }"
+              headerClass="header-group"
+            >
               <template #header>งบแสดงฐานะทางการเงิน</template>
             </Column>
           </Row>
           <Row>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เดบิต</template>
             </Column>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เครดิต</template>
             </Column>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เดบิต</template>
             </Column>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เครดิต</template>
             </Column>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เดบิต</template>
             </Column>
-            <Column header="" :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" headerClass="header-sub">
+            <Column
+              header=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              headerClass="header-sub"
+            >
               <template #header>เครดิต</template>
             </Column>
           </Row>
         </ColumnGroup>
 
-        <Column field="accountname" :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }" bodyStyle="text-align: left">
+        <Column
+          field="accountname"
+          :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }"
+          bodyStyle="text-align: left"
+        >
           <template #body="slotProps">
             <div class="font-medium text-sm text-truncate">
               {{ slotProps.data.accountcode }}~{{ slotProps.data.accountname }}
             </div>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
             <span class="font-semibold text-sm">
               {{ formatCurrency(slotProps.data.nextbalancedebitamount) }}
             </span>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
             <span class="font-semibold text-sm">
               {{ formatCurrency(slotProps.data.nextbalancecreditamount) }}
             </span>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
-            <span class="text-sm" :class="isProfitLoss(slotProps.data) ? 'font-semibold text-green-700' : 'text-400'">
-              {{ formatCurrency(isProfitLoss(slotProps.data) ? slotProps.data.nextbalancedebitamount : 0) }}
+            <span
+              class="text-sm"
+              :class="
+                isProfitLoss(slotProps.data)
+                  ? 'font-semibold text-green-700'
+                  : 'text-400'
+              "
+            >
+              {{
+                formatCurrency(
+                  isProfitLoss(slotProps.data)
+                    ? slotProps.data.nextbalancedebitamount
+                    : 0
+                )
+              }}
             </span>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
-            <span class="text-sm" :class="isProfitLoss(slotProps.data) ? 'font-semibold text-green-700' : 'text-400'">
-              {{ formatCurrency(isProfitLoss(slotProps.data) ? slotProps.data.nextbalancecreditamount : 0) }}
+            <span
+              class="text-sm"
+              :class="
+                isProfitLoss(slotProps.data)
+                  ? 'font-semibold text-green-700'
+                  : 'text-400'
+              "
+            >
+              {{
+                formatCurrency(
+                  isProfitLoss(slotProps.data)
+                    ? slotProps.data.nextbalancecreditamount
+                    : 0
+                )
+              }}
             </span>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
-            <span class="text-sm" :class="isBalanceSheet(slotProps.data) ? 'font-semibold text-blue-700' : 'text-400'">
-              {{ formatCurrency(isBalanceSheet(slotProps.data) ? slotProps.data.nextbalancedebitamount : 0) }}
+            <span
+              class="text-sm"
+              :class="
+                isBalanceSheet(slotProps.data)
+                  ? 'font-semibold text-blue-700'
+                  : 'text-400'
+              "
+            >
+              {{
+                formatCurrency(
+                  isBalanceSheet(slotProps.data)
+                    ? slotProps.data.nextbalancedebitamount
+                    : 0
+                )
+              }}
             </span>
           </template>
         </Column>
-        
-        <Column :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }" bodyStyle="text-align: right;flex-direction: row-reverse;">
+
+        <Column
+          :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+          bodyStyle="text-align: right;flex-direction: row-reverse;"
+        >
           <template #body="slotProps">
-            <span class="text-sm" :class="isBalanceSheet(slotProps.data) ? 'font-semibold text-blue-700' : 'text-400'">
-              {{ formatCurrency(isBalanceSheet(slotProps.data) ? slotProps.data.nextbalancecreditamount : 0) }}
+            <span
+              class="text-sm"
+              :class="
+                isBalanceSheet(slotProps.data)
+                  ? 'font-semibold text-blue-700'
+                  : 'text-400'
+              "
+            >
+              {{
+                formatCurrency(
+                  isBalanceSheet(slotProps.data)
+                    ? slotProps.data.nextbalancecreditamount
+                    : 0
+                )
+              }}
             </span>
           </template>
         </Column>
 
         <ColumnGroup type="footer">
           <Row>
-            <Column footer="รวม" :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }" footerStyle="text-align: right; font-weight: bold" footerClass="footer-total" />
-            <Column 
+            <Column
+              footer="รวม"
+              :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-total"
+            />
+            <Column
               :footer="formatCurrency(props.dataReport.totalnextbalancedebit)"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-balance"
             />
-            <Column 
+            <Column
               :footer="formatCurrency(props.dataReport.totalnextbalancecredit)"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-balance"
             />
-            <Column 
+            <Column
               :footer="formatCurrency(calculateProfitLossDebit())"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-profit"
             />
-            <Column 
+            <Column
               :footer="formatCurrency(calculateProfitLossCredit())"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-profit"
             />
-            <Column 
+            <Column
               :footer="formatCurrency(calculateBalanceSheetDebit())"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-statement"
             />
-            <Column 
+            <Column
               :footer="formatCurrency(calculateBalanceSheetCredit())"
               :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
               footerStyle="text-align: right; font-weight: bold"
               footerClass="footer-statement"
+            />
+          </Row>
+          <Row>
+            <Column
+              footer="กำไรขาดทุน"
+              :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-total"
+            />
+            <Column
+              footer=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-balance"
+            />
+            <Column
+              footer=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-balance"
+            />
+            <Column
+              :footer="formatCurrency(getProfitLossDisplay().credit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-profit-loss"
+            />
+            <Column
+              :footer="formatCurrency(getProfitLossDisplay().debit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-profit-loss"
+            />
+            <Column
+              :footer="formatCurrency(getProfitLossDisplay().debit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-profit-loss"
+            />
+            <Column
+              :footer="formatCurrency(getProfitLossDisplay().credit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-profit-loss"
+            />
+          </Row>
+          <Row>
+            <Column
+              footer="ผลรวม"
+              :style="{ width: '28%', minWidth: '28%', maxWidth: '28%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total"
+            />
+            <Column
+              footer=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-balance"
+            />
+            <Column
+             footer=""
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-balance"
+            />
+            <Column
+              :footer="formatCurrency(calculateGrandTotal().profitLossDebit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-profit"
+            />
+            <Column
+              :footer="formatCurrency(calculateGrandTotal().profitLossCredit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-profit"
+            />
+            <Column
+              :footer="formatCurrency(calculateGrandTotal().balanceSheetDebit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-statement"
+            />
+            <Column
+              :footer="formatCurrency(calculateGrandTotal().balanceSheetCredit)"
+              :style="{ width: '12%', minWidth: '12%', maxWidth: '12%' }"
+              footerStyle="text-align: right; font-weight: bold"
+              footerClass="footer-grand-total-statement"
             />
           </Row>
         </ColumnGroup>
@@ -152,7 +363,7 @@
             <p>ไม่พบข้อมูล</p>
           </div>
         </template>
-        
+
         <template #loading>
           <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="5" />
         </template>
@@ -190,44 +401,102 @@ const isProfitLoss = (item) => {
 };
 
 const isBalanceSheet = (item) => {
-  return item.accountcategory == 1 || item.accountcategory == 2 || item.accountcategory == 3;
+  return (
+    item.accountcategory == 1 ||
+    item.accountcategory == 2 ||
+    item.accountcategory == 3
+  );
 };
 
 const calculateProfitLossDebit = () => {
   if (!props.dataReport.accountdetails) return 0;
   return props.dataReport.accountdetails
-    .filter(item => item.accountcategory == 4 || item.accountcategory == 5)
-    .reduce((sum, item) => sum + (parseFloat(item.nextbalancedebitamount) || 0), 0);
+    .filter((item) => item.accountcategory == 4 || item.accountcategory == 5)
+    .reduce(
+      (sum, item) => sum + (parseFloat(item.nextbalancedebitamount) || 0),
+      0
+    );
 };
 
 const calculateProfitLossCredit = () => {
   if (!props.dataReport.accountdetails) return 0;
   return props.dataReport.accountdetails
-    .filter(item => item.accountcategory == 4 || item.accountcategory == 5)
-    .reduce((sum, item) => sum + (parseFloat(item.nextbalancecreditamount) || 0), 0);
+    .filter((item) => item.accountcategory == 4 || item.accountcategory == 5)
+    .reduce(
+      (sum, item) => sum + (parseFloat(item.nextbalancecreditamount) || 0),
+      0
+    );
 };
 
 const calculateBalanceSheetDebit = () => {
   if (!props.dataReport.accountdetails) return 0;
   return props.dataReport.accountdetails
-    .filter(item => item.accountcategory == 1 || item.accountcategory == 2 || item.accountcategory == 3)
-    .reduce((sum, item) => sum + (parseFloat(item.nextbalancedebitamount) || 0), 0);
+    .filter(
+      (item) =>
+        item.accountcategory == 1 ||
+        item.accountcategory == 2 ||
+        item.accountcategory == 3
+    )
+    .reduce(
+      (sum, item) => sum + (parseFloat(item.nextbalancedebitamount) || 0),
+      0
+    );
 };
 
 const calculateBalanceSheetCredit = () => {
   if (!props.dataReport.accountdetails) return 0;
   return props.dataReport.accountdetails
-    .filter(item => item.accountcategory == 1 || item.accountcategory == 2 || item.accountcategory == 3)
-    .reduce((sum, item) => sum + (parseFloat(item.nextbalancecreditamount) || 0), 0);
+    .filter(
+      (item) =>
+        item.accountcategory == 1 ||
+        item.accountcategory == 2 ||
+        item.accountcategory == 3
+    )
+    .reduce(
+      (sum, item) => sum + (parseFloat(item.nextbalancecreditamount) || 0),
+      0
+    );
 };
 
 const formatCurrency = (value) => {
   if (!value && value !== 0) return "0.00";
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const num = typeof value === "string" ? parseFloat(value) : value;
   return num.toLocaleString("th-TH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+};
+
+const calculateProfitLoss = () => {
+  const debit = calculateProfitLossDebit();
+  const credit = calculateProfitLossCredit();
+  return debit - credit;
+};
+
+const getProfitLossDisplay = () => {
+  const profitLoss = calculateProfitLoss();
+  return {
+    debit: profitLoss > 0 ? Math.abs(profitLoss) : 0,
+    credit: profitLoss < 0 ? Math.abs(profitLoss) : 0,
+  };
+};
+
+const calculateGrandTotal = () => {
+  const profitLossDisplay = getProfitLossDisplay();
+  
+  return {
+    // ยอดสะสม - ใช้ค่าเดิมจาก totalnextbalancedebit/credit
+    balanceDebit: parseFloat(props.dataReport.totalnextbalancedebit || 0),
+    balanceCredit: parseFloat(props.dataReport.totalnextbalancecredit || 0),
+    
+    // งบกำไรขาดทุน - รวมแถวรวม + กำไรขาดทุน
+    profitLossDebit: calculateProfitLossDebit() + profitLossDisplay.credit,
+    profitLossCredit: calculateProfitLossCredit() + profitLossDisplay.debit,
+    
+    // งบแสดงฐานะทางการเงิน - รวมแถวรวม + กำไรขาดทุน
+    balanceSheetDebit: calculateBalanceSheetDebit() + profitLossDisplay.debit,
+    balanceSheetCredit: calculateBalanceSheetCredit() + profitLossDisplay.credit,
+  };
 };
 </script>
 
@@ -247,7 +516,7 @@ const formatCurrency = (value) => {
 
 .worksheet-table {
   font-size: 0.875rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* ป้องกัน text overflow */
@@ -375,20 +644,55 @@ const formatCurrency = (value) => {
 
 :deep(.footer-balance) {
   background-color: #fffbeb !important;
-  color: #78350f !important;
+  color: #854d0e !important;
   font-weight: 600 !important;
 }
 
 :deep(.footer-profit) {
   background-color: #f0fdf4 !important;
-  color: #14532d !important;
+  color: #15803d !important;
   font-weight: 600 !important;
 }
 
 :deep(.footer-statement) {
   background-color: #fef2f2 !important;
-  color: #7f1d1d !important;
+  color: #dc2626 !important;
   font-weight: 600 !important;
+}
+
+:deep(.footer-profit-loss) {
+  background-color: #fef3c7 !important;
+  color: #a16207 !important;
+  font-weight: 700 !important;
+  font-size: 0.9375rem !important;
+}
+
+:deep(.footer-grand-total) {
+  background-color: #e0e7ff !important;
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+  border-top: 2px solid #3b82f6 !important;
+}
+
+:deep(.footer-grand-total-balance) {
+  background-color: #fef9c3 !important;
+  color: #854d0e !important;
+  font-weight: 700 !important;
+  border-top: 2px solid #eab308 !important;
+}
+
+:deep(.footer-grand-total-profit) {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+  border-top: 2px solid #22c55e !important;
+}
+
+:deep(.footer-grand-total-statement) {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-weight: 700 !important;
+  border-top: 2px solid #ef4444 !important;
 }
 
 /* DataTable Wrapper */
@@ -449,16 +753,16 @@ const formatCurrency = (value) => {
   .worksheet-table {
     font-size: 0.8125rem;
   }
-  
+
   :deep(.p-datatable-thead > tr > th) {
     font-size: 0.75rem !important;
     padding: 0.5rem 0.375rem !important;
   }
-  
+
   :deep(.p-datatable-tbody > tr > td) {
     padding: 0.4rem 0.375rem !important;
   }
-  
+
   :deep(.p-datatable-tfoot > tr > td) {
     font-size: 0.875rem !important;
     padding: 0.5rem 0.375rem !important;
@@ -469,16 +773,16 @@ const formatCurrency = (value) => {
   .worksheet-table {
     font-size: 0.75rem;
   }
-  
+
   :deep(.p-datatable-thead > tr > th) {
     font-size: 0.6875rem !important;
     padding: 0.4rem 0.3rem !important;
   }
-  
+
   :deep(.p-datatable-tbody > tr > td) {
     padding: 0.35rem 0.3rem !important;
   }
-  
+
   :deep(.p-datatable-tfoot > tr > td) {
     font-size: 0.8125rem !important;
     padding: 0.4rem 0.3rem !important;
