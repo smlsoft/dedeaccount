@@ -175,6 +175,12 @@ export const menus = [
         to: "/report/ledger",
       },
       {
+        title: "กระดาษทำการ",
+        icon: "pi pi-chart-line",
+        name: "work_sheet",
+        to: "/report/work_sheet",
+      },
+      {
         title: "รายงานการบันทึกบัญชี",
         icon: "pi pi-chart-line",
         name: "daily_report",

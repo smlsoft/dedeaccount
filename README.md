@@ -60,15 +60,43 @@ firebase use
 ### Deploy to Firebase Hosting
 
 #### Quick Deploy (Build + Deploy)
+
+**Production:**
 ```sh
+npm run deploy
+# or
 npm run build && firebase deploy --only hosting
+```
+
+**Development:**
+```sh
+npm run deploy:dev
+# or
+npm run build:dev && firebase deploy --only hosting
+```
+
+**Staging:**
+```sh
+npm run deploy:staging
+# or
+npm run build:staging && firebase deploy --only hosting
 ```
 
 #### Step by Step
 
 1. Build the project:
 ```sh
+# Production build
 npm run build
+
+# Development build
+npm run build:dev
+
+# Staging build
+npm run build:staging
+
+# Loser build
+npm run build:loser
 ```
 
 2. Deploy to Firebase:
@@ -173,14 +201,33 @@ VUE_APP_DATE="th"
 ### Build with Different Environments
 
 ```sh
-# Build for staging
-npm run build:staging
+# Build for production (default)
+npm run build
 
 # Build for development
 npm run build:dev
 
+# Build for staging
+npm run build:staging
+
 # Build for loser
 npm run build:loser
+```
+
+### Deploy with Different Environments
+
+```sh
+# Deploy production
+npm run deploy
+
+# Deploy development
+npm run deploy:dev
+
+# Deploy staging
+npm run deploy:staging
+
+# Deploy to preview channel
+npm run deploy:preview
 ```
 
 ---

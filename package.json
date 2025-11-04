@@ -12,6 +12,8 @@
     "build": "vite build",
     "preview": "vite preview --port 5050 --host 0.0.0.0",
     "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:dev": "npm run build:dev && firebase deploy --only hosting",
+    "deploy:staging": "npm run build:staging && firebase deploy --only hosting",
     "deploy:preview": "npm run build && firebase hosting:channel:deploy preview"
   },
   "dependencies": {

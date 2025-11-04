@@ -6,7 +6,7 @@
 </template>
 <style>
 .main-div {
-  height: 95vh;
+  height: 96vh;
   overflow-y: auto;
   position: relative;
   contain: paint;

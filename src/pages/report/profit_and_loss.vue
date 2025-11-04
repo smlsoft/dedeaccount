@@ -1,113 +1,165 @@
 <template>
   <AppLayout>
     <MainContentWarp>
-      <div class="p-2 surface-section flex-auto">
-        <div class="grid p-fluid">
-          <!--
-          <div class="field mb-4 col-6 md:col-3">
-            <label for="accountGroup" class="font-medium text-900">กลุ่มบัญชี</label>
-            <Dropdown v-model="accountGroup" autofocus :options="data_list" :filter="true"
-              :filterFields="['code', 'name1']" filterPlaceholder="ค้นหา" placeholder="เลือก">
-              <template #value="slotProps">
-                <div v-if="slotProps.value">
-                  <div>{{ slotProps.value.code }} ~ {{ slotProps.value.name1 }}</div>
-                </div>
-                <span v-else>
-                  {{ slotProps.placeholder }}
-                </span>
-              </template>
-              <template #option="slotProps">
-                <div>{{ slotProps.option.code }} ~ {{ slotProps.option.name1 }}</div>
-              </template>
-            </Dropdown>
-          </div>
-          -->
-          <div class="field mb-12 col-12 md:col-12">
-            <i class="pi pi-book" style="font-size: 2rem">
-              รายงานทางการเงิน / {{ $t("profit_loss") }}</i
-            >
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="accountgroup" class="font-medium text-900">{{
-              $t("accGroup")
-            }}</label>
-            <Dropdown
-              v-model="accountGroup"
-              :options="groups"
-              optionValue="code"
-              optionLabel="name1"
-              @change="selectAccount($event)"
-              placeholder="กรุณาเลือกชุดบัญชี"
-            />
-            <!-- <RadioButton
-                  :id="group.code"
-                  name="group"
-                  :value="group.code"
-                  v-model="accountGroup"
-                />
-                <label :for="group.code"
-                  >{{ group.code }} ~{{ group.name1 }}</label
-                > -->
-          </div>
-
-          <div class="field col-12 md:col-3">
-            <label for="startDate" class="font-medium text-900"
-              >{{ $t("from_acc_code") }}:</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="startDate"
-              :modelValue="startDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field col-12 md:col-3">
-            <label for="endDate" class="font-medium text-900"
-              >{{ $t("to_acc_code") }}:</label
-            >
-            <DatePicker
-              dateFormat="d/m/yy"
-              v-model="endDate"
-              :modelValue="endDate"
-              :showIcon="true"
-              :buddhist="buddhistYear"
-              :hideOnDateTimeSelect="true"
-              :hiddenTime="true"
-            />
-          </div>
-          <div class="field-checkbox col-12 md:col-3">
-            <Checkbox :binary="true" v-model="ica" />
-            <label>{{ $t("closing_entry") }}</label>
-          </div>
-          <div class="field-checkbox  col-12  p-button-outlined">
+      <div class="surface-card p-4 shadow-2 border-round">
+        <!-- Header Section -->
+        <div class="mb-4">
+          <div class="flex align-items-center justify-content-between mb-3">
+            <div class="flex align-items-center gap-3">
+              <div
+                class="flex align-items-center justify-content-center bg-blue-100 border-round"
+                style="width: 3rem; height: 3rem"
+              >
+                <i class="pi pi-chart-line text-blue-600 text-2xl"></i>
+              </div>
+              <div>
+                <h2 class="text-2xl font-semibold text-900 m-0">
+                  {{ $t("profit_loss") }}
+                </h2>
+                <p class="text-600 m-0 mt-1">รายงานผลการดำเนินงาน</p>
+              </div>
+            </div>
             <Button
-              label="จัดทำรายงาน"
-              icon="pi pi-book"
-              iconPos="left"
-              @click="exportPDF()"
-              :disabled="startDate === null || endDate === null"
+              label="ค้นหา"
+              icon="pi pi-search"
+              @click="openSearchDialog()"
             />
-            <!-- <Button
-              label="จัดทำรายงาน"
-              class="p-button-raised p-button-text"
-              icon="pi pi-book"
-            
-            /> -->
           </div>
-          <div class="col-12" v-if="isvisible">
+        </div>
+
+        <!-- PDF Preview Section -->
+        <div
+          v-if="isvisible"
+          class="border-1 border-200 border-round overflow-hidden"
+        >
+          <div class="bg-blue-50 p-3 border-bottom-1 border-200">
+            <div class="flex align-items-center justify-content-between">
+              <div class="flex align-items-center gap-2">
+                <i class="pi pi-file-pdf text-red-600 text-xl"></i>
+                <span class="font-semibold text-900">
+                  รายงานงบกำไรขาดทุน สำหรับงวด {{ formatDisplayDate(startDate) }} ถึง {{ formatDisplayDate(endDate) }}
+                </span>
+              </div>
+              <Button
+                icon="pi pi-times"
+                severity="secondary"
+                text
+                rounded
+                @click="isvisible = false"
+                v-tooltip.top="'ปิดตัวอย่าง'"
+              />
+            </div>
+          </div>
+          <div class="overflow-auto surface-overlay">
             <iframe
+              style="height: 85vh"
               class="w-full"
-              style="height: 90vh"
+              frameborder="0"
+              scrolling="no"
               id="iframeContainer"
-            ></iframe>
+              type="application/pdf"
+            />
           </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-8">
+          <div class="mb-3">
+            <i class="pi pi-file text-6xl text-400"></i>
+          </div>
+          <h3 class="text-900 font-semibold mb-2">ยังไม่มีรายงานแสดง</h3>
+          <p class="text-600 mb-4">กรุณาเลือกเงื่อนไขการค้นหาเพื่อแสดงรายงาน</p>
+          <Button
+            label="เลือกเงื่อนไขการค้นหา"
+            icon="pi pi-search"
+            size="large"
+            @click="openSearchDialog()"
+          />
         </div>
       </div>
     </MainContentWarp>
   </AppLayout>
+
+  <!-- Search Dialog -->
+  <Dialog
+    v-model:visible="searchDialogVisible"
+    appendTo="body"
+    modal
+    :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
+    :style="{ width: '50vw' }"
+    :draggable="false"
+    :resizable="false"
+  >
+    <template #header>
+      <div class="flex flex-column gap-2">
+        <h1 class="m-0 text-900 font-semibold text-xl line-height-3">
+          เงื่อนไขการค้นหารายงาน
+        </h1>
+        <span class="text-600 text-base">
+          กรุณาเลือกวันที่และเงื่อนไขที่ต้องการเรียกรายงาน
+        </span>
+      </div>
+    </template>
+
+    <section class="flex flex-column w-full mt-4">
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <div class="p-float-label w-full">
+            <Calendar
+              v-model="startDate"
+              :showIcon="true"
+              dateFormat="dd/mm/yy"
+              class="w-full"
+              inputId="startDateCalendar"
+              :input-style="{ height: '54px' }"
+            />
+            <label for="startDateCalendar">{{ $t("from_acc_code") }}</label>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="p-float-label w-full">
+            <Calendar
+              v-model="endDate"
+              :showIcon="true"
+              dateFormat="dd/mm/yy"
+              class="w-full"
+              inputId="endDateCalendar"
+              :input-style="{ height: '54px' }"
+            />
+            <label for="endDateCalendar">{{ $t("to_acc_code") }}</label>
+          </div>
+        </div>
+
+        <div class="col-12 mt-3">
+          <div class="field-checkbox mb-0">
+            <Checkbox id="icaDialog" :binary="true" v-model="ica" />
+            <label for="icaDialog" class="ml-2 text-900 font-medium">
+              {{ $t("closing_entry") }}
+            </label>
+          </div>
+          <small class="text-600 ml-4 block mt-1">
+            เลือกเพื่อรวมรายการปิดงบในรายงาน
+          </small>
+        </div>
+      </div>
+    </section>
+
+    <template #footer>
+      <div class="pt-3 flex">
+        <Button
+          @click="searchDialogVisible = false"
+          label="ยกเลิก"
+          class="p-button-text flex-grow-1"
+        />
+        <Button
+          @click="searchAndCloseDialog()"
+          label="ค้นหา"
+          class="flex-grow-1"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
@@ -115,7 +167,6 @@
 import ReportService from "@/services/ReportDataService";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
-import MasterdataService from "@/services/MasterdataService";
 import { ref, onMounted } from "vue";
 import pdfMake from "pdfmake/build/pdfmake";
 import { useApp } from "@/stores/app.js";
@@ -124,13 +175,12 @@ import DatePicker from "@/components/widget/DatePicker.vue";
 
 const storeApp = useApp();
 const isvisible = ref(false);
+const searchDialogVisible = ref(false);
 const buddhistYear = ref(process.env.VUE_APP_DATE == "th");
 const startDate = ref(null);
 const endDate = ref(null);
-const accountGroup = ref("");
-const groups = ref([]);
-const data_list = ref([]);
 const ica = ref(false);
+
 pdfMake.fonts = {
   Sarabun: {
     normal:
@@ -144,52 +194,29 @@ pdfMake.fonts = {
 };
 
 onMounted(async () => {
-  await getAccountGroup();
-  getAccountGroupList();
   getDate();
+  // เปิด dialog ค้นหาทันทีเมื่อโหลดหน้า
+  searchDialogVisible.value = true;
+
   storeApp.setPageTitle("งบกำไรขาดทุน");
   storeApp.setActivePage("report_list");
   storeApp.setActiveChild("report_profitandloss");
 });
 
-async function getAccountGroup() {
-  try {
-    const res = await MasterdataService.getAccountGroup();
-    //console.log(res);
-    if (res.success) {
-      groups.value = res.data
-        .sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        })
-        .map((acc) => {
-          acc.label = `${acc.code} ~ ${acc.name1}`;
-          return acc;
-        });
-      // setTimeout(() => {
-      //   if (accountGroup.value == "") {
-      //     accountGroup.value = groups.value[0].code;
-      //   }
-      // }, 100);
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
+// ฟังก์ชันเปิด dialog ค้นหา
+const openSearchDialog = () => {
+  searchDialogVisible.value = true;
+};
 
-function getAccountGroupList() {
-  MasterdataService.getAccountGroup()
-    .then((res) => {
-      //console.log(res);
-      if (res.success) {
-        data_list.value = res.data.sort(function (obj1, obj2) {
-          return obj1.code - obj2.code;
-        });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-}
+// ฟังก์ชันค้นหาและปิด dialog
+const searchAndCloseDialog = async () => {
+  if (startDate.value && endDate.value) {
+    searchDialogVisible.value = false;
+    // เรียกฟังก์ชันสร้าง PDF ทันที
+    await exportPDF();
+  }
+};
+
 async function exportPDF() {
   isvisible.value = true;
   var body = [];
@@ -204,7 +231,6 @@ async function exportPDF() {
   const pdfDocGenerator = pdfMake.createPdf(docDefinition);
   pdfDocGenerator.getDataUrl((dataUrl) => {
     const targetElement = document.querySelector("#iframeContainer");
-
     targetElement.src = dataUrl;
   });
 }
@@ -215,14 +241,21 @@ function getDate() {
   endDate.value = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
+// ฟังก์ชันแสดงวันที่ในรูปแบบไทย
+function formatDisplayDate(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 function pageSetup(data, startdate, enddate) {
   var docDefinition = {
     content: [
       {
         text:
-          "บัญชีชุดที่ " +
-          accountGroup.value +
-          " \n" +
           localStorage.shop_name +
           "\n งบกำไรขาดทุน \n สำหรับปีสิ้นสุดวันที่ " +
           Utils.getDateShowText(enddate) +
@@ -293,7 +326,6 @@ async function buildFromJson() {
   let totalExpenseAmount = "0.00";
   let profitAndLossAmount = "";
 
-  let accountgroup = accountGroup.value;
   let startdate = Utils.getDateFromYear(startDate.value);
   let enddate = Utils.getDateFromYear(endDate.value);
   console.log("ica", ica.value);
@@ -304,7 +336,7 @@ async function buildFromJson() {
   }
   try {
     const res = await ReportService.getProfitandloss(
-      accountgroup,
+      "",
       startdate,
       enddate,
       icax
