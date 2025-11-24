@@ -45,14 +45,36 @@
                 </Chip>
               </div>
               
-              <!-- Filter Button -->
-              <Button
-                icon="pi pi-filter-fill"
-                label="ตัวกรอง"
-                @click="showSearch = true"
-                class="p-button-sm p-button-text"
-                severity="secondary"
-              />
+              <!-- Export Buttons -->
+              <div class="flex gap-2">
+                <Button
+                  v-if="isvisible"
+                  icon="pi pi-file-excel"
+                  label="Excel"
+                  @click="exportToExcel()"
+                  class="p-button-sm p-button-success"
+                  severity="success"
+                  :loading="exportingExcel"
+                />
+                <Button
+                  v-if="isvisible"
+                  icon="pi pi-file-pdf"
+                  label="PDF"
+                  @click="exportToPDF()"
+                  class="p-button-sm p-button-danger"
+                  severity="danger"
+                  :loading="exportingPDF"
+                />
+                
+                <!-- Filter Button -->
+                <Button
+                  icon="pi pi-filter-fill"
+                  label="ตัวกรอง"
+                  @click="showSearch = true"
+                  class="p-button-sm p-button-text"
+                  severity="secondary"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -889,6 +911,18 @@ import DatePicker from "@/components/widget/DatePicker.vue";
 import router from "../../router";
 import { useToast } from "primevue/usetoast";
 import utils from "../../utils";
+import XLSX from "xlsx";
+import pdfMake from "pdfmake/build/pdfmake";
+
+// ตั้งค่าฟอนต์ไทย Sarabun สำหรับ PDF
+pdfMake.fonts = {
+  Sarabun: {
+    normal: "https://fonts.gstatic.com/s/sarabun/v12/DtVjJx26TKEr37c9WBJDnlQN9gk.ttf",
+    bold: "https://fonts.gstatic.com/s/sarabun/v12/DtVmJx26TKEr37c9YK5sulwm6gDXvwE.ttf",
+    italics: "https://fonts.gstatic.com/s/sarabun/v12/DtVhJx26TKEr37c9aBBJmnYI5gnOpg.ttf",
+    bolditalics: "https://fonts.gstatic.com/s/sarabun/v12/DtVkJx26TKEr37c9aBBxJlks7iLSrwFUlw.ttf"
+  }
+};
 
 const route = useRoute();
 
@@ -973,6 +1007,8 @@ const custcode = ref("");
 const debtorlist = ref([]);
 const creditorlist = ref([]);
 const showSearch = ref(false);
+const exportingExcel = ref(false);
+const exportingPDF = ref(false);
 
 // สมุดรายวัน
 const accountbook = ref("");
@@ -1411,7 +1447,9 @@ function fetchLedgerReport() {
   )
 
     .then((res) => {
+      // Clear ข้อมูลเก่าก่อนเพิ่มข้อมูลใหม่
       newData.value = [];
+      data_list.value = [];
       startDateShow.value = Utils.getYearBuddhist(startDate.value);
       endDateShow.value = Utils.getYearBuddhist(endDate.value);
       
@@ -1638,6 +1676,310 @@ function clearAllFilters() {
     detail: "กรุณาเลือกเงื่อนไขการค้นหาใหม่",
     life: 2000,
   });
+}
+
+// ==================== Export Functions ====================
+
+function exportToExcel() {
+  if (!data_list.value || data_list.value.length === 0) {
+    toast.add({
+      severity: "warn",
+      summary: "ไม่มีข้อมูล",
+      detail: "ไม่มีข้อมูลสำหรับส่งออก",
+      life: 3000,
+    });
+    return;
+  }
+
+  // นับจำนวนรายการทั้งหมด
+  const totalRows = data_list.value.reduce((sum, account) => sum + (account.details?.length || 0), 0);
+  
+  // เตือนถ้าข้อมูลเยอะ
+  if (totalRows > 5000) {
+    toast.add({
+      severity: "warn",
+      summary: "ข้อมูลจำนวนมาก",
+      detail: `มีข้อมูล ${totalRows.toLocaleString()} รายการ อาจใช้เวลาสักครู่`,
+      life: 5000,
+    });
+  }
+
+  try {
+    exportingExcel.value = true;
+
+    // เตรียมข้อมูลสำหรับ Excel (Header กระทัดรัด)
+    const excelData = [];
+    
+    // Header บรรทัดเดียว กระทัดรัด
+    const headerParts = [localStorage.shop_name || "ชื่อร้าน", "บัญชีแยกประเภท", `${startDateShow.value}-${endDateShow.value}`];
+    if (accountcode1.value) {
+      headerParts.push(accountcode2.value && state.value ? `${accountcode1.value}-${accountcode2.value}` : accountcode1.value);
+    }
+    if (custcode.value) headerParts.push(getCustName());
+    if (accountbook.value) headerParts.push(getBookName());
+    
+    excelData.push([headerParts.join(" | ")]);
+    excelData.push([""]); // บรรทัดว่าง
+
+    // วนลูปแต่ละบัญชี (ใช้ for loop แทน forEach สำหรับ performance)
+    for (let i = 0; i < data_list.value.length; i++) {
+      const account = data_list.value[i];
+      if (!account.details || account.details.length === 0) continue;
+
+      // Header ของแต่ละบัญชี
+      excelData.push([`${account.accountcode} - ${account.accountname}`]);
+      excelData.push(["วันที่", "เลขที่เอกสาร", "รายละเอียด", "เดบิต", "เครดิต", "ยอดคงเหลือ"]);
+
+      // รายละเอียดแต่ละรายการ (batch processing)
+      for (let j = 0; j < account.details.length; j++) {
+        const item = account.details[j];
+        const dateStr = item.docdate ? Utils.getDateFormatDMY(item.docdate) : "";
+        const docno = item.docno || "";
+        const desc = item.accountdescription || "";
+        
+        // Format ตัวเลขให้แสดงทศนิยม 2 ตำแหน่ง และป้องกัน NaN
+        let debit = "";
+        let credit = "";
+        let amount = "";
+        
+        if (item.debit && item.debit !== "") {
+          const val = parseFloat(item.debit);
+          debit = isNaN(val) ? "" : val.toFixed(2);
+        }
+        
+        if (item.credit && item.credit !== "") {
+          const val = parseFloat(item.credit);
+          credit = isNaN(val) ? "" : val.toFixed(2);
+        }
+        
+        if (item.amount && item.amount !== "") {
+          const val = parseFloat(item.amount);
+          amount = isNaN(val) ? "" : val.toFixed(2);
+        }
+
+        excelData.push([dateStr, docno, desc, debit, credit, amount]);
+      }
+
+      excelData.push([""]); // บรรทัดว่างระหว่างบัญชี
+    }
+
+    // สร้าง workbook
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    
+    // ตั้งค่าความกว้างคอลัมน์ (กระทัดรัด)
+    ws['!cols'] = [
+      { wch: 10 },  // วันที่
+      { wch: 18 },  // เลขที่เอกสาร
+      { wch: 35 },  // รายละเอียด
+      { wch: 12 },  // เดบิต
+      { wch: 12 },  // เครดิต
+      { wch: 12 }   // ยอดคงเหลือ
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "บัญชีแยกประเภท");
+    
+    // สร้างชื่อไฟล์
+    const filename = `บัญชีแยกประเภท_${startDateShow.value}_${endDateShow.value}.xlsx`;
+    XLSX.writeFile(wb, filename);
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: `ส่งออก Excel สำเร็จ (${totalRows.toLocaleString()} รายการ)`,
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("Export Excel Error:", error);
+    toast.add({
+      severity: "error",
+      summary: "เกิดข้อผิดพลาด",
+      detail: "ไม่สามารถส่งออก Excel ได้",
+      life: 3000,
+    });
+  } finally {
+    exportingExcel.value = false;
+  }
+}
+
+function exportToPDF() {
+  if (!data_list.value || data_list.value.length === 0) {
+    toast.add({
+      severity: "warn",
+      summary: "ไม่มีข้อมูล",
+      detail: "ไม่มีข้อมูลสำหรับส่งออก",
+      life: 3000,
+    });
+    return;
+  }
+
+  // นับจำนวนรายการทั้งหมด
+  const totalRows = data_list.value.reduce((sum, account) => sum + (account.details?.length || 0), 0);
+  
+  // เตือนถ้าข้อมูลเยอะมาก (PDF มีข้อจำกัด)
+  if (totalRows > 10000) {
+    toast.add({
+      severity: "error",
+      summary: "ข้อมูลมากเกินไป",
+      detail: `มีข้อมูล ${totalRows.toLocaleString()} รายการ แนะนำให้ใช้ Excel แทน หรือกรองข้อมูลให้น้อยลง`,
+      life: 8000,
+    });
+    return;
+  } else if (totalRows > 3000) {
+    toast.add({
+      severity: "warn",
+      summary: "ข้อมูลจำนวนมาก",
+      detail: `มีข้อมูล ${totalRows.toLocaleString()} รายการ PDF อาจใช้เวลานาน`,
+      life: 5000,
+    });
+  }
+
+  try {
+    exportingPDF.value = true;
+
+    const content = [];
+
+    // Header กระทัดรัด 1 บรรทัด
+    const headerParts = [localStorage.shop_name || "ชื่อร้าน", "บัญชีแยกประเภท", `${startDateShow.value}-${endDateShow.value}`];
+    if (accountcode1.value) {
+      headerParts.push(accountcode2.value && state.value ? `${accountcode1.value}-${accountcode2.value}` : accountcode1.value);
+    }
+    if (custcode.value) headerParts.push(getCustName());
+    if (accountbook.value) headerParts.push(getBookName());
+    
+    content.push({
+      text: headerParts.join(" | "),
+      fontSize: 8,
+      alignment: "center",
+      margin: [0, 0, 0, 8]
+    });
+
+    // วนลูปแต่ละบัญชี (optimized)
+    for (let index = 0; index < data_list.value.length; index++) {
+      const account = data_list.value[index];
+      if (!account.details || account.details.length === 0) continue;
+
+      // Header ของแต่ละบัญชี (เรียบง่าย)
+      content.push({
+        text: `${account.accountcode} - ${account.accountname}`,
+        fontSize: 9,
+        bold: true,
+        margin: [0, index > 0 ? 10 : 0, 0, 3]
+      });
+
+      // ตารางรายละเอียด (ไม่มีสี)
+      const tableBody = [];
+      
+      // Header ตาราง (ขาวดำ)
+      tableBody.push([
+        { text: "วันที่", fontSize: 7, bold: true, alignment: "center" },
+        { text: "เลขที่เอกสาร", fontSize: 7, bold: true, alignment: "center" },
+        { text: "รายละเอียด", fontSize: 7, bold: true, alignment: "center" },
+        { text: "เดบิต", fontSize: 7, bold: true, alignment: "right" },
+        { text: "เครดิต", fontSize: 7, bold: true, alignment: "right" },
+        { text: "ยอดคงเหลือ", fontSize: 7, bold: true, alignment: "right" }
+      ]);
+
+      // รายละเอียดแต่ละรายการ (batch)
+      for (let j = 0; j < account.details.length; j++) {
+        const item = account.details[j];
+        const dateStr = item.docdate ? Utils.getDateFormatDMY(item.docdate) : "";
+        const docno = item.docno || "";
+        const desc = item.accountdescription || "";
+        
+        // Format ตัวเลขและป้องกัน NaN
+        let debit = "-";
+        let credit = "-";
+        let amount = "-";
+        
+        if (item.debit && item.debit !== "") {
+          const val = parseFloat(item.debit);
+          debit = isNaN(val) ? "-" : utils.formatNumber(val);
+        }
+        
+        if (item.credit && item.credit !== "") {
+          const val = parseFloat(item.credit);
+          credit = isNaN(val) ? "-" : utils.formatNumber(val);
+        }
+        
+        if (item.amount && item.amount !== "") {
+          const val = parseFloat(item.amount);
+          amount = isNaN(val) ? "-" : formatAmount(val);
+        }
+
+        // เช็คว่าเป็นแถวพิเศษหรือไม่ (ยกมา, ยกไป)
+        const isSpecialRow = docno === "ยกมา" || docno === "ยกไป" || docno === "ยกมา ";
+
+        tableBody.push([
+          { text: dateStr, fontSize: 7 },
+          { text: docno, fontSize: 7, bold: isSpecialRow },
+          { text: desc, fontSize: 7 },
+          { text: debit, fontSize: 7, alignment: "right" },
+          { text: credit, fontSize: 7, alignment: "right" },
+          { text: amount, fontSize: 7, alignment: "right", bold: isSpecialRow }
+        ]);
+      }
+
+      content.push({
+        table: {
+          headerRows: 1,
+          widths: ["10%", "16%", "36%", "12%", "12%", "14%"],
+          body: tableBody
+        },
+        layout: {
+          hLineWidth: function (i, node) {
+            return i === 0 || i === 1 || i === node.table.body.length ? 0.5 : 0.25;
+          },
+          vLineWidth: function () {
+            return 0.25;
+          },
+          hLineColor: function () {
+            return "#000000";
+          },
+          vLineColor: function () {
+            return "#000000";
+          },
+          fillColor: function () { return null; }, // ไม่มีสีพื้นหลัง
+          paddingLeft: function () { return 2; },
+          paddingRight: function () { return 2; },
+          paddingTop: function () { return 1; },
+          paddingBottom: function () { return 1; }
+        }
+      });
+    }
+
+    // สร้าง PDF (แนวนอน ขาวดำ)
+    const docDefinition = {
+      content: content,
+      pageSize: "A4",
+      pageOrientation: "landscape", // แนวนอน
+      pageMargins: [10, 15, 10, 15], // ลด margin
+      defaultStyle: {
+        font: "Sarabun",
+        fontSize: 7
+      }
+    };
+
+    const filename = `บัญชีแยกประเภท_${startDateShow.value}_${endDateShow.value}.pdf`;
+    pdfMake.createPdf(docDefinition).download(filename);
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: `ส่งออก PDF สำเร็จ (${totalRows.toLocaleString()} รายการ)`,
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("Export PDF Error:", error);
+    toast.add({
+      severity: "error",
+      summary: "เกิดข้อผิดพลาด",
+      detail: "ไม่สามารถส่งออก PDF ได้: " + error.message,
+      life: 3000,
+    });
+  } finally {
+    exportingPDF.value = false;
+  }
 }
 
 </script>
