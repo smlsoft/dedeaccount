@@ -1514,7 +1514,7 @@ function fetchLedgerReport() {
                 accountdescription: "",
                 credit: "",
                 debit: "",
-                amount: utils.formatNumberforamount(data.nextbalance),
+                amount: data.nextbalance,
               });
             }
           } else if (result.value == true && data.balance == 0) {
@@ -1525,7 +1525,7 @@ function fetchLedgerReport() {
                 accountdescription: "",
                 credit: "",
                 debit: data.balance,
-                amount: utils.formatNumber(data.amount),
+                amount: data.balance,
                 accountcodegroup: data.accountcode,
                 accountnamegroup: data.accountname,
               });

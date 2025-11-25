@@ -43,13 +43,27 @@ const formatNumber = (val, digit = 0) => {
   }
 };
 const formatNumberforamount = (val, digit = 0) => {
-  if (val == 0) {
-    return "0.00";
-  } else if (val < 0) {
-    return Numeral(val).format("(0,0.00)");
-  } else if (val > 0) {
-    return Numeral(val).format("0,0.00");
+  // ตรวจสอบค่าว่าง null undefined หรือ string ว่าง
+  if (val === null || val === undefined || val === "") {
+    return "";
   }
+  
+  const numVal = parseFloat(val);
+  
+  // ตรวจสอบว่าเป็นตัวเลขที่ valid หรือไม่
+  if (isNaN(numVal)) {
+    return "";
+  }
+  
+  if (numVal == 0) {
+    return "0.00";
+  } else if (numVal < 0) {
+    return Numeral(numVal).format("(0,0.00)");
+  } else if (numVal > 0) {
+    return Numeral(numVal).format("0,0.00");
+  }
+  
+  return "";
 };
 const formatNumberReport = (val, digit = 0) => {
   if (val == 0) {
