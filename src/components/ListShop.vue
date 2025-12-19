@@ -27,8 +27,32 @@ const nameShopInvalid = ref(false);
 const telShopInvalid = ref(false);
 
 const searchResults = computed(() => {
+  // ตรวจสอบว่ามีข้อมูล listShop หรือไม่
+  if (!props.listShop || !Array.isArray(props.listShop)) {
+    return [];
+  }
+  
+  // ถ้าไม่มีการค้นหา แสดงทั้งหมด
+  if (!searchShop.value || searchShop.value.trim() === '') {
+    return props.listShop;
+  }
+  
+  const searchTerm = searchShop.value.toLowerCase().trim();
+  
   return props.listShop.filter((shop) => {
-    return shop.name.toLowerCase().includes(searchShop.value.toLowerCase());
+    // รองรับทั้งกรณี shop.names (array) และ shop.name (string)
+    let shopName = '';
+    
+    if (shop.names && Array.isArray(shop.names) && shop.names.length > 0) {
+      // หาชื่อที่ code = "th"
+      const nameObj = shop.names.find((name) => name.code === "th");
+      shopName = nameObj && nameObj.name ? nameObj.name : '';
+    } else if (shop.name) {
+      shopName = shop.name;
+    }
+    
+    // ตรวจสอบว่าชื่อร้านมีคำค้นหาหรือไม่
+    return shopName.toLowerCase().includes(searchTerm);
   });
 });
 
@@ -36,17 +60,13 @@ const searchFavorite = computed(() => {
   return searchResults.value.filter((shop) => shop.isfavorite);
 });
 
-function filterFavorite() {
-  console.log(searchResults.value.filter((item) => item.isfavorite));
-}
-
 function isFavorite(slotProps, mode) {
-  if (!favorite.value) {
-    searchResults.value[slotProps.index].isfavorite = mode;
-  } else {
-    searchFavorite.value[slotProps.index].isfavorite = mode;
+  // แก้ไขข้อมูลใน listShop ตัวจริงโดยใช้ shop id แทน index
+  const shopToUpdate = props.listShop.find(shop => shop.id === slotProps.data.id || shop._id === slotProps.data._id);
+  if (shopToUpdate) {
+    shopToUpdate.isfavorite = mode;
   }
-
+  
   emit("isFavorite", slotProps.data, mode);
 }
 
@@ -175,7 +195,6 @@ function getNameByCode(names) {
                   onIcon="pi pi-star-fill text-yellow-500"
                   offIcon="pi pi-star text-yellow-500"
                   class="mr-3"
-                  @click="filterFavorite()"
                 />
                 <DataViewLayoutOptions v-model="layout" />
               </div>

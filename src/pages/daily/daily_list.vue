@@ -51,6 +51,9 @@ function getGLJournalList() {
     storeDailyList.filtersByAccPeriod,
     storeDailyList.filtersByDebtorName,
     storeDailyList.filtersByDescription,
+    storeDailyList.filtersByDocformat,
+    storeDailyList.filtersByAppname,
+    storeDailyList.filtersByJobguidfixed,
     storeDailyList.filtersByAmount,
     storeDailyList.sendFiltersByCreateDate,
     storeDailyList.filtersByCreateBy,
@@ -91,6 +94,9 @@ function doneTyping() {
     storeDailyList.filtersByAccPeriod,
     storeDailyList.filtersByDebtorName,
     storeDailyList.filtersByDescription,
+    storeDailyList.filtersByDocformat,
+    storeDailyList.filtersByAppname,
+    storeDailyList.filtersByJobguidfixed,
     storeDailyList.filtersByAmount,
     storeDailyList.sendFiltersByCreateDate,
     storeDailyList.filtersByCreateBy,
@@ -209,6 +215,8 @@ function onPage(event) {
     storeDailyList.filtersByAccPeriod,
     storeDailyList.filtersByDebtorName,
     storeDailyList.filtersByDescription,
+    storeDailyList.filtersByDocformat,
+    storeDailyList.filtersByAppname,
     storeDailyList.filtersByAmount,
     storeDailyList.sendFiltersByCreateDate,
     storeDailyList.filtersByCreateBy,
@@ -244,6 +252,9 @@ function sortBy(data) {
     storeDailyList.filtersByAccPeriod,
     storeDailyList.filtersByDebtorName,
     storeDailyList.filtersByDescription,
+    storeDailyList.filtersByDocformat,
+    storeDailyList.filtersByAppname,
+    storeDailyList.filtersByJobguidfixed,
     storeDailyList.filtersByAmount,
     storeDailyList.sendFiltersByCreateDate,
     storeDailyList.filtersByCreateBy,
@@ -529,6 +540,94 @@ function closefiltersColum() {
                 </div>
               </template>
             </Column>
+            <Column
+              field="docformat"
+              header="รูปแบบเอกสาร"
+              :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
+              style="min-width: 150px"
+            >
+              <template #body="{ data }">
+                <span v-if="data.docformat">{{ data.docformat }}</span>
+                <span v-else class="text-400">-</span>
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="storeDailyList.filtersByDocformat"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('docformat')"
+                  />
+                </div>
+              </template>
+            </Column>
+            <Column
+              field="appname"
+              header="แหล่งที่มา"
+              :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
+              style="min-width: 120px"
+            >
+              <template #body="{ data }">
+                <Tag v-if="data.appname === 'AI'" value="AI" severity="success" icon="pi pi-sparkles" />
+                <Tag v-else-if="data.appname" :value="data.appname" severity="info" />
+                <span v-else class="text-400">ทำเอง</span>
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="storeDailyList.filtersByAppname"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('appname')"
+                  />
+                </div>
+              </template>
+            </Column>
+            <!-- <Column
+              field="jobguidfixed"
+              header="Job ID"
+              :sortable="true"
+              :showFilterMenu="false"
+              :showClearButton="false"
+              style="min-width: 200px"
+            >
+              <template #body="{ data }">
+                <span v-if="data.jobguidfixed" class="text-sm font-mono">{{ data.jobguidfixed }}</span>
+                <span v-else class="text-400">-</span>
+              </template>
+              <template #filter>
+                <div class="flex align-content-center">
+                  <InputText
+                    v-model="storeDailyList.filtersByJobguidfixed"
+                    placeholder="ค้นหา...."
+                    @keyup="keyup()"
+                    @keydown="keydown()"
+                    class="p-inputtext-sm"
+                  />
+                  <Button
+                    icon="pi pi-filter-slash"
+                    class="p-button-rounded p-button-text p-button-plain"
+                    @click="clearFilter('jobguidfixed')"
+                  />
+                </div>
+              </template>
+            </Column> -->
             <Column
               field="amount"
               header="มูลค่า"

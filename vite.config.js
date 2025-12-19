@@ -22,6 +22,8 @@ export default defineConfig({
 
       VUE_APP_API_REPORT: undefined,
 
+      VUE_APP_API_OCR: undefined,
+
       VUE_APP_URL: undefined,
 
       VUE_APP_TITLE: undefined,

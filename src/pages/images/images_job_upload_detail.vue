@@ -1757,6 +1757,7 @@ function sentCountDataImage(data) {
                       :isSelectedDocument="isSelectedDocument"
                       :sizeWidthImageBloc="sizeWidthImageBloc"
                       :sizeHeightImageBloc="sizeHeightImageBloc"
+                      :selectedImag="selectedImag"
                       v-on:selectImg="selectImg"
                       v-on:useImage="useImage"
                       v-on:addToGroupImage="addToGroupImage"

@@ -4,6 +4,10 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
+import OcrService from "@/services/OcrService";
+import OcrResultDialog from "./components/ocr_result_dialog.vue";
+import OcrLoadingDialog from "@/components/OcrLoadingDialog.vue";
+import DialogMasterDataError from "@/components/DialogMasterDataError.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
@@ -102,6 +106,13 @@ const firstPage = ref(0);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
+const showOcrDialog = ref(false);
+const ocrResultData = ref(null);
+const showOcrLoadingDialog = ref(false);
+
+// Master Data Error Dialog
+const showMasterDataErrorDialog = ref(false);
+const masterDataErrorData = ref(null);
 
 const daily_form = ref({
   debtaccounttype: "0",
@@ -119,6 +130,9 @@ const daily_form = ref({
   journaltype: "0",
   exdocrefdate: "",
   exdocrefno: "",
+  appname: "",
+  jobguidfixed: "",
+  docformat: "",
   journaldetail: [
     {
       accountcode: "",
@@ -382,6 +396,9 @@ function getGLDetail(id) {
         daily_form.value.docdate = Utils.getDateTimeFromDate(res.data.docdate);
         daily_form.value.docno = res.data.docno;
         daily_form.value.bookcode = res.data.bookcode;
+        daily_form.value.docformat = res.data.docformat;
+        daily_form.value.appname = res.data.appname;
+        daily_form.value.jobguidfixed = res.data.jobguidfixed;
         daily_form.value.journaldetail = res.data.journaldetail;
         if (daily_form.value.journaldetail.length == 0) {
           daily_form.value.journaldetail.push({
@@ -607,6 +624,9 @@ async function confirmSave() {
     docdate: Utils.getFormatDateTime(daily_form.value.docdate),
     docno: daily_form.value.docno.trim(),
     bookcode: daily_form.value.bookcode,
+    appname: daily_form.value.appname,
+    jobguidfixed: daily_form.value.jobguidfixed,
+    docformat: daily_form.value.docformat,
     journaldetail: daily_form.value.journaldetail,
     journaltype: parseInt(daily_form.value.journaltype),
     parid: daily_form.value.parid,
@@ -793,12 +813,8 @@ function verifyData() {
   }
 
   if (daily_form.value.accountperiod == null) {
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      life: 4000,
-    });
+    warringAccountperiod.value = true;
+    return false;
   }
 
   if (daily_form.value.bookcode == "") {
@@ -808,6 +824,7 @@ function verifyData() {
       detail: "กรุณาเลือกสมุดรายวัน",
       life: 4000,
     });
+    return false;
   }
 
   var sumCredit = 0;
@@ -1012,8 +1029,7 @@ function getAccountPeriodByDate(keyDate) {
       console.log(res);
       if (res.success) {
         if (res.data[0].perioddata.guidfixed != "") {
-          daily_form.value.accountperiod =
-            res.data[0].perioddata.guidfixed.period;
+          daily_form.value.accountperiod = res.data[0].perioddata.period;
         } else {
           daily_form.value.accountperiod = null;
           warringAccountperiod.value = true;
@@ -1667,7 +1683,7 @@ function addBoxVat() {
   const vatDate = daily_form.value.docdate || Utils.getDateTime();
   // ดึงเดือนจากวันที่เอกสาร (เดือนใน JavaScript เริ่มจาก 0)
   const currentMonth = new Date(vatDate).getMonth() + 1;
-  
+
   // กำหนดประเภทภาษีตาม debtaccounttype
   // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
   // "1" = เจ้าหนี้ → ภาษีซื้อ (vatmode = 0)
@@ -1750,10 +1766,10 @@ function selectSortUse(event) {
 function addBoxTax() {
   // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
   const taxDate = daily_form.value.docdate || Utils.getDateTime();
-  
+
   // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
   let custType = 0; // default เป็นบุคคลธรรมดา
-  
+
   if (daily_form.value.debtaccounttype === "0" && debtorData.value) {
     // ใช้ข้อมูลลูกหนี้
     custType = debtorData.value.custtype || 0;
@@ -1828,7 +1844,30 @@ function setAccountPeriod(data) {
 function selectDucumentFormat(data) {
   if (data != null) {
     daily_form.value.journaldetail = [];
-    var ele = document_formate.value.filter((val) => val.doccode == data);
+    var ele = document_formate.value.filter((val) => val.description == data);
+
+    // Error handling: ตรวจสอบว่าเจอ template หรือไม่
+    if (ele.length === 0) {
+      console.error("Template not found:", data);
+      toast.add({
+        severity: "error",
+        summary: "ไม่พบ Template",
+        detail: `ไม่พบรูปแบบเอกสาร "${data}"`,
+        life: 3000,
+      });
+      return;
+    }
+
+    // Error handling: เตือนถ้าเจอหลายตัว
+    if (ele.length > 1) {
+      console.warn("Multiple templates found:", data, ele);
+      toast.add({
+        severity: "warn",
+        summary: "พบ Template ซ้ำกัน",
+        detail: `พบรูปแบบเอกสาร "${data}" หลายรายการ ใช้รายการแรก`,
+        life: 3000,
+      });
+    }
 
     console.log(ele[0]);
 
@@ -1869,6 +1908,424 @@ function clearDebtor() {
 function clearCreditor() {
   console.log("Clearing creditor data");
   creditorData.value = null;
+}
+
+// OCR Functions
+async function sentOCR() {
+  try {
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
+
+    // ตรวจสอบว่ามีข้อมูล OCR เก่าหรือไม่
+    if (
+      selectedImgData.value.ocranalyzeai &&
+      selectedImgData.value.ocranalyzeai !== ""
+    ) {
+      try {
+        const oldOcrData = JSON.parse(selectedImgData.value.ocranalyzeai);
+        ocrResultData.value = oldOcrData;
+        showOcrDialog.value = true;
+
+        toast.add({
+          severity: "info",
+          summary: "แสดงข้อมูล OCR เดิม",
+          detail: "หากต้องการอ่านใหม่ กรุณากดปุ่ม 'อ่าน OCR ใหม่' ใน dialog",
+          life: 4000,
+        });
+        return;
+      } catch (parseError) {
+        console.error("Error parsing old OCR data:", parseError);
+      }
+    }
+
+    showOcrLoadingDialog.value = true;
+
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Sending OCR request:", requestData);
+
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response saved to database successfully");
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving OCR to database:", dbError);
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
+      });
+    }
+
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "วิเคราะห์เอกสารเสร็จสิ้น",
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("OCR Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    showOcrLoadingDialog.value = false;
+  }
+}
+
+async function refreshOCR() {
+  try {
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
+
+    showOcrDialog.value = false;
+    showOcrLoadingDialog.value = true;
+
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Refreshing OCR request:", requestData);
+
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response saved to database successfully");
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving OCR to database:", dbError);
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
+      });
+    }
+
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "วิเคราะห์เอกสารใหม่เสร็จสิ้น",
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("OCR Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    showOcrLoadingDialog.value = false;
+  }
+}
+
+function applyOcrData(data) {
+  try {
+    console.log("Applying OCR data:", data);
+
+    if (!data || !data.accounting_entry) {
+      throw new Error("ข้อมูล OCR ไม่ถูกต้อง");
+    }
+
+    const accountingEntry = data.accounting_entry;
+
+    // 1. document_date → docdate และ exdocrefdate
+    if (accountingEntry.document_date) {
+      let documentDate;
+
+      if (accountingEntry.document_date.includes("-")) {
+        documentDate = new Date(accountingEntry.document_date);
+      } else if (accountingEntry.document_date.includes("/")) {
+        const dateParts = accountingEntry.document_date.split("/");
+        if (dateParts.length === 3) {
+          documentDate = new Date(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[0])
+          );
+        }
+      }
+
+      if (documentDate) {
+        daily_form.value.docdate = documentDate;
+        daily_form.value.exdocrefdate = documentDate;
+        // Reset accountperiod เพื่อบังคับให้เช็คงวดบัญชีใหม่
+        daily_form.value.accountperiod = null;
+        
+        // เรียกใช้ getAccountPeriodByDate เพื่อดึงงวดบัญชี
+        const formattedDate = documentDate.toISOString().split('T')[0]; // แปลงเป็น YYYY-MM-DD
+        getAccountPeriodByDate(formattedDate);
+      }
+    }
+
+    // 2. journal_book_code → bookcode
+    if (accountingEntry.journal_book_code && accountBook_detail.value) {
+      const matchedBook = accountBook_detail.value.find(
+        (book) => book.code === accountingEntry.journal_book_code
+      );
+      if (matchedBook) {
+        daily_form.value.bookcode = matchedBook.code;
+      }
+    }
+
+    // 3. debtaccounttype (ตรวจสอบ debtor_code และ creditor_code)
+    if (
+      accountingEntry.debtor_code &&
+      accountingEntry.debtor_code !== null &&
+      accountingEntry.debtor_code !== "N/A"
+    ) {
+      daily_form.value.debtaccounttype = "0";
+      daily_form.value.debtor =
+        accountingEntry.debtor_name || accountingEntry.debtor_code;
+    } else if (
+      accountingEntry.creditor_code &&
+      accountingEntry.creditor_code !== null &&
+      accountingEntry.creditor_code !== "N/A"
+    ) {
+      daily_form.value.debtaccounttype = "1";
+      daily_form.value.creditor =
+        accountingEntry.creditor_name || accountingEntry.creditor_code;
+    }
+
+    // 7. reference_number → exdocrefno
+    if (accountingEntry.reference_number) {
+      daily_form.value.exdocrefno = accountingEntry.reference_number;
+    }
+
+    // 8. document_analysis → accountdescription
+    if (data.document_analysis && data.document_analysis.analysis_notes) {
+      daily_form.value.accountdescription =
+        data.document_analysis.analysis_notes;
+    }
+
+    // 9. appname = "AI" (ค่าคงที่)
+    daily_form.value.appname = "AI";
+
+    // 10. template_name → docformat
+    if (data.template_info && data.template_info.template_name) {
+      daily_form.value.docformat = data.template_info.template_name;
+    }
+
+    // ล้างรายการเดิม
+    daily_form.value.journaldetail = [];
+
+    // เพิ่มรายการบัญชีจาก OCR
+    if (accountingEntry.entries && Array.isArray(accountingEntry.entries)) {
+      accountingEntry.entries.forEach((entry) => {
+        daily_form.value.journaldetail.push({
+          accountcode: entry.account_code || "",
+          accountname: entry.account_name || "",
+          debitamount: parseFloat(entry.debit) || 0,
+          creditamount: parseFloat(entry.credit) || 0,
+        });
+      });
+    }
+
+    // คำนวณยอดรวม
+    let totalDebit = 0;
+    let totalCredit = 0;
+    daily_form.value.journaldetail.forEach((item) => {
+      totalDebit += parseFloat(item.debitamount) || 0;
+      totalCredit += parseFloat(item.creditamount) || 0;
+    });
+
+    daily_form.value.amount = totalDebit || totalCredit || "";
+
+    console.log("OCR data applied successfully");
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "นำข้อมูล OCR มาใช้เรียบร้อยแล้ว",
+      life: 3000,
+    });
+
+    showOcrDialog.value = false;
+  } catch (error) {
+    console.error("Error applying OCR data:", error);
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: error.message || "ไม่สามารถนำข้อมูล OCR มาใช้ได้",
+      life: 3000,
+    });
+  }
+}
+
+function closeOcrDialog() {
+  showOcrDialog.value = false;
+  ocrResultData.value = null;
 }
 </script>
 
@@ -2327,17 +2784,25 @@ function clearCreditor() {
               </TabView>
             </SplitterPanel>
           </Splitter>
-
-          <div class="mt-4 ml-0">
-            <Button
-              :disabled="readMode"
-              @click="onSave"
-             
-              label="บันทึกรายวัน"
-              icon="pi pi-save"
-              class="w-auto p-button-success"
-
-            ></Button>
+          <div class="flex justify-content-between">
+            <div class="mt-4 ml-0 flex gap-2">
+              <Button
+                @click="sentOCR"
+                label="AI วิเคราะห์เอกสาร"
+                icon="pi pi-sparkles"
+                class="w-auto p-button-info"
+                :disabled="!selectedImg || !selectedImgUrl"
+              ></Button>
+            </div>
+            <div class="mt-4 ml-0">
+              <Button
+                :disabled="readMode"
+                @click="onSave"
+                label="บันทึกรายวัน"
+                icon="pi pi-save"
+                class="w-auto p-button-success"
+              ></Button>
+            </div>
           </div>
         </div>
       </div>
@@ -2359,6 +2824,38 @@ function clearCreditor() {
         v-on:close="confirmChangeImageDialog = false"
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
+
+      <!-- OCR Result Dialog -->
+      <OcrResultDialog
+        :visible="showOcrDialog"
+        :ocrData="ocrResultData"
+        :showApplyButton="true"
+        :hasOldOcrData="
+          selectedImgData.ocranalyzeai && selectedImgData.ocranalyzeai !== ''
+        "
+        @apply-data="applyOcrData"
+        @close="closeOcrDialog"
+        @refresh-ocr="refreshOCR"
+      />
+
+      <!-- OCR Loading Dialog -->
+      <OcrLoadingDialog
+        :visible="showOcrLoadingDialog"
+        @update:visible="showOcrLoadingDialog = $event"
+      />
+
+      <!-- Account Period Warning Dialog -->
+      <DialogWarringPeriod
+        :confirmDialog="warringAccountperiod"
+        v-on:confirm="warringAccountperiod = false"
+      />
+
+      <!-- Master Data Error Dialog -->
+      <DialogMasterDataError
+        :confirmDialog="showMasterDataErrorDialog"
+        :errorData="masterDataErrorData"
+        v-on:confirm="showMasterDataErrorDialog = false"
+      />
     </MainContentWarp>
   </AppLayout>
 </template>

@@ -48,6 +48,7 @@ const emit = defineEmits([
   "selectAccount",
   "addColumn",
   "deleteDetail",
+  "testOcr",
 ]);
 
 onMounted(() => {});
@@ -144,15 +145,23 @@ function deleteDetail() {
 
 <template>
   <div class="surface-card p-2 border-round p-fluid">
-    <div class="mb-2">
+    <div class="mb-2 flex gap-2">
       <Button
         :disabled="props.readMode"
         @click="onSave"
         label="บันทึกรูปแบบการบันทึกบัญชี"
         icon="pi pi-save"
-        class="w-auto p-button-success btnSave"
+        class="p-button-success btnSave"
+      ></Button>
+      <Button
+        :disabled="readMode || !props.form_model.guidfixed"
+        @click="emit('testOcr')"
+        label="ทดสอบ OCR"
+        icon="pi pi-bolt"
+        class="p-button-info"
       ></Button>
     </div>
+
     <div class="grid formgrid mt-3">
       <div class="field col-6 md:col-6">
         <span class="p-float-label">
@@ -178,6 +187,22 @@ function deleteDetail() {
           <label>ชื่อรูปแบบบันทึกบัญชี</label>
         </span>
       </div>
+      <div class="field col-12">
+        <span class="p-float-label">
+          <Textarea
+            :disabled="props.readMode"
+            v-model="props.form_model.promptdescription"
+            rows="5"
+            class="w-full"
+            :maxlength="1000"
+          />
+          <label>คำอธิบายเพิ่มเติม (Prompt Description)</label>
+        </span>
+        <small class="text-500"
+          >{{ props.form_model.promptdescription?.length || 0 }}/1000
+          ตัวอักษร</small
+        >
+      </div>
       <div class="col-12">
         <DataTable
           :value="props.form_model.details"
@@ -199,12 +224,10 @@ function deleteDetail() {
             headerStyle="text-align:center;width: 15%"
             style="min-width: 80px"
           >
-            <template #body="{ data, field }" v-if="props.readMode">
-              {{ data[field] }}
-            </template>
-
-            <template #body="{ data, field, index }" v-if="!props.readMode">
+            <template #body="{ data, field, index }">
+              <span v-if="props.readMode">{{ data[field] }}</span>
               <InputText
+                v-else
                 :class="'actioncode_' + index"
                 v-model="data[field]"
                 @enter="focusNext(field, index)"
@@ -253,12 +276,10 @@ function deleteDetail() {
             headerStyle="text-align:center;width: 15%"
             style="min-width: 100px"
           >
-            <template #body="{ data, field }" v-if="props.readMode">
-              {{ Utils.formatCurrency(data[field]) }}
-            </template>
-
-            <template #body="{ data, field, index }" v-if="!props.readMode">
+            <template #body="{ data, field, index }">
+              <span v-if="props.readMode">{{ Utils.formatCurrency(data[field]) }}</span>
               <TextInputNumber
+                v-else
                 :class="'debit_' + index"
                 v-model="data[field]"
                 mode="decimal"
@@ -277,11 +298,10 @@ function deleteDetail() {
             headerStyle="text-align:center;width: 15%"
             style="min-width: 100px"
           >
-            <template #body="{ data, field }" v-if="props.readMode">
-              {{ Utils.formatCurrency(data[field]) }}
-            </template>
-            <template #body="{ data, field, index }" v-if="!props.readMode">
+            <template #body="{ data, field, index }">
+              <span v-if="props.readMode">{{ Utils.formatCurrency(data[field]) }}</span>
               <TextInputNumber
+                v-else
                 :class="'credit_' + index"
                 v-model="data[field]"
                 mode="decimal"

@@ -30,7 +30,7 @@ const sortOrder = ref(-1);
 
 onMounted(() => {
   // Check if there's a saved perPage value for this page
-  const savedPerPage = localStorage.getItem('images_job_daily_perPage');
+  const savedPerPage = localStorage.getItem("images_job_daily_perPage");
   if (savedPerPage) {
     limitPage.value = parseInt(savedPerPage);
   }
@@ -44,9 +44,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // เมื่อออกไปจากหน้า images_job_daily แต่ไม่ได้เปลี่ยนเมนูหลัก
   // เช็คว่ายังอยู่ในเมนู daily หรือไม่
-  if (storeApp.activePage === 'daily' && storeApp.activeChild !== 'images_job_daily') {
+  if (
+    storeApp.activePage === "daily" &&
+    storeApp.activeChild !== "images_job_daily"
+  ) {
     // ล้างค่า perPage เฉพาะเมื่อไม่ได้อยู่ในหน้า images_job_daily
-    localStorage.removeItem('images_job_daily_perPage');
+    localStorage.removeItem("images_job_daily_perPage");
   }
 });
 
@@ -106,12 +109,7 @@ function onRowSelect(data) {
       life: 3000,
     });
     return;
-  } else if (data.status == 3) {
-    router.push({
-      name: "images_job_daily_detail",
-      params: { id: data.guidfixed },
-    });
-  } else if (data.status == 4) {
+  } else if (data.status == 3 || data.status == 4) {
     router.push({
       name: "images_job_daily_detail",
       params: { id: data.guidfixed },
@@ -161,7 +159,7 @@ function onPage(active, limit) {
   firstPage.value = (active - 1) * limit;
 
   // Save the perPage value to localStorage
-  localStorage.setItem('images_job_daily_perPage', limit.toString());
+  localStorage.setItem("images_job_daily_perPage", limit.toString());
 
   getTaskList();
 }

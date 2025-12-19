@@ -49,7 +49,7 @@ const jobId = ref("");
 const fromDate = ref("");
 const toDate = ref("");
 const showOveray = ref(false);
-const selectedImag = ref("");
+const selectedImag = ref(null);
 const showImgData = ref();
 const showDocumentPreview = ref(true);
 const isSelectedDocument = ref(false);
@@ -1161,6 +1161,7 @@ async function saveComment(id, data, index) {
                       :ischeckApprove="ischeckApprove"
                       :sizeWidthImageBloc="sizeWidthImageBloc"
                       :sizeHeightImageBloc="sizeHeightImageBloc"
+                      :selectedImag="selectedImag"
                       v-on:showImg="showImg"
                     >
                     </ImageBlock>

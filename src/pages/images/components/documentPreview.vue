@@ -1,11 +1,13 @@
 <script setup>
 import DialogForm from "@/components/DialogForm.vue";
+import OcrResultDialog from "../../daily/components/ocr_result_dialog.vue";
 import { useToast } from "primevue/usetoast";
 import ImageDataService from "@/services/ImageDataService";
 import { ref, onMounted, onUnmounted, computed, defineExpose } from "vue";
 import Utils from "@/utils/";
 import PdfApp from "vue3-pdf-app";
 import "vue3-pdf-app/dist/icons/main.css";
+
 const userName = localStorage._usercode;
 const toast = useToast();
 
@@ -42,6 +44,8 @@ const isIPad = ref(false);
 const loadingCopy = ref(false);
 const dialogCopy = ref(false);
 const copyCount = ref(1);
+const showOcrDialog = ref(false);
+const ocrResultData = ref(null);
 
 const props = defineProps({
   showImgData: Object,
@@ -482,6 +486,34 @@ async function copyDocument() {
   }
 }
 
+function showOcrResult() {
+  try {
+    if (props.selectedImag && props.selectedImag.ocranalyzeai) {
+      ocrResultData.value = JSON.parse(props.selectedImag.ocranalyzeai);
+      showOcrDialog.value = true;
+    } else {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "ไม่พบข้อมูล OCR สำหรับเอกสารนี้",
+        life: 3000,
+      });
+    }
+  } catch (error) {
+    console.error("Error parsing OCR data:", error);
+    toast.add({
+      severity: "error",
+      summary: "ข้อผิดพลาด",
+      detail: "ไม่สามารถแสดงข้อมูล OCR ได้",
+      life: 3000,
+    });
+  }
+}
+
+function closeOcrDialog() {
+  showOcrDialog.value = false;
+}
+
 defineExpose({
   scrollToBottom,
 });
@@ -503,7 +535,14 @@ defineExpose({
       <div class="flex" v-if="props.modeMenu == 1 || props.modeMenu == 4"></div>
       <div class="flex" v-if="props.modeMenu == 2 || props.modeMenu == 3">
         <Button
-          v-if="props.selectedImag.references.length > 0 && props.modeMenu == 3"
+          v-if="props.selectedImag && props.selectedImag.ocranalyzeai && props.selectedImag.ocranalyzeai != '' && props.modeMenu == 3"
+          icon="pi pi-book"
+          label="OCR Result"
+          class="p-button-sm p-button-info mr-1"
+          @click="showOcrResult()"
+        />
+        <Button
+          v-if="props.selectedImag && props.selectedImag.references && props.selectedImag.references.length > 0 && props.modeMenu == 3"
           icon="pi pi-eye"
           label="รายวัน"
           class="p-button-sm p-button-success mr-1"
@@ -562,7 +601,11 @@ defineExpose({
             class="p-button-info p-button-sm mr-1"
             @click="showCopyDialog()"
             :loading="loadingCopy"
-            :disabled="props.jobStatus != 1 || props.selectedImag.imagereferences.length > 1 || props.isSelectedDocument"
+            :disabled="
+              props.jobStatus != 1 ||
+              props.selectedImag.imagereferences.length > 1 ||
+              props.isSelectedDocument
+            "
           />
           <Button
             :disabled="
@@ -981,7 +1024,17 @@ defineExpose({
       />
     </template>
   </Dialog>
+
+  <!-- OCR Result Dialog (View Only) -->
+  <OcrResultDialog
+    :visible="showOcrDialog"
+    :ocr-data="ocrResultData"
+    :show-apply-button="false"
+    @update:visible="showOcrDialog = $event"
+    @close="closeOcrDialog"
+  />
 </template>
+
 <style>
 iframe {
   display: block; /* iframes are inline by default */

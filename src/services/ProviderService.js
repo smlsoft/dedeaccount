@@ -50,12 +50,40 @@ const instanceApi = (authentication = true) => {
     return http;
 }
 
+const instanceOcrApi = () => {
+    // console.log("OCR API URL : ", process.env.VUE_APP_API_OCR);
+
+    const http = axios.create({ 
+        baseURL: process.env.VUE_APP_API_OCR
+    });
+    http.defaults.headers.common['Content-Type'] = 'application/json';
+    
+    // OCR API ไม่ต้องใช้ authentication token
+    // แต่ถ้าต้องการเพิ่มในอนาคต ก็เพิ่มได้ตรงนี้
+
+    http.interceptors.response.use(
+        function (response) {
+            return response;
+        },
+        error => {
+            if (!error.response) {
+                return Promise.reject("Network Error");
+            }
+            return Promise.reject(error);
+        }
+    )
+
+    return http;
+}
+
 
 
 export default {
-    instanceApi
+    instanceApi,
+    instanceOcrApi
 }
 
 export {
-    instanceApi
+    instanceApi,
+    instanceOcrApi
 }

@@ -43,7 +43,7 @@ export default {
     ImportGLJournal(data) {
         return instanceApi(true).post(`/gl/journal/bulk`, data).then(res => res.data);
     },
-    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDebtorName, filtersByDescription, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
+    getGLJournalList(limitPage, page, filtersByDocNo, filtersByDocDate, filtersByAccYear, filtersByAccPeriod, filtersByDebtorName, filtersByDescription, filtersByDocformat, filtersByAppname, filtersByJobguidfixed, filtersByAmount, sendFiltersByCreateDate, filtersByCreateBy, sortField, sortOrder) {
         //console.log('Page' + page);
         var docno = "";
         var docdate = "";
@@ -51,6 +51,9 @@ export default {
         var accountperiod = "";
         var debtorname = "";
         var description = "";
+        var docformat = "";
+        var appname = "";
+        var jobguidfixed = "";
         var amount = "";
         var createdate = "";
         var createdby = "";
@@ -78,6 +81,18 @@ export default {
             description = "&accountdescription=" + filtersByDescription
         }
 
+        if (filtersByDocformat != "" && filtersByDocformat != undefined && filtersByDocformat != null) {
+            docformat = "&docformat=" + filtersByDocformat
+        }
+
+        if (filtersByAppname != "" && filtersByAppname != undefined && filtersByAppname != null) {
+            appname = "&appname=" + filtersByAppname
+        }
+
+        if (filtersByJobguidfixed != "" && filtersByJobguidfixed != undefined && filtersByJobguidfixed != null) {
+            jobguidfixed = "&jobguidfixed=" + filtersByJobguidfixed
+        }
+
         if (filtersByAmount != "" && filtersByAmount != undefined && filtersByAmount != null) {
             amount = "&amount=" + filtersByAmount
         }
@@ -90,8 +105,8 @@ export default {
             createdby = "&createdby=" + filtersByCreateBy
         }
 
-        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        console.log(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${docformat}${appname}${jobguidfixed}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`);
+        return instanceApi(true).get(`/gl/journal?limit=${limitPage}&page=${page}${docno}${docdate}${accountyear}${accountperiod}${debtorname}${description}${docformat}${appname}${jobguidfixed}${amount}${createdate}${createdby}&sort=${sortField}:${sortOrder}`).then(res => res.data);
     },
 
     getGLJournalListByDocref(data) {

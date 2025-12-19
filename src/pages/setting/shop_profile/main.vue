@@ -37,7 +37,8 @@ const shopData = ref({
   ],
   settings: {
     taxid: ""
-  }
+  },
+  promptshopinfo: ""
 });
 
 onMounted(() => {
@@ -203,6 +204,20 @@ function confirmSave() {
                 />
                 <label for="address">ที่อยู่</label>
               </span>
+            </div>
+            
+            <div class="field col-12">
+              <span class="p-float-label">
+                <Textarea 
+                  id="promptshopinfo" 
+                  v-model="shopData.promptshopinfo" 
+                  rows="5" 
+                  class="w-full" 
+                  :maxlength="1000"
+                />
+                <label for="promptshopinfo">ข้อมูลร้านค้าเพิ่มเติม (Prompt Shop Info)</label>
+              </span>
+              <small class="text-500">{{ shopData.promptshopinfo?.length || 0 }}/1000 ตัวอักษร</small>
             </div>
             
             <div class="field col-12">

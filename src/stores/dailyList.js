@@ -19,6 +19,9 @@ export const useDailyList = defineStore('dailyList', {
     filtersByAccPeriod: null,
     filtersByDebtorName: null,
     filtersByDescription: null,
+    filtersByDocformat: null,
+    filtersByAppname: null,
+    filtersByJobguidfixed: null,
     filtersByAmount: null,
     filtersByCreateDate: null,
     sendFiltersByCreateDate: null,
@@ -39,6 +42,9 @@ export const useDailyList = defineStore('dailyList', {
       this.filtersByAccPeriod = null
       this.filtersByDebtorName = null
       this.filtersByDescription = null
+      this.filtersByDocformat = null
+      this.filtersByAppname = null
+      this.filtersByJobguidfixed = null
       this.filtersByAmount = null
       this.filtersByCreateDate = null
       this.sendFiltersByCreateDate = null
@@ -83,6 +89,12 @@ export const useDailyList = defineStore('dailyList', {
         this.filtersByDebtorName = null
       } else if (key === 'description') {
         this.filtersByDescription = null
+      } else if (key === 'docformat') {
+        this.filtersByDocformat = null
+      } else if (key === 'appname') {
+        this.filtersByAppname = null
+      } else if (key === 'jobguidfixed') {
+        this.filtersByJobguidfixed = null
       } else if (key === 'amount') {
         this.filtersByAmount = null
       } else if (key === 'createdate') {

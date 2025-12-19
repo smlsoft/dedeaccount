@@ -1547,9 +1547,8 @@ async function updateStatusForAllSelected(statusCode) {
                     
                   </span>
                 </div>
-                <TransitionGroup name="fade">
+                <TransitionGroup name="fade" v-if="isDataListNull == false">
                   <div
-                    v-if="isDataListNull == false"
                     class="flex"
                     v-for="(data, index) in data_list"
                     :key="data.guidfixed"
@@ -1571,6 +1570,7 @@ async function updateStatusForAllSelected(statusCode) {
                       :sizeWidthImageBloc="sizeWidthImageBloc"
                       :sizeHeightImageBloc="sizeHeightImageBloc"
                       :isSelectedDocument="isSelectedDocument"
+                      :selectedImag="selectedImag"
                       v-on:showImg="showImg"
                       v-on:selectImg="updateStatusFrist"
                       v-on:addToGroupImage="addToGroupImage"
@@ -1578,22 +1578,24 @@ async function updateStatusForAllSelected(statusCode) {
                     </ImageBlock>
                   </div>
                 </TransitionGroup>
-                <div class="flex" v-for="i in 50" :key="i" v-if="showSkeleton">
-                  <div
-                    class="text-center m-3"
-                    style="width: 90px; height: 90px"
-                  >
+                <template v-if="showSkeleton">
+                  <div class="flex" v-for="i in 50" :key="i">
                     <div
-                      class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      class="text-center m-3"
+                      style="width: 90px; height: 90px"
                     >
-                      <Skeleton
-                        style="width: 90px; height: 90px; object-fit: cover"
-                      ></Skeleton>
-                    </div>
+                      <div
+                        class="border-1 border-200 surface-50 flex align-items-center justify-content-center border-round mx-auto"
+                      >
+                        <Skeleton
+                          style="width: 90px; height: 90px; object-fit: cover"
+                        ></Skeleton>
+                      </div>
 
-                    <Skeleton class="mt-2"></Skeleton>
+                      <Skeleton class="mt-2"></Skeleton>
+                    </div>
                   </div>
-                </div>
+                </template>
               </div>
             </div>
           </SplitterPanel>

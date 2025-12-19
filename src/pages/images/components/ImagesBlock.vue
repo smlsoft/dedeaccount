@@ -49,7 +49,7 @@
             (props.sizeWidthImageBloc - 10) +
             'px;' +
             'height:' +
-            (props.sizeHeightImageBloc - 6) +
+            (props.sizeHeightImageBloc - 14) +
             'px'
           "
         />
@@ -148,6 +148,18 @@
         :binary="true"
         :readonly="true"
       />
+      <div
+        v-if="props.images_data.ocranalyzeai && props.images_data.ocranalyzeai != ''"
+        class="absolute"
+        style="bottom: 0.3rem; left: 0.3rem"
+      >
+        <div
+          class="w-1-5rem h-1-5rem bg-blue-500 border-circle shadow-2 flex align-items-center justify-content-center"
+          v-tooltip.top="'OCR แล้ว'"
+        >
+          <i class="pi pi-book text-white text-xs"></i>
+        </div>
+      </div>
     </div>
     <div class="white-space-nowrap overflow-hidden text-overflow-ellipsis">
       <span class="text-900" style="font-size: 12px">{{
@@ -212,6 +224,7 @@ const props = defineProps({
   sizeHeightImageBloc: Number,
   ischeckApprove: Boolean,
   modeMenu: Number,
+  selectedImag: Object,
 });
 const emit = defineEmits([
   "selectImg",
@@ -552,7 +565,14 @@ function borderImage() {
   let referencesImage = props.images_data.references;
   let isUseImage = checkUseImg(props.images_data.guidfixed);
 
-  if (referencesImage.length == 0) {
+  // Check if this image is currently selected in DocumentPreview
+  let isCurrentlyViewing = props.selectedImag &&
+    props.selectedImag.guidfixed === props.images_data.guidfixed;
+
+  if (isCurrentlyViewing) {
+    // Highlight the currently viewing image with a distinct border/background
+    userImageStyle = "bg-orange-200 border-3 border-orange-500 shadow-4";
+  } else if (referencesImage.length == 0) {
     if (statusImage != 2) {
       if (isUseImage) {
         userImageStyle = "bg-blue-300";

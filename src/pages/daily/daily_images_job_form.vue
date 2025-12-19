@@ -13,11 +13,15 @@ import $ from "jquery";
 import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
+import OcrResultDialog from "./components/ocr_result_dialog.vue";
+import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
+import DialogMasterDataError from "@/components/DialogMasterDataError.vue";
 
 import IncomeDataService from "@/services/IncomeDataService";
 import IncomeForm from "../income/components/detail_form.vue";
 
 import ExpensesDataService from "@/services/ExpensesDataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 import ExpensesForm from "../expenses/components/detail_form.vue";
 
 import ImageDataService from "@/services/ImageDataService";
@@ -83,6 +87,9 @@ const daily_form = ref({
   exdocrefno: "",
   journaltype: "0",
   bookcode: "",
+  appname: "",
+  jobguidfixed: "",
+  docformat: "",
   journaldetail: [
     {
       accountcode: "",
@@ -141,7 +148,6 @@ const filtersCust = ref(null);
 const sortFieldCust = ref("code");
 
 const confirmChangeImageDialog = ref(false);
-const confirmClearImageDialog = ref(false);
 const confirmBackImageDialog = ref(false);
 const newDocRefImage = ref("");
 const showThumbnails = ref(false);
@@ -168,11 +174,7 @@ const listStatusImagesByDaily = ref([
 ]);
 
 const statusImage = ref();
-const dialogOCR = ref(false);
-const responseDataOCR = ref();
 const documentFormateSelected = ref();
-const isSentOCR = ref(false);
-const isTackingStatus = ref(false);
 
 /// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
 const imageDailyType = ref(null);
@@ -273,6 +275,173 @@ const activeTabIndex = ref(0);
 
 const debtorData = ref(null);
 const creditorData = ref(null);
+
+// OCR Result Dialog
+const showOcrDialog = ref(false);
+const ocrResultData = ref(null);
+const showOcrLoadingDialog = ref(false);
+const warringAccountperiod = ref(false);
+
+// Master Data Error Dialog
+const showMasterDataErrorDialog = ref(false);
+
+// Function เพื่อดึงงวดบัญชีจากวันที่
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (res.data[0].perioddata.guidfixed != "") {
+          daily_form.value.accountperiod = res.data[0].perioddata.period;
+          emit("setAccountPeriod", res.data[0].perioddata.period);
+        } else {
+          daily_form.value.accountperiod = null;
+          emit("setAccountPeriod", null);
+          warringAccountperiod.value = true;
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      daily_form.value.accountperiod = null;
+      emit("setAccountPeriod", null);
+      warringAccountperiod.value = true;
+    });
+}
+const masterDataErrorData = ref(null);
+
+// Mock OCR Data
+const mockOcrData = {
+  accounting_entry: {
+    balance_check: {
+      balanced: true,
+      total_credit: 81541.12,
+      total_debit: 81541.12000000001,
+    },
+    creditor_code: "N/A",
+    creditor_name: "N/A",
+    document_date: "23/11/2025",
+    entries: [
+      {
+        account_code: "151050",
+        account_name: "อุปกรณ์เครื่องใช้-สำนักงาน",
+        credit: 0,
+        debit: 75833.24,
+        description: "ซื้ออุปกรณ์คอมพิวเตอร์ (Computer Set)",
+      },
+      {
+        account_code: "115810",
+        account_name: "ค่าภาษีซื้อ",
+        credit: 0,
+        debit: 5707.88,
+        description: "ภาษีซื้อจากอุปกรณ์คอมพิวเตอร์",
+      },
+      {
+        account_code: "212010",
+        account_name: "เจ้าหนี้การค้าภายในประเทศ",
+        credit: 81541.12,
+        debit: 0,
+        description: "เจ้าหนี้ค่าอุปกรณ์คอมพิวเตอร์",
+      },
+    ],
+    journal_book_code: "02",
+    journal_book_name: "สมุดรายวันซื้อ",
+    reference_number: "I1300194-6811-000098",
+  },
+  metadata: {
+    cost_thb: "฿1.51",
+    duration_sec: 90.878,
+    processed_at: "2025-12-10T11:17:11+07:00",
+    request_id: "8889d955-80eb-45c1-8835-ba3066024a7f",
+  },
+  receipt: {
+    date: {
+      value: "23/11/2025",
+      raw_text: "23/11/2025",
+      confidence: 95,
+    },
+    number: {
+      value: "I1300194-6811-000098",
+      raw_text: "I1300194-6811-000098",
+      confidence: 95,
+    },
+    total: 81541.12,
+    vat: 5707.88,
+    vendor_name: "บริษัท เจ.ไอ.บี. คอมพิวเตอร์ กรุ๊ป จำกัด",
+    vendor_tax_id: "0135541005281",
+  },
+  shopid: "2V5zu2gmRgd7sgWj3g6gu7mxYk0",
+  status: "success",
+  validation: {
+    ai_explanation: {
+      account_selection_logic: {
+        alternatives_considered: [
+          {
+            account_code: "511010",
+            account_name: "ซื้อสินค้า",
+            rejected_reason:
+              "รายการที่ซื้อเป็นอุปกรณ์คอมพิวเตอร์ ไม่ใช่สินค้าที่ซื้อมาเพื่อขายต่อโดยตรง",
+          },
+          {
+            account_code: "535030",
+            account_name: "ค่าอุปกรณ์-คอมพิวเตอร์",
+            rejected_reason:
+              "แม้จะเป็นอุปกรณ์คอมพิวเตอร์ แต่ด้วยมูลค่ารวมที่สูง (75,833.24 บาท) ควรถูกบันทึกเป็นสินทรัพย์ถาวรและตัดค่าเสื่อมราคาในภายหลัง ไม่ใช่บันทึกเป็นค่าใช้จ่ายทันที",
+          },
+          {
+            account_code: "111110",
+            account_name: "เงินสดในมือ",
+            rejected_reason:
+              "ไม่มีหลักฐานการชำระด้วยเงินสดหรือวิธีการอื่นใด จึงสันนิษฐานเป็นการซื้อเชื่อ",
+          },
+        ],
+        credit_account: {
+          account: "212010 - เจ้าหนี้การค้าภายในประเทศ",
+          confidence: 95,
+          reason:
+            "เนื่องจากไม่มีการระบุวิธีการชำระเงินในใบเสร็จ จึงสันนิษฐานว่าเป็นการซื้อเชื่อ (credit purchase) และบันทึกเป็นเจ้าหนี้การค้า. ยอดรวมที่ต้องชำระคือ 81,541.12 บาท.",
+        },
+        debit_accounts: [
+          {
+            account: "151050 - อุปกรณ์เครื่องใช้-สำนักงาน",
+            confidence: 95,
+            reason:
+              "เลือกบัญชีนี้เนื่องจากรายการที่ซื้อเป็นส่วนประกอบคอมพิวเตอร์ ซึ่งรวมกันเป็นชุดคอมพิวเตอร์ ถือเป็นสินทรัพย์ถาวรประเภทอุปกรณ์สำนักงาน. มูลค่าสุทธิ (ก่อน VAT) คือ 81,541.12 (Total Amount จาก JSON) - 5,707.88 (VAT Amount จาก JSON) = 75,833.24 บาท",
+          },
+          {
+            account: "115810 - ค่าภาษีซื้อ",
+            confidence: 95,
+            reason:
+              "ภาษีมูลค่าเพิ่มที่ระบุในใบเสร็จ 5,707.88 บาท ถูกบันทึกเป็นภาษีซื้อเพื่อรอเรียกคืนตามหลักการบัญชีภาษีมูลค่าเพิ่ม.",
+          },
+        ],
+      },
+      evidence_from_receipt: [
+        "สินค้าที่ระบุเป็นส่วนประกอบคอมพิวเตอร์ (RAM, CPU, VGA, SSD, etc.) ซึ่งรวมกันเป็นชุดคอมพิวเตอร์",
+        "ยอดรวม (total_amount) 81,541.12 บาท",
+        "ภาษีมูลค่าเพิ่ม (vat_amount) 5,707.88 บาท",
+        "เลขที่เอกสาร I1300194-6811-000098",
+        "วันที่ 23/11/2025",
+        "ผู้ขาย: บริษัท เจ.ไอ.บี. คอมพิวเตอร์ กรุ๊ป จำกัด (จากภาพใบเสร็จ)",
+        "ผลการตรวจสอบทางคณิตศาสตร์ (math_check) ระบุว่าไม่ผ่าน (false) ซึ่งบ่งชี้ถึงความไม่สอดคล้องกันของตัวเลขในใบเสร็จ",
+      ],
+      reasoning:
+        "รายการนี้เป็นการซื้อชุดอุปกรณ์คอมพิวเตอร์เพื่อใช้ในกิจการ ซึ่งถือเป็นสินทรัพย์ถาวรของบริษัท และมีภาษีมูลค่าเพิ่มที่สามารถขอคืนได้ เนื่องจากไม่มีข้อมูลการชำระเงิน จึงบันทึกเป็นเจ้าหนี้การค้า. มีความไม่สอดคล้องกันทางคณิตศาสตร์ในข้อมูลใบเสร็จรับเงินที่ให้มาและไม่พบผู้ขายใน Master Data.",
+      transaction_analysis: {
+        has_vat: true,
+        notes:
+          "การซื้ออุปกรณ์คอมพิวเตอร์ถือเป็นการลงทุนในสินทรัพย์ถาวรของกิจการ เนื่องจากมูลค่าสูงและมีอายุการใช้งานเกิน 1 ปี ไม่ใช่การซื้อมาเพื่อขายต่อหรือเป็นค่าใช้จ่ายสิ้นเปลือง. เนื่องจากไม่มีข้อมูลวิธีการชำระเงินในใบเสร็จ จึงสันนิษฐานว่าเป็นการซื้อเชื่อ (credit purchase). มีภาษีมูลค่าเพิ่ม 7%.",
+        payment_method: "credit_purchase",
+        type: "asset_purchase",
+      },
+    },
+    confidence: {
+      level: "high",
+      score: 90,
+    },
+    requires_review: true,
+  },
+};
 
 // คำนวณค่า numVisible จากจำนวนข้อมูลใน data_list
 const numVisibleGalleria = computed(() => {
@@ -983,6 +1152,9 @@ async function confirmSave() {
         : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
+    appname: daily_form.value.appname,
+    jobguidfixed: jobId.value,
+    docformat: daily_form.value.docformat,
     journaldetail: daily_form.value.journaldetail,
     parid: daily_form.value.parid,
     vats: vats.value,
@@ -1007,9 +1179,8 @@ async function confirmSave() {
         if (res.success) {
           // คำนวณจำนวนรูปใหม่
           try {
-            const statusRes = await ImageDataService.putRecountDocumentImageGroup(
-              jobId.value
-            );
+            const statusRes =
+              await ImageDataService.putRecountDocumentImageGroup(jobId.value);
             console.log("Recount result:", statusRes);
           } catch (statusErr) {
             console.error("Failed to recount images:", statusErr);
@@ -1039,9 +1210,8 @@ async function confirmSave() {
         if (res.success) {
           // คำนวณจำนวนรูปใหม่
           try {
-            const statusRes = await ImageDataService.putRecountDocumentImageGroup(
-              jobId.value
-            );
+            const statusRes =
+              await ImageDataService.putRecountDocumentImageGroup(jobId.value);
             console.log("Recount result:", statusRes);
           } catch (statusErr) {
             console.error("Failed to recount images:", statusErr);
@@ -1067,130 +1237,455 @@ async function confirmSave() {
   }
 }
 
-function readOCR() {
-  if (documentFormateSelected.value == null) {
-    toast.add({
-      severity: "warn",
-      summary: "แจ้งเตือน",
-      detail: "กรุณาเลือก รูปแบบการบันทึกบัญชี ก่อนดึงข้อมูล OCR",
-      life: 4000,
-    });
-    return;
-  }
-
-  dialogOCR.value = true;
-  responseDataOCR.value = null;
-  isTackingStatus.value = false;
-  sentOCR();
-}
-
 async function sentOCR() {
-  var data = {
-    resourcekey: doc_images.value.guidfixed,
-    urlresources: [],
-  };
-
-  doc_images.value.imagereferences.forEach((ele) => {
-    data.urlresources.push(ele.imageuri);
-  });
-
   try {
-    const res = await OcrService.postOCR(data);
-    if (res.success) {
-      console.log(res);
+    // ตรวจสอบว่ามีรูปภาพที่เลือกหรือไม่
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
 
-      res.data.forEach((ele) => {
-        if (ele.code == 200) {
-          getDataOCR();
-          // toast.add({
-          //   severity: "success",
-          //   summary: "SENT TO API OCR",
-          //   detail: "OCR SENT SUCCESS",
-          //   life: 3000,
-          // });
-        } else if (ele.code == 513) {
-          getDataOCR();
-          // toast.add({
-          //   severity: "warn",
-          //   summary: "SENT TO API OCR",
-          //   detail: "The tracking id has already been taken. tracking id ซ้ำ ",
-          //   life: 3000,
-          // });
-        } else {
-          toast.add({
-            severity: "error",
-            summary: "SENT TO API OCR",
-            detail: "OCR SENT FAIL" + ele.message,
-            life: 3000,
-          });
-        }
+    // ตรวจสอบว่ามีข้อมูล OCR เก่าหรือไม่
+    if (
+      selectedImgData.value.ocranalyzeai &&
+      selectedImgData.value.ocranalyzeai !== ""
+    ) {
+      try {
+        // แสดงข้อมูล OCR เก่า
+        const oldOcrData = JSON.parse(selectedImgData.value.ocranalyzeai);
+        ocrResultData.value = oldOcrData;
+        showOcrDialog.value = true;
+
+        toast.add({
+          severity: "info",
+          summary: "แสดงข้อมูล OCR เดิม",
+          detail: "หากต้องการอ่านใหม่ กรุณากดปุ่ม 'อ่าน OCR ใหม่' ใน dialog",
+          life: 4000,
+        });
+        return;
+      } catch (parseError) {
+        console.error("Error parsing old OCR data:", parseError);
+        // ถ้า parse ไม่ได้ ให้เรียก API ใหม่
+      }
+    }
+
+    // เปิด loading dialog
+    showOcrLoadingDialog.value = true;
+
+    // ดึง shopid จาก localStorage
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    // เตรียมข้อมูลสำหรับส่งไป API
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Sending OCR request:", requestData);
+
+    // เรียก API
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    // ตรวจสอบว่า response มีข้อมูลที่ถูกต้องหรือไม่
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    // บันทึก OCR response ลงฐานข้อมูลทันที
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response saved to database successfully");
+
+      // อัปเดตข้อมูลใน selectedImgData ด้วย
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving OCR to database:", dbError);
+      // แสดงเตือนแต่ไม่ throw error เพื่อให้แสดง dialog ต่อได้
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
       });
     }
-  } catch (err) {
-    console.log(err);
+
+    // เก็บผลลัพธ์และแสดง dialog
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
     toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: err.response.data.message,
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "วิเคราะห์เอกสารเสร็จสิ้น",
       life: 3000,
     });
+  } catch (error) {
+    console.error("OCR Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage =
+        "ไม่สามารถเชื่อมต่อกับ OCR API ได้ กรุณาตรวจสอบว่า API Server กำลังทำงานอยู่";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    // ปิด loading dialog เมื่อเสร็จสิ้น
+    showOcrLoadingDialog.value = false;
   }
 }
 
-async function getDataOCR() {
-  var data = {
-    resourcekey: doc_images.value.guidfixed,
-    urlresources: [],
-  };
-
-  doc_images.value.imagereferences.forEach((ele) => {
-    data.urlresources.push(ele.imageuri);
-  });
-
+// ฟังก์ชันสำหรับเรียก OCR ใหม่ (ไม่สนใจข้อมูลเก่า)
+async function refreshOCR() {
   try {
-    const res = await OcrService.getOCR(data);
-    if (res.success) {
-      responseDataOCR.value = res.data[0];
+    // ตรวจสอบว่ามีรูปภาพที่เลือกหรือไม่
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
 
-      if (responseDataOCR.value.data[0].tracking_status == "ReadyToCheck") {
-        isTackingStatus.value = true;
-      } else if (
-        responseDataOCR.value.data[0].tracking_status == "processing"
-      ) {
-        isTackingStatus.value = false;
-        setTimeout(() => {
-          getDataOCR();
-        }, 30000);
+    // ปิด dialog และเปิด loading
+    showOcrDialog.value = false;
+    showOcrLoadingDialog.value = true;
+
+    // ดึง shopid จาก localStorage
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    // เตรียมข้อมูลสำหรับส่งไป API
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Refreshing OCR request:", requestData);
+
+    // เรียก API
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR refresh response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    // ตรวจสอบว่า response มีข้อมูลที่ถูกต้องหรือไม่
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    // บันทึก OCR response ลงฐานข้อมูลทันที
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response refreshed and saved successfully");
+
+      // อัปเดตข้อมูลใน selectedImgData ด้วย
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving refreshed OCR to database:", dbError);
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
+      });
+    }
+
+    // เก็บผลลัพธ์และแสดง dialog
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "อ่าน OCR ใหม่เรียบร้อยแล้ว",
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("OCR Refresh Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถอ่าน OCR ใหม่ได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    showOcrLoadingDialog.value = false;
+  }
+}
+
+function applyOcrData(data) {
+  try {
+    console.log("Applying OCR data:", data);
+
+    if (!data || !data.accounting_entry) {
+      throw new Error("ข้อมูล OCR ไม่ถูกต้อง");
+    }
+
+    const accountingEntry = data.accounting_entry;
+
+    // 1. document_date → docdate และ exdocrefdate
+    if (accountingEntry.document_date) {
+      let documentDate;
+
+      // ตรวจสอบรูปแบบวันที่ (รองรับทั้ง YYYY-MM-DD และ DD/MM/YYYY)
+      if (accountingEntry.document_date.includes("-")) {
+        // รูปแบบ YYYY-MM-DD
+        documentDate = new Date(accountingEntry.document_date);
+      } else if (accountingEntry.document_date.includes("/")) {
+        // รูปแบบ DD/MM/YYYY
+        const dateParts = accountingEntry.document_date.split("/");
+        if (dateParts.length === 3) {
+          documentDate = new Date(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[0])
+          );
+        }
       }
 
-      dialogOCR.value = true;
+      if (documentDate) {
+        daily_form.value.docdate = documentDate;
+        daily_form.value.exdocrefdate = documentDate;
+        // Reset accountperiod เพื่อบังคับให้เช็คงวดบัญชีใหม่
+        daily_form.value.accountperiod = null;
+        
+        // เรียกใช้ getAccountPeriodByDate เพื่อดึงงวดบัญชี
+        const formattedDate = documentDate.toISOString().split('T')[0]; // แปลงเป็น YYYY-MM-DD
+        getAccountPeriodByDate(formattedDate);
+      }
     }
-  } catch (err) {
-    console.log(err);
+
+    // 2. journal_book_code → bookcode
+    if (accountingEntry.journal_book_code && accountBook_detail.value) {
+      const matchedBook = accountBook_detail.value.find(
+        (book) => book.code === accountingEntry.journal_book_code
+      );
+      if (matchedBook) {
+        daily_form.value.bookcode = matchedBook.code;
+      }
+    }
+
+    // 3. debtaccounttype (ตรวจสอบ debtor_code และ creditor_code)
+    if (
+      accountingEntry.debtor_code &&
+      accountingEntry.debtor_code !== null &&
+      accountingEntry.debtor_code !== "N/A"
+    ) {
+      daily_form.value.debtaccounttype = "0"; // ลูกหนี้
+      daily_form.value.debtor = accountingEntry.debtor_code;
+    } else if (
+      accountingEntry.creditor_code &&
+      accountingEntry.creditor_code !== null &&
+      accountingEntry.creditor_code !== "N/A"
+    ) {
+      daily_form.value.debtaccounttype = "1"; // เจ้าหนี้
+      daily_form.value.creditor = accountingEntry.creditor_code;
+    }
+
+    // 7. reference_number → exdocrefno
+    if (accountingEntry.reference_number) {
+      daily_form.value.exdocrefno = accountingEntry.reference_number;
+    }
+
+    // 8. document_analysis → accountdescription
+    if (data.document_analysis && data.document_analysis.analysis_notes) {
+      daily_form.value.accountdescription =
+        data.document_analysis.analysis_notes;
+    }
+
+    // 9. appname = "AI" (ค่าคงที่)
+    daily_form.value.appname = "AI";
+
+    // 10. template_name → docformat
+    if (data.template_info && data.template_info.template_name) {
+      daily_form.value.docformat = data.template_info.template_name;
+    }
+
+    // ล้างรายการเดิม
+    daily_form.value.journaldetail = [];
+
+    // เพิ่มรายการบัญชีจาก OCR
+    if (accountingEntry.entries && Array.isArray(accountingEntry.entries)) {
+      accountingEntry.entries.forEach((entry) => {
+        daily_form.value.journaldetail.push({
+          accountcode: entry.account_code || "",
+          accountname: entry.account_name || "",
+          debitamount: parseFloat(entry.debit) || 0,
+          creditamount: parseFloat(entry.credit) || 0,
+        });
+      });
+    }
+
+    // คำนวณยอดรวม
+    let totalDebit = 0;
+    let totalCredit = 0;
+    daily_form.value.journaldetail.forEach((item) => {
+      totalDebit += parseFloat(item.debitamount) || 0;
+      totalCredit += parseFloat(item.creditamount) || 0;
+    });
+
+    // อัพเดท amount ด้วยยอดรวม
+    daily_form.value.amount = totalDebit || totalCredit || "";
+
+    console.log(
+      "OCR data applied successfully. Total Debit:",
+      totalDebit,
+      "Total Credit:",
+      totalCredit
+    );
+
+    // แสดงข้อความสำเร็จ
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "นำข้อมูล OCR มาใช้เรียบร้อยแล้ว",
+      life: 3000,
+    });
+
+    showOcrDialog.value = false;
+  } catch (error) {
+    console.error("Error applying OCR data:", error);
     toast.add({
       severity: "error",
-      summary: "error",
-      detail: err.response.data.message,
+      summary: "ผิดพลาด",
+      detail: error.message || "ไม่สามารถนำข้อมูล OCR มาใช้ได้",
       life: 3000,
     });
   }
 }
 
-function saveDataOCR(data) {
-  dialogOCR.value = false;
-
-  console.log(data);
-  daily_form.value.accountdescription = data[0].body_json.sender_name;
-
-  daily_form.value.journaldetail.forEach((ele) => {
-    if (data[0].body_json.hasOwnProperty(ele.actioncode)) {
-      ele.debitamount = parseFloat(
-        data[0].body_json[ele.actioncode].replace(/,/g, "")
-      );
-    }
-  });
-
-  console.log(daily_form.value);
+function closeOcrDialog() {
+  showOcrDialog.value = false;
+  ocrResultData.value = null;
 }
 
 async function onSave() {
@@ -1294,12 +1789,8 @@ function verifyData() {
   }
 
   if (daily_form.value.accountperiod == null) {
-    toast.add({
-      severity: "error",
-      summary: "ไม่สามารถทำรายการได้",
-      detail: "วันที่เอกสาร ได้ถูกปิดงวดไปแล้ว หรือยังไม่ได้กำหนดงวดบัญชี",
-      life: 4000,
-    });
+    warringAccountperiod.value = true;
+    return false;
   }
 
   if (daily_form.value.bookcode == "") {
@@ -1309,6 +1800,7 @@ function verifyData() {
       detail: "กรุณาเลือกสมุดรายวัน",
       life: 4000,
     });
+    return false;
   }
 
   var sumCredit = 0;
@@ -2239,10 +2731,10 @@ function getAccountGroup() {
 function addBoxVat() {
   // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
   const vatDate = daily_form.value.docdate || Utils.getDateTime();
-  
+
   // ดึงเดือนจากวันที่ใบกำกับ (เดือนใน JavaScript เริ่มจาก 0)
   const vatMonth = new Date(vatDate).getMonth() + 1;
-  
+
   // กำหนดประเภทภาษีตาม debtaccounttype
   // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
   // "1" = เจ้าหนี้ → ภาษีซื้อ (vatmode = 0)
@@ -2321,10 +2813,10 @@ function setBranch(index) {
 function addBoxTax() {
   // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
   const taxDate = daily_form.value.docdate || Utils.getDateTime();
-  
+
   // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
   let custType = 0; // default เป็นบุคคลธรรมดา
-  
+
   if (daily_form.value.debtaccounttype === "0" && debtorData.value) {
     // ใช้ข้อมูลลูกหนี้
     custType = debtorData.value.custtype || 0;
@@ -2336,10 +2828,10 @@ function addBoxTax() {
   taxes.value.push({
     taxdocno: "",
     taxdate: taxDate, // ใช้วันที่เอกสาร
-   
+
     custname: "",
     custtype: custType, // ใช้ custtype จากข้อมูลลูกหนี้/เจ้าหนี้
-   
+
     custtaxid: "",
     taxtype: 0,
     address: "",
@@ -2457,7 +2949,10 @@ function clearData() {
   daily_form.value.creditor = "";
 
   // แก้ไขการล้างค่า journaldetail - คงรายการเดิมไว้แต่ล้างค่า debit และ credit
-  if (daily_form.value.journaldetail && daily_form.value.journaldetail.length > 0) {
+  if (
+    daily_form.value.journaldetail &&
+    daily_form.value.journaldetail.length > 0
+  ) {
     daily_form.value.journaldetail.forEach((item) => {
       item.debitamount = 0;
       item.creditamount = 0;
@@ -2542,13 +3037,13 @@ function clearDataIncome() {
   income_form.value.totaldiscount = 0;
   income_form.value.totalvatvalue = 0;
   income_form.value.totalbeforevat = 0;
-  income_form.value.totalaftervat = 0, /// มูลค่าหลังภาษี
-  income_form.value.totalexceptvat = 0, /// มูลค่ายกเว้นภาษี
-  income_form.value.totalamount = 0, /// มูลค่ารวมทั้งสิ้น
-  income_form.value.payment = {
-    paymenttype: 1,
-    paymentamount: 0,
-  };
+  (income_form.value.totalaftervat = 0), /// มูลค่าหลังภาษี
+    (income_form.value.totalexceptvat = 0), /// มูลค่ายกเว้นภาษี
+    (income_form.value.totalamount = 0), /// มูลค่ารวมทั้งสิ้น
+    (income_form.value.payment = {
+      paymenttype: 1,
+      paymentamount: 0,
+    });
 
   income_form_valid.value.docdate = false;
   income_form_valid.value.docno = false;
@@ -2622,27 +3117,35 @@ async function nextImageOnSave(old_img) {
   } else {
     // ถ้ารูปใน Galleria หมดแล้ว ให้เช็คว่าต้องโหลดรูปชุดใหม่หรือไม่
     try {
-      const nextPageResponse = await ImageDataService.documentimagegroupnoreserve(
-        limitPage.value,
-        activePage.value + 1, // เพิ่ม page เพื่อโหลดรูปชุดใหม่
-        searchItem.value,
-        jobId.value
-      );
-      
-      if (nextPageResponse.success && nextPageResponse.data && nextPageResponse.data.length > 0) {
+      const nextPageResponse =
+        await ImageDataService.documentimagegroupnoreserve(
+          limitPage.value,
+          activePage.value + 1, // เพิ่ม page เพื่อโหลดรูปชุดใหม่
+          searchItem.value,
+          jobId.value
+        );
+
+      if (
+        nextPageResponse.success &&
+        nextPageResponse.data &&
+        nextPageResponse.data.length > 0
+      ) {
         // ยังมีรูปชุดใหม่ที่ต้องบันทึก - โหลดมาแสดง
-        console.log('Loading next batch of images:', nextPageResponse.data.length);
+        console.log(
+          "Loading next batch of images:",
+          nextPageResponse.data.length
+        );
         data_list.value = nextPageResponse.data;
         totalItemsCount.value = nextPageResponse.pagination.total;
         activePage.value++;
         useImage(data_list.value[0].guidfixed);
       } else {
         // ไม่มีรูปที่ต้องบันทึกแล้ว - จบจริงๆ
-        console.log('No more images to process - showing completion dialog');
+        console.log("No more images to process - showing completion dialog");
         confirmCompleteDialog.value = true;
       }
     } catch (error) {
-      console.error('Error loading next batch of images:', error);
+      console.error("Error loading next batch of images:", error);
       // ถ้า error ให้แสดง dialog เสร็จสิ้น
       confirmCompleteDialog.value = true;
     }
@@ -3400,29 +3903,13 @@ function swapType(type) {
           </Splitter>
 
           <div class="flex justify-content-between">
-            <!-- <div class="mt-4 ml-0">
-              <Button
-                :disabled="!isChange"
-                @click="confirmClearImageDialog = true"
-                :label="'ยกเลิกอัพเดท'"
-                icon="pi pi-refresh"
-                class="w-auto p-button-danger"
-              ></Button>
-            </div> -->
             <div class="mt-4 ml-0">
-              <!-- <Button
+              <Button
                 @click="sentOCR"
-                label="OCR"
+                label="AI วิเคราะห์เอกสาร"
                 icon="pi pi-send"
                 class="w-auto p-button-info"
               ></Button>
-              <Button
-                :disabled="documentFormateSelected == null"
-                @click="getDataOCR"
-                label="GET DATA OCR"
-                icon="pi pi-cloud-download"
-                class="w-auto p-button-warning ml-2"
-              ></Button> -->
             </div>
 
             <div
@@ -3543,15 +4030,7 @@ function swapType(type) {
           confirmBackImageDialog = false;
         "
       ></DialogForm>
-      <DialogForm
-        :confirmDialog="confirmClearImageDialog"
-        :textContent="'ต้องการล้างข้อมูลใช่หรือไม่'"
-        v-on:close="confirmClearImageDialog = false"
-        v-on:confirm="
-          clearData();
-          confirmClearImageDialog = false;
-        "
-      ></DialogForm>
+
       <DialogForm
         :confirmDialog="confirmSaveDialog"
         :textContent="conSave"
@@ -3575,39 +4054,56 @@ function swapType(type) {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
+
+      <!-- OCR Loading Dialog -->
       <Dialog
-        v-model:visible="dialogOCR"
-        appendTo="body"
+        v-model:visible="showOcrLoadingDialog"
         :modal="true"
-        :breakpoints="{ '960px': '75vw', '640px': '100vw' }"
-        :style="{ width: '40vw' }"
-        header="DATA RESPONSE OCR"
+        :closable="false"
+        :draggable="false"
+        :style="{ width: '400px' }"
+        header="กำลังวิเคราะห์เอกสาร"
       >
-        <div class="flex flex-column align-items-center">
-          <span
-            class="flex align-items-center justify-content-center text-cyan-800 mr-3 border-circle mb-3"
-            v-if="!isTackingStatus"
-          >
-            <ProgressSpinner />
-          </span>
-          <div class="font-medium text-1xl text-900" v-if="!isTackingStatus">
-            กำลังประมวลผลข้อมูล OCR
+        <div
+          class="flex flex-column align-items-center justify-content-center"
+          style="padding: 2rem 0"
+        >
+          <ProgressSpinner
+            style="width: 80px; height: 80px"
+            strokeWidth="4"
+            animationDuration="1.5s"
+          />
+          <div class="mt-4 text-center">
+            <div class="text-lg font-semibold mb-2">กำลังประมวลผลเอกสาร</div>
+            <div class="text-sm text-500">กรุณารอสักครู่...</div>
           </div>
         </div>
-        <p class="line-height-3 p-0 m-0" v-if="isTackingStatus">
-          {{ responseDataOCR.data }}
-        </p>
-        <template #footer>
-          <div class="border-top-1 surface-border pt-3">
-            <Button
-              icon="pi pi-save"
-              :disabled="!isTackingStatus"
-              @click="saveDataOCR(responseDataOCR.data)"
-              label="นำเข้าข้อมูล"
-            ></Button>
-          </div>
-        </template>
       </Dialog>
+
+      <!-- OCR Result Dialog -->
+      <OcrResultDialog
+        v-model:visible="showOcrDialog"
+        :ocrData="ocrResultData"
+        :hasOldOcrData="
+          selectedImgData.ocranalyzeai && selectedImgData.ocranalyzeai !== ''
+        "
+        @apply-data="applyOcrData"
+        @close="closeOcrDialog"
+        @refresh-ocr="refreshOCR"
+      />
+
+      <!-- Account Period Warning Dialog -->
+      <DialogWarringPeriod
+        :confirmDialog="warringAccountperiod"
+        v-on:confirm="warringAccountperiod = false"
+      />
+
+      <!-- Master Data Error Dialog -->
+      <DialogMasterDataError
+        :confirmDialog="showMasterDataErrorDialog"
+        :errorData="masterDataErrorData"
+        v-on:confirm="showMasterDataErrorDialog = false"
+      />
     </MainContentWarp>
   </AppLayout>
 </template>

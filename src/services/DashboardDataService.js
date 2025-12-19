@@ -13,5 +13,13 @@ export default {
     getUserShop() {
         return instanceApi(true).get(`/shop/users`).then(res => res.data);
     },
+    
+    // Dashboard specific APIs - get all data for statistics
+    getGLJournalListForDashboard() {
+        return instanceApi(true).get(`/gl/journal?limit=9999`).then(res => res.data);
+    },
+    getDocumentImageGroupForDashboard() {
+        return instanceApi(true).get(`/documentimagegroup?limit=9999`).then(res => res.data);
+    },
 }
 

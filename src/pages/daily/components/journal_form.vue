@@ -703,12 +703,12 @@ function navigateHorizontal(currentIndex, currentField, direction) {
         <Dropdown
           showClear
           class="w-full md:w-14rem"
-          v-model="props.daily_form.documentformate"
+          v-model="props.daily_form.docformat"
           :options="props.document_formate"
           :disabled="props.isUpdate"
           :filter="true"
           :filterFields="['doccode', 'description']"
-          optionValue="doccode"
+          optionValue="description"
           optionLabel="label"
           filterPlaceholder="ค้นหา"
           placeholder="เลือก"
@@ -802,12 +802,12 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           <Dropdown
             showClear
             class="w-full md:w-14rem"
-            v-model="props.daily_form.documentformate"
+            v-model="props.daily_form.docformat"
             :options="props.document_formate"
             :disabled="props.isUpdate"
             :filter="true"
             :filterFields="['doccode', 'description']"
-            optionValue="doccode"
+            optionValue="description"
             optionLabel="label"
             filterPlaceholder="ค้นหา"
             placeholder="เลือก"

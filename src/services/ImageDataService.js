@@ -55,6 +55,11 @@ export default {
         return instanceApi(true).put(`/documentimagegroup/` + id + `/status`, data).then(res => res.data);
     },
 
+    // update /documentimagegroup/{guid}
+    putUpdateDocumentImageGroup(id, data) {
+        return instanceApi(true).put(`/documentimagegroup/` + id, data).then(res => res.data);
+    },
+
     // recount document image group คำนวณจำนวนรูปใหม่
     putRecountDocumentImageGroup(id) {
         return instanceApi(true).put(`/documentimagegroup/task/` + id + `/recount`).then(res => res.data);

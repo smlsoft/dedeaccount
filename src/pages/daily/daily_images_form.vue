@@ -3,6 +3,11 @@ import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
+import OcrService from "@/services/OcrService";
+import OcrResultDialog from "./components/ocr_result_dialog.vue";
+import OcrLoadingDialog from "@/components/OcrLoadingDialog.vue";
+import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
+import DialogMasterDataError from "@/components/DialogMasterDataError.vue";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted, watch } from "vue";
@@ -14,6 +19,7 @@ import JournalForm from "./components/journal_form.vue";
 import VatForm from "./components/vat_form.vue";
 import TaxForm from "./components/tax_form.vue";
 import ImageDataService from "../../services/ImageDataService";
+import AccountPeriodDataService from "@/services/AccountPeriodService";
 
 const storeApp = useApp();
 const content = ref();
@@ -105,6 +111,9 @@ const daily_form = ref({
   exdocrefno: "",
   journaltype: "0",
   bookcode: "",
+  appname: "",
+  jobguidfixed: "",
+  docformat: "",
   journaldetail: [
     {
       accountcode: "",
@@ -148,6 +157,37 @@ const vats_valid = ref([
     branchcode: false,
   },
 ]);
+
+const showOcrDialog = ref(false);
+const ocrResultData = ref(null);
+const showOcrLoadingDialog = ref(false);
+const warringAccountperiod = ref(false);
+
+// Function เพื่อดึงงวดบัญชีจากวันที่
+function getAccountPeriodByDate(keyDate) {
+  AccountPeriodDataService.getAccountPeriodByDate(keyDate)
+    .then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (res.data[0].perioddata.guidfixed != "") {
+          daily_form.value.accountperiod = res.data[0].perioddata.period;
+        } else {
+          daily_form.value.accountperiod = null;
+          warringAccountperiod.value = true;
+        }
+      }
+    })
+    .catch((err) => {
+      console.log(err.response.data.message);
+      daily_form.value.accountperiod = null;
+      warringAccountperiod.value = true;
+    });
+}
+
+// Master Data Error Dialog
+const showMasterDataErrorDialog = ref(false);
+const masterDataErrorData = ref(null);
+
 const taxes = ref([]);
 const connection = ref();
 const taxes_valid = ref([
@@ -549,6 +589,9 @@ async function confirmSave() {
         : "0001-01-01T00:00:00Z",
     exdocrefno: daily_form.value.exdocrefno,
     bookcode: daily_form.value.bookcode,
+    appname: daily_form.value.appname,
+    jobguidfixed: daily_form.value.jobguidfixed,
+    docformat: daily_form.value.docformat,
     journaldetail: daily_form.value.journaldetail,
     parid: daily_form.value.parid,
     vats: vats.value,
@@ -658,6 +701,12 @@ function verifyData() {
     daily_form_valid.value.bookcode = true;
   } else {
     daily_form_valid.value.bookcode = false;
+  }
+
+  // เช็คงวดบัญชี - ถ้าไม่มีห้ามบันทึก
+  if (daily_form.value.accountperiod == null || daily_form.value.accountperiod == "") {
+    warringAccountperiod.value = true;
+    return false;
   }
 
   var sumCredit = 0;
@@ -1739,6 +1788,418 @@ function resizeGalleria(e) {
   console.log(e.sizes);
   setWidthPanelForm2(e.sizes[0], e.sizes[1]);
 }
+
+// OCR Functions
+async function sentOCR() {
+  try {
+    // ตรวจสอบว่ามีรูปภาพที่เลือกหรือไม่
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
+
+    // ตรวจสอบว่ามีข้อมูล OCR เก่าหรือไม่
+    if (
+      selectedImgData.value.ocranalyzeai &&
+      selectedImgData.value.ocranalyzeai !== ""
+    ) {
+      try {
+        // แสดงข้อมูล OCR เก่า
+        const oldOcrData = JSON.parse(selectedImgData.value.ocranalyzeai);
+        ocrResultData.value = oldOcrData;
+        showOcrDialog.value = true;
+
+        toast.add({
+          severity: "info",
+          summary: "แสดงข้อมูล OCR เดิม",
+          detail: "หากต้องการอ่านใหม่ กรุณากดปุ่ม 'อ่าน OCR ใหม่' ใน dialog",
+          life: 4000,
+        });
+        return;
+      } catch (parseError) {
+        console.error("Error parsing old OCR data:", parseError);
+        // ถ้า parse ไม่ได้ ให้เรียก API ใหม่
+      }
+    }
+
+    // เปิด loading dialog
+    showOcrLoadingDialog.value = true;
+
+    // ดึง shopid จาก localStorage
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    // เตรียมข้อมูลสำหรับส่งไป API
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Sending OCR request:", requestData);
+
+    // เรียก API
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    // ตรวจสอบว่า response มีข้อมูลที่ถูกต้องหรือไม่
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    // บันทึก OCR response ลงฐานข้อมูลทันที
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response saved to database successfully");
+
+      // อัปเดตข้อมูลใน selectedImgData ด้วย
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving OCR to database:", dbError);
+      // แสดงเตือนแต่ไม่ throw error เพื่อให้แสดง dialog ต่อได้
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
+      });
+    }
+
+    // เก็บผลลัพธ์และแสดง dialog
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "วิเคราะห์เอกสารเสร็จสิ้น",
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("OCR Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    showOcrLoadingDialog.value = false;
+  }
+}
+
+async function refreshOCR() {
+  try {
+    if (
+      !selectedImgData.value ||
+      !selectedImgData.value.imagereferences ||
+      selectedImgData.value.imagereferences.length === 0
+    ) {
+      toast.add({
+        severity: "warn",
+        summary: "แจ้งเตือน",
+        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
+        life: 3000,
+      });
+      return;
+    }
+
+    showOcrDialog.value = false;
+    showOcrLoadingDialog.value = true;
+
+    const shopid =
+      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
+
+    if (!shopid) {
+      throw new Error("ไม่พบ shopid ใน localStorage");
+    }
+
+    const requestData = {
+      shopid: shopid,
+      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
+        documentimageguid: img.documentimageguid,
+        imageuri: img.imageuri,
+      })),
+    };
+
+    console.log("Refreshing OCR request:", requestData);
+
+    const response = await OcrService.analyzeReceipt(requestData);
+
+    console.log("OCR response:", response);
+
+    // ตรวจสอบว่ามี error จาก API หรือไม่
+    if (response && response.status === "error") {
+      if (response.error === "master_data_not_found") {
+        // กรณีไม่มี Master Data - แสดง Dialog
+        masterDataErrorData.value = response;
+        showMasterDataErrorDialog.value = true;
+        return;
+      } else {
+        // กรณี error อื่นๆ
+        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
+      }
+    }
+
+    if (!response || !response.accounting_entry) {
+      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
+    }
+
+    try {
+      const updateData = {
+        ...selectedImgData.value,
+        ocranalyzeai: JSON.stringify(response),
+      };
+
+      await ImageDataService.putUpdateDocumentImageGroup(
+        selectedImgData.value.guidfixed,
+        updateData
+      );
+
+      console.log("OCR response saved to database successfully");
+      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
+    } catch (dbError) {
+      console.error("Error saving OCR to database:", dbError);
+      toast.add({
+        severity: "warn",
+        summary: "เตือน",
+        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
+        life: 3000,
+      });
+    }
+
+    ocrResultData.value = response;
+    showOcrDialog.value = true;
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "วิเคราะห์เอกสารใหม่เสร็จสิ้น",
+      life: 3000,
+    });
+  } catch (error) {
+    console.error("OCR Error:", error);
+
+    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
+    if (error.response && error.response.data) {
+      const responseData = error.response.data;
+      
+      if (responseData.error === "master_data_not_found") {
+        // แสดง Dialog สำหรับ Master Data Error
+        masterDataErrorData.value = responseData;
+        showMasterDataErrorDialog.value = true;
+        return;
+      }
+    }
+
+    // กรณี error อื่นๆ
+    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
+
+    if (error.response) {
+      errorMessage =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        errorMessage;
+    } else if (error.request) {
+      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: errorMessage,
+      life: 5000,
+    });
+  } finally {
+    showOcrLoadingDialog.value = false;
+  }
+}
+
+function applyOcrData(data) {
+  try {
+    console.log("Applying OCR data:", data);
+
+    if (!data || !data.accounting_entry) {
+      throw new Error("ข้อมูล OCR ไม่ถูกต้อง");
+    }
+
+    const accountingEntry = data.accounting_entry;
+
+    // 1. document_date → docdate และ exdocrefdate
+    if (accountingEntry.document_date) {
+      let documentDate;
+
+      if (accountingEntry.document_date.includes("-")) {
+        documentDate = new Date(accountingEntry.document_date);
+      } else if (accountingEntry.document_date.includes("/")) {
+        const dateParts = accountingEntry.document_date.split("/");
+        if (dateParts.length === 3) {
+          documentDate = new Date(
+            parseInt(dateParts[2]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[0])
+          );
+        }
+      }
+
+      if (documentDate) {
+        daily_form.value.docdate = documentDate;
+        daily_form.value.exdocrefdate = documentDate;
+        // Reset accountperiod เพื่อบังคับให้เช็คงวดบัญชีใหม่
+        daily_form.value.accountperiod = null;
+        
+        // เรียกใช้ getAccountPeriodByDate เพื่อดึงงวดบัญชี
+        const formattedDate = documentDate.toISOString().split('T')[0]; // แปลงเป็น YYYY-MM-DD
+        getAccountPeriodByDate(formattedDate);
+      }
+    }
+
+    // 2. journal_book_code → bookcode
+    if (accountingEntry.journal_book_code && accountBook_detail.value) {
+      const matchedBook = accountBook_detail.value.find(
+        (book) => book.code === accountingEntry.journal_book_code
+      );
+      if (matchedBook) {
+        daily_form.value.bookcode = matchedBook.code;
+      }
+    }
+
+    // 7. reference_number → exdocrefno
+    if (accountingEntry.reference_number) {
+      daily_form.value.exdocrefno = accountingEntry.reference_number;
+    }
+
+    // 8. document_analysis → accountdescription
+    if (data.document_analysis && data.document_analysis.analysis_notes) {
+      daily_form.value.accountdescription =
+        data.document_analysis.analysis_notes;
+    }
+
+    // 9. appname = "AI" (ค่าคงที่)
+    daily_form.value.appname = "AI";
+
+    // 10. template_name → docformat
+    if (data.template_info && data.template_info.template_name) {
+      daily_form.value.docformat = data.template_info.template_name;
+    }
+
+    // ล้างรายการเดิม
+    daily_form.value.journaldetail = [];
+
+    // เพิ่มรายการบัญชีจาก OCR
+    if (accountingEntry.entries && Array.isArray(accountingEntry.entries)) {
+      accountingEntry.entries.forEach((entry) => {
+        daily_form.value.journaldetail.push({
+          accountcode: entry.account_code || "",
+          accountname: entry.account_name || "",
+          debitamount: parseFloat(entry.debit) || 0,
+          creditamount: parseFloat(entry.credit) || 0,
+        });
+      });
+    }
+
+    // คำนวณยอดรวม
+    let totalDebit = 0;
+    let totalCredit = 0;
+    daily_form.value.journaldetail.forEach((item) => {
+      totalDebit += parseFloat(item.debitamount) || 0;
+      totalCredit += parseFloat(item.creditamount) || 0;
+    });
+
+    daily_form.value.amount = totalDebit || totalCredit || "";
+
+    console.log("OCR data applied successfully");
+
+    toast.add({
+      severity: "success",
+      summary: "สำเร็จ",
+      detail: "นำข้อมูล OCR มาใช้เรียบร้อยแล้ว",
+      life: 3000,
+    });
+
+    showOcrDialog.value = false;
+  } catch (error) {
+    console.error("Error applying OCR data:", error);
+    toast.add({
+      severity: "error",
+      summary: "ผิดพลาด",
+      detail: error.message || "ไม่สามารถนำข้อมูล OCR มาใช้ได้",
+      life: 3000,
+    });
+  }
+}
+
+function closeOcrDialog() {
+  showOcrDialog.value = false;
+  ocrResultData.value = null;
+}
 </script>
 
 <template>
@@ -1947,13 +2408,20 @@ function resizeGalleria(e) {
             </SplitterPanel>
           </Splitter>
           <div class="flex justify-content-between">
-            <div class="mt-4 ml-0">
+            <div class="mt-4 ml-0 flex gap-2">
               <Button
                 :disabled="!isChange"
                 @click="confirmClearImageDialog = true"
                 :label="'ยกเลิกอัพเดท'"
                 icon="pi pi-refresh"
                 class="w-auto p-button-danger"
+              ></Button>
+              <Button
+                @click="sentOCR"
+                label="AI วิเคราะห์เอกสาร"
+                icon="pi pi-sparkles"
+                class="w-auto p-button-info"
+                :disabled="!selectedImg || !selectedImgUrl"
               ></Button>
             </div>
             <div class="mt-4 ml-0">
@@ -2059,6 +2527,38 @@ function resizeGalleria(e) {
         "
         v-on:confirm="changeImage(newDocRefImage)"
       ></DialogForm>
+
+      <!-- OCR Result Dialog -->
+      <OcrResultDialog
+        :visible="showOcrDialog"
+        :ocrData="ocrResultData"
+        :showApplyButton="true"
+        :hasOldOcrData="
+          selectedImgData.ocranalyzeai && selectedImgData.ocranalyzeai !== ''
+        "
+        @apply-data="applyOcrData"
+        @close="closeOcrDialog"
+        @refresh-ocr="refreshOCR"
+      />
+
+      <!-- OCR Loading Dialog -->
+      <OcrLoadingDialog
+        :visible="showOcrLoadingDialog"
+        @update:visible="showOcrLoadingDialog = $event"
+      />
+
+      <!-- Account Period Warning Dialog -->
+      <DialogWarringPeriod
+        :confirmDialog="warringAccountperiod"
+        v-on:confirm="warringAccountperiod = false"
+      />
+
+      <!-- Master Data Error Dialog -->
+      <DialogMasterDataError
+        :confirmDialog="showMasterDataErrorDialog"
+        :errorData="masterDataErrorData"
+        v-on:confirm="showMasterDataErrorDialog = false"
+      />
     </MainContentWarp>
   </AppLayout>
 </template>

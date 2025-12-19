@@ -41,6 +41,18 @@
               class="mr-2 mb-2"
             />
           </div>
+          <div
+            class="absolute"
+            style="bottom: 0.5rem; left: 0.3rem"
+            v-if="props.images_data.ocranalyzeai && props.images_data.ocranalyzeai != ''"
+          >
+            <div
+              class="w-2rem h-2rem bg-blue-500 border-circle shadow-2 flex align-items-center justify-content-center"
+              v-tooltip.top="'OCR แล้ว'"
+            >
+              <i class="pi pi-book text-white text-sm"></i>
+            </div>
+          </div>
         </div>
         <div class="flex justify-content-between align-items-center mb-2">
           <span
