@@ -10,13 +10,8 @@
     <div v-if="ocrData">
       <!-- สถานะด้านบน - แบบกระชับ -->
       <div class="surface-50 border-round-sm p-2 mb-2">
-        <div class="flex gap-2 flex-wrap">
-          <div class="flex-1 min-w-max">
-            <div class="surface-0 border-round-sm p-2 text-center">
-              <div class="text-500 text-xs mb-1">สถานะ</div>
-              <Tag :value="ocrData.status" severity="success" class="font-semibold" />
-            </div>
-          </div>
+        <div class="flex gap-2 flex-wrap align-items-center">
+          <!-- สถานะการบันทึก (สำคัญที่สุด) -->
           <div class="flex-1 min-w-max">
             <div class="surface-0 border-round-sm p-2 text-center">
               <div class="text-500 text-xs mb-1">สถานะการบันทึก</div>
@@ -26,41 +21,22 @@
                   escape: false,
                   style: { maxWidth: '400px', whiteSpace: 'pre-line' }
                 }"
-                :value="ocrData.validation?.review_requirements?.can_proceed ? 'บันทึกได้' : (ocrData.validation?.requires_review ? 'ต้องตรวจสอบ' : 'พร้อมใช้')"
-                :severity="ocrData.validation?.review_requirements?.can_proceed ? 'success' : (ocrData.validation?.requires_review ? 'warning' : 'success')"
+                :value="getCanProceedLabel()"
+                :severity="getCanProceedSeverity()"
                 class="font-semibold cursor-pointer"
               />
             </div>
           </div>
-          <div v-if="ocrData.validation?.review_requirements?.summary" class="flex-1 min-w-max">
-            <div class="surface-0 border-round-sm p-2 text-center" :class="{
-              'border-1 border-red-500': ocrData.validation.review_requirements.summary.blocking_issues > 0,
-              'border-1 border-orange-500': ocrData.validation.review_requirements.summary.warnings > 0 && !ocrData.validation.review_requirements.summary.blocking_issues
-            }">
-              <div class="text-500 text-xs mb-1">จุดตรวจสอบ</div>
-              <Tag
-                :value="`${ocrData.validation.review_requirements.summary.blocking_issues + ocrData.validation.review_requirements.summary.warnings + ocrData.validation.review_requirements.summary.info} รายการ`"
-                :severity="ocrData.validation.review_requirements.summary.blocking_issues > 0 ? 'danger' : (ocrData.validation.review_requirements.summary.warnings > 0 ? 'warning' : 'info')"
-                class="font-semibold"
-              />
-            </div>
-          </div>
-          <div v-if="ocrData.metadata?.ocr_warnings?.length > 0" class="flex-1 min-w-max">
-            <div class="surface-0 border-round-sm p-2 text-center border-1 border-orange-500">
-              <div class="text-500 text-xs mb-1">คำเตือน OCR</div>
-              <Tag
-                :value="`${ocrData.metadata.ocr_warnings.length} รายการ`"
-                severity="warning"
-                class="font-semibold"
-              />
-            </div>
-          </div>
+
+          <!-- ความเชื่อมั่น -->
           <div class="flex-1 min-w-max">
             <div class="surface-0 border-round-sm p-2 text-center">
               <div class="text-500 text-xs mb-1">ความเชื่อมั่น</div>
               <div class="text-900 font-bold">{{ ocrData.validation?.confidence?.score }}%</div>
             </div>
           </div>
+
+          <!-- สมดุล -->
           <div class="flex-1 min-w-max">
             <div class="surface-0 border-round-sm p-2 text-center">
               <div class="text-500 text-xs mb-1">สมดุล</div>
@@ -71,16 +47,40 @@
               />
             </div>
           </div>
-          <div class="flex-1 min-w-max">
-            <div class="surface-0 border-round-sm p-2 text-center">
-              <div class="text-500 text-xs mb-1">เทมเพลต</div>
-              <div class="text-900 font-semibold text-sm">{{ ocrData.template_info?.template_name || '-' }}</div>
+
+          <!-- จุดตรวจสอบ (ถ้ามี) -->
+          <div v-if="hasReviewSummary()" class="flex-1 min-w-max">
+            <div class="surface-0 border-round-sm p-2 text-center" :class="getReviewSummaryBorderClass()">
+              <div class="text-500 text-xs mb-1">จุดตรวจสอบ</div>
+              <Tag
+                :value="getReviewSummaryLabel()"
+                :severity="getReviewSummarySeverity()"
+                class="font-semibold"
+              />
             </div>
           </div>
+
+          <!-- OCR Provider -->
           <div class="flex-1 min-w-max">
             <div class="surface-0 border-round-sm p-2 text-center">
-              <div class="text-500 text-xs mb-1">ต้นทุน</div>
-              <div class="text-green-600 font-bold text-sm">{{ ocrData.metadata?.token_usage?.cost_thb || '-' }}</div>
+              <div class="text-500 text-xs mb-1">OCR Provider</div>
+              <Tag
+                :value="ocrData.metadata?.ocr_provider?.toUpperCase() || 'N/A'"
+                :severity="ocrData.metadata?.ocr_provider === 'mistral' ? 'success' : 'info'"
+                class="font-semibold"
+              />
+            </div>
+          </div>
+
+          <!-- คำเตือน OCR (ถ้ามี) -->
+          <div v-if="ocrData.metadata?.ocr_warnings?.length > 0" class="flex-1 min-w-max">
+            <div class="surface-0 border-round-sm p-2 text-center border-1 border-orange-500">
+              <div class="text-500 text-xs mb-1">⚠️ คำเตือน</div>
+              <Tag
+                :value="`${ocrData.metadata.ocr_warnings.length} รายการ`"
+                severity="warning"
+                class="font-semibold"
+              />
             </div>
           </div>
         </div>
@@ -472,121 +472,119 @@
                   <div class="col-6">
                     <div class="surface-0 border-round-sm p-2 text-center">
                       <div class="text-xs text-500 mb-1">ระดับความสำคัญ</div>
-                      <div class="font-semibold text-lg">
-                        {{ ocrData.validation.review_requirements.ระดับความสำคัญ || ocrData.validation.review_requirements.review_priority }}
-                      </div>
+                      <Tag
+                        :value="getPriorityLabel(ocrData.validation.review_requirements.priority || ocrData.validation.review_requirements.ระดับความสำคัญ || ocrData.validation.review_requirements.review_priority)"
+                        :severity="getPrioritySeverity(ocrData.validation.review_requirements.priority || ocrData.validation.review_requirements.ระดับความสำคัญ)"
+                      />
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="surface-0 border-round-sm p-2 text-center">
                       <div class="text-xs text-500 mb-1">สามารถบันทึก</div>
                       <Tag
-                        :value="ocrData.validation.review_requirements.สามารถบันทึก !== undefined ? (ocrData.validation.review_requirements.สามารถบันทึก ? 'ได้' : 'ไม่ได้') : (ocrData.validation.review_requirements.can_proceed ? 'ได้' : 'ไม่ได้')"
-                        :severity="(ocrData.validation.review_requirements.สามารถบันทึก !== undefined ? ocrData.validation.review_requirements.สามารถบันทึก : ocrData.validation.review_requirements.can_proceed) ? 'success' : 'danger'"
+                        :value="getCanSaveValue(ocrData.validation.review_requirements)"
+                        :severity="getCanSaveSeverity(ocrData.validation.review_requirements)"
                       />
                     </div>
                   </div>
 
                   <!-- สถานะ -->
-                  <div v-if="ocrData.validation.review_requirements.สถานะ" class="col-12">
+                  <div v-if="ocrData.validation.review_requirements.status || ocrData.validation.review_requirements.สถานะ" class="col-12">
                     <div class="surface-0 border-round-sm p-2">
                       <div class="text-xs text-500 mb-1">สถานะ</div>
-                      <div class="font-semibold">{{ ocrData.validation.review_requirements.สถานะ }}</div>
+                      <Tag
+                        :value="getStatusLabel(ocrData.validation.review_requirements.status || ocrData.validation.review_requirements.สถานะ)"
+                        :severity="getStatusSeverity(ocrData.validation.review_requirements.status || ocrData.validation.review_requirements.สถานะ)"
+                      />
                     </div>
                   </div>
 
                   <!-- คำแนะนำ -->
-                  <div v-if="ocrData.validation.review_requirements.คำแนะนำ" class="col-12">
+                  <div v-if="ocrData.validation.review_requirements.message || ocrData.validation.review_requirements.คำแนะนำ" class="col-12">
                     <div class="surface-0 border-round-sm p-2">
-                      <div class="text-xs text-500 mb-1">💡 คำแนะนำ</div>
-                      <div class="text-sm">{{ ocrData.validation.review_requirements.คำแนะนำ }}</div>
+                      <div class="text-xs text-500 mb-1"><i class="pi pi-lightbulb text-primary"></i> คำแนะนำ</div>
+                      <div class="text-sm">{{ ocrData.validation.review_requirements.message || ocrData.validation.review_requirements.คำแนะนำ }}</div>
                     </div>
                   </div>
 
                   <!-- คะแนนรวม -->
-                  <div v-if="ocrData.validation.review_requirements.คะแนนรวม" class="col-12">
+                  <div v-if="ocrData.validation.review_requirements.overall_score || ocrData.validation.review_requirements.คะแนนรวม" class="col-12">
                     <div class="surface-0 border-round-sm p-2 text-center">
-                      <div class="text-xs text-500 mb-1">📊 คะแนนรวม</div>
-                      <div class="font-bold text-2xl text-primary">{{ ocrData.validation.review_requirements.คะแนนรวม }}</div>
+                      <div class="text-xs text-500 mb-1"><i class="pi pi-chart-bar text-primary"></i> คะแนนรวม</div>
+                      <div class="font-bold text-2xl text-primary">{{ ocrData.validation.review_requirements.overall_score || ocrData.validation.review_requirements.คะแนนรวม }}</div>
                     </div>
                   </div>
 
                   <!-- รายการตรวจสอบ -->
-                  <div v-if="ocrData.validation.review_requirements.รายการตรวจสอบ && ocrData.validation.review_requirements.รายการตรวจสอบ.length > 0" class="col-12">
+                  <div v-if="(ocrData.validation.review_requirements.issues && ocrData.validation.review_requirements.issues.length > 0) || (ocrData.validation.review_requirements.รายการตรวจสอบ && ocrData.validation.review_requirements.รายการตรวจสอบ.length > 0)" class="col-12">
                     <div class="surface-0 border-round-sm p-2">
-                      <div class="text-xs text-500 mb-2">📋 รายการตรวจสอบ</div>
-                      <div v-for="(item, idx) in ocrData.validation.review_requirements.รายการตรวจสอบ" :key="idx" class="mb-2 p-2 surface-50 border-round">
+                      <div class="text-xs text-500 mb-2"><i class="pi pi-list text-primary"></i> รายการตรวจสอบ</div>
+                      <div v-for="(item, idx) in (ocrData.validation.review_requirements.issues || ocrData.validation.review_requirements.รายการตรวจสอบ)" :key="idx" class="mb-2 p-2 surface-50 border-round">
                         <div class="flex justify-content-between align-items-start mb-1">
-                          <div class="font-semibold text-sm">{{ item.สถานะ }} {{ item.หัวข้อ }}</div>
-                          <Tag :value="`${item.คะแนน}%`" :severity="item.คะแนน >= 80 ? 'success' : item.คะแนน >= 60 ? 'warning' : 'danger'" />
+                          <div class="flex align-items-center gap-2">
+                            <i :class="getCategoryIcon(item.category || item.หัวข้อ)" class="text-primary"></i>
+                            <span class="font-semibold text-sm">{{ getCategoryLabel(item.category || item.หัวข้อ) }}</span>
+                            <span v-if="item.party_type" class="text-xs text-500">({{ item.party_type }})</span>
+                          </div>
+                          <Tag
+                            :value="getLevelLabel(item.status || item.สถานะ, item.score || item.คะแนน)"
+                            :severity="getLevelSeverity(item.status || item.สถานะ, item.score || item.คะแนน)"
+                          />
                         </div>
-                        <div class="text-xs text-600 mb-1">{{ item.ปัญหา }}</div>
-                        <div v-if="item.ต้องตรวจสอบ" class="text-xs text-orange-600">🔸 {{ item.ต้องตรวจสอบ }}</div>
+                        <div class="text-xs text-600 mb-1">{{ item.issue || item.ปัญหา }}</div>
+                        <div v-if="item.action || item.ต้องตรวจสอบ" class="text-xs text-orange-600">
+                          <i class="pi pi-arrow-right text-xs"></i> {{ item.action || item.ต้องตรวจสอบ }}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <!-- วิธีแก้ไข -->
-                  <div v-if="ocrData.validation.review_requirements.วิธีแก้ไข && ocrData.validation.review_requirements.วิธีแก้ไข.length > 0" class="col-12">
+                  <div v-if="(ocrData.validation.review_requirements.actions && ocrData.validation.review_requirements.actions.length > 0) || (ocrData.validation.review_requirements.วิธีแก้ไข && ocrData.validation.review_requirements.วิธีแก้ไข.length > 0)" class="col-12">
                     <div class="surface-0 border-round-sm p-2">
-                      <div class="text-xs text-500 mb-2">🔧 วิธีแก้ไข</div>
+                      <div class="text-xs text-500 mb-2"><i class="pi pi-wrench text-primary"></i> วิธีแก้ไข</div>
                       <ul class="m-0 pl-3">
-                        <li v-for="(fix, idx) in ocrData.validation.review_requirements.วิธีแก้ไข" :key="idx" class="text-sm mb-1">
+                        <li v-for="(fix, idx) in (ocrData.validation.review_requirements.actions || ocrData.validation.review_requirements.วิธีแก้ไข)" :key="idx" class="text-sm mb-1">
                           {{ fix }}
                         </li>
                       </ul>
                     </div>
                   </div>
 
-                  <!-- สรุป (ภาษาไทย) -->
-                  <div v-if="ocrData.validation.review_requirements.สรุป" class="col-12">
+                  <!-- สรุป -->
+                  <div v-if="ocrData.validation.review_requirements.summary || ocrData.validation.review_requirements.สรุป" class="col-12">
                     <div class="surface-0 border-round-sm p-2">
-                      <div class="text-xs text-500 mb-2">📊 สรุป</div>
+                      <div class="text-xs text-500 mb-2"><i class="pi pi-chart-pie text-primary"></i> สรุป</div>
                       <div class="flex gap-2 flex-wrap">
-                        <Tag v-if="ocrData.validation.review_requirements.สรุป.ปัญหาร้ายแรง > 0"
-                             :value="`ปัญหาร้ายแรง: ${ocrData.validation.review_requirements.สรุป.ปัญหาร้ายแรง}`"
+                        <Tag v-if="getSummaryValue(ocrData.validation.review_requirements, 'blocking') > 0"
+                             :value="`ปัญหาร้ายแรง: ${getSummaryValue(ocrData.validation.review_requirements, 'blocking')}`"
                              severity="danger" />
-                        <Tag v-if="ocrData.validation.review_requirements.สรุป.ควรตรวจสอบ > 0"
-                             :value="`ควรตรวจสอบ: ${ocrData.validation.review_requirements.สรุป.ควรตรวจสอบ}`"
+                        <Tag v-if="getSummaryValue(ocrData.validation.review_requirements, 'warning') > 0"
+                             :value="`ควรตรวจสอบ: ${getSummaryValue(ocrData.validation.review_requirements, 'warning')}`"
                              severity="warning" />
-                        <Tag v-if="ocrData.validation.review_requirements.สรุป.จำนวนปัญหา > 0"
-                             :value="`จำนวนปัญหา: ${ocrData.validation.review_requirements.สรุป.จำนวนปัญหา}`"
+                        <Tag v-if="getSummaryValue(ocrData.validation.review_requirements, 'info') > 0"
+                             :value="`ข้อมูล: ${getSummaryValue(ocrData.validation.review_requirements, 'info')}`"
                              severity="info" />
+                        <Tag v-if="getSummaryValue(ocrData.validation.review_requirements, 'total') > 0"
+                             :value="`จำนวนรวม: ${getSummaryValue(ocrData.validation.review_requirements, 'total')}`"
+                             severity="secondary" />
                       </div>
                     </div>
                   </div>
 
                   <!-- ฟิลด์ที่หายไป -->
-                  <div v-if="ocrData.validation.review_requirements.ฟิลด์ที่หายไป && ocrData.validation.review_requirements.ฟิลด์ที่หายไป.length > 0" class="col-12">
+                  <div v-if="(ocrData.validation.review_requirements.missing_fields && ocrData.validation.review_requirements.missing_fields.length > 0) || (ocrData.validation.review_requirements.ฟิลด์ที่หายไป && ocrData.validation.review_requirements.ฟิลด์ที่หายไป.length > 0)" class="col-12">
                     <Message severity="warn" :closable="false">
                       <div class="text-sm">
-                        <div class="font-semibold mb-1">⚠️ ฟิลด์ที่หายไป:</div>
+                        <div class="font-semibold mb-1"><i class="pi pi-exclamation-triangle"></i> ฟิลด์ที่หายไป:</div>
                         <div class="flex gap-2 flex-wrap">
-                          <Tag v-for="(field, idx) in ocrData.validation.review_requirements.ฟิลด์ที่หายไป"
+                          <Tag v-for="(field, idx) in (ocrData.validation.review_requirements.missing_fields || ocrData.validation.review_requirements.ฟิลด์ที่หายไป)"
                                :key="idx"
                                :value="field"
                                severity="warning" />
                         </div>
                       </div>
                     </Message>
-                  </div>
-
-                  <!-- Fallback สำหรับ response แบบเก่า (ภาษาอังกฤษ) -->
-                  <div v-if="ocrData.validation.review_requirements.summary && !ocrData.validation.review_requirements.สรุป" class="col-12">
-                    <div class="surface-0 border-round-sm p-2">
-                      <div class="text-xs text-500 mb-2">สรุป</div>
-                      <div class="flex gap-2">
-                        <Tag v-if="ocrData.validation.review_requirements.summary.blocking_issues > 0"
-                             :value="`ปัญหาร้ายแรง: ${ocrData.validation.review_requirements.summary.blocking_issues}`"
-                             severity="danger" />
-                        <Tag v-if="ocrData.validation.review_requirements.summary.warnings > 0"
-                             :value="`คำเตือน: ${ocrData.validation.review_requirements.summary.warnings}`"
-                             severity="warning" />
-                        <Tag v-if="ocrData.validation.review_requirements.summary.info > 0"
-                             :value="`ข้อมูล: ${ocrData.validation.review_requirements.summary.info}`"
-                             severity="info" />
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -898,11 +896,11 @@
                   <Tag :value="`${data.image_index + 1}`" severity="secondary" class="text-xs" />
                 </template>
               </Column>
-              <Column field="type" header="ประเภท" style="width: 100px">
+              <Column field="type" header="ประเภท" style="width: 150px">
                 <template #body="{ data }">
                   <Tag
-                    :value="data.type === 'receipt' ? 'ใบเสร็จ' : data.type"
-                    :severity="data.type === 'receipt' ? 'success' : 'info'"
+                    :value="getDocumentTypeLabel(data.type)"
+                    :severity="getDocumentTypeSeverity(data.type)"
                     class="text-xs"
                   />
                 </template>
@@ -1056,18 +1054,30 @@
               <div class="text-xs text-500 mb-1">Request ID</div>
               <div class="font-mono text-xs">{{ ocrData.metadata?.request_id }}</div>
             </div>
-            <div class="flex gap-2">
-              <div class="flex-1 surface-0 border-round-sm p-2 text-center">
-                <div class="text-xs text-500 mb-1">ประมวลผลเมื่อ</div>
-                <div class="font-semibold text-sm">{{ ocrData.metadata?.processed_at }}</div>
+            <div class="grid mb-2">
+              <div class="col-6">
+                <div class="surface-0 border-round-sm p-2 text-center">
+                  <div class="text-xs text-500 mb-1">ประมวลผลเมื่อ</div>
+                  <div class="font-semibold text-sm">{{ formatProcessedDate(ocrData.metadata?.processed_at) }}</div>
+                </div>
               </div>
-              <div class="flex-1 surface-0 border-round-sm p-2 text-center">
-                <div class="text-xs text-500 mb-1">ระยะเวลา</div>
-                <div class="font-bold text-lg text-primary">{{ ocrData.metadata?.duration_sec }}s</div>
+              <div class="col-6">
+                <div class="surface-0 border-round-sm p-2 text-center">
+                  <div class="text-xs text-500 mb-1">ระยะเวลา</div>
+                  <div class="font-bold text-lg text-primary">{{ ocrData.metadata?.duration_sec }}s</div>
+                </div>
               </div>
-              <div class="flex-1 surface-0 border-round-sm p-2 text-center">
-                <div class="text-xs text-500 mb-1">จำนวนภาพ</div>
-                <div class="font-bold text-lg text-primary">{{ ocrData.metadata?.images_processed }}</div>
+              <div class="col-6">
+                <div class="surface-0 border-round-sm p-2 text-center">
+                  <div class="text-xs text-500 mb-1">จำนวนภาพ</div>
+                  <div class="font-bold text-lg text-primary">{{ ocrData.metadata?.images_processed }}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="surface-0 border-round-sm p-2 text-center">
+                  <div class="text-xs text-500 mb-1">OCR Provider</div>
+                  <Tag :value="ocrData.metadata?.ocr_provider?.toUpperCase() || 'N/A'" :severity="ocrData.metadata?.ocr_provider === 'mistral' ? 'success' : 'info'" />
+                </div>
               </div>
             </div>
           </div>
@@ -1108,11 +1118,66 @@
           <!-- Token Usage -->
           <div v-if="ocrData.metadata?.token_usage" class="surface-50 border-round-sm p-2">
             <div class="font-semibold text-sm mb-2">ค่าใช้จ่ายและ Token</div>
-            <div class="surface-0 border-round-sm p-2 text-center mb-2">
-              <div class="text-xs text-500 mb-1">ค่าใช้จ่ายทั้งหมด</div>
-              <div class="font-bold text-2xl text-green-600">{{ ocrData.metadata.token_usage.cost_thb }}</div>
+
+            <!-- ค่าใช้จ่ายรวม -->
+            <div class="surface-0 border-round-sm p-2 text-center mb-2 border-2 border-green-500">
+              <div class="text-xs text-500 mb-1">💰 ค่าใช้จ่ายทั้งหมด</div>
+              <div class="font-bold text-2xl text-green-600">
+                {{ ocrData.metadata.token_usage.total?.cost_thb || ocrData.metadata.token_usage.cost_thb || 'N/A' }}
+              </div>
+              <div v-if="ocrData.metadata.token_usage.total?.cost_usd" class="text-xs text-500 mt-1">
+                ({{ ocrData.metadata.token_usage.total.cost_usd }})
+              </div>
             </div>
-            <div class="flex gap-2">
+
+            <!-- OCR Usage (Mistral) -->
+            <div v-if="ocrData.metadata.token_usage.ocr_usage" class="surface-0 border-round-sm p-2 mb-2">
+              <div class="flex justify-content-between align-items-center mb-2">
+                <div class="flex align-items-center gap-2">
+                  <i class="pi pi-eye text-primary"></i>
+                  <span class="font-semibold text-sm">OCR Processing ({{ ocrData.metadata.token_usage.ocr_usage.provider?.toUpperCase() }})</span>
+                </div>
+                <Tag :value="ocrData.metadata.token_usage.ocr_usage.cost_thb" severity="success" class="text-xs" />
+              </div>
+              <div class="grid">
+                <div class="col-6">
+                  <div class="text-xs text-500">Pages Processed</div>
+                  <div class="font-bold">{{ ocrData.metadata.token_usage.ocr_usage.pages_processed }}</div>
+                </div>
+                <div class="col-6">
+                  <div class="text-xs text-500">Cost (USD)</div>
+                  <div class="font-semibold">{{ ocrData.metadata.token_usage.ocr_usage.cost_usd }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Processing -->
+            <div v-if="ocrData.metadata.token_usage.ai_processing" class="surface-0 border-round-sm p-2 mb-2">
+              <div class="flex justify-content-between align-items-center mb-2">
+                <div class="flex align-items-center gap-2">
+                  <i class="pi pi-sparkles text-primary"></i>
+                  <span class="font-semibold text-sm">AI Processing ({{ ocrData.metadata.token_usage.ai_processing.provider?.toUpperCase() }})</span>
+                </div>
+                <Tag :value="ocrData.metadata.token_usage.ai_processing.cost_thb" severity="info" class="text-xs" />
+              </div>
+              <div class="grid">
+                <div class="col-4">
+                  <div class="text-xs text-500 mb-1">Input Tokens</div>
+                  <div class="font-bold">{{ ocrData.metadata.token_usage.ai_processing.input_tokens?.toLocaleString() }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-xs text-500 mb-1">Output Tokens</div>
+                  <div class="font-bold">{{ ocrData.metadata.token_usage.ai_processing.output_tokens?.toLocaleString() }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="text-xs text-500 mb-1">Total Tokens</div>
+                  <div class="font-bold text-primary">{{ ocrData.metadata.token_usage.ai_processing.total_tokens?.toLocaleString() }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fallback: แสดงแบบเดิมถ้าไม่มี ocr_usage และ ai_processing -->
+            <div v-if="!ocrData.metadata.token_usage.ocr_usage && !ocrData.metadata.token_usage.ai_processing" class="flex gap-2">
               <div class="flex-1 surface-0 border-round-sm p-2 text-center">
                 <div class="text-xs text-500 mb-1">Input</div>
                 <div class="font-bold">{{ ocrData.metadata.token_usage.input_tokens?.toLocaleString() }}</div>
@@ -1223,6 +1288,219 @@ const props = defineProps({
 
 const emit = defineEmits(["update:visible", "apply-data", "close", "refresh-ocr"]);
 
+// Helper functions สำหรับ Priority
+function getPriorityLabel(priority) {
+  if (!priority) return '-';
+  
+  // ถ้าเป็นภาษาไทย (แบบเก่า) ให้ return ตรงๆ
+  if (typeof priority === 'string' && (priority.includes('🟢') || priority.includes('🟡') || priority.includes('🔴'))) {
+    return priority.replace(/🟢|🟡|🔴/g, '').trim();
+  }
+  
+  const labels = {
+    'none': 'ไม่มีปัญหา',
+    'low': 'ต่ำ',
+    'medium': 'ปานกลาง',
+    'high': 'สูง'
+  };
+  return labels[priority] || priority;
+}
+
+function getPrioritySeverity(priority) {
+  if (!priority) return 'secondary';
+  
+  const severityMap = {
+    'none': 'success',
+    'low': 'success',
+    'medium': 'warning',
+    'high': 'danger'
+  };
+  return severityMap[priority] || 'secondary';
+}
+
+// Helper functions สำหรับ Status
+function getStatusLabel(status) {
+  if (!status) return '-';
+  
+  // ถ้าเป็นภาษาไทย (แบบเก่า) ให้ return ตรงๆ โดยลบ emoji ออก
+  if (typeof status === 'string' && (status.includes('✅') || status.includes('⚠️') || status.includes('❌'))) {
+    return status.replace(/✅|⚠️|❌|🔍/g, '').trim();
+  }
+  
+  const labels = {
+    'passed': 'ผ่าน',
+    'should_review': 'ควรตรวจสอบ',
+    'recommended_review': 'แนะนำให้ตรวจสอบ',
+    'must_fix': 'ต้องแก้ไข'
+  };
+  return labels[status] || status;
+}
+
+function getStatusSeverity(status) {
+  if (!status) return 'secondary';
+  
+  const severityMap = {
+    'passed': 'success',
+    'should_review': 'warning',
+    'recommended_review': 'warning',
+    'must_fix': 'danger'
+  };
+  return severityMap[status] || 'secondary';
+}
+
+// Helper functions สำหรับ Can Save
+function getCanSaveValue(reviewReq) {
+  if (!reviewReq) return 'ไม่ได้';
+  
+  // รองรับภาษาไทย (แบบเก่า)
+  if (reviewReq.สามารถบันทึก !== undefined) {
+    return reviewReq.สามารถบันทึก ? 'ได้' : 'ไม่ได้';
+  }
+  
+  // รองรับภาษาอังกฤษ (แบบใหม่)
+  if (reviewReq.can_save !== undefined) {
+    return reviewReq.can_save ? 'ได้' : 'ไม่ได้';
+  }
+  
+  // Fallback
+  return reviewReq.can_proceed ? 'ได้' : 'ไม่ได้';
+}
+
+function getCanSaveSeverity(reviewReq) {
+  if (!reviewReq) return 'danger';
+  
+  // รองรับภาษาไทย (แบบเก่า)
+  if (reviewReq.สามารถบันทึก !== undefined) {
+    return reviewReq.สามารถบันทึก ? 'success' : 'danger';
+  }
+  
+  // รองรับภาษาอังกฤษ (แบบใหม่)
+  if (reviewReq.can_save !== undefined) {
+    return reviewReq.can_save ? 'success' : 'danger';
+  }
+  
+  // Fallback
+  return reviewReq.can_proceed ? 'success' : 'danger';
+}
+
+// Helper functions สำหรับ Category
+function getCategoryLabel(category) {
+  if (!category) return '-';
+  
+  // ถ้าเป็นภาษาไทย (แบบเก่า) ให้ return ตรงๆ โดยลบ emoji ออก
+  if (typeof category === 'string' && (category.includes('🎯') || category.includes('👥') || category.includes('📊') || category.includes('✅') || category.includes('💰'))) {
+    return category.replace(/🎯|👥|📊|✅|💰/g, '').trim();
+  }
+  
+  const labels = {
+    'template': 'เทมเพลต',
+    'party': 'คู่ค้า',
+    'data_completeness': 'ข้อมูลครบถ้วน',
+    'field_validation': 'รูปแบบข้อมูล',
+    'balance': 'ยอดเงินสมดุล'
+  };
+  return labels[category] || category;
+}
+
+function getCategoryIcon(category) {
+  if (!category) return 'pi pi-circle';
+  
+  // ถ้าเป็นภาษาไทย ให้จับคำสำคัญ
+  if (typeof category === 'string') {
+    if (category.includes('เทมเพลต')) return 'pi pi-clone';
+    if (category.includes('คู่ค้า') || category.includes('เจ้าหนี้') || category.includes('ลูกหนี้')) return 'pi pi-users';
+    if (category.includes('ครบถ้วน')) return 'pi pi-check-circle';
+    if (category.includes('รูปแบบ')) return 'pi pi-verified';
+    if (category.includes('สมดุล')) return 'pi pi-dollar';
+  }
+  
+  const icons = {
+    'template': 'pi pi-clone',
+    'party': 'pi pi-users',
+    'data_completeness': 'pi pi-check-circle',
+    'field_validation': 'pi pi-verified',
+    'balance': 'pi pi-dollar'
+  };
+  return icons[category] || 'pi pi-circle';
+}
+
+// Helper functions สำหรับ Level (Score)
+function getLevelLabel(status, score) {
+  // ถ้ามีสถานะแบบไทย (แบบเก่า) return ตรงๆ โดยลบ emoji
+  if (typeof status === 'string' && (status.includes('✅') || status.includes('⚠️') || status.includes('❌'))) {
+    return status.replace(/✅|⚠️|❌/g, '').trim();
+  }
+  
+  // ใช้ status แบบใหม่
+  if (status) {
+    const labels = {
+      'excellent': 'ดีมาก',
+      'good': 'ดี',
+      'fair': 'พอใช้',
+      'poor': 'ต่ำ',
+      'very_poor': 'ต่ำมาก'
+    };
+    if (labels[status]) return labels[status];
+  }
+  
+  // Fallback: ใช้คะแนน
+  if (score !== undefined && score !== null) {
+    if (score >= 90) return 'ดีมาก';
+    if (score >= 80) return 'ดี';
+    if (score >= 70) return 'พอใช้';
+    if (score >= 60) return 'ต่ำ';
+    return 'ต่ำมาก';
+  }
+  
+  return score !== undefined ? `${score}%` : '-';
+}
+
+function getLevelSeverity(status, score) {
+  // ใช้ status แบบใหม่
+  if (status) {
+    const severityMap = {
+      'excellent': 'success',
+      'good': 'success',
+      'fair': 'warning',
+      'poor': 'warning',
+      'very_poor': 'danger'
+    };
+    if (severityMap[status]) return severityMap[status];
+  }
+  
+  // Fallback: ใช้คะแนน
+  if (score !== undefined && score !== null) {
+    if (score >= 80) return 'success';
+    if (score >= 60) return 'warning';
+    return 'danger';
+  }
+  
+  return 'secondary';
+}
+
+// Helper functions สำหรับ Summary
+function getSummaryValue(reviewReq, type) {
+  if (!reviewReq) return 0;
+  
+  // ภาษาไทย (แบบเก่า)
+  if (reviewReq.สรุป) {
+    if (type === 'blocking') return reviewReq.สรุป.ปัญหาร้ายแรง || 0;
+    if (type === 'warning') return reviewReq.สรุป.ควรตรวจสอบ || 0;
+    if (type === 'info') return reviewReq.สรุป.ข้อมูล || 0;
+    if (type === 'total') return reviewReq.สรุป.จำนวนปัญหา || 0;
+  }
+  
+  // ภาษาอังกฤษ (แบบใหม่)
+  if (reviewReq.summary) {
+    if (type === 'blocking') return reviewReq.summary.blocking_issues || 0;
+    if (type === 'warning') return reviewReq.summary.warnings || 0;
+    if (type === 'info') return reviewReq.summary.info || 0;
+    if (type === 'total') return reviewReq.summary.total_issues || 0;
+  }
+  
+  return 0;
+}
+
 function getReviewTooltip() {
   if (!props.ocrData?.validation) return '';
 
@@ -1287,14 +1565,170 @@ function getReviewTooltip() {
 
 function getConfidenceTooltip() {
   if (!props.ocrData?.validation?.confidence) return '';
-  
+
   const { level, score } = props.ocrData.validation.confidence;
-  
+
   const levelLabels = {
     'low': 'ต่ำ (0-60%)',
     'medium': 'ปานกลาง (61-80%)',
     'high': 'สูง (81-100%)'
   };
+}
+
+function getDocumentTypeLabel(type) {
+  const typeLabels = {
+    'receipt': 'ใบเสร็จ',
+    'tax_certificate': 'หนังสือรับรองหักภาษี',
+    'invoice': 'ใบแจ้งหนี้',
+    'tax_invoice': 'ใบกำกับภาษี',
+    'bill': 'ใบบิล',
+    'payment_receipt': 'ใบเสร็จรับเงิน'
+  };
+  return typeLabels[type] || type;
+}
+
+function getDocumentTypeSeverity(type) {
+  const severityMap = {
+    'receipt': 'success',
+    'tax_certificate': 'warning',
+    'invoice': 'info',
+    'tax_invoice': 'info',
+    'bill': 'secondary',
+    'payment_receipt': 'success'
+  };
+  return severityMap[type] || 'info';
+}
+
+function getCanProceedLabel() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+  if (!reviewReq) {
+    return props.ocrData?.validation?.requires_review ? 'ต้องตรวจสอบ' : 'พร้อมใช้';
+  }
+
+  // รองรับภาษาไทย
+  if (reviewReq.สามารถบันทึก !== undefined) {
+    return reviewReq.สามารถบันทึก ? 'บันทึกได้' : 'ต้องตรวจสอบ';
+  }
+
+  // รองรับภาษาอังกฤษ
+  if (reviewReq.can_proceed !== undefined) {
+    return reviewReq.can_proceed ? 'บันทึกได้' : 'ต้องตรวจสอบ';
+  }
+
+  return props.ocrData?.validation?.requires_review ? 'ต้องตรวจสอบ' : 'พร้อมใช้';
+}
+
+function getCanProceedSeverity() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+  if (!reviewReq) {
+    return props.ocrData?.validation?.requires_review ? 'warning' : 'success';
+  }
+
+  // รองรับภาษาไทย
+  if (reviewReq.สามารถบันทึก !== undefined) {
+    return reviewReq.สามารถบันทึก ? 'success' : 'warning';
+  }
+
+  // รองรับภาษาอังกฤษ
+  if (reviewReq.can_proceed !== undefined) {
+    return reviewReq.can_proceed ? 'success' : 'warning';
+  }
+
+  return props.ocrData?.validation?.requires_review ? 'warning' : 'success';
+}
+
+function hasReviewSummary() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+  return reviewReq?.summary || reviewReq?.สรุป;
+}
+
+function getReviewSummaryLabel() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+
+  // ภาษาไทย
+  if (reviewReq?.สรุป) {
+    const { ปัญหาร้ายแรง = 0, ควรตรวจสอบ = 0, จำนวนปัญหา = 0 } = reviewReq.สรุป;
+    const total = ปัญหาร้ายแรง + ควรตรวจสอบ + (จำนวนปัญหา || 0);
+    return `${total} รายการ`;
+  }
+
+  // ภาษาอังกฤษ
+  if (reviewReq?.summary) {
+    const { blocking_issues = 0, warnings = 0, info = 0 } = reviewReq.summary;
+    const total = blocking_issues + warnings + info;
+    return `${total} รายการ`;
+  }
+
+  return '0 รายการ';
+}
+
+function getReviewSummarySeverity() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+
+  // ภาษาไทย
+  if (reviewReq?.สรุป) {
+    const { ปัญหาร้ายแรง = 0, ควรตรวจสอบ = 0 } = reviewReq.สรุป;
+    if (ปัญหาร้ายแรง > 0) return 'danger';
+    if (ควรตรวจสอบ > 0) return 'warning';
+    return 'info';
+  }
+
+  // ภาษาอังกฤษ
+  if (reviewReq?.summary) {
+    const { blocking_issues = 0, warnings = 0 } = reviewReq.summary;
+    if (blocking_issues > 0) return 'danger';
+    if (warnings > 0) return 'warning';
+    return 'info';
+  }
+
+  return 'info';
+}
+
+function getReviewSummaryBorderClass() {
+  const reviewReq = props.ocrData?.validation?.review_requirements;
+
+  // ภาษาไทย
+  if (reviewReq?.สรุป) {
+    const { ปัญหาร้ายแรง = 0, ควรตรวจสอบ = 0 } = reviewReq.สรุป;
+    if (ปัญหาร้ายแรง > 0) return 'border-1 border-red-500';
+    if (ควรตรวจสอบ > 0) return 'border-1 border-orange-500';
+    return '';
+  }
+
+  // ภาษาอังกฤษ
+  if (reviewReq?.summary) {
+    const { blocking_issues = 0, warnings = 0 } = reviewReq.summary;
+    if (blocking_issues > 0) return 'border-1 border-red-500';
+    if (warnings > 0) return 'border-1 border-orange-500';
+    return '';
+  }
+
+  return '';
+}
+
+function formatProcessedDate(dateString) {
+  if (!dateString) return '-';
+
+  try {
+    // Parse ISO 8601 datetime (e.g., "2025-12-19T13:34:47+07:00")
+    const date = new Date(dateString);
+
+    // Format: "19 ธ.ค. 2568, 13:34:47"
+    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+                        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+    const day = date.getDate();
+    const month = thaiMonths[date.getMonth()];
+    const year = date.getFullYear() + 543; // แปลงเป็น พ.ศ.
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 }
 
 function refreshOcr() {
@@ -1381,5 +1815,15 @@ function applyData() {
     padding-right: 0 !important;
     padding-left: 0 !important;
   }
+}
+
+/* ลดขนาด font ของ TabPanel headers */
+:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link) {
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
+:deep(.p-tabview .p-tabview-nav li .p-tabview-nav-link i) {
+  font-size: 0.875rem;
 }
 </style>

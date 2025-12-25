@@ -237,19 +237,31 @@ function deleteDetailTableTax(data, index) {
 </script>
 
 <template>
-  <div
-    class="flex justify-content-between flex-wrap m-0 mb-3 p-0 text-900 line-height-3"
-  >
-    <div class="flex align-items-center justify-content-center">
-      รวมฐานภาษี : {{ Utils.formatCurrency(sum_taxbase) }} บาท
-    </div>
-    <div class="flex align-items-center justify-content-center font-bold">
-      รวมภาษีหัก ณ ที่จ่าย : {{ Utils.formatCurrency(sum_taxamount) }} บาท
+  <div style="height: 100%; display: flex; flex-direction: column; overflow-y: auto;">
+  <!-- Sticky Header with Summary and Add Button -->
+  <div class="tax-sticky-header surface-card">
+    <div class="flex justify-content-between align-items-center flex-wrap">
+      <div class="flex align-items-center gap-4">
+        <div class="flex align-items-center">
+          <span class="text-sm text-600">รวมฐานภาษี:</span>
+          <span class="ml-2 font-semibold text-900">{{ Utils.formatCurrency(sum_taxbase) }} บาท</span>
+        </div>
+        <div class="flex align-items-center">
+          <span class="text-sm text-600">รวมภาษีหัก ณ ที่จ่าย:</span>
+          <span class="ml-2 font-bold text-900 text-primary">{{ Utils.formatCurrency(sum_taxamount) }} บาท</span>
+        </div>
+      </div>
+      <Button
+        v-if="!props.isUpdate"
+        label="เพิ่มรายการ"
+        icon="pi pi-plus"
+        class="p-button-success mt-2"
+        @click="addBoxTax()"
+      />
     </div>
   </div>
-  
-  <!-- ปรับความสูงให้เต็มพื้นที่ของ tab -->
-  <div class="tax-scroll-container" style="height: calc(100vh - 200px); overflow-y: auto;">
+
+  <div class="tax-scroll-container">
     <div
       class="surface-card p-4 shadow-2 mb-3 border-round"
       v-for="(data, indexx) in props.taxes"
@@ -487,14 +499,6 @@ function deleteDetailTableTax(data, index) {
       </div>
     </div>
   </div>
-  <div class="mt-4 flex justify-content-end">
-    <Button
-      v-if="!props.isUpdate"
-      icon="pi pi-plus"
-      class="p-button-rounded p-button-success p-button-lg"
-      @click="addBoxTax()"
-    />
-  </div>
 
   <DialogForm
     :confirmDialog="deleteDetailTaxDialog"
@@ -502,29 +506,20 @@ function deleteDetailTableTax(data, index) {
     v-on:close="deleteDetailTaxDialog = false"
     v-on:confirm="deleteDetailTax"
   ></DialogForm>
+  </div>
 </template>
 
 <style scoped>
-.tax-scroll-container {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #f7fafc;
-}
-
-.tax-scroll-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tax-scroll-container::-webkit-scrollbar-track {
-  background: #f7fafc;
-  border-radius: 3px;
-}
-
-.tax-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 3px;
-}
-
-.tax-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+/* Sticky Header */
+.tax-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
 }
 </style>

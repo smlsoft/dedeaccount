@@ -464,11 +464,11 @@ function navigateHorizontal(currentIndex, currentField, direction) {
 </script>
 
 <template>
-  <form>
-    <div
-      class="grid formgrid p-fluid"
-      v-if="props.income_expenses_mode == false"
-    >
+  <form style="height: 100%; display: flex; flex-direction: column; overflow-y: auto;">
+        <div
+          class="grid formgrid p-fluid"
+          v-if="props.income_expenses_mode == false"
+        >
       <div class="field mb-4 col-12 md:col-3">
         <span class="p-float-label">
           <DatePicker

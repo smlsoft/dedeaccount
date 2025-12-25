@@ -161,20 +161,35 @@ function handleVatPeriodInput(event, index) {
 </script>
 
 <template>
-  <div
-    class="flex justify-content-between flex-wrap m-0 mb-3 p-0 text-900 line-height-3"
-  >
-    <div class="flex align-items-center justify-content-center">
-      รวมฐานภาษี : {{ Utils.formatCurrency(sum_vatbase) }} บาท |
-      รวมยอดยกเว้นภาษี : {{ Utils.formatCurrency(sum_vat_exemption) }} บาท
-    </div>
-    <div class="flex align-items-center justify-content-center font-bold">
-      รวมยอดภาษี : {{ Utils.formatCurrency(sum_vatamount) }} บาท
+  <div style="height: 100%; display: flex; flex-direction: column; overflow-y: auto;">
+  <!-- Sticky Header with Summary and Add Button -->
+  <div class="vat-sticky-header surface-card">
+    <div class="flex justify-content-between align-items-center flex-wrap">
+      <div class="flex align-items-center gap-4">
+        <div class="flex align-items-center">
+          <span class="text-sm text-600">รวมฐานภาษี:</span>
+          <span class="ml-2 font-semibold text-900">{{ Utils.formatCurrency(sum_vatbase) }} บาท</span>
+        </div>
+        <div class="flex align-items-center">
+          <span class="text-sm text-600">รวมยอดยกเว้นภาษี:</span>
+          <span class="ml-2 font-semibold text-900">{{ Utils.formatCurrency(sum_vat_exemption) }} บาท</span>
+        </div>
+        <div class="flex align-items-center">
+          <span class="text-sm text-600">รวมยอดภาษี:</span>
+          <span class="ml-2 font-bold text-900 text-primary">{{ Utils.formatCurrency(sum_vatamount) }} บาท</span>
+        </div>
+      </div>
+      <Button
+        v-if="!props.isUpdate"
+        label="เพิ่มรายการ"
+        icon="pi pi-plus"
+        class="p-button-success mt-2"
+        @click="addBoxVat()"
+      />
     </div>
   </div>
-  
-  <!-- ปรับความสูงให้เต็มพื้นที่ของ tab -->
-  <div class="vat-scroll-container" style="height: calc(100vh - 200px); overflow-y: auto;">
+
+  <div class="vat-scroll-container">
     <div
       class="surface-card p-4 shadow-2 mb-3 border-round"
       v-for="(data, index) in props.vats"
@@ -445,43 +460,27 @@ function handleVatPeriodInput(event, index) {
       </div>
     </div>
   </div>
-  <div class="mt-4 flex justify-content-end">
-    <Button
-      v-if="!props.isUpdate"
-      icon="pi pi-plus"
-      class="p-button-rounded p-button-success p-button-lg"
-      @click="addBoxVat()"
-    />
-  </div>
+
   <DialogForm
     :confirmDialog="deleteDetailVatDialog"
     :textContent="'ต้องการลบข้อมูลภาษี รายการที่ ' + (del_data.index + 1)"
     v-on:close="deleteDetailVatDialog = false"
     v-on:confirm="deleteDetailVat"
   ></DialogForm>
+  </div>
 </template>
 
 <style scoped>
-.vat-scroll-container {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #f7fafc;
-}
-
-.vat-scroll-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.vat-scroll-container::-webkit-scrollbar-track {
-  background: #f7fafc;
-  border-radius: 3px;
-}
-
-.vat-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 3px;
-}
-
-.vat-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+/* Sticky Header */
+.vat-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
 }
 </style>

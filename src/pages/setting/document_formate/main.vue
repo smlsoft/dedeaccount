@@ -35,6 +35,7 @@ const uploadedImages = ref([]);
 const ocrTestPanelRef = ref(null);
 const showOcrPanel = ref(false); // สลับระหว่าง List และ OCR Test Panel
 const isLoadingOcr = ref(false); // สถานะ loading ของ OCR
+const selectedModel = ref("gemini"); // บังคับใช้ gemini เท่านั้น
 
 const form_model = ref({
   guidfixed: "",
@@ -433,6 +434,25 @@ async function handleOcrTestFromPanel(files) {
       return;
     }
 
+    // บังคับใช้ gemini โดยตรง ไม่ต้องแสดง dialog
+    selectedModel.value = "gemini";
+    await processOcrTest(files);
+
+  } catch (err) {
+    console.error(err);
+    toast.add({
+      severity: "error",
+      summary: "เกิดข้อผิดพลาด",
+      detail: err.response?.data?.message || "ไม่สามารถทดสอบ OCR ได้",
+      life: 5000,
+    });
+  }
+}
+
+async function processOcrTest(files) {
+  try {
+    const shopid = localStorage.getItem('shopid');
+
     // แสดง Loading Dialog
     isLoadingOcr.value = true;
 
@@ -452,6 +472,7 @@ async function handleOcrTestFromPanel(files) {
       formData.append('file', file);
     });
     formData.append('shopid', shopid);
+    formData.append('model', selectedModel.value); // เพิ่ม model parameter
     formData.append('template', JSON.stringify(templateData));
 
     uploadedImages.value = files.map(file => ({
@@ -459,6 +480,8 @@ async function handleOcrTestFromPanel(files) {
       name: file.name,
       type: file.type
     }));
+
+    console.log('Testing OCR with model:', selectedModel.value);
 
     const res = await OcrService.testTemplate(formData);
 
@@ -601,6 +624,7 @@ function closeOcrResultDialog() {
     @update:visible="showOcrResultDialog = $event"
     @close="closeOcrResultDialog"
   />
+
 </template>
 <style>
 .p-dialog.p-component.p-ripple-disabled {

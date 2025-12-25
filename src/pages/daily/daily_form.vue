@@ -4,11 +4,12 @@ import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
 import ImageDataService from "@/services/ImageDataService";
-import OcrService from "@/services/OcrService";
 import OcrResultDialog from "./components/ocr_result_dialog.vue";
 import OcrLoadingDialog from "@/components/OcrLoadingDialog.vue";
 import DialogMasterDataError from "@/components/DialogMasterDataError.vue";
+import OcrModelSelectionDialog from "@/components/OcrModelSelectionDialog.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
+import { useOcr } from "@/composables/useOcr";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted } from "vue";
@@ -106,13 +107,22 @@ const firstPage = ref(0);
 const showUploadImage = ref(false);
 const fileInput = ref(HTMLInputElement);
 const showSkeleton = ref(false);
-const showOcrDialog = ref(false);
-const ocrResultData = ref(null);
-const showOcrLoadingDialog = ref(false);
 
-// Master Data Error Dialog
-const showMasterDataErrorDialog = ref(false);
-const masterDataErrorData = ref(null);
+// OCR Composable
+const {
+  showOcrDialog,
+  ocrResultData,
+  showOcrLoadingDialog,
+  showMasterDataErrorDialog,
+  masterDataErrorData,
+  showModelSelectionDialog,
+  selectedModel,
+  sentOCR: sentOCRComposable,
+  refreshOCR: refreshOCRComposable,
+  closeOcrDialog,
+  confirmModelSelection,
+  cancelModelSelection,
+} = useOcr();
 
 const daily_form = ref({
   debtaccounttype: "0",
@@ -1912,282 +1922,11 @@ function clearCreditor() {
 
 // OCR Functions
 async function sentOCR() {
-  try {
-    if (
-      !selectedImgData.value ||
-      !selectedImgData.value.imagereferences ||
-      selectedImgData.value.imagereferences.length === 0
-    ) {
-      toast.add({
-        severity: "warn",
-        summary: "แจ้งเตือน",
-        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
-        life: 3000,
-      });
-      return;
-    }
-
-    // ตรวจสอบว่ามีข้อมูล OCR เก่าหรือไม่
-    if (
-      selectedImgData.value.ocranalyzeai &&
-      selectedImgData.value.ocranalyzeai !== ""
-    ) {
-      try {
-        const oldOcrData = JSON.parse(selectedImgData.value.ocranalyzeai);
-        ocrResultData.value = oldOcrData;
-        showOcrDialog.value = true;
-
-        toast.add({
-          severity: "info",
-          summary: "แสดงข้อมูล OCR เดิม",
-          detail: "หากต้องการอ่านใหม่ กรุณากดปุ่ม 'อ่าน OCR ใหม่' ใน dialog",
-          life: 4000,
-        });
-        return;
-      } catch (parseError) {
-        console.error("Error parsing old OCR data:", parseError);
-      }
-    }
-
-    showOcrLoadingDialog.value = true;
-
-    const shopid =
-      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
-
-    if (!shopid) {
-      throw new Error("ไม่พบ shopid ใน localStorage");
-    }
-
-    const requestData = {
-      shopid: shopid,
-      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
-        documentimageguid: img.documentimageguid,
-        imageuri: img.imageuri,
-      })),
-    };
-
-    console.log("Sending OCR request:", requestData);
-
-    const response = await OcrService.analyzeReceipt(requestData);
-
-    console.log("OCR response:", response);
-
-    // ตรวจสอบว่ามี error จาก API หรือไม่
-    if (response && response.status === "error") {
-      if (response.error === "master_data_not_found") {
-        // กรณีไม่มี Master Data - แสดง Dialog
-        masterDataErrorData.value = response;
-        showMasterDataErrorDialog.value = true;
-        return;
-      } else {
-        // กรณี error อื่นๆ
-        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
-      }
-    }
-
-    if (!response || !response.accounting_entry) {
-      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
-    }
-
-    try {
-      const updateData = {
-        ...selectedImgData.value,
-        ocranalyzeai: JSON.stringify(response),
-      };
-
-      await ImageDataService.putUpdateDocumentImageGroup(
-        selectedImgData.value.guidfixed,
-        updateData
-      );
-
-      console.log("OCR response saved to database successfully");
-      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
-    } catch (dbError) {
-      console.error("Error saving OCR to database:", dbError);
-      toast.add({
-        severity: "warn",
-        summary: "เตือน",
-        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
-        life: 3000,
-      });
-    }
-
-    ocrResultData.value = response;
-    showOcrDialog.value = true;
-
-    toast.add({
-      severity: "success",
-      summary: "สำเร็จ",
-      detail: "วิเคราะห์เอกสารเสร็จสิ้น",
-      life: 3000,
-    });
-  } catch (error) {
-    console.error("OCR Error:", error);
-
-    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
-    if (error.response && error.response.data) {
-      const responseData = error.response.data;
-      
-      if (responseData.error === "master_data_not_found") {
-        // แสดง Dialog สำหรับ Master Data Error
-        masterDataErrorData.value = responseData;
-        showMasterDataErrorDialog.value = true;
-        return;
-      }
-    }
-
-    // กรณี error อื่นๆ
-    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
-
-    if (error.response) {
-      errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        errorMessage;
-    } else if (error.request) {
-      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
-    } else {
-      errorMessage = error.message || errorMessage;
-    }
-
-    toast.add({
-      severity: "error",
-      summary: "ผิดพลาด",
-      detail: errorMessage,
-      life: 5000,
-    });
-  } finally {
-    showOcrLoadingDialog.value = false;
-  }
+  await sentOCRComposable(selectedImgData);
 }
 
 async function refreshOCR() {
-  try {
-    if (
-      !selectedImgData.value ||
-      !selectedImgData.value.imagereferences ||
-      selectedImgData.value.imagereferences.length === 0
-    ) {
-      toast.add({
-        severity: "warn",
-        summary: "แจ้งเตือน",
-        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
-        life: 3000,
-      });
-      return;
-    }
-
-    showOcrDialog.value = false;
-    showOcrLoadingDialog.value = true;
-
-    const shopid =
-      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
-
-    if (!shopid) {
-      throw new Error("ไม่พบ shopid ใน localStorage");
-    }
-
-    const requestData = {
-      shopid: shopid,
-      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
-        documentimageguid: img.documentimageguid,
-        imageuri: img.imageuri,
-      })),
-    };
-
-    console.log("Refreshing OCR request:", requestData);
-
-    const response = await OcrService.analyzeReceipt(requestData);
-
-    console.log("OCR response:", response);
-
-    // ตรวจสอบว่ามี error จาก API หรือไม่
-    if (response && response.status === "error") {
-      if (response.error === "master_data_not_found") {
-        // กรณีไม่มี Master Data - แสดง Dialog
-        masterDataErrorData.value = response;
-        showMasterDataErrorDialog.value = true;
-        return;
-      } else {
-        // กรณี error อื่นๆ
-        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
-      }
-    }
-
-    if (!response || !response.accounting_entry) {
-      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
-    }
-
-    try {
-      const updateData = {
-        ...selectedImgData.value,
-        ocranalyzeai: JSON.stringify(response),
-      };
-
-      await ImageDataService.putUpdateDocumentImageGroup(
-        selectedImgData.value.guidfixed,
-        updateData
-      );
-
-      console.log("OCR response saved to database successfully");
-      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
-    } catch (dbError) {
-      console.error("Error saving OCR to database:", dbError);
-      toast.add({
-        severity: "warn",
-        summary: "เตือน",
-        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
-        life: 3000,
-      });
-    }
-
-    ocrResultData.value = response;
-    showOcrDialog.value = true;
-
-    toast.add({
-      severity: "success",
-      summary: "สำเร็จ",
-      detail: "วิเคราะห์เอกสารใหม่เสร็จสิ้น",
-      life: 3000,
-    });
-  } catch (error) {
-    console.error("OCR Error:", error);
-
-    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
-    if (error.response && error.response.data) {
-      const responseData = error.response.data;
-      
-      if (responseData.error === "master_data_not_found") {
-        // แสดง Dialog สำหรับ Master Data Error
-        masterDataErrorData.value = responseData;
-        showMasterDataErrorDialog.value = true;
-        return;
-      }
-    }
-
-    // กรณี error อื่นๆ
-    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
-
-    if (error.response) {
-      errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        errorMessage;
-    } else if (error.request) {
-      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
-    } else {
-      errorMessage = error.message || errorMessage;
-    }
-
-    toast.add({
-      severity: "error",
-      summary: "ผิดพลาด",
-      detail: errorMessage,
-      life: 5000,
-    });
-  } finally {
-    showOcrLoadingDialog.value = false;
-  }
+  await refreshOCRComposable(selectedImgData);
 }
 
 function applyOcrData(data) {
@@ -2323,16 +2062,12 @@ function applyOcrData(data) {
   }
 }
 
-function closeOcrDialog() {
-  showOcrDialog.value = false;
-  ocrResultData.value = null;
-}
 </script>
 
 <template>
   <AppLayout>
-    <MainContentWarp>
-      <div class="surface-ground px-2 py-0">
+    <MainContentWarp style="height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="surface-ground px-2 py-0" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
         <Button
           label="กลับหน้ารายการ"
           icon="pi pi-arrow-left"
@@ -2553,6 +2288,7 @@ function closeOcrDialog() {
         <div
           class="surface-card p-4 shadow-2 border-round p-fluid"
           v-if="!onLoad"
+          style="flex: 1; min-height: 0; display: flex; flex-direction: column;"
         >
           <div class="flex justify-content-between mb-2">
             <div class="flex align-items-center"></div>
@@ -2566,6 +2302,7 @@ function closeOcrDialog() {
             layout="horizontal"
             @resizestart="resizeSplitter(true)"
             @resizeend="resizeSplitter(false)"
+            style="height: calc(100vh - 220px); max-height: calc(100vh - 220px); overflow: hidden; border: 1px solid var(--surface-border);"
           >
             <SplitterPanel
               :size="1"
@@ -2573,6 +2310,7 @@ function closeOcrDialog() {
               id="panelForm2"
               @mouseleave="removeMagnify()"
               v-if="useImage"
+              style="overflow-y: auto; overflow-x: hidden;"
             >
               <div class="flex justify-content-between align-items-right">
                 <div>
@@ -2704,15 +2442,15 @@ function closeOcrDialog() {
                 style="display: none"
               />
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3">
-              <TabView class="tabview-custom" ref="tabview">
+            <SplitterPanel @click="removeMagnify()" :size="99" id="panelForm3" style="overflow-y: auto; overflow-x: hidden;">
+              <div ref="divCheckGl" style="height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                <TabView class="tabview-custom" ref="tabview" style="height: 100%; display: flex; flex-direction: column;">
                 <TabPanel>
                   <template #header>
                     <i class="pi pi-book mr-1"></i>
                     <span> ข้อมูลรายวัน</span>
                   </template>
                   <div v-if="!onLoad">
-                    <div ref="divCheckGl">
                       <JournalForm
                         :isUpdate="readMode"
                         :daily_form="daily_form"
@@ -2738,7 +2476,6 @@ function closeOcrDialog() {
                         v-on:clearCreditor="clearCreditor"
                       >
                       </JournalForm>
-                    </div>
                   </div>
                 </TabPanel>
                 <TabPanel>
@@ -2782,6 +2519,7 @@ function closeOcrDialog() {
                   </div>
                 </TabPanel>
               </TabView>
+              </div>
             </SplitterPanel>
           </Splitter>
           <div class="flex justify-content-between">
@@ -2856,11 +2594,55 @@ function closeOcrDialog() {
         :errorData="masterDataErrorData"
         v-on:confirm="showMasterDataErrorDialog = false"
       />
+
+      <!-- OCR Model Selection Dialog -->
+      <OcrModelSelectionDialog
+        :visible="showModelSelectionDialog"
+        v-model:selectedModel="selectedModel"
+        @confirm="confirmModelSelection"
+        @cancel="cancelModelSelection"
+      />
     </MainContentWarp>
   </AppLayout>
 </template>
 
 <style>
+/* Prevent page scroll - fix body height */
+body {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+#app {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Force overflow on SplitterPanel */
+#panelForm3 {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent TabView from expanding */
+.tabview-custom {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabview-custom .p-tabview-panels {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tabview-custom .p-tabview-panel {
+  height: 100%;
+}
+
 .img-magnifier-container {
   position: relative;
 }
@@ -2885,5 +2667,11 @@ iframe {
   border: none; /* Reset default border */
   height: 100%; /* Viewport-relative units */
   width: 100%;
+}
+
+/* Force overflow on image panel */
+#panelForm2 {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 </style>

@@ -3,7 +3,6 @@ import DialogForm from "@/components/DialogForm.vue";
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import MasterdataService from "@/services/MasterdataService";
-import OcrService from "@/services/OcrService";
 import { useRouter, useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { ref, onMounted, computed, onUnmounted, watch } from "vue";
@@ -16,6 +15,8 @@ import TaxForm from "./components/tax_form.vue";
 import OcrResultDialog from "./components/ocr_result_dialog.vue";
 import DialogWarringPeriod from "@/components/DialogWarringPeriod.vue";
 import DialogMasterDataError from "@/components/DialogMasterDataError.vue";
+import OcrModelSelectionDialog from "@/components/OcrModelSelectionDialog.vue";
+import { useOcr } from "@/composables/useOcr";
 
 import IncomeDataService from "@/services/IncomeDataService";
 import IncomeForm from "../income/components/detail_form.vue";
@@ -276,14 +277,23 @@ const activeTabIndex = ref(0);
 const debtorData = ref(null);
 const creditorData = ref(null);
 
-// OCR Result Dialog
-const showOcrDialog = ref(false);
-const ocrResultData = ref(null);
-const showOcrLoadingDialog = ref(false);
-const warringAccountperiod = ref(false);
+// OCR Composable
+const {
+  showOcrDialog,
+  ocrResultData,
+  showOcrLoadingDialog,
+  showMasterDataErrorDialog,
+  masterDataErrorData,
+  showModelSelectionDialog,
+  selectedModel,
+  sentOCR: sentOCRComposable,
+  refreshOCR: refreshOCRComposable,
+  closeOcrDialog,
+  confirmModelSelection,
+  cancelModelSelection,
+} = useOcr();
 
-// Master Data Error Dialog
-const showMasterDataErrorDialog = ref(false);
+const warringAccountperiod = ref(false);
 
 // Function เพื่อดึงงวดบัญชีจากวันที่
 function getAccountPeriodByDate(keyDate) {
@@ -308,7 +318,6 @@ function getAccountPeriodByDate(keyDate) {
       warringAccountperiod.value = true;
     });
 }
-const masterDataErrorData = ref(null);
 
 // Mock OCR Data
 const mockOcrData = {
@@ -623,6 +632,36 @@ onMounted(async () => {
     // set height ifram
     heightIamgeDivCheckGl.value =
       "height:" + divCheckGl.value.offsetHeight + "px";
+
+    // Debug: Check SplitterPanel dimensions
+    const panelForm3 = document.getElementById("panelForm3");
+    if (panelForm3) {
+      console.log("=== SplitterPanel Debug ===");
+      console.log("Panel height:", panelForm3.offsetHeight, "px");
+      console.log("Panel scrollHeight:", panelForm3.scrollHeight, "px");
+      console.log(
+        "Panel overflow-y:",
+        window.getComputedStyle(panelForm3).overflowY
+      );
+      console.log(
+        "Panel overflow-x:",
+        window.getComputedStyle(panelForm3).overflowX
+      );
+      console.log(
+        "Can scroll:",
+        panelForm3.scrollHeight > panelForm3.offsetHeight
+      );
+
+      // Check divCheckGl
+      if (divCheckGl.value) {
+        console.log("divCheckGl height:", divCheckGl.value.offsetHeight, "px");
+        console.log(
+          "divCheckGl scrollHeight:",
+          divCheckGl.value.scrollHeight,
+          "px"
+        );
+      }
+    }
   }, 100);
 });
 
@@ -1238,308 +1277,12 @@ async function confirmSave() {
 }
 
 async function sentOCR() {
-  try {
-    // ตรวจสอบว่ามีรูปภาพที่เลือกหรือไม่
-    if (
-      !selectedImgData.value ||
-      !selectedImgData.value.imagereferences ||
-      selectedImgData.value.imagereferences.length === 0
-    ) {
-      toast.add({
-        severity: "warn",
-        summary: "แจ้งเตือน",
-        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
-        life: 3000,
-      });
-      return;
-    }
-
-    // ตรวจสอบว่ามีข้อมูล OCR เก่าหรือไม่
-    if (
-      selectedImgData.value.ocranalyzeai &&
-      selectedImgData.value.ocranalyzeai !== ""
-    ) {
-      try {
-        // แสดงข้อมูล OCR เก่า
-        const oldOcrData = JSON.parse(selectedImgData.value.ocranalyzeai);
-        ocrResultData.value = oldOcrData;
-        showOcrDialog.value = true;
-
-        toast.add({
-          severity: "info",
-          summary: "แสดงข้อมูล OCR เดิม",
-          detail: "หากต้องการอ่านใหม่ กรุณากดปุ่ม 'อ่าน OCR ใหม่' ใน dialog",
-          life: 4000,
-        });
-        return;
-      } catch (parseError) {
-        console.error("Error parsing old OCR data:", parseError);
-        // ถ้า parse ไม่ได้ ให้เรียก API ใหม่
-      }
-    }
-
-    // เปิด loading dialog
-    showOcrLoadingDialog.value = true;
-
-    // ดึง shopid จาก localStorage
-    const shopid =
-      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
-
-    if (!shopid) {
-      throw new Error("ไม่พบ shopid ใน localStorage");
-    }
-
-    // เตรียมข้อมูลสำหรับส่งไป API
-    const requestData = {
-      shopid: shopid,
-      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
-        documentimageguid: img.documentimageguid,
-        imageuri: img.imageuri,
-      })),
-    };
-
-    console.log("Sending OCR request:", requestData);
-
-    // เรียก API
-    const response = await OcrService.analyzeReceipt(requestData);
-
-    console.log("OCR response:", response);
-
-    // ตรวจสอบว่ามี error จาก API หรือไม่
-    if (response && response.status === "error") {
-      if (response.error === "master_data_not_found") {
-        // กรณีไม่มี Master Data - แสดง Dialog
-        masterDataErrorData.value = response;
-        showMasterDataErrorDialog.value = true;
-        return;
-      } else {
-        // กรณี error อื่นๆ
-        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
-      }
-    }
-
-    // ตรวจสอบว่า response มีข้อมูลที่ถูกต้องหรือไม่
-    if (!response || !response.accounting_entry) {
-      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
-    }
-
-    // บันทึก OCR response ลงฐานข้อมูลทันที
-    try {
-      const updateData = {
-        ...selectedImgData.value,
-        ocranalyzeai: JSON.stringify(response),
-      };
-
-      await ImageDataService.putUpdateDocumentImageGroup(
-        selectedImgData.value.guidfixed,
-        updateData
-      );
-
-      console.log("OCR response saved to database successfully");
-
-      // อัปเดตข้อมูลใน selectedImgData ด้วย
-      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
-    } catch (dbError) {
-      console.error("Error saving OCR to database:", dbError);
-      // แสดงเตือนแต่ไม่ throw error เพื่อให้แสดง dialog ต่อได้
-      toast.add({
-        severity: "warn",
-        summary: "เตือน",
-        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
-        life: 3000,
-      });
-    }
-
-    // เก็บผลลัพธ์และแสดง dialog
-    ocrResultData.value = response;
-    showOcrDialog.value = true;
-
-    toast.add({
-      severity: "success",
-      summary: "สำเร็จ",
-      detail: "วิเคราะห์เอกสารเสร็จสิ้น",
-      life: 3000,
-    });
-  } catch (error) {
-    console.error("OCR Error:", error);
-
-    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
-    if (error.response && error.response.data) {
-      const responseData = error.response.data;
-      
-      if (responseData.error === "master_data_not_found") {
-        // แสดง Dialog สำหรับ Master Data Error
-        masterDataErrorData.value = responseData;
-        showMasterDataErrorDialog.value = true;
-        return;
-      }
-    }
-
-    // กรณี error อื่นๆ
-    let errorMessage = "ไม่สามารถวิเคราะห์เอกสารได้";
-
-    if (error.response) {
-      errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        errorMessage;
-    } else if (error.request) {
-      errorMessage =
-        "ไม่สามารถเชื่อมต่อกับ OCR API ได้ กรุณาตรวจสอบว่า API Server กำลังทำงานอยู่";
-    } else {
-      errorMessage = error.message || errorMessage;
-    }
-
-    toast.add({
-      severity: "error",
-      summary: "ผิดพลาด",
-      detail: errorMessage,
-      life: 5000,
-    });
-  } finally {
-    // ปิด loading dialog เมื่อเสร็จสิ้น
-    showOcrLoadingDialog.value = false;
-  }
+  await sentOCRComposable(selectedImgData);
 }
 
 // ฟังก์ชันสำหรับเรียก OCR ใหม่ (ไม่สนใจข้อมูลเก่า)
 async function refreshOCR() {
-  try {
-    // ตรวจสอบว่ามีรูปภาพที่เลือกหรือไม่
-    if (
-      !selectedImgData.value ||
-      !selectedImgData.value.imagereferences ||
-      selectedImgData.value.imagereferences.length === 0
-    ) {
-      toast.add({
-        severity: "warn",
-        summary: "แจ้งเตือน",
-        detail: "กรุณาเลือกรูปภาพเอกสารก่อนทำการวิเคราะห์",
-        life: 3000,
-      });
-      return;
-    }
-
-    // ปิด dialog และเปิด loading
-    showOcrDialog.value = false;
-    showOcrLoadingDialog.value = true;
-
-    // ดึง shopid จาก localStorage
-    const shopid =
-      localStorage.getItem("_shopid") || localStorage.getItem("shopid");
-
-    if (!shopid) {
-      throw new Error("ไม่พบ shopid ใน localStorage");
-    }
-
-    // เตรียมข้อมูลสำหรับส่งไป API
-    const requestData = {
-      shopid: shopid,
-      imagereferences: selectedImgData.value.imagereferences.map((img) => ({
-        documentimageguid: img.documentimageguid,
-        imageuri: img.imageuri,
-      })),
-    };
-
-    console.log("Refreshing OCR request:", requestData);
-
-    // เรียก API
-    const response = await OcrService.analyzeReceipt(requestData);
-
-    console.log("OCR refresh response:", response);
-
-    // ตรวจสอบว่ามี error จาก API หรือไม่
-    if (response && response.status === "error") {
-      if (response.error === "master_data_not_found") {
-        // กรณีไม่มี Master Data - แสดง Dialog
-        masterDataErrorData.value = response;
-        showMasterDataErrorDialog.value = true;
-        return;
-      } else {
-        // กรณี error อื่นๆ
-        throw new Error(response.message || "เกิดข้อผิดพลาดจาก OCR API");
-      }
-    }
-
-    // ตรวจสอบว่า response มีข้อมูลที่ถูกต้องหรือไม่
-    if (!response || !response.accounting_entry) {
-      throw new Error("ไม่ได้รับข้อมูลจาก OCR API");
-    }
-
-    // บันทึก OCR response ลงฐานข้อมูลทันที
-    try {
-      const updateData = {
-        ...selectedImgData.value,
-        ocranalyzeai: JSON.stringify(response),
-      };
-
-      await ImageDataService.putUpdateDocumentImageGroup(
-        selectedImgData.value.guidfixed,
-        updateData
-      );
-
-      console.log("OCR response refreshed and saved successfully");
-
-      // อัปเดตข้อมูลใน selectedImgData ด้วย
-      selectedImgData.value.ocranalyzeai = JSON.stringify(response);
-    } catch (dbError) {
-      console.error("Error saving refreshed OCR to database:", dbError);
-      toast.add({
-        severity: "warn",
-        summary: "เตือน",
-        detail: "บันทึกข้อมูล OCR ลงฐานข้อมูลไม่สำเร็จ",
-        life: 3000,
-      });
-    }
-
-    // เก็บผลลัพธ์และแสดง dialog
-    ocrResultData.value = response;
-    showOcrDialog.value = true;
-
-    toast.add({
-      severity: "success",
-      summary: "สำเร็จ",
-      detail: "อ่าน OCR ใหม่เรียบร้อยแล้ว",
-      life: 3000,
-    });
-  } catch (error) {
-    console.error("OCR Refresh Error:", error);
-
-    // ตรวจสอบว่าเป็น master_data_not_found error หรือไม่
-    if (error.response && error.response.data) {
-      const responseData = error.response.data;
-      
-      if (responseData.error === "master_data_not_found") {
-        // แสดง Dialog สำหรับ Master Data Error
-        masterDataErrorData.value = responseData;
-        showMasterDataErrorDialog.value = true;
-        return;
-      }
-    }
-
-    // กรณี error อื่นๆ
-    let errorMessage = "ไม่สามารถอ่าน OCR ใหม่ได้";
-
-    if (error.response) {
-      errorMessage =
-        error.response.data?.message ||
-        error.response.data?.error ||
-        errorMessage;
-    } else if (error.request) {
-      errorMessage = "ไม่สามารถเชื่อมต่อกับ OCR API ได้";
-    } else {
-      errorMessage = error.message || errorMessage;
-    }
-
-    toast.add({
-      severity: "error",
-      summary: "ผิดพลาด",
-      detail: errorMessage,
-      life: 5000,
-    });
-  } finally {
-    showOcrLoadingDialog.value = false;
-  }
+  await refreshOCRComposable(selectedImgData);
 }
 
 function applyOcrData(data) {
@@ -1577,9 +1320,9 @@ function applyOcrData(data) {
         daily_form.value.exdocrefdate = documentDate;
         // Reset accountperiod เพื่อบังคับให้เช็คงวดบัญชีใหม่
         daily_form.value.accountperiod = null;
-        
+
         // เรียกใช้ getAccountPeriodByDate เพื่อดึงงวดบัญชี
-        const formattedDate = documentDate.toISOString().split('T')[0]; // แปลงเป็น YYYY-MM-DD
+        const formattedDate = documentDate.toISOString().split("T")[0]; // แปลงเป็น YYYY-MM-DD
         getAccountPeriodByDate(formattedDate);
       }
     }
@@ -1681,11 +1424,6 @@ function applyOcrData(data) {
       life: 3000,
     });
   }
-}
-
-function closeOcrDialog() {
-  showOcrDialog.value = false;
-  ocrResultData.value = null;
 }
 
 async function onSave() {
@@ -2628,6 +2366,26 @@ function addColumn(index) {
   heightIamgeDivCheckGl.value =
     "height : " + divCheckGl.value.offsetHeight + "px";
 
+  // Debug after adding column
+  setTimeout(() => {
+    const panelForm3 = document.getElementById("panelForm3");
+    if (panelForm3) {
+      console.log("=== After addColumn ===");
+      console.log("Panel height:", panelForm3.offsetHeight, "px");
+      console.log("Panel scrollHeight:", panelForm3.scrollHeight, "px");
+      console.log(
+        "Can scroll:",
+        panelForm3.scrollHeight > panelForm3.offsetHeight
+      );
+      console.log("divCheckGl height:", divCheckGl.value.offsetHeight, "px");
+      console.log(
+        "divCheckGl scrollHeight:",
+        divCheckGl.value.scrollHeight,
+        "px"
+      );
+    }
+  }, 100);
+
   /// 1 = รายวัน , 2 = รายได้  , 3 = รายจ่าย
   if (imageDailyType.value == 1) {
     daily_form.value.journaldetail.splice(index + 1, 0, {
@@ -2735,6 +2493,14 @@ function addBoxVat() {
   // ดึงเดือนจากวันที่ใบกำกับ (เดือนใน JavaScript เริ่มจาก 0)
   const vatMonth = new Date(vatDate).getMonth() + 1;
 
+  // Debug before adding VAT
+  console.log("=== Before addBoxVat ===");
+  const panelBefore = document.getElementById("panelForm3");
+  if (panelBefore) {
+    console.log("Panel height:", panelBefore.offsetHeight, "px");
+    console.log("Panel scrollHeight:", panelBefore.scrollHeight, "px");
+  }
+
   // กำหนดประเภทภาษีตาม debtaccounttype
   // "0" = ลูกหนี้ → ภาษีขาย (vatmode = 1)
   // "1" = เจ้าหนี้ → ภาษีซื้อ (vatmode = 0)
@@ -2773,6 +2539,52 @@ function addBoxVat() {
     custtaxid: false,
     branchcode: false,
   });
+
+  // Debug after adding VAT
+  setTimeout(() => {
+    const panelAfter = document.getElementById("panelForm3");
+    if (panelAfter) {
+      console.log("=== After addBoxVat ===");
+      console.log("Panel height:", panelAfter.offsetHeight, "px");
+      console.log("Panel scrollHeight:", panelAfter.scrollHeight, "px");
+      console.log(
+        "Can scroll:",
+        panelAfter.scrollHeight > panelAfter.offsetHeight
+      );
+      if (divCheckGl.value) {
+        console.log("divCheckGl height:", divCheckGl.value.offsetHeight, "px");
+        console.log(
+          "divCheckGl scrollHeight:",
+          divCheckGl.value.scrollHeight,
+          "px"
+        );
+      }
+    }
+
+    // Check body and html
+    console.log("body height:", document.body.offsetHeight, "px");
+    console.log("body scrollHeight:", document.body.scrollHeight, "px");
+    console.log("html height:", document.documentElement.offsetHeight, "px");
+    console.log(
+      "html scrollHeight:",
+      document.documentElement.scrollHeight,
+      "px"
+    );
+
+    // Check Splitter
+    const splitter = document.querySelector(".p-splitter");
+    if (splitter) {
+      console.log("Splitter height:", splitter.offsetHeight, "px");
+      console.log("Splitter scrollHeight:", splitter.scrollHeight, "px");
+    }
+
+    // Check main content
+    const mainContent = document.querySelector(".main-content");
+    if (mainContent) {
+      console.log("MainContent height:", mainContent.offsetHeight, "px");
+      console.log("MainContent scrollHeight:", mainContent.scrollHeight, "px");
+    }
+  }, 100);
 }
 
 function deleteDetailVat(index) {
@@ -2814,6 +2626,14 @@ function addBoxTax() {
   // ใช้วันที่เอกสารจาก daily_form หรือวันที่ปัจจุบันถ้าไม่มี
   const taxDate = daily_form.value.docdate || Utils.getDateTime();
 
+  // Debug before adding Tax
+  console.log("=== Before addBoxTax ===");
+  const panelBefore = document.getElementById("panelForm3");
+  if (panelBefore) {
+    console.log("Panel height:", panelBefore.offsetHeight, "px");
+    console.log("Panel scrollHeight:", panelBefore.scrollHeight, "px");
+  }
+
   // กำหนด custtype ตาม debtaccounttype และข้อมูลลูกหนี้/เจ้าหนี้
   let custType = 0; // default เป็นบุคคลธรรมดา
 
@@ -2851,6 +2671,52 @@ function addBoxTax() {
     custname: false,
     custtaxid: false,
   });
+
+  // Debug after adding Tax
+  setTimeout(() => {
+    const panelAfter = document.getElementById("panelForm3");
+    if (panelAfter) {
+      console.log("=== After addBoxTax ===");
+      console.log("Panel height:", panelAfter.offsetHeight, "px");
+      console.log("Panel scrollHeight:", panelAfter.scrollHeight, "px");
+      console.log(
+        "Can scroll:",
+        panelAfter.scrollHeight > panelAfter.offsetHeight
+      );
+      if (divCheckGl.value) {
+        console.log("divCheckGl height:", divCheckGl.value.offsetHeight, "px");
+        console.log(
+          "divCheckGl scrollHeight:",
+          divCheckGl.value.scrollHeight,
+          "px"
+        );
+      }
+    }
+
+    // Check body and html
+    console.log("body height:", document.body.offsetHeight, "px");
+    console.log("body scrollHeight:", document.body.scrollHeight, "px");
+    console.log("html height:", document.documentElement.offsetHeight, "px");
+    console.log(
+      "html scrollHeight:",
+      document.documentElement.scrollHeight,
+      "px"
+    );
+
+    // Check Splitter
+    const splitter = document.querySelector(".p-splitter");
+    if (splitter) {
+      console.log("Splitter height:", splitter.offsetHeight, "px");
+      console.log("Splitter scrollHeight:", splitter.scrollHeight, "px");
+    }
+
+    // Check main content
+    const mainContent = document.querySelector(".main-content");
+    if (mainContent) {
+      console.log("MainContent height:", mainContent.offsetHeight, "px");
+      console.log("MainContent scrollHeight:", mainContent.scrollHeight, "px");
+    }
+  }, 100);
 }
 
 function deleteDetailTax(index) {
@@ -3296,7 +3162,6 @@ function resetZoomImage() {
 
 function resizeSplitter(isOveray) {
   showOveray.value = isOveray;
-  console.log(isOveray);
 }
 
 function openImageNewWindow() {
@@ -3451,7 +3316,30 @@ function selectDucumentFormat(data) {
   documentFormateSelected.value = data;
   if (data != null) {
     daily_form.value.journaldetail = [];
-    var ele = document_formate.value.filter((val) => val.doccode == data);
+    var ele = document_formate.value.filter((val) => val.description == data);
+
+    // Error handling: ตรวจสอบว่าเจอ template หรือไม่
+    if (ele.length === 0) {
+      console.error("Template not found:", data);
+      toast.add({
+        severity: "error",
+        summary: "ไม่พบ Template",
+        detail: `ไม่พบรูปแบบเอกสาร "${data}"`,
+        life: 3000,
+      });
+      return;
+    }
+
+    // Error handling: เตือนถ้าเจอหลายตัว
+    if (ele.length > 1) {
+      console.warn("Multiple templates found:", data, ele);
+      toast.add({
+        severity: "warn",
+        summary: "พบ Template ซ้ำกัน",
+        detail: `พบรูปแบบเอกสาร "${data}" หลายรายการ ใช้รายการแรก`,
+        life: 3000,
+      });
+    }
 
     console.log(ele[0]);
 
@@ -3564,16 +3452,62 @@ function swapType(type) {
 
 <template>
   <AppLayout>
-    <MainContentWarp>
-      <div class="surface-ground px-2 py-0">
-        <Button
-          label="กลับหน้ารายการ"
-          icon="pi pi-arrow-left"
-          class="p-button-text p-button-sm p-button-info"
-          @click="!isChange ? goList() : (confirmBackImageDialog = true)"
-        />
+    <MainContentWarp
+      style="
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      "
+    >
+      <div
+        class="surface-ground px-2 py-0"
+        style="flex: 1; overflow-y: auto; display: flex; flex-direction: column"
+      >
+        <div class="flex justify-content-between align-items-center">
+          <Button
+            label="กลับหน้ารายการ"
+            icon="pi pi-arrow-left"
+            class="p-button-text p-button-sm p-button-info"
+            @click="!isChange ? goList() : (confirmBackImageDialog = true)"
+          />
 
-        <div class="surface-card p-4 shadow-2 border-round p-fluid">
+          <div class="flex align-items-center gap-2">
+            <Button
+              @click="sentOCR"
+              label="AI วิเคราะห์"
+              icon="pi pi-send"
+              class="p-button-text p-button-sm p-button-info"
+            ></Button>
+
+            <Button
+              v-if="imageDailyType == 1"
+              @click="onSave"
+              label="บันทึกรายวัน"
+              icon="pi pi-save"
+              class="p-button-text p-button-sm p-button-success"
+            ></Button>
+            <Button
+              v-if="imageDailyType == 2"
+              @click="onSaveIncome"
+              label="บันทึกรายได้"
+              icon="pi pi-save"
+              class="p-button-text p-button-sm p-button-success"
+            ></Button>
+            <Button
+              v-if="imageDailyType == 3"
+              @click="onSaveExpenses"
+              label="บันทึกค่าใช้จ่าย"
+              icon="pi pi-save"
+              class="p-button-text p-button-sm p-button-success"
+            ></Button>
+          </div>
+        </div>
+
+        <div
+          class="surface-card p-4 shadow-2 border-round p-fluid"
+          style="flex: 1; min-height: 0; display: flex; flex-direction: column"
+        >
           <!-- <div class="flex mb-2">
             <Button
               icon="pi pi-file"
@@ -3601,12 +3535,20 @@ function swapType(type) {
             layout="horizontal"
             @resizestart="resizeSplitter(true)"
             @resizeend="resizeSplitter(false)"
+            :gutterSize="15"
+            style="
+              height: calc(100vh - 220px);
+              max-height: calc(100vh - 220px);
+              overflow: hidden;
+              border: 1px solid var(--surface-border);
+            "
           >
             <SplitterPanel
               class="relative"
               id="panelForm2"
               @mouseleave="removeMagnify()"
               :size="50"
+              style="overflow-y: auto; overflow-x: hidden"
             >
               <div
                 class="flex align-items-center justify-content-center"
@@ -3784,12 +3726,26 @@ function swapType(type) {
                 </KeepAlive>
               </div>
             </SplitterPanel>
-            <SplitterPanel @click="removeMagnify()" id="panelForm3" :size="50">
-              <div ref="divCheckGl">
+            <SplitterPanel
+              @click="removeMagnify()"
+              id="panelForm3"
+              :size="50"
+              style="overflow-y: auto; overflow-x: hidden"
+            >
+              <div
+                ref="divCheckGl"
+                style="
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  overflow: hidden;
+                "
+              >
                 <TabView
                   class="tabview-custom"
                   ref="tabview"
                   v-model:activeIndex="activeTabIndex"
+                  style="height: 100%; display: flex; flex-direction: column"
                 >
                   <TabPanel>
                     <template #header>
@@ -3901,45 +3857,8 @@ function swapType(type) {
               </div>
             </SplitterPanel>
           </Splitter>
-
-          <div class="flex justify-content-between">
-            <div class="mt-4 ml-0">
-              <Button
-                @click="sentOCR"
-                label="AI วิเคราะห์เอกสาร"
-                icon="pi pi-send"
-                class="w-auto p-button-info"
-              ></Button>
-            </div>
-
-            <div
-              class="mt-4 ml-0 flex align-items-center justify-content-center"
-            >
-              <Button
-                v-if="imageDailyType == 1"
-                @click="onSave"
-                label="บันทึกรายวัน"
-                icon="pi pi-save"
-                class="w-auto p-button-success"
-              ></Button>
-              <Button
-                v-if="imageDailyType == 2"
-                @click="onSaveIncome"
-                label="บันทึกรายได้"
-                icon="pi pi-save"
-                class="w-auto p-button-success"
-              ></Button>
-              <Button
-                v-if="imageDailyType == 3"
-                @click="onSaveExpenses"
-                label="บันทึกค่าใช้จ่าย"
-                icon="pi pi-save"
-                class="w-auto p-button-success"
-              ></Button>
-            </div>
-          </div>
         </div>
-        <div class="flex mt-4 align-items-center justify-content-between">
+        <div class="flex mt-4 mb-4 align-items-center justify-content-between">
           <div
             class="flex-grow-1 flex align-items-center justify-content-center"
           >
@@ -4104,11 +4023,55 @@ function swapType(type) {
         :errorData="masterDataErrorData"
         v-on:confirm="showMasterDataErrorDialog = false"
       />
+
+      <!-- OCR Model Selection Dialog -->
+      <OcrModelSelectionDialog
+        :visible="showModelSelectionDialog"
+        v-model:selectedModel="selectedModel"
+        @confirm="confirmModelSelection"
+        @cancel="cancelModelSelection"
+      />
     </MainContentWarp>
   </AppLayout>
 </template>
 
 <style>
+/* Prevent page scroll - fix body height */
+body {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+#app {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Force overflow on SplitterPanel */
+#panelForm3 {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent TabView from expanding */
+.tabview-custom {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabview-custom .p-tabview-panels {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tabview-custom .p-tabview-panel {
+  height: 100%;
+}
+
 .img-magnifier-container {
   position: relative;
 }
@@ -4137,5 +4100,11 @@ iframe {
   border: none; /* Reset default border */
   height: 100%; /* Viewport-relative units */
   width: 100%;
+}
+
+/* Force overflow on image panel */
+#panelForm2 {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 }
 </style>
