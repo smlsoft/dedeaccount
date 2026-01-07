@@ -464,12 +464,19 @@ function navigateHorizontal(currentIndex, currentField, direction) {
 </script>
 
 <template>
-  <form style="height: 100%; display: flex; flex-direction: column; overflow-y: auto;">
-        <div
-          class="grid formgrid p-fluid"
-          v-if="props.income_expenses_mode == false"
-        >
-      <div class="field mb-4 col-12 md:col-3">
+  <form
+    style="
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    "
+  >
+    <div
+      class="grid formgrid p-fluid"
+      v-if="props.income_expenses_mode == false"
+    >
+      <div class="field sm:col-12 md:col-4">
         <span class="p-float-label">
           <DatePicker
             dateFormat="d/m/yy"
@@ -489,7 +496,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           <label for="docdate">เอกสารวันที่</label>
         </span>
       </div>
-      <div class="field mb-4 col-12 md:col-5">
+        <div class="field sm:col-12 md:col-4">
         <span class="p-float-label">
           <InputText
             type="text"
@@ -503,7 +510,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           <label for="docNo">เลขที่เอกสาร</label>
         </span>
       </div>
-      <div class="field mb-4 col-12 md:col-4">
+      <div class="field sm:col-12 md:col-4">
         <span class="p-float-label">
           <Dropdown
             v-model="props.daily_form.bookcode"
@@ -531,7 +538,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
           <label for="bookcode">สมุดรายวัน</label>
         </span>
       </div>
-      <div class="field mt-3 col-12 md:col-3">
+      <div class="field mt-3 sm:col-12 md:col-3">
         <div class="grid mt-0 ml-2">
           <div class="flex field-checkbox">
             <RadioButton
@@ -558,7 +565,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
         </div>
       </div>
       <div
-        class="field mb-4 col-12 md:col-9"
+        class="field mb-4 sm:col-12 md:col-9"
         v-if="props.daily_form.debtaccounttype == 0"
       >
         <span class="p-float-label">
@@ -589,7 +596,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
         </span>
       </div>
       <div
-        class="field mb-4 col-12 md:col-9"
+        class="field mb-4 sm:col-12 md:col-9"
         v-if="props.daily_form.debtaccounttype == 1"
       >
         <span class="p-float-label">
@@ -775,7 +782,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
       "
       v-if="!props.isUpdate"
     >
-      <div class="flex flex-column gap-2" >
+      <div class="flex flex-column gap-2">
         <div class="flex align-items-center gap-2">
           <h1 class="m-0 font-semibold text-900 text-xl line-height-3">
             นำเข้ารายการบัญชี
@@ -1055,7 +1062,7 @@ function navigateHorizontal(currentIndex, currentField, direction) {
     </template>
   </Dialog> -->
 </template>
-<style>
+<style scoped>
 .p-dialog.p-component.p-ripple-disabled {
   background-color: #fff;
 }

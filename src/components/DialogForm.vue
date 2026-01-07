@@ -53,20 +53,20 @@ function onConfirm() {
     </template>
 
     <div class="flex flex-column justify-content-center align-items-center">
-      <p
+      <div
         class="line-height-3 p-0 m-0"
         style="font-size: 1.2rem; text-align: center"
       >
-        <span>
+        <div>
           {{ props.textContent }}
-        </span>
+        </div>
         <div>
           {{ props.textContent2 }}
         </div>
         <div>
           <span> ใช่หรือไม่ ? </span>
         </div>
-      </p>
+      </div>
     </div>
     <div class="flex flex-column justify-content-center align-items-center">
       <span

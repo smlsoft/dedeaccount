@@ -5,12 +5,26 @@ export default {
 
     getAccountPeriod(limitPage, page, search, sortField, sortOrder) {
         //console.log('Page' + page);
-        var q = "";
-        if (search != "" && search != undefined && search != null) {
-            q = "&q=" + search
+        const params = new URLSearchParams();
+        
+        // เพิ่มพารามิเตอร์เฉพาะเมื่อมีค่า
+        if (limitPage !== undefined && limitPage !== null) {
+            params.append('limit', limitPage);
         }
-        console.log(`/gl/accountperiodmaster?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`);
-        return instanceApi(true).get(`/gl/accountperiodmaster?limit=${limitPage}&page=${page}${q}&sort=${sortField}:${sortOrder}`).then(res => res.data);
+        if (page !== undefined && page !== null) {
+            params.append('page', page);
+        }
+        if (search && search !== "" && search !== undefined && search !== null) {
+            params.append('q', search);
+        }
+        if (sortField !== undefined && sortField !== null && sortOrder !== undefined && sortOrder !== null) {
+            params.append('sort', `${sortField}:${sortOrder}`);
+        }
+        
+        const queryString = params.toString();
+        const url = `/gl/accountperiodmaster${queryString ? '?' + queryString : ''}`;
+        console.log(url);
+        return instanceApi(true).get(url).then(res => res.data);
     },
 
 

@@ -39,7 +39,6 @@ onMounted(() => {
   storeApp.setActiveChild("daily_list");
 });
 
-
 function getGLJournalList() {
   loading.value = true;
   MasterdataService.getGLJournalList(
@@ -74,7 +73,6 @@ function getGLJournalList() {
       console.log(err);
     });
 }
-
 
 function keyup() {
   clearTimeout(typingTimer.value);
@@ -217,6 +215,7 @@ function onPage(event) {
     storeDailyList.filtersByDescription,
     storeDailyList.filtersByDocformat,
     storeDailyList.filtersByAppname,
+    storeDailyList.filtersByJobguidfixed,
     storeDailyList.filtersByAmount,
     storeDailyList.sendFiltersByCreateDate,
     storeDailyList.filtersByCreateBy,
@@ -302,14 +301,18 @@ function getContactName(data) {
   if (data.debtaccounttype === 0) {
     // ลูกหนี้
     if (data.debtor && data.debtor.names && data.debtor.names.length > 0) {
-      const thaiName = data.debtor.names.find(n => n.code === "th");
+      const thaiName = data.debtor.names.find((n) => n.code === "th");
       return thaiName ? thaiName.name : "ไม่ได้กำหนด";
     }
     return "ไม่ได้กำหนด";
   } else if (data.debtaccounttype === 1) {
     // เจ้าหนี้
-    if (data.creditor && data.creditor.names && data.creditor.names.length > 0) {
-      const thaiName = data.creditor.names.find(n => n.code === "th");
+    if (
+      data.creditor &&
+      data.creditor.names &&
+      data.creditor.names.length > 0
+    ) {
+      const thaiName = data.creditor.names.find((n) => n.code === "th");
       return thaiName ? thaiName.name : "ไม่ได้กำหนด";
     }
     return "ไม่ได้กำหนด";
@@ -339,7 +342,8 @@ function filterDocDate(event, mode, key) {
     if (key == "docdate") {
       storeDailyList.sendFiltersByDocDate = dayjs(keyDate).format("YYYY-MM-DD");
     } else if (key == "createdate") {
-      storeDailyList.sendFiltersByCreateDate = dayjs(keyDate).format("YYYY-MM-DD");
+      storeDailyList.sendFiltersByCreateDate =
+        dayjs(keyDate).format("YYYY-MM-DD");
     }
 
     console.log(storeDailyList.sendFiltersByCreateDate);
@@ -386,8 +390,14 @@ function closefiltersColum() {
                 </div>
                 <div>
                   <Button
-                    :label="!storeDailyList.showfilters ? 'ค้นหา' : 'ปิดการค้นหา'"
-                    :icon="!storeDailyList.showfilters ? 'pi pi-filter' : 'pi pi-filter-slash'"
+                    :label="
+                      !storeDailyList.showfilters ? 'ค้นหา' : 'ปิดการค้นหา'
+                    "
+                    :icon="
+                      !storeDailyList.showfilters
+                        ? 'pi pi-filter'
+                        : 'pi pi-filter-slash'
+                    "
                     class="w-auto"
                     :class="
                       !storeDailyList.showfilters
@@ -395,7 +405,9 @@ function closefiltersColum() {
                         : 'p-button-info'
                     "
                     @click="
-                      !storeDailyList.showfilters ? showfiltersColum() : closefiltersColum()
+                      !storeDailyList.showfilters
+                        ? showfiltersColum()
+                        : closefiltersColum()
                     "
                   />
                 </div>
@@ -578,8 +590,17 @@ function closefiltersColum() {
               style="min-width: 120px"
             >
               <template #body="{ data }">
-                <Tag v-if="data.appname === 'AI'" value="AI" severity="success" icon="pi pi-sparkles" />
-                <Tag v-else-if="data.appname" :value="data.appname" severity="info" />
+                <Tag
+                  v-if="data.appname === 'AI'"
+                  value="AI"
+                  severity="success"
+                  icon="pi pi-sparkles"
+                />
+                <Tag
+                  v-else-if="data.appname"
+                  :value="data.appname"
+                  severity="info"
+                />
                 <span v-else class="text-400">ทำเอง</span>
               </template>
               <template #filter>
@@ -824,7 +845,7 @@ function closefiltersColum() {
   </AppLayout>
 </template>
 
-<style>
+<style scoped>
 .text-header-right .p-column-header-content {
   display: inline-flex;
 }

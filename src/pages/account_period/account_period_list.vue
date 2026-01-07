@@ -2,7 +2,7 @@
 import AppLayout from "@/components/layout/AppLayout.vue";
 import MainContentWarp from "@/components/MainContentWarp.vue";
 import AccountPeriodDataService from "@/services/AccountPeriodService";
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useToast } from "primevue/usetoast";
 import { useApp } from "@/stores/app.js";
 import DatePicker from "@/components/widget/DatePicker.vue";
@@ -26,6 +26,17 @@ const data_list = ref([
   },
 ]);
 
+// พารามิเตอร์สำหรับ API
+const activePage = ref(1);
+const limitPage = ref(12);
+const searchValue = ref(null);
+const sortField = ref("period");
+const sortOrder = ref(1);
+
+// ข้อมูล pagination จาก API
+const totalRecords = ref(0);
+const totalPage = ref(0);
+
 const dialogAccountPeriod = ref(false);
 const dialogAccountPeriodSingle = ref(false);
 const accountPeriodModeSelect = ref(1);
@@ -46,6 +57,17 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
+// Watch สำหรับการค้นหา
+let searchTimeout = null;
+watch(() => filters.value.global.value, (newValue) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    searchValue.value = newValue;
+    activePage.value = 1;
+    getAccountPeriod();
+  }, 500);
+});
+
 onMounted(() => {
   getAccountPeriod();
   storeApp.setPageTitle("กำหนดงวดบัญชี");
@@ -56,7 +78,13 @@ onMounted(() => {
 
 function getAccountPeriod() {
   loading.value = true;
-  AccountPeriodDataService.getAccountPeriod()
+  AccountPeriodDataService.getAccountPeriod(
+    limitPage.value,
+    activePage.value,
+    searchValue.value,
+    sortField.value,
+    sortOrder.value
+  )
     .then((res) => {
       console.log(res);
       if (res.success) {
@@ -65,6 +93,12 @@ function getAccountPeriod() {
           element.enddateshow = Utils.getDateFormatDMY(element.enddate);
         });
         data_list.value = res.data;
+
+        // อัพเดทข้อมูล pagination จาก API
+        if (res.pagination) {
+          totalRecords.value = res.pagination.total;
+          totalPage.value = res.pagination.totalPage;
+        }
       }
       loading.value = false;
     })
@@ -356,8 +390,19 @@ async function editAccountPeriodSingle() {
     });
   }
 }
+
 function onPage(event) {
   console.log(event);
+  activePage.value = event.page + 1;
+  limitPage.value = event.rows;
+  getAccountPeriod();
+}
+
+function onSort(event) {
+  console.log(event);
+  sortField.value = event.sortField;
+  sortOrder.value = event.sortOrder;
+  getAccountPeriod();
 }
 </script>
 
@@ -370,13 +415,19 @@ function onPage(event) {
           v-model:selection="selectedAccountPeriod"
           dataKey="guidfixed"
           :paginator="true"
-          :rows="12"
+          :rows="limitPage"
+          :totalRecords="totalRecords"
+          :lazy="true"
           :filters="filters"
           :rowsPerPageOptions="[12, 24, 36, 48, 60, 100]"
           responsiveLayout="scroll"
           stripedRows
           :rowHover="true"
+          :loading="loading"
+          v-model:sortField="sortField"
+          v-model:sortOrder="sortOrder"
           @page="onPage($event)"
+          @sort="onSort($event)"
         >
           <template #header>
             <div class="table-header flex justify-content-between flex-wrap">
